@@ -1,0 +1,75 @@
+---
+description: YAGNI, SOLID, avoid over-abstraction. Apply when designing hooks, splitting files, or abstracting.
+alwaysApply: true
+---
+
+# Simplicity-First Design
+
+複雑にできることを、いかにシンプルに実装するかを常に選ぶ。SOLID は適切な粒度で適用し、理論のための分割・抽象化はしない。
+
+## 原則
+
+- **YAGNI**: 今使わない機能・仮想要件の拡張ポイントは作らない。必要になったときに足す
+- **実用性**: 理論的に美しい設計より、今の要件を満たすわかりやすい設計
+- **最小抽象化**: 同じパターンが **3 回以上** 現れてから抽象化する
+- **使われない抽象化は負債**: 1 箇所専用の抽象化は作らない
+
+## SOLID（分割しすぎない）
+
+- **S**: 1 つの変更理由はフィーチャー/フック単位。state / validation / submit を別ファイルにしない
+- **O**: 3 箇所目の利用が現れてから拡張する。先回りの拡張ポイントは作らない
+- **L**: 置換可能な層は安易に増やさない。入れるなら既存の契約を壊さない
+- **I**: 呼び出し側が使う項目だけのフラットな型。巨大な interface 継承はしない
+- **D**: 実在する協働オブジェクトに依存する。プロセス外以外の interface を「念のため」作らない
+
+## ファイル分割
+
+分割する: 300 行を明確に超える、**異なる責任領域**が混在、独立してテストしたい、他フィーチャーで既に使う（または使うことが確定している）
+
+分割しない: サイズが大きいだけ、分割後に統合層が必要、1 機能として密結合、分割で可読性が下がる
+
+## 抽象化
+
+する: **3 回以上**同じパターン、明確に独立した責任、テストまたは型安全性が向上する
+
+しない: 理論上きれいなだけ、将来使うかもしれない、1–2 箇所、抽象化の方が複雑
+
+## 実装前
+
+1. 今必要か（YAGNI）
+2. 既存コードで足りるか
+3. 分割で本当に良くなるか
+4. 統合フック/モジュールが必要にならないか
+5. 3 箇所以上で使うか
+
+## 危険信号
+
+```typescript
+// NG: 分割して再統合
+hooks/
+├── useFormState.ts
+├── useFormValidation.ts
+├── useFormSubmission.ts
+└── useFormIntegration.ts  // 実際に使われるのはこれだけ
+
+// OK: 密結合なら 1 フック
+hooks/
+└── useProfileForm.ts
+```
+
+```typescript
+// NG
+interface UseFormReturn extends FormState, FormActions, ValidationState {}
+
+// OK: 呼び出し側が使うものだけ
+interface UseProfileFormReturn {
+  formData: ProfileFormData;
+  isValid: boolean;
+  updateField: (field: string, value: string) => void;
+  submitForm: () => Promise<boolean>;
+}
+```
+
+複雑になったら: 密結合フックは統合する、未使用抽象化は消す、型はフラットにする。
+
+ファイル長の目安は `AGENTS.md`（通常 50–200 行、複雑でも 300 行まで）。
