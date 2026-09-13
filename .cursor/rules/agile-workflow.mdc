@@ -1,5 +1,5 @@
 ---
-description: Epic / Story / Task workflow with vertical slices and small implementation units
+description: Epic / Story / Task / Sub workflow with vertical slices and branch-per-story/task
 alwaysApply: true
 ---
 
@@ -11,32 +11,69 @@ Source of truth for tickets: `docs/backlog.md`. No sprint ceremonies, velocity, 
 
 - **Epic (`E-###`)**: Multi-story outcome. Never an implementation unit.
 - **Story (`S-###`)**: One user-visible value. As a / I want / so that + Given/When/Then. **Always the unit of delivery.**
-- **Task (`T-###`)**: One behavior that advances the story. One TDD cycle, one commit. No horizontal splits (schema-only, UI-only, repository-only).
+- **Task (`T-###`)**: A coherent behavior chunk within the story. Groups related Subs. Done when all child Subs are Done and the task branch is merged.
+- **Sub (`ST-###`)**: **The implementation unit.** One user-confirmable step. One TDD cycle, one `pnpm run check`, one commit.
+
+## Branching
+
+```
+main
+  └── feat/s-001-…          ← Story ブランチ（Story 開始時に1回だけ切る）
+        └── feat/s-001-t-001-…  ← Task ブランチ（計画後、Task 着手時に切る）
+              commits: ST-001, ST-002, …  ← Sub ごとに1コミット
+        ← Task 完了で Story ブランチへマージ
+  ← Story 完了で main へマージ（PR）
+```
+
+1. **Story ブランチを1回切る**（例: `feat/s-001-record-person`）。以降その Story の作業の親にする
+2. **計画を作る**（Task / Sub の分割を `docs/backlog.md` に書く。未分割なら実装しない）
+3. **Task ブランチを切る**（Story ブランチから。例: `feat/s-001-t-001-save-person`）
+4. **Sub ごとに** テスト → 確認（Red→Green + `pnpm run check`）→ コミット
+5. **Task 完了で** Task ブランチを Story ブランチへマージする。次の Task も同様
+6. **Story 完了で** Story ブランチを `main` へ PR / マージする
+
+- 同時に進める Story は1つ。同時に進める Task ブランチも原則1つ
+- Sub のコミットメッセージに Story ID と Sub ID を含める（例: `S-001 ST-003`）
 
 ## Before coding
 
 1. Confirm the target Story ID in `docs/backlog.md`. If missing, add the story first.
-2. Work on **one in-progress story** per session / PR.
-3. Split the story if any of these hold: more than 5 acceptance criteria; roughly more than 8 files touched; cannot finish in one session; phrased as "whole feature" or "build all infrastructure first".
+2. Ensure the Story branch exists; cut a Task branch only after Tasks/Subs are written.
+3. Split into Subs if a Task is still too large: more than one confirmable step; roughly more than 8 files; cannot finish in one sitting; or phrased as "whole feature" / "build infrastructure first".
+4. Split the Story itself if it has more than 5 acceptance criteria or cannot ship in one PR after Task/Sub split.
 
 ## Vertical slices only
 
-- Slice by **user value**, not by technical layer.
-- Good: "Save one stamp from the camera"
-- Bad: "Create table", "Add repository", "Build screen shell"
+- Slice by **user-visible progress**, not by technical layer.
+- Good Sub: "Open the record screen from home", "Save a person stamp and see the name on home"
+- Bad Sub: "Create table", "Add repository", "Build screen shell only"
+- Schema / Query / UI may land together inside one Sub when that Sub needs them — do not ship layer-only Subs
 
-Within one slice, prefer a unified implementation (do not fragment files without need).
+Within one Sub, prefer a unified implementation (do not fragment files without need).
 
-## Definition of Done (story)
+## Definition of Done
 
-- Acceptance criteria are covered by tests
-- Each task completed Red → Green per `tdd-cycle` rule
-- `pnpm run check` passed after each task
-- One commit per task (message includes Story ID, e.g. `S-001`)
-- `docs/backlog.md` task checkboxes updated
+### Sub
+
+- Acceptance of that Sub is covered by tests
+- Red → Green per `tdd-cycle` rule
+- `pnpm run check` passed
+- One commit on the **Task** branch (message includes Story ID and Sub ID, e.g. `S-001 ST-003`)
+- `docs/backlog.md` Sub checkbox updated
+
+### Task
+
+- All child Subs are Done
+- Task branch merged into the Story branch
+
+### Story
+
+- Acceptance criteria are covered
+- All Tasks (and their Subs) are Done and merged into the Story branch
+- Story branch merged to `main` (PR)
 - Do not start the next story until the current story is Done
 
 ## Exceptions (no story required)
 
-- `chore`: dependencies, tooling, config
+- `chore`: dependencies, tooling, config（専用ブランチ可。Story フロー不要）
 - Time-boxed spikes: leave no production code

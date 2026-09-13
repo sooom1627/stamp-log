@@ -1,17 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
+import { HomeScreen } from "@/features/rallies/screens/home-screen";
 
 export default function Index() {
-  return (
-    <View style={styles.container}>
-      <Text>stamp-log</Text>
-    </View>
-  );
+  return <HomeScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
