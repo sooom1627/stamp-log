@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { rallyTypeSchema, type RallyType } from "../rallies";
+import { rallyNameSchema, rallyTypeSchema, type RallyType } from "../rallies";
 import { saveRally } from "../rallies-db";
 
 const RALLY_TYPE_LABELS: Record<RallyType, string> = {
@@ -37,7 +37,8 @@ export function CreateRallyScreen() {
     },
   });
 
-  const canSave = !save.isPending;
+  const isNameValid = rallyNameSchema.safeParse(name).success;
+  const canSave = isNameValid && !save.isPending;
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 16 }}>

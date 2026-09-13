@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 export const rallyTypeSchema = z.enum(["place", "action", "person"]);
+export const rallyNameSchema = z.string().trim().min(1);
 export const rallySchema = z.object({
   id: z.number(),
-  name: z.string(),
+  name: rallyNameSchema,
   type: rallyTypeSchema,
 });
 export const saveRallyInputSchema = rallySchema.pick({

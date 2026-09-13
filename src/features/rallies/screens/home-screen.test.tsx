@@ -45,3 +45,27 @@ describe("ST-002 ラリーの保存", () => {
     expect(screen.getByText("人")).toBeOnTheScreen();
   });
 });
+
+describe("ST-003 名称の必須チェック", () => {
+  test("名称が空のときは保存できない", async () => {
+    await renderRouter("./src/app");
+
+    const user = userEvent.setup();
+    await user.press(screen.getByRole("link", { name: "ラリーを作る" }));
+
+    expect(await screen.findByRole("button", { name: "保存" })).toBeDisabled();
+  });
+
+  test("空白だけのときも保存できない", async () => {
+    await renderRouter("./src/app");
+
+    const user = userEvent.setup();
+    await user.press(screen.getByRole("link", { name: "ラリーを作る" }));
+    await user.type(
+      await screen.findByPlaceholderText("記録したい場所を入力"),
+      "   ",
+    );
+
+    expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+  });
+});
