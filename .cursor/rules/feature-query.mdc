@@ -11,10 +11,13 @@ alwaysApply: true
 src/
   app/                         # Expo Router routes only (thin)
   features/
-    <kebab-name>/              # domain feature (e.g. stamps)
+    <kebab-name>/              # domain feature (e.g. rallies)
       screens/                 # feature screen bodies
-      components/              # feature-only UI (when needed)
-      # hooks / db helpers: add beside them when a file needs it
+      components/              # feature-only UI
+      hooks/                   # TanStack Query (and other feature hooks)
+      db/                      # SQLite helpers only — no Query
+      schemas/                 # Zod + inferred types
+      constants/               # labels, placeholders
   shared/
     components/                # cross-feature UI (when needed)
     hooks/
@@ -26,7 +29,9 @@ src/
 - Domain code lives in `src/features/<kebab-name>/`
 - Keep `src/app/` routes thin: read params, render the feature screen
 - Cross-feature code lives in `src/shared/` (not top-level `components/` / `hooks/`)
-- Add a subfolder only when a file needs it. No empty `api/` / `types/` / `repository/` / `docs/`, no barrel `index.ts` for integration
+- Cut the feature folders above even when they hold one file. Do **not** add `api/` `types/` `repository/` `docs/`, or barrel `index.ts` for integration
+- Query lives in `hooks/`. `db/` talks to SQLite only. Screens import Query hooks, not `db/`
+- Display strings live in `constants/`. Screens do not keep label maps
 - Do **not** introduce Repository interfaces, DI Context, or dual Memory/SQLite implementations “for testability.” Call SQLite (or a plain helper) from the feature; mock only out-of-process boundaries in tests
 
 ## Query = persisted state (local or remote)

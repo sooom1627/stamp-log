@@ -10,7 +10,7 @@ Single source of truth for Epic / Story / Task / Sub. Lightweight agile only —
 2. Cut a **Story branch once**, then plan: split into **Tasks** and **Subs** (user-confirmable steps, not layers). Write them in this file.
 3. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm → commit. Mark Sub checkboxes as you commit.
 4. When a Task’s Subs are Done, **merge the Task branch into the Story branch**. When the Story is Done, merge the Story branch to `main`.
-5. IDs: `E-###`, `S-###`, `T-###`, `ST-###`. Reference Story + Sub IDs in commit messages.
+5. IDs: `E-###`, `S-###`, `T-###`, `ST-###`（Sub は Task 内で 001 から。Task が変わるたびにリセット）。Reference Story + Task + Sub IDs in commit messages.
 
 Template (copy under an epic):
 
@@ -54,13 +54,24 @@ so that 何を集めるかを自分で決めて、スタンプを押す先を用
 - Given 名称とタイプ（人 / 場所 / 行動）を入力した When 保存する Then そのラリーがホームのラリー一覧に名称とタイプ付きで表示される
 - Given 名称が空（または空白のみ） When 保存しようとする Then 保存できない
 - Given ラリーを複数作成した When ホームを見る Then すべてのラリーを確認できる
+- Given ラリーが一覧にある When 削除ボタンを見る Then そのラリーに削除ボタンがある
+- Given 削除ボタンを押した When 確認ダイアログが出る Then 確定するまで削除されない
+- Given 確認で削除した When ホームを見る Then そのラリーが一覧から消えている
 
 Tasks:
 
-- [ ] T-001: ホームからラリーを作成し、ホームに名称とタイプが並ぶ
-  - [ ] ST-001: ホームに「ラリーを作る」入口があり、作成画面（formSheet）を開ける（永続化なし）
-  - [ ] ST-002: 名称とタイプ（人 / 場所 / 行動）を入れて保存すると、ホームのラリー一覧に名称とタイプが出る（SQLite `rallies` + Query はこの Sub で初めて入れる）
-  - [ ] ST-003: 名称が空（または空白のみ）のときは保存できない
+- [x] T-001: ホームからラリーを作成し、ホームに名称とタイプが並ぶ
+  - [x] ST-001: ホームに「ラリーを作る」入口があり、作成画面（formSheet）を開ける（永続化なし）
+  - [x] ST-002: 名称とタイプ（人 / 場所 / 行動）を入れて保存すると、ホームのラリー一覧に名称とタイプが出る（SQLite `rallies` + Query はこの Sub で初めて入れる）
+  - [x] ST-003: 名称が空（または空白のみ）のときは保存できない
+  - [x] RT-001: ラリー feature を schemas / db / hooks / constants / components / screens に分割
+  - [x] RT-002: Uniwind で既存画面を className にする
+    - [x] ST-004: Uniwind を配線し、ホームの inline style を className にする
+    - [x] ST-005: 作成画面とタイプ選択の inline style を className にする
+- [ ] T-002: ホームのラリーを確認のうえ削除できる
+  - [ ] ST-001: 一覧の各ラリーに削除ボタンが出る
+  - [ ] ST-002: 削除を押すと確認（Confirm）が出る。キャンセルすると残る
+  - [ ] ST-003: 確認するとラリーが消え、ホーム一覧から消える
 
 ---
 
@@ -329,6 +340,8 @@ Tasks:
 - （実装着手時に垂直スライスで追加）
 
 ### Story: S-017 ラリーを削除する
+
+注記: ホームでの確認付き削除の基本フロー（削除ボタン → Confirm → 削除）は S-001 T-002。本 Story はスタンプが入ったラリーの扱い（中身も消えることの明示など）を対象とする。
 
 As a ラリーを持つユーザー
 I want 不要になったラリーを削除したい
