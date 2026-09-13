@@ -1,0 +1,31 @@
+---
+description: Feature folders and TanStack Query for persisted data, including local DB.
+alwaysApply: true
+---
+
+# Feature structure & Query
+
+## Features
+
+- Domain code lives in `src/features/<kebab-name>/`
+- Keep `src/app/` routes thin: read params, render the feature screen
+- Shared UI stays in `src/components/`, shared hooks in `src/hooks/`
+- Add a subfolder only when a file needs it. No empty `api/` / `types/` / `docs/`, no barrel `index.ts` for integration
+
+## Query = persisted state (local or remote)
+
+SQLite, files, and HTTP are the same kind of state: they live outside the component tree. Use TanStack Query. `useState` / Context are for UI and session-only client state.
+
+- `queryFn` / `mutationFn` may call a local repository, not only HTTP
+- Do not copy Query results into Context
+- After a write, `invalidateQueries` (or `setQueryData`) so other screens stay in sync
+- Local-only data mutated by this app: `staleTime: Infinity` plus invalidate on write is enough
+
+```ts
+// ✅ local DB is still Query
+const { data } = useQuery({
+  queryKey: ['stamps'],
+  queryFn: () => stampRepository.list(),
+  staleTime: Infinity,
+});
+```
