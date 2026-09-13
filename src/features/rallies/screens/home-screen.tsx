@@ -9,15 +9,21 @@ import {
   deleteRallyLabel,
   rallyTypeLabels,
 } from "../constants/rallies-constants";
-import { useRallies } from "../hooks/use-rallies";
+import { useDeleteRally, useRallies } from "../hooks/use-rallies";
+import { type Rally } from "../schemas/rallies";
 
 export function HomeScreen() {
   const { data: rallies } = useRallies();
+  const remove = useDeleteRally();
 
-  const confirmDelete = () =>
+  const confirmDelete = (rally: Rally) =>
     Alert.alert(deleteRallyConfirmTitle, deleteRallyConfirmMessage, [
       { text: cancelLabel, style: "cancel" },
-      { text: deleteRallyLabel, style: "destructive" },
+      {
+        text: deleteRallyLabel,
+        style: "destructive",
+        onPress: () => remove.mutate(rally.id),
+      },
     ]);
 
   return (
@@ -30,7 +36,7 @@ export function HomeScreen() {
           <Pressable
             role="button"
             aria-label={`${rally.name}を${deleteRallyLabel}`}
-            onPress={confirmDelete}
+            onPress={() => confirmDelete(rally)}
           >
             <Text className="text-red-500">{deleteRallyLabel}</Text>
           </Pressable>

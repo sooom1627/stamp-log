@@ -2,9 +2,17 @@ import { Alert, type AlertButton } from "react-native";
 
 import { renderRouter } from "expo-router/testing-library";
 
-import { screen, userEvent } from "@testing-library/react-native";
+import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
 
 jest.useFakeTimers();
+
+beforeEach(() => {
+  jest.spyOn(Alert, "alert").mockImplementation(() => {});
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 function findAlertButton(style: AlertButton["style"]): AlertButton {
   const alertSpy = jest.mocked(Alert.alert);
@@ -106,25 +114,32 @@ describe("T-002 ST-001 削除ボタン", () => {
 });
 
 describe("T-002 ST-002 削除の確認", () => {
-  let alertSpy: jest.SpyInstance;
-
-  beforeEach(() => {
-    alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    alertSpy.mockRestore();
-  });
-
   test("削除を押すと確認が出て、キャンセルするとラリーは残る", async () => {
     const user = await createRallyFromHome("山手線全駅");
 
     await user.press(screen.getByRole("button", { name: "山手線全駅を削除" }));
 
-    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(Alert.alert).toHaveBeenCalledTimes(1);
 
     findAlertButton("cancel").onPress?.();
 
     expect(screen.getByText("山手線全駅")).toBeOnTheScreen();
+  });
+});
+
+describe("T-002 ST-003 削除の確定", () => {
+  test("確認で削除すると、ホーム一覧から消える", async () => {
+    const user = await createRallyFromHome("週末のランニング");
+
+    await user.press(
+      screen.getByRole("button", { name: "週末のランニングを削除" }),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText("週末のランニング")).not.toBeOnTheScreen();
+    });
   });
 });

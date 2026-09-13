@@ -33,6 +33,11 @@ export async function saveRally(input: SaveRallyInput): Promise<void> {
   );
 }
 
+export async function deleteRally(id: Rally["id"]): Promise<void> {
+  const db = await getDb();
+  await db.runAsync("DELETE FROM rallies WHERE id = ?", id);
+}
+
 export async function listRallies(): Promise<Rally[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{
