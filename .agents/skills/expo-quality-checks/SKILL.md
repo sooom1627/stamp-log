@@ -46,7 +46,7 @@ git commit
 
 | Gate | Trigger | Scope | Format | Passes if |
 | --- | --- | --- | --- | --- |
-| Local verify | `pnpm run check` (also STEP completion / PR-before) | Whole repo | **Writes** via `format:fix` | All four steps exit 0 |
+| Local verify | `pnpm run check` (also Task completion / PR-before) | Whole repo | **Writes** via `format:fix` | All four steps exit 0 |
 | Pre-commit | husky `.husky/pre-commit` | Same as `check` | **Writes** | Same as `check` |
 | CI | `.github/workflows/continuous-integration.yml` on every `push` | Whole repo | **Check only** (`pnpm run format`) | lint + format + typecheck + test |
 
@@ -66,7 +66,7 @@ Pre-commit / `check` **rewrites** files. CI **fails** if working tree is unforma
 
 1. Package manager is **pnpm**. CI uses `pnpm install --frozen-lockfile`.
 2. After changing ESLint / Prettier / tsconfig / scripts / hooks, run `pnpm run check`.
-3. At each feature STEP, run `pnpm run check` (see `.cursor/rules/cursor-rules.mdc`).
+3. At each Task completion, run `pnpm run check` (see `.cursor/rules/tdd-cycle.mdc` and `.cursor/rules/agile-workflow.mdc`).
 4. ESLint is **flat config** (`eslint.config.js`, ESLint 9). Do not recreate `.eslintrc.*`.
 5. Import order is Prettier's job (`import/order` is `off`). Do not re-enable ESLint import sorting.
 6. Tailwind class order is Prettier's job (`tailwindcss/classnames-order` is `off`).

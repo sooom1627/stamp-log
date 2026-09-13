@@ -1,0 +1,42 @@
+---
+description: Epic / Story / Task workflow with vertical slices and small implementation units
+alwaysApply: true
+---
+
+# Agile Workflow (Lightweight)
+
+Source of truth for tickets: `docs/backlog.md`. No sprint ceremonies, velocity, or story points.
+
+## Hierarchy
+
+- **Epic (`E-###`)**: Multi-story outcome. Never an implementation unit.
+- **Story (`S-###`)**: One user-visible value. As a / I want / so that + Given/When/Then. **Always the unit of delivery.**
+- **Task (`T-###`)**: One behavior that advances the story. One TDD cycle, one commit. No horizontal splits (schema-only, UI-only, repository-only).
+
+## Before coding
+
+1. Confirm the target Story ID in `docs/backlog.md`. If missing, add the story first.
+2. Work on **one in-progress story** per session / PR.
+3. Split the story if any of these hold: more than 3 acceptance criteria; roughly more than 8 files touched; cannot finish in one session; phrased as "whole feature" or "build all infrastructure first".
+
+## Vertical slices only
+
+- Slice by **user value**, not by technical layer.
+- Good: "Save one stamp from the camera"
+- Bad: "Create table", "Add repository", "Build screen shell"
+
+Within one slice, prefer a unified implementation (do not fragment files without need).
+
+## Definition of Done (story)
+
+- Acceptance criteria are covered by tests
+- Each task completed Red → Green per `tdd-cycle` rule
+- `pnpm run check` passed after each task
+- One commit per task (message includes Story ID, e.g. `S-001`)
+- `docs/backlog.md` task checkboxes updated
+- Do not start the next story until the current story is Done
+
+## Exceptions (no story required)
+
+- `chore`: dependencies, tooling, config
+- Time-boxed spikes: leave no production code
