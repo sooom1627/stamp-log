@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { listRallies, saveRally } from "../db/rallies-db";
+import { deleteRally, listRallies, saveRally } from "../db/rallies-db";
 
 export const ralliesQueryKey = ["rallies"] as const;
 
@@ -17,6 +17,16 @@ export function useSaveRally() {
 
   return useMutation({
     mutationFn: saveRally,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ralliesQueryKey }),
+  });
+}
+
+export function useDeleteRally() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteRally,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ralliesQueryKey }),
   });

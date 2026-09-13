@@ -6,6 +6,11 @@ export const rallyTypeLabels: Record<RallyType, string> = {
   person: "人",
 };
 
+export const deleteRallyLabel = "削除";
+export const cancelLabel = "キャンセル";
+export const deleteRallyConfirmTitle = "ラリーを削除しますか？";
+export const deleteRallyConfirmMessage = "この操作は取り消せません。";
+
 export const rallyNamePlaceholders: Record<RallyType, string> = {
   place: "記録したい場所を入力",
   action: "記録したい行動を入力",
