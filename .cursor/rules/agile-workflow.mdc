@@ -17,7 +17,7 @@ Source of truth for tickets: `docs/backlog.md`. No sprint ceremonies, velocity, 
 
 1. Confirm the target Story ID in `docs/backlog.md`. If missing, add the story first.
 2. Work on **one in-progress story** per session / PR.
-3. Split the story if any of these hold: more than 3 acceptance criteria; roughly more than 8 files touched; cannot finish in one session; phrased as "whole feature" or "build all infrastructure first".
+3. Split the story if any of these hold: more than 5 acceptance criteria; roughly more than 8 files touched; cannot finish in one session; phrased as "whole feature" or "build all infrastructure first".
 
 ## Vertical slices only
 
