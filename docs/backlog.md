@@ -7,9 +7,10 @@ Single source of truth for Epic / Story / Task / Sub. Lightweight agile only —
 ## How to use
 
 1. Add or refine a **Story** before implementation. Link it under an **Epic**.
-2. Split the Story into **Tasks**, then each Task into **Subs** (user-confirmable steps, not layers).
-3. Deliver **one Story** at a time. Mark Sub checkboxes as you commit (**1 Sub = 1 commit**).
-4. IDs: `E-###`, `S-###`, `T-###`, `ST-###`. Reference Story + Sub IDs in commit messages.
+2. Cut a **Story branch once**, then plan: split into **Tasks** and **Subs** (user-confirmable steps, not layers). Write them in this file.
+3. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm → commit. Mark Sub checkboxes as you commit.
+4. When a Task’s Subs are Done, **merge the Task branch into the Story branch**. When the Story is Done, merge the Story branch to `main`.
+5. IDs: `E-###`, `S-###`, `T-###`, `ST-###`. Reference Story + Sub IDs in commit messages.
 
 Template (copy under an epic):
 

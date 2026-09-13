@@ -35,7 +35,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ## Implementation Principles
 
 - **TDD**: Classical TDD with minimal mocking. Confirm Red → minimal implementation → confirm Green → refactor. Follow `.cursor/rules/tdd-cycle.mdc`.
-- **Work units**: Epic / Story / Task / Sub in `docs/backlog.md`. Deliver one Story at a time; **Sub (`ST-###`) is the implementation unit** (one TDD cycle, one commit). Follow `.cursor/rules/agile-workflow.mdc`.
+- **Work units**: Epic / Story / Task / Sub in `docs/backlog.md`. Story branch once → plan → Task branch → Sub commits → merge Task into Story → merge Story to `main`. **Sub (`ST-###`) is the implementation unit** (test → confirm → one commit). Follow `.cursor/rules/agile-workflow.mdc`.
 - **Simplicity**: YAGNI, SOLID at feature granularity, no speculative abstraction. Follow `.cursor/rules/simplicity-first.mdc`.
 - **Features / data**: Domain in `src/features/<name>/` (screens, feature components). Cross-feature code in `src/shared/`. Persisted state (local SQLite or remote) uses TanStack Query. Follow `.cursor/rules/feature-query.mdc`.
 - **Quality gate**: Run `pnpm run check` at each Sub completion. Fix critical issues immediately; defer minor ones for batch refactor.
