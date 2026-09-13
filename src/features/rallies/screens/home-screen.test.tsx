@@ -4,6 +4,21 @@ import { screen, userEvent } from "@testing-library/react-native";
 
 jest.useFakeTimers();
 
+async function createRallyFromHome(name: string) {
+  await renderRouter("./src/app");
+
+  const user = userEvent.setup();
+  await user.press(screen.getByRole("link", { name: "ラリーを作る" }));
+  await user.type(
+    await screen.findByPlaceholderText("記録したい場所を入力"),
+    name,
+  );
+  await user.press(screen.getByRole("button", { name: "保存" }));
+  expect(await screen.findByText(name)).toBeOnTheScreen();
+
+  return user;
+}
+
 describe("ST-001 ラリー作成入口", () => {
   test("ホームの「ラリーを作る」を押すと作成画面が開く", async () => {
     await renderRouter("./src/app");
@@ -67,5 +82,15 @@ describe("ST-003 名称の必須チェック", () => {
     );
 
     expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+  });
+});
+
+describe("T-002 ST-001 削除ボタン", () => {
+  test("一覧のラリーに削除ボタンが出る", async () => {
+    await createRallyFromHome("東京の美術館");
+
+    expect(
+      screen.getByRole("button", { name: "東京の美術館を削除" }),
+    ).toBeOnTheScreen();
   });
 });

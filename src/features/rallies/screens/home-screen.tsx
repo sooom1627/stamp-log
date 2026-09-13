@@ -1,8 +1,11 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { Link } from "expo-router";
 
-import { rallyTypeLabels } from "../constants/rallies-constants";
+import {
+  deleteRallyLabel,
+  rallyTypeLabels,
+} from "../constants/rallies-constants";
 import { useRallies } from "../hooks/use-rallies";
 
 export function HomeScreen() {
@@ -15,6 +18,12 @@ export function HomeScreen() {
         <View key={rally.id} className="items-center gap-1">
           <Text selectable>{rally.name}</Text>
           <Text>{rallyTypeLabels[rally.type]}</Text>
+          <Pressable
+            role="button"
+            aria-label={`${rally.name}を${deleteRallyLabel}`}
+          >
+            <Text className="text-red-500">{deleteRallyLabel}</Text>
+          </Pressable>
         </View>
       ))}
     </View>
