@@ -1,15 +1,15 @@
 # Backlog
 
-Single source of truth for Epic / Story / Task. Lightweight agile only — no sprints, velocity, or points.
+Single source of truth for Epic / Story / Task / Sub. Lightweight agile only — no sprints, velocity, or points.
 
 プロダクト定義（概要・ビジョン・基盤）は [product.md](./product.md) を参照する。
 
 ## How to use
 
 1. Add or refine a **Story** before implementation. Link it under an **Epic**.
-2. Split work into vertical **Tasks** (user-visible behavior, not layers).
-3. Deliver **one Story** at a time. Mark task checkboxes as you commit.
-4. Story IDs: `E-###`, `S-###`, `T-###`. Reference the Story ID in commit messages.
+2. Split the Story into **Tasks**, then each Task into **Subs** (user-confirmable steps, not layers).
+3. Deliver **one Story** at a time. Mark Sub checkboxes as you commit (**1 Sub = 1 commit**).
+4. IDs: `E-###`, `S-###`, `T-###`, `ST-###`. Reference Story + Sub IDs in commit messages.
 
 Template (copy under an epic):
 
@@ -28,7 +28,9 @@ As a ... I want ... so that ...
 
 Tasks:
 
-- [ ] T-001: （振る舞いの一文）
+- [ ] T-001: （振る舞いのまとまり）
+  - [ ] ST-001: （ユーザーが確認できる一歩）
+  - [ ] ST-002: （次の一歩）
 ```
 
 ---
@@ -55,9 +57,16 @@ so that 誰と会ったかを忘れないうちに残しておきたい
 
 Tasks:
 
-- [ ] T-001: 単一の記録入口から、名前を入れて人スタンプを保存できる（種類は人/場所/行動を出し場所・行動は選べない。名前必須。保存後は元ページに戻り結果を反映。ラリー選択は要求しない）
-- [ ] T-002: 保存したスタンプの記録日時を確認できる（元ページの結果表示。日時の手入力はしない）
-- [ ] T-003: 任意の補足メモをアコーディオンから保存できる（未入力でも保存できる）
+- [ ] T-001: 単一の記録入口から、名前を入れて人スタンプを保存できる
+  - [ ] ST-001: ホームに「記録する」入口があり、記録画面を開ける（ルート `index` + `record` formSheet。永続化なし）
+  - [ ] ST-002: 記録画面で種類「人 / 場所 / 行動」を出し、場所・行動は選べない。人を選ぶと名前入力が出る
+  - [ ] ST-003: 名前を入れて保存すると人スタンプが残り、元ページに戻って名前が反映される（SQLite + Query はこの Sub で初めて入れる。ラリー UI なし）
+  - [ ] ST-004: 名前が空（または空白のみ）のときは保存できない
+- [ ] T-002: 保存したスタンプの記録日時を確認できる
+  - [ ] ST-005: 保存後の元ページ結果に、自動付与された記録日時が表示される（手入力なし）
+- [ ] T-003: 任意の補足メモをアコーディオンから保存できる
+  - [ ] ST-006: アコーディオンからメモを入れて保存すると、戻った結果にメモが反映される
+  - [ ] ST-007: アコーディオンを開かない / メモ空でも、名前があれば保存できる
 
 ### Story: S-002 場所を記録する
 

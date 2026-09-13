@@ -35,10 +35,10 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ## Implementation Principles
 
 - **TDD**: Classical TDD with minimal mocking. Confirm Red → minimal implementation → confirm Green → refactor. Follow `.cursor/rules/tdd-cycle.mdc`.
-- **Work units**: Epic / Story / Task in `docs/backlog.md`. Deliver one Story at a time with vertical-slice Tasks. Follow `.cursor/rules/agile-workflow.mdc`.
+- **Work units**: Epic / Story / Task / Sub in `docs/backlog.md`. Deliver one Story at a time; **Sub (`ST-###`) is the implementation unit** (one TDD cycle, one commit). Follow `.cursor/rules/agile-workflow.mdc`.
 - **Simplicity**: YAGNI, SOLID at feature granularity, no speculative abstraction. Follow `.cursor/rules/simplicity-first.mdc`.
-- **Features / data**: Domain in `src/features`. Persisted state (local SQLite or remote) uses TanStack Query. Follow `.cursor/rules/feature-query.mdc`.
-- **Quality gate**: Run `pnpm run check` at each Task completion. Fix critical issues immediately; defer minor ones for batch refactor.
+- **Features / data**: Domain in `src/features/<name>/` (screens, feature components). Cross-feature code in `src/shared/`. Persisted state (local SQLite or remote) uses TanStack Query. Follow `.cursor/rules/feature-query.mdc`.
+- **Quality gate**: Run `pnpm run check` at each Sub completion. Fix critical issues immediately; defer minor ones for batch refactor.
 - **Package Manager**: Use pnpm.
 
 ---
@@ -46,9 +46,9 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ## Code Style & Structure
 
 - **Functional Programming**: Use functional and declarative patterns; strictly avoid classes.
-- **File Organization**: Organize by **Feature**. Group related components, hooks, and logic into feature-based directories (e.g., `features/auth`, `features/payments`).
+- **File Organization**: Organize by **Feature** under `src/features/<kebab-name>/` (`screens/`, `components/` as needed). Put cross-feature UI, hooks, and theme under `src/shared/`. Keep `src/app/` as routes only.
 - **Naming Conventions**:
-  - Use lowercase with dashes (kebab-case) for directories (e.g., `components/form-elements`).
+  - Use lowercase with dashes (kebab-case) for directories (e.g., `features/stamps`, `shared/theme`).
   - Favor **named exports** for components and functions.
   - Use descriptive variable names with auxiliary verbs (e.g., `isLoading`, `hasError`, `shouldRedirect`).
 - **File Splitting**:

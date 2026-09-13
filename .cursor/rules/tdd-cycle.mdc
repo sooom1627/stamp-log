@@ -7,7 +7,7 @@ alwaysApply: true
 
 Classical TDD with minimal mocking. Order is mandatory: **Red → Green → Refactor**.
 
-## Per task
+## Per Sub (`ST-###`)
 
 1. Write a **failing** test for one behavior
 2. Run the test and **confirm Red** (failure reason must match intent; fix the test if not)
@@ -15,7 +15,7 @@ Classical TDD with minimal mocking. Order is mandatory: **Red → Green → Refa
 4. Run the test and **confirm Green**
 5. Refactor if needed; stay Green
 6. Run `pnpm run check`
-7. Commit (**one task = one commit**)
+7. Commit (**one Sub = one commit**)
 
 Do not add the next test until Green is confirmed. Do not implement before Red is confirmed. Do not defer tests to the end.
 
@@ -33,4 +33,4 @@ Reproduce with a failing test (Red) first, then fix (Green).
 ## Commits
 
 - Format: `prefix: message` (see `AGENTS.md`)
-- Include Story ID in the message or body (e.g. `S-001`)
+- Include Story ID and Sub ID in the message or body (e.g. `S-001 ST-003`)
