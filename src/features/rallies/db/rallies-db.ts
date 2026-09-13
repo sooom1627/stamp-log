@@ -5,7 +5,7 @@ import {
   saveRallyInputSchema,
   type Rally,
   type SaveRallyInput,
-} from "./rallies";
+} from "../schemas/rallies";
 
 let dbPromise: Promise<SQLiteDatabase> | undefined;
 

@@ -61,6 +61,7 @@ Tasks:
   - [x] ST-001: ホームに「ラリーを作る」入口があり、作成画面（formSheet）を開ける（永続化なし）
   - [x] ST-002: 名称とタイプ（人 / 場所 / 行動）を入れて保存すると、ホームのラリー一覧に名称とタイプが出る（SQLite `rallies` + Query はこの Sub で初めて入れる）
   - [x] ST-003: 名称が空（または空白のみ）のときは保存できない
+- [x] RT-001: ラリー feature を schemas / db / hooks / constants / components / screens に分割
 
 ---
 

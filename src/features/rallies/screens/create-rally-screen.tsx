@@ -4,22 +4,14 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { rallyNameSchema, rallyTypeSchema, type RallyType } from "../rallies";
-import { saveRally } from "../rallies-db";
-
-const RALLY_TYPE_LABELS: Record<RallyType, string> = {
-  place: "場所",
-  action: "行動",
-  person: "人",
-};
-
-const RALLY_NAME_PLACEHOLDERS: Record<RallyType, string> = {
-  place: "記録したい場所を入力",
-  action: "記録したい行動を入力",
-  person: "記録したい人を入力",
-};
+import { RallyTypeRadios } from "../components/rally-type-radios";
+import { rallyNamePlaceholders } from "../constants/rallies-constants";
+import { useSaveRally } from "../hooks/use-rallies";
+import {
+  rallyNameSchema,
+  rallyTypeSchema,
+  type RallyType,
+} from "../schemas/rallies";
 
 export function CreateRallyScreen() {
   const [selectedType, setSelectedType] = useState<RallyType>(
@@ -27,15 +19,7 @@ export function CreateRallyScreen() {
   );
   const [name, setName] = useState("");
   const router = useRouter();
-  const queryClient = useQueryClient();
-
-  const save = useMutation({
-    mutationFn: () => saveRally({ name, type: selectedType }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["rallies"] });
-      router.back();
-    },
-  });
+  const save = useSaveRally();
 
   const isNameValid = rallyNameSchema.safeParse(name).success;
   const canSave = isNameValid && !save.isPending;
@@ -46,37 +30,12 @@ export function CreateRallyScreen() {
         ラリーを作る
       </Text>
 
-      <View role="radiogroup" style={{ flexDirection: "row", gap: 8 }}>
-        {rallyTypeSchema.options.map((type) => {
-          const isSelected = selectedType === type;
-          return (
-            <Pressable
-              key={type}
-              role="radio"
-              aria-checked={isSelected}
-              accessibilityLabel={RALLY_TYPE_LABELS[type]}
-              onPress={() => setSelectedType(type)}
-              style={{
-                flex: 1,
-                paddingVertical: 12,
-                alignItems: "center",
-                borderRadius: 10,
-                borderCurve: "continuous",
-                backgroundColor: isSelected ? "#007aff" : "#f2f2f7",
-              }}
-            >
-              <Text style={{ color: isSelected ? "#ffffff" : "#000000" }}>
-                {RALLY_TYPE_LABELS[type]}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <RallyTypeRadios value={selectedType} onChange={setSelectedType} />
 
       <TextInput
         value={name}
         onChangeText={setName}
-        placeholder={RALLY_NAME_PLACEHOLDERS[selectedType]}
+        placeholder={rallyNamePlaceholders[selectedType]}
         autoFocus
         style={{
           borderWidth: 1,
@@ -95,7 +54,12 @@ export function CreateRallyScreen() {
       <Pressable
         role="button"
         disabled={!canSave}
-        onPress={() => save.mutate()}
+        onPress={() =>
+          save.mutate(
+            { name, type: selectedType },
+            { onSuccess: () => router.back() },
+          )
+        }
         style={{
           paddingVertical: 14,
           alignItems: "center",
