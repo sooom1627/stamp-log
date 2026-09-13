@@ -2,7 +2,7 @@
 
 Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
 
-You are an expert developer proficient in TypeScript, React and Expo SDK 57 (React Native), Tailwind CSS (NativeWind), Zod, i18next (expo-localization), TanStack React Query, pnpm (not npm).
+You are an expert developer proficient in TypeScript, React and Expo SDK 57 (React Native), Tailwind CSS v4 (Uniwind), Zod, i18next (expo-localization), TanStack React Query, pnpm (not npm).
 
 # Development Guidelines (TypeScript / Expo)
 
@@ -18,7 +18,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ## Technical Stack
 - **Framework**: Expo SDK 57 (Managed Workflow)
 - **Language**: TypeScript (Strict Mode)
-- **Styling**: NativeWind v3 (Tailwind CSS)
+- **Styling**: Uniwind (Tailwind CSS v4). NativeWind is not used.
 - **State Management**:
   - **Local**: `useState`
   - **Server**: `TanStack React Query`
@@ -81,12 +81,16 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 
 ---
 
-## UI & Styling (NativeWind v3)
-- **Styling**: Use **NativeWind v3** for component styling via `className`.
+## UI & Styling (Uniwind + Tailwind CSS v4)
+- **Styling**: Use **Uniwind** and Tailwind utility `className` on React Native components. Load the `uniwind` skill for setup, theming, variants, and third-party bindings.
+- **Priority**: This repo's Uniwind `className` rules override `expo-native-ui`'s "CSS and Tailwind are not supported" guidance. Keep `expo-native-ui` for Safe Area, SF Symbols, and `@expo/ui` selection — not for inline-style-only styling.
+- **Do not use NativeWind APIs**: no `nativewind/babel`, `cssInterop`, `remapProps`, `ThemeProvider`, or `tailwind.config.js`. Theme lives in CSS (`@theme`). Third-party components use `withUniwind()`, never wrapping core `react-native` / Reanimated primitives.
+- **className**: Use complete string literals (no `bg-${color}-500`). Core RN components already accept `className`; non-style color props use `{prop}ClassName` with `accent-*`.
 - **Layout**: Use Flexbox and Expo's `useWindowDimensions` for responsive designs.
 - **Safe Area**: Use `SafeAreaProvider` and `useSafeAreaInsets` from `react-native-safe-area-context` for precise layout control (notches, home indicators).
 - **Animations**: Leverage `react-native-reanimated` and `react-native-gesture-handler` for performant interactions.
 - **Performance**: Use `expo-image` for high-performance image rendering and caching. Avoid `AppLoading`; use `expo-splash-screen`.
+- **Packages**: Uniwind / Tailwind are not installed yet. Do not add `uniwind`, `tailwindcss`, or Metro CSS wiring unless explicitly asked.
 
 ---
 
