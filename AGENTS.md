@@ -7,6 +7,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 # Development Guidelines (TypeScript / Expo)
 
 ## Core Principles
+
 1. **Simplicity over Sophistication**: Choose practical, straightforward solutions over architecturally "elegant" but complex ones.
 2. **Integration over Fragmentation**: Prefer unified implementations over multiple small pieces that require complex integration.
 3. **Current Requirements over Future Flexibility (YAGNI)**: Build for today's needs. Avoid speculative features or over-abstraction.
@@ -16,6 +17,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ---
 
 ## Technical Stack
+
 - **Framework**: Expo SDK 57 (Managed Workflow)
 - **Language**: TypeScript (Strict Mode)
 - **Styling**: Uniwind (Tailwind CSS v4). NativeWind is not used.
@@ -39,6 +41,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ---
 
 ## Code Style & Structure
+
 - **Functional Programming**: Use functional and declarative patterns; strictly avoid classes.
 - **File Organization**: Organize by **Feature**. Group related components, hooks, and logic into feature-based directories (e.g., `features/auth`, `features/payments`).
 - **Naming Conventions**:
@@ -52,6 +55,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ---
 
 ## State Management Architecture
+
 - **Local State**: Use `useState` for UI-specific state contained within a single component.
 - **Server State**: Use `TanStack React Query` for all data fetching, caching, and server synchronization. Avoid duplicating server data in local/global state.
 - **Global State**: Use **React Context** combined with `useReducer` for application-wide state (e.g., user sessions, global settings). Separate contexts by domain to minimize unnecessary re-renders.
@@ -59,6 +63,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ---
 
 ## Error Handling & Validation
+
 - **Runtime Validation**: Use **Zod** for validating all external data (API responses, Form inputs, Deep links).
 - **Proactive Handling**:
   - Handle errors at the beginning of functions (Guard Clauses).
@@ -72,6 +77,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ---
 
 ## Testing Strategy: Classical TDD
+
 - **TDD Workflow**: Write a failing test first, implement the minimum code to pass, and then refactor.
 - **Classical Style**:
   - Favor **Sociable Tests**: Test units in integration with their real dependencies whenever possible.
@@ -82,6 +88,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ---
 
 ## UI & Styling (Uniwind + Tailwind CSS v4)
+
 - **Styling**: Use **Uniwind** and Tailwind utility `className` on React Native components. Load the `uniwind` skill for setup, theming, variants, and third-party bindings.
 - **Priority**: This repo's Uniwind `className` rules override `expo-native-ui`'s "CSS and Tailwind are not supported" guidance. Keep `expo-native-ui` for Safe Area, SF Symbols, and `@expo/ui` selection — not for inline-style-only styling.
 - **Do not use NativeWind APIs**: no `nativewind/babel`, `cssInterop`, `remapProps`, `ThemeProvider`, or `tailwind.config.js`. Theme lives in CSS (`@theme`). Third-party components use `withUniwind()`, never wrapping core `react-native` / Reanimated primitives.
@@ -95,6 +102,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 ---
 
 ## Git Commit Messages
+
 - **Format**: `prefix: message`
 - **Prefixes**:
   - `feat`: A new feature
