@@ -11,5 +11,6 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@/assets/(.*)$": "<rootDir>/assets/$1",
+    "\\.css$": "<rootDir>/__mocks__/style-mock.ts",
   },
 };

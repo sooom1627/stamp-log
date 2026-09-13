@@ -65,6 +65,9 @@ Tasks:
   - [x] ST-002: 名称とタイプ（人 / 場所 / 行動）を入れて保存すると、ホームのラリー一覧に名称とタイプが出る（SQLite `rallies` + Query はこの Sub で初めて入れる）
   - [x] ST-003: 名称が空（または空白のみ）のときは保存できない
 - [x] RT-001: ラリー feature を schemas / db / hooks / constants / components / screens に分割
+- [ ] RT-002: Uniwind で既存画面を className にする
+  - [x] ST-007: Uniwind を配線し、ホームの inline style を className にする
+  - [ ] ST-008: 作成画面とタイプ選択の inline style を className にする
 - [ ] T-002: ホームのラリーを確認のうえ削除できる
   - [ ] ST-004: 一覧の各ラリーに削除ボタンが出る
   - [ ] ST-005: 削除を押すと確認（Confirm）が出る。キャンセルすると残る

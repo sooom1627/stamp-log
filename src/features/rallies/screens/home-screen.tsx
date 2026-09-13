@@ -9,17 +9,10 @@ export function HomeScreen() {
   const { data: rallies } = useRallies();
 
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 16,
-      }}
-    >
+    <View className="flex-1 items-center justify-center gap-4">
       <Link href="/create-rally">ラリーを作る</Link>
       {rallies?.map((rally) => (
-        <View key={rally.id} style={{ alignItems: "center", gap: 4 }}>
+        <View key={rally.id} className="items-center gap-1">
           <Text selectable>{rally.name}</Text>
           <Text>{rallyTypeLabels[rally.type]}</Text>
         </View>
