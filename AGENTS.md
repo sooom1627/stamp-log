@@ -36,6 +36,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 
 - **TDD**: Classical TDD with minimal mocking. Confirm Red → minimal implementation → confirm Green → refactor. Follow `.cursor/rules/tdd-cycle.mdc`.
 - **Work units**: Epic / Story / Task in `docs/backlog.md`. Deliver one Story at a time with vertical-slice Tasks. Follow `.cursor/rules/agile-workflow.mdc`.
+- **Simplicity**: YAGNI, SOLID at feature granularity, no speculative abstraction. Follow `.cursor/rules/simplicity-first.mdc`.
 - **Quality gate**: Run `pnpm run check` at each Task completion. Fix critical issues immediately; defer minor ones for batch refactor.
 - **Package Manager**: Use pnpm.
 
