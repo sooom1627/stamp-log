@@ -25,8 +25,8 @@ export function CreateRallyScreen() {
   const canSave = isNameValid && !save.isPending;
 
   return (
-    <View style={{ flex: 1, padding: 16, gap: 16 }}>
-      <Text role="heading" style={{ fontSize: 20, fontWeight: "600" }}>
+    <View className="flex-1 gap-4 p-4">
+      <Text role="heading" className="text-xl font-semibold">
         ラリーを作る
       </Text>
 
@@ -37,17 +37,10 @@ export function CreateRallyScreen() {
         onChangeText={setName}
         placeholder={rallyNamePlaceholders[selectedType]}
         autoFocus
-        style={{
-          borderWidth: 1,
-          borderColor: "#c6c6c8",
-          borderRadius: 10,
-          borderCurve: "continuous",
-          padding: 12,
-          fontSize: 16,
-        }}
+        className="border-continuous rounded-[10px] border border-[#c6c6c8] p-3 text-base"
       />
       {save.isError && (
-        <Text selectable style={{ color: "#ff3b30" }}>
+        <Text selectable className="text-[#ff3b30]">
           保存できませんでした。もう一度お試しください。
         </Text>
       )}
@@ -60,18 +53,9 @@ export function CreateRallyScreen() {
             { onSuccess: () => router.back() },
           )
         }
-        style={{
-          paddingVertical: 14,
-          alignItems: "center",
-          borderRadius: 10,
-          borderCurve: "continuous",
-          backgroundColor: "#007aff",
-          opacity: canSave ? 1 : 0.5,
-        }}
+        className="border-continuous items-center rounded-[10px] bg-[#007aff] py-3.5 disabled:opacity-50"
       >
-        <Text style={{ color: "#ffffff", fontSize: 16, fontWeight: "600" }}>
-          保存
-        </Text>
+        <Text className="text-base font-semibold text-white">保存</Text>
       </Pressable>
     </View>
   );

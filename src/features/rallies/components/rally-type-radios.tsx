@@ -10,7 +10,7 @@ type RallyTypeRadiosProps = {
 
 export function RallyTypeRadios({ value, onChange }: RallyTypeRadiosProps) {
   return (
-    <View role="radiogroup" style={{ flexDirection: "row", gap: 8 }}>
+    <View role="radiogroup" className="flex-row gap-2">
       {rallyTypeSchema.options.map((type) => {
         const isSelected = value === type;
         const label = rallyTypeLabels[type];
@@ -21,16 +21,13 @@ export function RallyTypeRadios({ value, onChange }: RallyTypeRadiosProps) {
             aria-checked={isSelected}
             accessibilityLabel={label}
             onPress={() => onChange(type)}
-            style={{
-              flex: 1,
-              paddingVertical: 12,
-              alignItems: "center",
-              borderRadius: 10,
-              borderCurve: "continuous",
-              backgroundColor: isSelected ? "#007aff" : "#f2f2f7",
-            }}
+            className={
+              isSelected
+                ? "border-continuous flex-1 items-center rounded-[10px] bg-[#007aff] py-3"
+                : "border-continuous flex-1 items-center rounded-[10px] bg-[#f2f2f7] py-3"
+            }
           >
-            <Text style={{ color: isSelected ? "#ffffff" : "#000000" }}>
+            <Text className={isSelected ? "text-white" : "text-black"}>
               {label}
             </Text>
           </Pressable>
