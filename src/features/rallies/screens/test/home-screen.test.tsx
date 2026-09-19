@@ -4,6 +4,9 @@ import { renderRouter } from "expo-router/testing-library";
 
 import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
 
+import { saveFailedMessage } from "../../constants/rallies-constants";
+import * as ralliesDb from "../../db/rallies-db";
+
 jest.useFakeTimers();
 
 beforeEach(() => {
@@ -141,5 +144,90 @@ describe("T-002 ST-003 削除の確定", () => {
     await waitFor(() => {
       expect(screen.queryByText("週末のランニング")).not.toBeOnTheScreen();
     });
+  });
+});
+
+describe("S-002 T-001 ST-004 スタンプを押す", () => {
+  const stampedAt = "2026-09-19T12:34:00.000Z";
+  const stampDateTime = new Intl.DateTimeFormat("ja-JP", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(stampedAt));
+
+  beforeEach(() => {
+    jest.setSystemTime(new Date(stampedAt));
+  });
+
+  test("スタンプを押すとそのラリー直下に日時が出る", async () => {
+    const user = await createRallyFromHome("今年会った研究者");
+
+    await user.press(
+      screen.getByRole("button", { name: "今年会った研究者にスタンプを押す" }),
+    );
+
+    expect(await screen.findByText(stampDateTime)).toBeOnTheScreen();
+  });
+
+  test("人・場所・行動どれも同じ操作で押せ、出るのは日時だけ", async () => {
+    await renderRouter("./src/app");
+    const user = userEvent.setup();
+
+    const rallies = [
+      { name: "同期の仲間", type: "人", placeholder: "記録したい人を入力" },
+      {
+        name: "山手線の駅",
+        type: "場所",
+        placeholder: "記録したい場所を入力",
+      },
+      {
+        name: "今年やりたいこと",
+        type: "行動",
+        placeholder: "記録したい行動を入力",
+      },
+    ] as const;
+
+    for (const rally of rallies) {
+      await user.press(screen.getByRole("link", { name: "ラリーを作る" }));
+      await user.press(await screen.findByRole("radio", { name: rally.type }));
+      await user.type(
+        screen.getByPlaceholderText(rally.placeholder),
+        rally.name,
+      );
+      await user.press(screen.getByRole("button", { name: "保存" }));
+      expect(await screen.findByText(rally.name)).toBeOnTheScreen();
+    }
+
+    for (const rally of rallies) {
+      await user.press(
+        screen.getByRole("button", { name: `${rally.name}にスタンプを押す` }),
+      );
+    }
+
+    expect(
+      (await screen.findAllByText(stampDateTime)).length,
+    ).toBeGreaterThanOrEqual(3);
+    expect(screen.queryByText("誰")).not.toBeOnTheScreen();
+    expect(screen.queryByText("どこ")).not.toBeOnTheScreen();
+    expect(screen.queryByText("何")).not.toBeOnTheScreen();
+  });
+
+  test("保存に失敗すると警告ログとエラーダイアログが出る", async () => {
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    jest
+      .spyOn(ralliesDb, "saveStamp")
+      .mockRejectedValue(new Error("disk full"));
+
+    const user = await createRallyFromHome("失敗するラリー");
+    await user.press(
+      screen.getByRole("button", { name: "失敗するラリーにスタンプを押す" }),
+    );
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(saveFailedMessage, "disk full");
+    });
+    expect(warn).toHaveBeenCalledWith(
+      "[stamps] save failed",
+      expect.any(Error),
+    );
   });
 });
