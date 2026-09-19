@@ -106,8 +106,8 @@ Tasks:
 - [ ] T-002: 押したあと任意でメモを足せる
       注記: 確認は Alert にしない（操作が止まる）。`sonner-native` のトースト。約5秒で消えるとメモなし。明示の「いいえ」は置かない。`memo` は nullable。押下時は日時だけ保存し、メモは update。
   - [x] ST-001: 押すと「メモを追加しますか？」のトーストが出る。約5秒で消えたらメモなしで残る
-  - [ ] ST-002: stamp に任意 memo の型（Zod）
-  - [ ] ST-003: stamps の SQLite（memo カラム + update）
+  - [x] ST-002: stamp に任意 memo の型（Zod）
+  - [x] ST-003: stamps の SQLite（memo カラム + update）
   - [ ] ST-004: memo 更新の Query hook
   - [ ] ST-005: トーストの「メモを追加」で formSheet が開き、保存するとラリー直下にメモが見える
 
