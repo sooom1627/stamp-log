@@ -1,5 +1,7 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
+
+import { createTestQueryClient } from "@/shared/query/create-query-client";
 
 import { useSaveStamp, useStamps } from "../use-stamps";
 
@@ -13,12 +15,7 @@ afterEach(() => {
 });
 
 function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, gcTime: 0 },
-      mutations: { retry: false, gcTime: 0 },
-    },
-  });
+  const queryClient = createTestQueryClient();
   queryClients.push(queryClient);
 
   return function Wrapper({ children }: { children: React.ReactNode }) {

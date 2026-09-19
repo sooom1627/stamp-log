@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { deleteRally, listRallies, saveRally } from "../db/rallies-db";
 
+import { stampsQueryKey } from "./use-stamps";
+
 export const ralliesQueryKey = ["rallies"] as const;
 
 export function useRallies() {
@@ -27,7 +29,9 @@ export function useDeleteRally() {
 
   return useMutation({
     mutationFn: deleteRally,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ralliesQueryKey }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ralliesQueryKey });
+      queryClient.invalidateQueries({ queryKey: stampsQueryKey });
+    },
   });
 }

@@ -20,12 +20,3 @@ export const rallyNamePlaceholders: Record<RallyType, string> = {
 export const pressStampLabel = "スタンプを押す";
 export const saveFailedMessage =
   "保存できませんでした。もう一度お試しください。";
-
-const stampDateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-
-export function formatStampDateTime(iso: string) {
-  return stampDateTimeFormatter.format(new Date(iso));
-}

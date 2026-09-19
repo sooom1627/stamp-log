@@ -4,8 +4,10 @@ import { renderRouter } from "expo-router/testing-library";
 
 import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
 
+import { formatDateTime } from "@/shared/utils/format-date-time";
+
 import { saveFailedMessage } from "../../constants/rallies-constants";
-import * as ralliesDb from "../../db/rallies-db";
+import * as stampsDb from "../../db/stamps-db";
 
 jest.useFakeTimers();
 
@@ -149,10 +151,7 @@ describe("T-002 ST-003 削除の確定", () => {
 
 describe("S-002 T-001 ST-004 スタンプを押す", () => {
   const stampedAt = "2026-09-19T12:34:00.000Z";
-  const stampDateTime = new Intl.DateTimeFormat("ja-JP", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(stampedAt));
+  const stampDateTime = formatDateTime(stampedAt);
 
   beforeEach(() => {
     jest.setSystemTime(new Date(stampedAt));
@@ -211,23 +210,18 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
     expect(screen.queryByText("何")).not.toBeOnTheScreen();
   });
 
-  test("保存に失敗すると警告ログとエラーダイアログが出る", async () => {
-    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
-    jest
-      .spyOn(ralliesDb, "saveStamp")
-      .mockRejectedValue(new Error("disk full"));
+  test("保存に失敗するとエラーメッセージが出る", async () => {
+    jest.spyOn(stampsDb, "saveStamp").mockRejectedValue(new Error("disk full"));
 
     const user = await createRallyFromHome("失敗するラリー");
     await user.press(
       screen.getByRole("button", { name: "失敗するラリーにスタンプを押す" }),
     );
 
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(saveFailedMessage, "disk full");
-    });
-    expect(warn).toHaveBeenCalledWith(
-      "[stamps] save failed",
-      expect.any(Error),
+    expect(await screen.findByText(saveFailedMessage)).toBeOnTheScreen();
+    expect(Alert.alert).not.toHaveBeenCalledWith(
+      saveFailedMessage,
+      "disk full",
     );
   });
 });
