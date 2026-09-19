@@ -1,5 +1,5 @@
 ---
-description: Classical TDD cycle — confirm Red, implement, confirm Green, then check and commit
+description: Classical TDD cycle — confirm Red, implement, confirm Green, then check. Do not auto-commit
 alwaysApply: true
 ---
 
@@ -15,9 +15,9 @@ Classical TDD with minimal mocking. Order is mandatory: **Red → Green → Refa
 4. Run the test and **confirm Green**
 5. Refactor if needed; stay Green
 6. Run `pnpm run check`
-7. Commit (**one Sub = one commit**)
+7. Stop and report the Sub is ready. **Do not commit** unless the user explicitly asks (**one Sub = one commit** when they do)
 
-Do not add the next test until Green is confirmed. Do not implement before Red is confirmed. Do not defer tests to the end.
+Do not add the next test until Green is confirmed. Do not implement before Red is confirmed. Do not defer tests to the end. Do not auto-commit after Green or `check`.
 
 ## Style
 
@@ -32,5 +32,6 @@ Reproduce with a failing test (Red) first, then fix (Green).
 
 ## Commits
 
+- Never commit unless the user explicitly asks
 - Format: `prefix: message` (see `AGENTS.md`)
 - Include Story ID and Sub ID in the message or body (e.g. `S-001 ST-003`)

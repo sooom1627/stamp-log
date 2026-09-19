@@ -28,12 +28,18 @@ main
 1. **Story ブランチを1回切る**（例: `feat/s-001-record-person`）。以降その Story の作業の親にする
 2. **計画を作る**（Task / Sub の分割を `docs/backlog.md` に書く。未分割なら実装しない）
 3. **Task ブランチを切る**（Story ブランチから。例: `feat/s-001-t-001-save-person`）
-4. **Sub ごとに** テスト → 確認（Red→Green + `pnpm run check`）→ コミット
+4. **Sub ごとに** テスト → 確認（Red→Green + `pnpm run check`）。完了したら止めて報告する
 5. **Task 完了で** Task ブランチを Story ブランチへマージする。次の Task も同様
 6. **Story 完了で** Story ブランチを `main` へ PR / マージする
 
 - 同時に進める Story は1つ。同時に進める Task ブランチも原則1つ
 - Sub のコミットメッセージに Story ID と Sub ID を含める（例: `S-001 ST-003`）
+
+## Commits
+
+- **Never commit unless the user explicitly asks.** Task / Sub 完了、`pnpm run check` 成功、DoD 到達だけではコミットしない
+- ユーザーがコミットを依頼したときだけ実行する。粒度は **1 Sub = 1 コミット**
+- コミット後に `docs/backlog.md` の Sub チェックボックスを更新する
 
 ## Before coding
 
@@ -58,8 +64,8 @@ Within one Sub, prefer a unified implementation (do not fragment files without n
 - Acceptance of that Sub is covered by tests
 - Red → Green per `tdd-cycle` rule
 - `pnpm run check` passed
-- One commit on the **Task** branch (message includes Story ID and Sub ID, e.g. `S-001 ST-003`)
-- `docs/backlog.md` Sub checkbox updated
+- Ready to commit on the **Task** branch (message includes Story ID and Sub ID, e.g. `S-001 ST-003`) — **do not commit until asked**
+- After the user-requested commit, update the `docs/backlog.md` Sub checkbox
 
 ### Task
 
