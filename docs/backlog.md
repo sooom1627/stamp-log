@@ -114,10 +114,10 @@ Tasks:
   - [x] RT-002: Query / Mutation の失敗表示を揃える
     - [x] ST-001: QueryClient に MutationCache.onError（layout が toast.error を渡す）。query retry は false
     - [x] ST-002: ホームの list 失敗は読込エラー+再試行。mutation の inline は外し toast に統一
-  - [ ] RT-003: ホーム画面テストを画面 / コンポーネントに分割する
+  - [x] RT-003: ホーム画面テストを画面 / コンポーネントに分割する
     - [x] ST-001: RallyRow / RallyTypeRadios のコンポーネントテスト
     - [x] ST-002: create-rally / add-stamp-memo の画面テストを切り出し
-    - [ ] ST-003: home を seed + 結合だけに削る
+    - [x] ST-003: home を seed + 結合だけに削る
 
 ### Story: S-003 スタンプに位置情報を付けられる
 
