@@ -95,7 +95,7 @@ so that 体験したその場で、入力に煩わされず記録を残したい
 Tasks:
 
 - [ ] T-001: どのタイプのラリーでもワンタップでスタンプが付く
-  - [ ] ST-001: stamps の型（Zod）
+  - [x] ST-001: stamps の型（Zod）
   - [ ] ST-002: stamps の SQLite（save / list）
   - [ ] ST-003: stamps の Query hooks
   - [ ] ST-004: ホームで押し、ラリー直下に日時が出る（人・場所・行動で形は同じ）
