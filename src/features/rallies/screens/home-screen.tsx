@@ -7,19 +7,9 @@ import { toast } from "sonner-native";
 import { formatDateTime } from "@/shared/utils/format-date-time";
 
 import { RallyRow } from "../components/rally-row";
-import {
-  addMemoActionLabel,
-  addMemoPrompt,
-  cancelLabel,
-  deleteRallyConfirmMessage,
-  deleteRallyConfirmTitle,
-  deleteRallyLabel,
-  rallyTypeLabels,
-  saveFailedMessage,
-} from "../constants/rallies-constants";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
-import { type Rally } from "../schemas/rallies";
+import { rallyTypeLabels, type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 
 function stampLabelsForRally(stamps: Stamp[], rallyId: number) {
@@ -41,10 +31,10 @@ export function HomeScreen() {
   const { mutate: pressStamp, isError: isSaveError } = useSaveStamp();
 
   const confirmDelete = (rally: Rally) =>
-    Alert.alert(deleteRallyConfirmTitle, deleteRallyConfirmMessage, [
-      { text: cancelLabel, style: "cancel" },
+    Alert.alert("ラリーを削除しますか？", "この操作は取り消せません。", [
+      { text: "キャンセル", style: "cancel" },
       {
-        text: deleteRallyLabel,
+        text: "削除",
         style: "destructive",
         onPress: () => remove.mutate(rally.id),
       },
@@ -55,7 +45,7 @@ export function HomeScreen() {
       <Link href="/create-rally">ラリーを作る</Link>
       {isSaveError || isStampsError ? (
         <Text selectable className="text-[#ff3b30]">
-          {saveFailedMessage}
+          保存できませんでした。もう一度お試しください。
         </Text>
       ) : null}
       {rallies?.map((rally) => (
@@ -69,7 +59,7 @@ export function HomeScreen() {
               { rallyId: rally.id },
               {
                 onSuccess: (stamp) => {
-                  const toastId = toast(addMemoPrompt, {
+                  const toastId = toast("メモを追加しますか？", {
                     duration: 5000,
                     styles: {
                       textContainer: {
@@ -84,7 +74,7 @@ export function HomeScreen() {
                       },
                     },
                     action: {
-                      label: addMemoActionLabel,
+                      label: "メモを追加",
                       onClick: () => {
                         toast.dismiss(toastId);
                         router.push(`/add-stamp-memo?stampId=${stamp.id}`);

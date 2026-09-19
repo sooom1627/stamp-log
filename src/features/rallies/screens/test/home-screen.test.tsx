@@ -7,7 +7,6 @@ import { toast } from "sonner-native";
 
 import { formatDateTime } from "@/shared/utils/format-date-time";
 
-import { saveFailedMessage } from "../../constants/rallies-constants";
 import * as stampsDb from "../../db/stamps-db";
 
 jest.useFakeTimers();
@@ -233,9 +232,11 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
       screen.getByRole("button", { name: "失敗するラリーにスタンプを押す" }),
     );
 
-    expect(await screen.findByText(saveFailedMessage)).toBeOnTheScreen();
+    expect(
+      await screen.findByText("保存できませんでした。もう一度お試しください。"),
+    ).toBeOnTheScreen();
     expect(Alert.alert).not.toHaveBeenCalledWith(
-      saveFailedMessage,
+      "保存できませんでした。もう一度お試しください。",
       "disk full",
     );
   });

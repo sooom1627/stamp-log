@@ -5,16 +5,18 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import { RallyTypeRadios } from "../components/rally-type-radios";
-import {
-  rallyNamePlaceholders,
-  saveFailedMessage,
-} from "../constants/rallies-constants";
 import { useSaveRally } from "../hooks/use-rallies";
 import {
   rallyNameSchema,
   rallyTypeSchema,
   type RallyType,
 } from "../schemas/rallies";
+
+const rallyNamePlaceholders: Record<RallyType, string> = {
+  place: "記録したい場所を入力",
+  action: "記録したい行動を入力",
+  person: "記録したい人を入力",
+};
 
 export function CreateRallyScreen() {
   const [selectedType, setSelectedType] = useState<RallyType>(
@@ -44,7 +46,7 @@ export function CreateRallyScreen() {
       />
       {save.isError && (
         <Text selectable className="text-[#ff3b30]">
-          {saveFailedMessage}
+          保存できませんでした。もう一度お試しください。
         </Text>
       )}
       <Pressable

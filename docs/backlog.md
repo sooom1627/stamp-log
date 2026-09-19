@@ -110,6 +110,7 @@ Tasks:
   - [x] ST-003: stamps の SQLite（memo カラム + update）
   - [x] ST-004: memo 更新の Query hook
   - [x] ST-005: トーストの「メモを追加」で formSheet が開き、保存するとラリー直下にメモが見える
+  - [x] RT-001: 1箇所専用の constants をやめ、タイプラベルだけスキーマ横に置く
 
 ### Story: S-003 スタンプに位置情報を付けられる
 

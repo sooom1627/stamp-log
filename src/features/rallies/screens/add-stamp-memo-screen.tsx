@@ -4,11 +4,6 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
-import {
-  addMemoTitle,
-  memoPlaceholder,
-  saveFailedMessage,
-} from "../constants/rallies-constants";
 import { useUpdateStampMemo } from "../hooks/use-stamps";
 import { updateStampMemoInputSchema } from "../schemas/stamps";
 
@@ -30,19 +25,19 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   return (
     <View className="flex-1 gap-4 p-4">
       <Text role="heading" className="text-xl font-semibold">
-        {addMemoTitle}
+        メモを追加
       </Text>
 
       <TextInput
         value={memo}
         onChangeText={setMemo}
-        placeholder={memoPlaceholder}
+        placeholder="メモを入力"
         autoFocus
         className="border-continuous rounded-[10px] border border-[#c6c6c8] p-3 text-base"
       />
       {update.isError ? (
         <Text selectable className="text-[#ff3b30]">
-          {saveFailedMessage}
+          保存できませんでした。もう一度お試しください。
         </Text>
       ) : null}
       <Pressable
