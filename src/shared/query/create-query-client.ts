@@ -1,8 +1,15 @@
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryClient } from "@tanstack/react-query";
 
-export function createQueryClient() {
+export function createQueryClient(handlers?: {
+  onMutationError?: (error: Error) => void;
+}) {
   return new QueryClient({
-    defaultOptions: { queries: { staleTime: Infinity } },
+    defaultOptions: { queries: { staleTime: Infinity, retry: false } },
+    mutationCache: handlers?.onMutationError
+      ? new MutationCache({
+          onError: (error) => handlers.onMutationError?.(error as Error),
+        })
+      : undefined,
   });
 }
 
