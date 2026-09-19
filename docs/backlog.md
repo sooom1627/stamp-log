@@ -109,7 +109,7 @@ Tasks:
   - [x] ST-002: stamp に任意 memo の型（Zod）
   - [x] ST-003: stamps の SQLite（memo カラム + update）
   - [x] ST-004: memo 更新の Query hook
-  - [ ] ST-005: トーストの「メモを追加」で formSheet が開き、保存するとラリー直下にメモが見える
+  - [x] ST-005: トーストの「メモを追加」で formSheet が開き、保存するとラリー直下にメモが見える
 
 ### Story: S-003 スタンプに位置情報を付けられる
 
