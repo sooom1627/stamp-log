@@ -28,6 +28,20 @@ function findAlertButton(style: AlertButton["style"]): AlertButton {
   return button;
 }
 
+function findToastAction(): { label: string; onClick: () => void } {
+  const options = jest.mocked(toast).mock.calls.at(-1)?.[1];
+  const action = options?.action;
+  if (
+    !action ||
+    typeof action !== "object" ||
+    !("onClick" in action) ||
+    typeof action.onClick !== "function"
+  ) {
+    throw new Error("toast action not found");
+  }
+  return action;
+}
+
 async function createRallyFromHome(name: string) {
   await renderRouter("./src/app");
 
@@ -246,14 +260,61 @@ describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
     );
 
     expect(await screen.findByText(stampDateTime)).toBeOnTheScreen();
-    expect(toast).toHaveBeenCalledWith("メモを追加しますか？", {
-      duration: 5000,
-    });
+    expect(toast).toHaveBeenCalledWith(
+      "メモを追加しますか？",
+      expect.objectContaining({
+        duration: 5000,
+        action: {
+          label: "メモを追加",
+          onClick: expect.any(Function),
+        },
+      }),
+    );
 
     await act(() => {
       jest.advanceTimersByTime(5000);
     });
 
+    expect(screen.getByText(stampDateTime)).toBeOnTheScreen();
+  });
+});
+
+describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
+  const stampedAt = "2026-09-21T10:00:00.000Z";
+  const stampDateTime = formatDateTime(stampedAt);
+
+  beforeEach(() => {
+    jest.setSystemTime(new Date(stampedAt));
+    jest.mocked(toast).mockClear();
+  });
+
+  test("トーストの「メモを追加」で formSheet が開き、保存するとラリー直下にメモが見える", async () => {
+    const user = await createRallyFromHome("メモ追加用のラリー");
+
+    await user.press(
+      screen.getByRole("button", {
+        name: "メモ追加用のラリーにスタンプを押す",
+      }),
+    );
+
+    expect(await screen.findByText(stampDateTime)).toBeOnTheScreen();
+
+    const action = findToastAction();
+    expect(action.label).toBe("メモを追加");
+
+    await act(async () => {
+      action.onClick();
+    });
+
+    expect(toast.dismiss).toHaveBeenCalled();
+    expect(
+      await screen.findByRole("heading", { name: "メモを追加" }),
+    ).toBeOnTheScreen();
+
+    await user.type(screen.getByPlaceholderText("メモを入力"), "会った");
+    await user.press(screen.getByRole("button", { name: "保存" }));
+
+    expect(await screen.findByText("会った")).toBeOnTheScreen();
     expect(screen.getByText(stampDateTime)).toBeOnTheScreen();
   });
 });

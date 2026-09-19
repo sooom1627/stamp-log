@@ -18,5 +18,9 @@ export const rallyNamePlaceholders: Record<RallyType, string> = {
 };
 
 export const pressStampLabel = "スタンプを押す";
+export const addMemoPrompt = "メモを追加しますか？";
+export const addMemoActionLabel = "メモを追加";
+export const addMemoTitle = "メモを追加";
+export const memoPlaceholder = "メモを入力";
 export const saveFailedMessage =
   "保存できませんでした。もう一度お試しください。";

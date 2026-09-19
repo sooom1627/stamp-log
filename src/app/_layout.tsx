@@ -27,6 +27,15 @@ export default function RootLayout() {
               sheetAllowedDetents: [0.5, 1],
             }}
           />
+          <Stack.Screen
+            name="add-stamp-memo"
+            options={{
+              title: "メモを追加",
+              presentation: "formSheet",
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [0.5, 1],
+            }}
+          />
         </Stack>
         <Toaster position="bottom-center" closeButton />
       </QueryClientProvider>

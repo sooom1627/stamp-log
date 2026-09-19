@@ -1,6 +1,6 @@
 import { Alert, Text, View } from "react-native";
 
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 
 import { toast } from "sonner-native";
 
@@ -8,6 +8,8 @@ import { formatDateTime } from "@/shared/utils/format-date-time";
 
 import { RallyRow } from "../components/rally-row";
 import {
+  addMemoActionLabel,
+  addMemoPrompt,
   cancelLabel,
   deleteRallyConfirmMessage,
   deleteRallyConfirmTitle,
@@ -26,10 +28,12 @@ function stampLabelsForRally(stamps: Stamp[], rallyId: number) {
     .map((stamp) => ({
       id: stamp.id,
       label: formatDateTime(stamp.stampedAt),
+      memo: stamp.memo,
     }));
 }
 
 export function HomeScreen() {
+  const router = useRouter();
   const { data: rallies } = useRallies();
   const { data, isError: isStampsError } = useStamps();
   const stamps: Stamp[] = data ?? [];
@@ -64,8 +68,30 @@ export function HomeScreen() {
             pressStamp(
               { rallyId: rally.id },
               {
-                onSuccess: () =>
-                  toast("メモを追加しますか？", { duration: 5000 }),
+                onSuccess: (stamp) => {
+                  const toastId = toast(addMemoPrompt, {
+                    duration: 5000,
+                    styles: {
+                      textContainer: {
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 8,
+                      },
+                      buttons: {
+                        marginTop: 0,
+                        marginLeft: "auto",
+                      },
+                    },
+                    action: {
+                      label: addMemoActionLabel,
+                      onClick: () => {
+                        toast.dismiss(toastId);
+                        router.push(`/add-stamp-memo?stampId=${stamp.id}`);
+                      },
+                    },
+                  });
+                },
               },
             )
           }

@@ -8,6 +8,7 @@ import {
 type StampLabel = {
   id: number;
   label: string;
+  memo: string | null;
 };
 
 type RallyRowProps = {
@@ -37,7 +38,10 @@ export function RallyRow({
         <Text>{pressStampLabel}</Text>
       </Pressable>
       {stampLabels.map((stamp) => (
-        <Text key={stamp.id}>{stamp.label}</Text>
+        <View key={stamp.id} className="flex-row items-center gap-2">
+          <Text>{stamp.label}</Text>
+          {stamp.memo ? <Text>{stamp.memo}</Text> : null}
+        </View>
       ))}
       <Pressable
         role="button"
