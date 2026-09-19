@@ -1,12 +1,16 @@
+import { useState } from "react";
+
 import { Stack } from "expo-router";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+
+import { createQueryClient } from "@/shared/query/create-query-client";
 
 import "../../tailwind.css";
 
-const queryClient = new QueryClient();
-
 export default function RootLayout() {
+  const [queryClient] = useState(() => createQueryClient());
+
   return (
     <QueryClientProvider client={queryClient}>
       <Stack>

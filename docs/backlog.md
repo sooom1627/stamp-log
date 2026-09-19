@@ -94,11 +94,15 @@ so that 体験したその場で、入力に煩わされず記録を残したい
 
 Tasks:
 
-- [ ] T-001: どのタイプのラリーでもワンタップでスタンプが付く
-  - [ ] ST-001: stamps の型（Zod）
-  - [ ] ST-002: stamps の SQLite（save / list）
-  - [ ] ST-003: stamps の Query hooks
-  - [ ] ST-004: ホームで押し、ラリー直下に日時が出る（人・場所・行動で形は同じ）
+- [x] T-001: どのタイプのラリーでもワンタップでスタンプが付く
+  - [x] ST-001: stamps の型（Zod）
+  - [x] ST-002: stamps の SQLite（save / list）
+  - [x] ST-003: stamps の Query hooks
+  - [x] ST-004: ホームで押し、ラリー直下に日時が出る（人・場所・行動で形は同じ）
+  - [x] RT-001: デバッグ残骸の除去と Query/エラーを既存パターンに揃える
+  - [x] RT-002: ホームのラリー行を RallyRow に抽出
+  - [x] RT-003: getDb / QueryClient / 日時表示を shared へ
+  - [x] RT-004: db を rallies-db / stamps-db に分割
 - [ ] T-002: 押したあと任意でメモを足せる
   - [ ] ST-001: 押すと「メモを追加しますか？」が出る。いいえならメモなしで残る
   - [ ] ST-002: はいを選ぶと formSheet が開き、メモを保存するとラリー直下にメモが見える

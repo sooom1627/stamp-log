@@ -12,14 +12,17 @@ src/
   app/                         # Expo Router routes only (thin)
   features/
     <kebab-name>/              # domain feature (e.g. rallies)
-      screens/                 # feature screen bodies
-      components/              # feature-only UI
-      hooks/                   # TanStack Query (and other feature hooks)
-      db/                      # SQLite helpers only — no Query
-      schemas/                 # Zod + inferred types
+      screens/                 # feature screen bodies (+ screens/test/)
+      components/              # feature-only UI (+ components/test/ when needed)
+      hooks/                   # TanStack Query (and other feature hooks) (+ hooks/test/)
+      db/                      # SQLite helpers only — no Query (+ db/test/)
+      schemas/                 # Zod + inferred types (+ schemas/test/)
       constants/               # labels, placeholders
   shared/
     components/                # cross-feature UI (when needed)
+    db/                        # SQLite connection only (getDb). Table DDL stays in the feature
+    query/                     # QueryClient factory (local default: staleTime Infinity)
+    utils/                     # cross-feature helpers (datetime, …)
     hooks/
     theme/
 ```
@@ -30,8 +33,10 @@ src/
 - Keep `src/app/` routes thin: read params, render the feature screen
 - Cross-feature code lives in `src/shared/` (not top-level `components/` / `hooks/`)
 - Cut the feature folders above even when they hold one file. Do **not** add `api/` `types/` `repository/` `docs/`, or barrel `index.ts` for integration
-- Query lives in `hooks/`. `db/` talks to SQLite only. Screens import Query hooks, not `db/`
+- Query lives in `hooks/`. Feature `db/` talks to SQLite only (table DDL + CRUD). The connection singleton is `shared/db`. Screens import Query hooks, not `db/`
+- Do **not** put a generic `useQuery` wrapper in `shared`. Feature hooks keep their own queryKey and `queryFn`
 - Display strings live in `constants/`. Screens do not keep label maps
+- Tests live in that layer’s `test/` (e.g. `hooks/test/`, `db/test/`). Do **not** colocate `*.test.ts(x)` next to the source file, and do **not** put a feature-root `test/`
 - Do **not** introduce Repository interfaces, DI Context, or dual Memory/SQLite implementations “for testability.” Call SQLite (or a plain helper) from the feature; mock only out-of-process boundaries in tests
 
 ## Query = persisted state (local or remote)

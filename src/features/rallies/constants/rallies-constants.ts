@@ -16,3 +16,7 @@ export const rallyNamePlaceholders: Record<RallyType, string> = {
   action: "記録したい行動を入力",
   person: "記録したい人を入力",
 };
+
+export const pressStampLabel = "スタンプを押す";
+export const saveFailedMessage =
+  "保存できませんでした。もう一度お試しください。";

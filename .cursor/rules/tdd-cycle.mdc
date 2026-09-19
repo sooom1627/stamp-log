@@ -19,7 +19,7 @@ Classical TDD with minimal mocking. Order is mandatory: **Red → Green → Refa
 
 Do not add the next test until Green is confirmed. Do not implement before Red is confirmed. Do not defer tests to the end. Do not auto-commit after Green or `check`.
 
-Layer Subs (schema / db / hooks) use a test at that layer. UI Subs use RNTL for the Task’s screen acceptance.
+Layer Subs (schema / db / hooks) use a test at that layer. UI Subs use RNTL for the Task’s screen acceptance. Put tests in that layer’s `test/` folder (e.g. `hooks/test/`), not next to the source file.
 
 ## Style
 

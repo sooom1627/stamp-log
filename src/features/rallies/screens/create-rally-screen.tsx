@@ -5,7 +5,10 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import { RallyTypeRadios } from "../components/rally-type-radios";
-import { rallyNamePlaceholders } from "../constants/rallies-constants";
+import {
+  rallyNamePlaceholders,
+  saveFailedMessage,
+} from "../constants/rallies-constants";
 import { useSaveRally } from "../hooks/use-rallies";
 import {
   rallyNameSchema,
@@ -41,7 +44,7 @@ export function CreateRallyScreen() {
       />
       {save.isError && (
         <Text selectable className="text-[#ff3b30]">
-          保存できませんでした。もう一度お試しください。
+          {saveFailedMessage}
         </Text>
       )}
       <Pressable
