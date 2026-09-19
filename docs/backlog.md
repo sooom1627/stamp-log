@@ -7,8 +7,8 @@ Single source of truth for Epic / Story / Task / Sub. Lightweight agile only —
 ## How to use
 
 1. Add or refine a **Story** before implementation. Link it under an **Epic**.
-2. Cut a **Story branch once**, then plan: split into **Tasks** and **Subs** (user-confirmable steps, not layers). Write them in this file.
-3. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm. **Do not commit unless asked** (then one Sub = one commit). Mark Sub checkboxes after that commit.
+2. Cut a **Story branch once**, then plan: split into **Tasks** (user-visible behavior) and **Subs** (implementation units; horizontal layers are allowed: schema / db / hooks / UI). Write them in this file.
+3. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm (non-UI: layer tests; UI: RNTL acceptance). **Do not commit unless asked** (then one Sub = one commit). Mark Sub checkboxes after that commit.
 4. When a Task’s Subs are Done, **merge the Task branch into the Story branch**. When the Story is Done, merge the Story branch to `main`.
 5. IDs: `E-###`, `S-###`, `T-###`, `ST-###`（Sub は Task 内で 001 から。Task が変わるたびにリセット）。Reference Story + Task + Sub IDs in commit messages.
 
@@ -29,9 +29,9 @@ As a ... I want ... so that ...
 
 Tasks:
 
-- [ ] T-001: （振る舞いのまとまり）
-  - [ ] ST-001: （ユーザーが確認できる一歩）
-  - [ ] ST-002: （次の一歩）
+- [ ] T-001: （ユーザーに見える振る舞いのまとまり）
+  - [ ] ST-001: （schema / db / hooks / UI など、層でも可）
+  - [ ] ST-002: （次の層）
 ```
 
 ---
@@ -95,8 +95,10 @@ so that 体験したその場で、入力に煩わされず記録を残したい
 Tasks:
 
 - [ ] T-001: どのタイプのラリーでもワンタップでスタンプが付く
-  - [ ] ST-001: 各ラリーに「スタンプを押す」があり、押すとそのラリー直下に日時付きスタンプが出る（`stamps` + Query はこの Sub で初投入）
-  - [ ] ST-002: 人・場所・行動のラリーで同じ操作ができ、スタンプの形は同じである
+  - [ ] ST-001: stamps の型（Zod）
+  - [ ] ST-002: stamps の SQLite（save / list）
+  - [ ] ST-003: stamps の Query hooks
+  - [ ] ST-004: ホームで押し、ラリー直下に日時が出る（人・場所・行動で形は同じ）
 - [ ] T-002: 押したあと任意でメモを足せる
   - [ ] ST-001: 押すと「メモを追加しますか？」が出る。いいえならメモなしで残る
   - [ ] ST-002: はいを選ぶと formSheet が開き、メモを保存するとラリー直下にメモが見える
@@ -141,7 +143,7 @@ so that 後で見返したときに当時の状況を思い出したい
 
 Tasks:
 
-- （写真等が必要になったときに垂直スライスで追加）
+- （写真等が必要になったときに Task / Sub で追加）
 
 ---
 
@@ -163,7 +165,7 @@ so that そのテーマでこれまで何を集めたかを確認したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-007 スタンプの詳細を見る
 
@@ -179,7 +181,7 @@ so that そのときに残した情報を改めて確認したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-008 ラリーの収集数を見る
 
@@ -194,7 +196,7 @@ so that 自分の活動が積み上がっていることを実感したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-009 目標数に対する進捗を見る
 
@@ -210,7 +212,7 @@ so that 目標までどれくらい進んだかを楽しみたい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ---
 
@@ -233,7 +235,7 @@ so that 自分が最近何をしていたかを簡単に振り返りたい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-011 記録がある日をカレンダーで見る
 
@@ -248,7 +250,7 @@ so that 自分の活動の流れを時間軸で振り返りたい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-012 特定の日の記録を見る
 
@@ -264,7 +266,7 @@ so that その日に何をしていたかを思い出したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ---
 
@@ -286,7 +288,7 @@ so that テーマの言い方や目標を途中で見直したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-014 スタンプを編集する
 
@@ -301,7 +303,7 @@ so that 入力間違いを修正したり、後から情報を補足したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-015 スタンプを別のラリーへ移す
 
@@ -317,7 +319,7 @@ so that 押す瞬間にラリーを間違えても、記録を作り直さずに
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-016 スタンプを削除する
 
@@ -332,7 +334,7 @@ so that 誤って押した記録を残したくない
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-017 ラリーを削除する
 
@@ -350,4 +352,4 @@ so that 使わなくなったテーマでホームが埋まらないようにし
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）

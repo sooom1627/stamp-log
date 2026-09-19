@@ -19,11 +19,17 @@ Classical TDD with minimal mocking. Order is mandatory: **Red → Green → Refa
 
 Do not add the next test until Green is confirmed. Do not implement before Red is confirmed. Do not defer tests to the end. Do not auto-commit after Green or `check`.
 
+Layer Subs (schema / db / hooks) use a test at that layer. UI Subs use RNTL for the Task’s screen acceptance.
+
 ## Style
 
 - Prefer sociable tests with real collaborators
 - Mock only out-of-process dependencies (camera, push notifications, etc.)
-- Assert behavior and acceptance criteria, not implementation details
+- Assert the layer’s contract, not incidental implementation details
+  - schema: parse / reject
+  - db: persist / list
+  - hooks: read / invalidate after write
+  - UI: screen Given/When/Then (RNTL)
 - Tools: Jest + React Native Testing Library
 
 ## Bugs

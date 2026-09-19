@@ -1,5 +1,5 @@
 ---
-description: Epic / Story / Task / Sub workflow with vertical slices and branch-per-story/task
+description: Epic / Story / Task / Sub workflow with horizontal Subs and branch-per-story/task
 alwaysApply: true
 ---
 
@@ -11,8 +11,8 @@ Source of truth for tickets: `docs/backlog.md`. No sprint ceremonies, velocity, 
 
 - **Epic (`E-###`)**: Multi-story outcome. Never an implementation unit.
 - **Story (`S-###`)**: One user-visible value. As a / I want / so that + Given/When/Then. **Always the unit of delivery.**
-- **Task (`T-###`)**: A coherent behavior chunk within the story. Groups related Subs. Done when all child Subs are Done and the task branch is merged.
-- **Sub (`ST-###`)**: **The implementation unit.** One user-confirmable step. One TDD cycle, one `pnpm run check`, one commit.
+- **Task (`T-###`)**: A coherent user-visible behavior chunk within the story. Groups related Subs. Done when all child Subs are Done and the task branch is merged.
+- **Sub (`ST-###`)**: **The implementation unit.** May be a **horizontal layer** (schema / db / hooks / UI). One TDD cycle, one `pnpm run check`, one commit.
 
 ## Branching
 
@@ -45,23 +45,23 @@ main
 
 1. Confirm the target Story ID in `docs/backlog.md`. If missing, add the story first.
 2. Ensure the Story branch exists; cut a Task branch only after Tasks/Subs are written.
-3. Split into Subs if a Task is still too large: more than one confirmable step; roughly more than 8 files; cannot finish in one sitting; or phrased as "whole feature" / "build infrastructure first".
+3. Split the Task into Subs (typically schema → db → hooks → UI). Do not implement an unsplit Task as one blob.
 4. Split the Story itself if it has more than 5 acceptance criteria or cannot ship in one PR after Task/Sub split.
 
-## Vertical slices only
+## Subs may be horizontal
 
-- Slice by **user-visible progress**, not by technical layer.
-- Good Sub: "Open the record screen from home", "Save a person stamp and see the name on home"
-- Bad Sub: "Create table", "Add repository", "Build screen shell only"
-- Schema / Query / UI may land together inside one Sub when that Sub needs them — do not ship layer-only Subs
-
-Within one Sub, prefer a unified implementation (do not fragment files without need).
+- **Task** stays a user-visible behavior chunk.
+- **Sub** may be one layer: schema (Zod), db (SQLite), hooks (Query), UI (screen).
+- Do not start a later layer ST until the earlier one is Done. Do not introduce schema / db / hooks for the first time inside the UI ST.
+- **Non-UI Subs**: write tests at that layer (parse, persist, invalidate).
+- **UI Subs**: layer unit tests are not required. Cover Task acceptance with RNTL (screen Given/When/Then).
+- Within one Sub, keep the change to that layer.
 
 ## Definition of Done
 
 ### Sub
 
-- Acceptance of that Sub is covered by tests
+- Non-UI: that layer’s contract is covered by tests. UI: Task acceptance is covered by RNTL
 - Red → Green per `tdd-cycle` rule
 - `pnpm run check` passed
 - Ready to commit on the **Task** branch (message includes Story ID and Sub ID, e.g. `S-001 ST-003`) — **do not commit until asked**
