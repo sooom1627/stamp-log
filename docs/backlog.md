@@ -111,7 +111,7 @@ Tasks:
   - [x] ST-004: memo 更新の Query hook
   - [x] ST-005: トーストの「メモを追加」で formSheet が開き、保存するとラリー直下にメモが見える
   - [x] RT-001: 1箇所専用の constants をやめ、タイプラベルだけスキーマ横に置く
-  - [ ] RT-002: Query / Mutation の失敗表示を揃える
+  - [x] RT-002: Query / Mutation の失敗表示を揃える
     - [x] ST-001: QueryClient に MutationCache.onError（layout が toast.error を渡す）。query retry は false
     - [x] ST-002: ホームの list 失敗は読込エラー+再試行。mutation の inline は外し toast に統一
 
