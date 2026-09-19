@@ -9,8 +9,6 @@ import {
   type SaveRallyInput,
 } from "../schemas/rallies";
 
-import { deleteStampsForRally } from "./stamps-db";
-
 async function ensureRallies(db: SQLiteDatabase) {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS rallies (
@@ -38,8 +36,13 @@ export async function saveRally(input: SaveRallyInput): Promise<void> {
 }
 
 export async function deleteRally(id: Rally["id"]): Promise<void> {
-  await deleteStampsForRally(id);
   const db = await withRalliesDb();
+  const stampTables = await db.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'stamps'",
+  );
+  if (stampTables.length > 0) {
+    await db.runAsync("DELETE FROM stamps WHERE rally_id = ?", id);
+  }
   await db.runAsync("DELETE FROM rallies WHERE id = ?", id);
 }
 

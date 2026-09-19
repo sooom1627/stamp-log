@@ -53,13 +53,6 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
   });
 }
 
-export async function deleteStampsForRally(
-  rallyId: SaveStampInput["rallyId"],
-): Promise<void> {
-  const db = await withStampsDb();
-  await db.runAsync("DELETE FROM stamps WHERE rally_id = ?", rallyId);
-}
-
 export async function listStamps(): Promise<Stamp[]> {
   const db = await withStampsDb();
   const rows = await db.getAllAsync<Record<string, unknown>>(
