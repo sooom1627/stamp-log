@@ -116,7 +116,7 @@ Tasks:
     - [x] ST-002: ホームの list 失敗は読込エラー+再試行。mutation の inline は外し toast に統一
   - [ ] RT-003: ホーム画面テストを画面 / コンポーネントに分割する
     - [x] ST-001: RallyRow / RallyTypeRadios のコンポーネントテスト
-    - [ ] ST-002: create-rally / add-stamp-memo の画面テストを切り出し
+    - [x] ST-002: create-rally / add-stamp-memo の画面テストを切り出し
     - [ ] ST-003: home を seed + 結合だけに削る
 
 ### Story: S-003 スタンプに位置情報を付けられる
