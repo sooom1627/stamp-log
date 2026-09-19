@@ -1,10 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 
 import { listStamps, saveStamp } from "../db/stamps-db";
+import { type Stamp } from "../schemas/stamps";
 
 export const stampsQueryKey = ["stamps"] as const;
 
-export function useStamps() {
+export function useStamps(): UseQueryResult<Stamp[]> {
   return useQuery({
     queryKey: stampsQueryKey,
     queryFn: listStamps,

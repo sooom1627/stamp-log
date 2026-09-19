@@ -3,6 +3,7 @@ import { Alert, type AlertButton } from "react-native";
 import { renderRouter } from "expo-router/testing-library";
 
 import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
+import { toast } from "sonner-native";
 
 import { formatDateTime } from "@/shared/utils/format-date-time";
 
@@ -223,5 +224,36 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
       saveFailedMessage,
       "disk full",
     );
+  });
+});
+
+describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
+  const stampedAt = "2026-09-20T15:00:00.000Z";
+  const stampDateTime = formatDateTime(stampedAt);
+
+  beforeEach(() => {
+    jest.setSystemTime(new Date(stampedAt));
+    jest.mocked(toast).mockClear();
+  });
+
+  test("押すとトーストが出て、約5秒で消えてもスタンプは残る", async () => {
+    const user = await createRallyFromHome("メモ確認用のラリー");
+
+    await user.press(
+      screen.getByRole("button", {
+        name: "メモ確認用のラリーにスタンプを押す",
+      }),
+    );
+
+    expect(await screen.findByText(stampDateTime)).toBeOnTheScreen();
+    expect(toast).toHaveBeenCalledWith("メモを追加しますか？", {
+      duration: 5000,
+    });
+
+    await act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    expect(screen.getByText(stampDateTime)).toBeOnTheScreen();
   });
 });
