@@ -1,4 +1,4 @@
-import { Alert, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 
 import { Link, useRouter } from "expo-router";
 
@@ -24,11 +24,17 @@ function stampLabelsForRally(stamps: Stamp[], rallyId: number) {
 
 export function HomeScreen() {
   const router = useRouter();
-  const { data: rallies } = useRallies();
-  const { data, isError: isStampsError } = useStamps();
-  const stamps: Stamp[] = data ?? [];
+  const rallies = useRallies();
+  const stampsQuery = useStamps();
+  const stamps: Stamp[] = stampsQuery.data ?? [];
   const remove = useDeleteRally();
-  const { mutate: pressStamp, isError: isSaveError } = useSaveStamp();
+  const { mutate: pressStamp } = useSaveStamp();
+  const isListError = rallies.isError || stampsQuery.isError;
+
+  const retryLists = () => {
+    void rallies.refetch();
+    void stampsQuery.refetch();
+  };
 
   const confirmDelete = (rally: Rally) =>
     Alert.alert("ラリーを削除しますか？", "この操作は取り消せません。", [
@@ -43,12 +49,17 @@ export function HomeScreen() {
   return (
     <View className="flex-1 items-center justify-center gap-4">
       <Link href="/create-rally">ラリーを作る</Link>
-      {isSaveError || isStampsError ? (
-        <Text selectable className="text-[#ff3b30]">
-          保存できませんでした。もう一度お試しください。
-        </Text>
+      {isListError ? (
+        <View className="items-center gap-2">
+          <Text selectable className="text-[#ff3b30]">
+            読み込めませんでした
+          </Text>
+          <Pressable role="button" onPress={retryLists}>
+            <Text>再試行</Text>
+          </Pressable>
+        </View>
       ) : null}
-      {rallies?.map((rally) => (
+      {rallies.data?.map((rally) => (
         <RallyRow
           key={rally.id}
           name={rally.name}

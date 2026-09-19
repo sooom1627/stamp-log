@@ -7,6 +7,7 @@ import { toast } from "sonner-native";
 
 import { formatDateTime } from "@/shared/utils/format-date-time";
 
+import * as ralliesDb from "../../db/rallies-db";
 import * as stampsDb from "../../db/stamps-db";
 
 jest.useFakeTimers();
@@ -224,17 +225,23 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
     expect(screen.queryByText("何")).not.toBeOnTheScreen();
   });
 
-  test("保存に失敗するとエラーメッセージが出る", async () => {
+  test("保存に失敗するとエラーのトーストが出る", async () => {
     jest.spyOn(stampsDb, "saveStamp").mockRejectedValue(new Error("disk full"));
+    jest.mocked(toast.error).mockClear();
 
     const user = await createRallyFromHome("失敗するラリー");
     await user.press(
       screen.getByRole("button", { name: "失敗するラリーにスタンプを押す" }),
     );
 
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "うまくいきませんでした。もう一度お試しください。",
+      );
+    });
     expect(
-      await screen.findByText("保存できませんでした。もう一度お試しください。"),
-    ).toBeOnTheScreen();
+      screen.queryByText("保存できませんでした。もう一度お試しください。"),
+    ).not.toBeOnTheScreen();
     expect(Alert.alert).not.toHaveBeenCalledWith(
       "保存できませんでした。もう一度お試しください。",
       "disk full",
@@ -317,5 +324,71 @@ describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
 
     expect(await screen.findByText("会った")).toBeOnTheScreen();
     expect(screen.getByText(stampDateTime)).toBeOnTheScreen();
+  });
+});
+
+describe("S-002 T-002 RT-002 失敗表示", () => {
+  test("ラリー一覧の読込に失敗すると読込エラーと再試行が出る", async () => {
+    jest
+      .spyOn(ralliesDb, "listRallies")
+      .mockRejectedValue(new Error("disk full"));
+
+    await renderRouter("./src/app");
+
+    expect(await screen.findByText("読み込めませんでした")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "再試行" })).toBeOnTheScreen();
+    expect(
+      screen.queryByText("保存できませんでした。もう一度お試しください。"),
+    ).not.toBeOnTheScreen();
+  });
+
+  test("スタンプ一覧の読込に失敗すると読込エラーと再試行が出る", async () => {
+    jest
+      .spyOn(stampsDb, "listStamps")
+      .mockRejectedValue(new Error("disk full"));
+
+    await renderRouter("./src/app");
+
+    expect(await screen.findByText("読み込めませんでした")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "再試行" })).toBeOnTheScreen();
+  });
+
+  test("読込失敗のあと再試行すると一覧が出る", async () => {
+    const listSpy = jest
+      .spyOn(ralliesDb, "listRallies")
+      .mockRejectedValue(new Error("disk full"));
+
+    await renderRouter("./src/app");
+    expect(await screen.findByText("読み込めませんでした")).toBeOnTheScreen();
+
+    listSpy.mockResolvedValue([]);
+    const user = userEvent.setup();
+    await user.press(screen.getByRole("button", { name: "再試行" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("読み込めませんでした")).not.toBeOnTheScreen();
+    });
+  });
+
+  test("削除に失敗するとエラーのトーストが出る", async () => {
+    jest
+      .spyOn(ralliesDb, "deleteRally")
+      .mockRejectedValue(new Error("disk full"));
+    jest.mocked(toast.error).mockClear();
+
+    const user = await createRallyFromHome("削除失敗するラリー");
+    await user.press(
+      screen.getByRole("button", { name: "削除失敗するラリーを削除" }),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "うまくいきませんでした。もう一度お試しください。",
+      );
+    });
+    expect(screen.getByText("削除失敗するラリー")).toBeOnTheScreen();
   });
 });

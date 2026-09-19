@@ -35,11 +35,6 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
         autoFocus
         className="border-continuous rounded-[10px] border border-[#c6c6c8] p-3 text-base"
       />
-      {update.isError ? (
-        <Text selectable className="text-[#ff3b30]">
-          保存できませんでした。もう一度お試しください。
-        </Text>
-      ) : null}
       <Pressable
         role="button"
         disabled={!canSave}

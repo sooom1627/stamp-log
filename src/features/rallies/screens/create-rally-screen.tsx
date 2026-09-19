@@ -44,11 +44,6 @@ export function CreateRallyScreen() {
         autoFocus
         className="border-continuous rounded-[10px] border border-[#c6c6c8] p-3 text-base"
       />
-      {save.isError && (
-        <Text selectable className="text-[#ff3b30]">
-          保存できませんでした。もう一度お試しください。
-        </Text>
-      )}
       <Pressable
         role="button"
         disabled={!canSave}
