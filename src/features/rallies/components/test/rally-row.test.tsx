@@ -25,7 +25,7 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     expect(screen.getByText("京都旅行")).toBeOnTheScreen();
     expect(screen.queryByText("場所")).toBeNull();
     expect(screen.getByLabelText("場所")).toBeOnTheScreen();
-    expect(screen.getByText("スタンプ 0個")).toBeOnTheScreen();
+    expect(screen.getByText("0 stamps")).toBeOnTheScreen();
     expect(
       screen.getByRole("button", { name: "京都旅行に今日のスタンプを押す" }),
     ).toBeOnTheScreen();
@@ -69,7 +69,7 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
       />,
     );
 
-    expect(screen.getByText("スタンプ 2個")).toBeOnTheScreen();
+    expect(screen.getByText("2 stamps")).toBeOnTheScreen();
     expect(
       screen.getByLabelText("Sep 19, 2026, recorded").props.accessibilityState,
     ).toEqual({ selected: true });
