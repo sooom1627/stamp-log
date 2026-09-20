@@ -5,16 +5,18 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import { RallyTypeRadios } from "../components/rally-type-radios";
-import {
-  rallyNamePlaceholders,
-  saveFailedMessage,
-} from "../constants/rallies-constants";
 import { useSaveRally } from "../hooks/use-rallies";
 import {
   rallyNameSchema,
   rallyTypeSchema,
   type RallyType,
 } from "../schemas/rallies";
+
+const rallyNamePlaceholders: Record<RallyType, string> = {
+  place: "記録したい場所を入力",
+  action: "記録したい行動を入力",
+  person: "記録したい人を入力",
+};
 
 export function CreateRallyScreen() {
   const [selectedType, setSelectedType] = useState<RallyType>(
@@ -42,11 +44,6 @@ export function CreateRallyScreen() {
         autoFocus
         className="border-continuous rounded-[10px] border border-[#c6c6c8] p-3 text-base"
       />
-      {save.isError && (
-        <Text selectable className="text-[#ff3b30]">
-          {saveFailedMessage}
-        </Text>
-      )}
       <Pressable
         role="button"
         disabled={!canSave}

@@ -1,13 +1,9 @@
 import { Pressable, Text, View } from "react-native";
 
-import {
-  deleteRallyLabel,
-  pressStampLabel,
-} from "../constants/rallies-constants";
-
 type StampLabel = {
   id: number;
   label: string;
+  memo: string | null;
 };
 
 type RallyRowProps = {
@@ -31,20 +27,19 @@ export function RallyRow({
       <Text>{typeLabel}</Text>
       <Pressable
         role="button"
-        aria-label={`${name}に${pressStampLabel}`}
+        aria-label={`${name}にスタンプを押す`}
         onPress={onPressStamp}
       >
-        <Text>{pressStampLabel}</Text>
+        <Text>スタンプを押す</Text>
       </Pressable>
       {stampLabels.map((stamp) => (
-        <Text key={stamp.id}>{stamp.label}</Text>
+        <View key={stamp.id} className="flex-row items-center gap-2">
+          <Text>{stamp.label}</Text>
+          {stamp.memo ? <Text>{stamp.memo}</Text> : null}
+        </View>
       ))}
-      <Pressable
-        role="button"
-        aria-label={`${name}を${deleteRallyLabel}`}
-        onPress={onDelete}
-      >
-        <Text className="text-red-500">{deleteRallyLabel}</Text>
+      <Pressable role="button" aria-label={`${name}を削除`} onPress={onDelete}>
+        <Text className="text-red-500">削除</Text>
       </Pressable>
     </View>
   );
