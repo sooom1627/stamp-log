@@ -168,7 +168,24 @@ Tasks:
 
 ゴール: ラリーごとに何が集まったか、どれだけ進んだかを確認できるようにする。「集めている」「進んでいる」感覚を与えることを目的とする。
 
-注記: S-002 Done の次はここ。S-003（位置情報）は後回し。実装前に [design.md](./design.md) と該当 `docs/screens/*.md` を `master` に揃える。Tasks はデザインが `master` に入ってから分割する。画面は [home.md](./screens/home.md) / [create-rally.md](./screens/create-rally.md) / [rally-detail.md](./screens/rally-detail.md) / [stamp-detail.md](./screens/stamp-detail.md)。
+注記: S-002 Done の次はここ。S-003（位置情報）は後回し。実装前に [design.md](./design.md) と該当 `docs/screens/*.md` を `master` に揃える。Tasks はデザインが `master` に入ってから分割する。画面は [home.md](./screens/home.md) / [create-rally.md](./screens/create-rally.md) / [rally-detail.md](./screens/rally-detail.md) / [stamp-detail.md](./screens/stamp-detail.md)。タブの枠は S-018。
+
+### Story: S-018 3つの領域をタブで切り替える
+
+As a ユーザー
+I want ホーム・記録・カレンダーをタブで行き来したい
+so that 押す場所と振り返る場所をすぐ切り替えたい
+
+受け入れ:
+
+- Given アプリを開いている When 見る Then ホーム・記録・カレンダーのタブがある
+- Given ホームにいる When 記録を選ぶ Then 記録の骨格（空状態）が見える
+- Given ホームにいる When カレンダーを選ぶ Then カレンダーの骨格が見える
+
+Tasks:
+
+- [ ] T-001: 3タブで領域を切り替えられる
+  - [x] ST-001: NativeTabs でホーム / 記録 / カレンダーを切り替えられる（記録・カレンダーは骨格）
 
 ### Story: S-006 ラリーの内容を見る
 
