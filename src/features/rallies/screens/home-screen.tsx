@@ -6,7 +6,6 @@ import { SymbolView } from "expo-symbols";
 import { toast } from "sonner-native";
 
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
-import { formatDateTime } from "@/shared/utils/format-date-time";
 
 import { RallyRow } from "../components/rally-row";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
@@ -14,14 +13,10 @@ import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { rallyTypeLabels, type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 
-function stampLabelsForRally(stamps: Stamp[], rallyId: number) {
+function stampDatesForRally(stamps: Stamp[], rallyId: number) {
   return stamps
     .filter((stamp) => stamp.rallyId === rallyId)
-    .map((stamp) => ({
-      id: stamp.id,
-      label: formatDateTime(stamp.stampedAt),
-      memo: stamp.memo,
-    }));
+    .map((stamp) => stamp.stampedAt);
 }
 
 export function HomeScreen() {
@@ -88,10 +83,7 @@ export function HomeScreen() {
             name={rally.name}
             type={rally.type}
             typeLabel={rallyTypeLabels[rally.type]}
-            stampCount={
-              stamps.filter((stamp) => stamp.rallyId === rally.id).length
-            }
-            stampLabels={stampLabelsForRally(stamps, rally.id)}
+            stampDates={stampDatesForRally(stamps, rally.id)}
             onPressStamp={() =>
               pressStamp(
                 { rallyId: rally.id },

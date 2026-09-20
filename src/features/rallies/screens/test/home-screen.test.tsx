@@ -5,13 +5,19 @@ import { renderRouter } from "expo-router/testing-library";
 import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
-import { formatDateTime } from "@/shared/utils/format-date-time";
-
 import * as ralliesDb from "../../db/rallies-db";
 import * as stampsDb from "../../db/stamps-db";
 import { type RallyType } from "../../schemas/rallies";
 
 jest.useFakeTimers();
+
+const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+});
+
+function recordedActivityLabel(iso: string) {
+  return `${activityDateFormatter.format(new Date(iso))}, recorded`;
+}
 
 beforeEach(() => {
   jest.spyOn(Alert, "alert").mockImplementation(() => {});
@@ -109,23 +115,23 @@ describe("T-002 ST-003 削除の確定", () => {
 
 describe("S-002 T-001 ST-004 スタンプを押す", () => {
   const stampedAt = "2026-09-19T12:34:00.000Z";
-  const stampDateTime = formatDateTime(stampedAt);
+  const activityLabel = recordedActivityLabel(stampedAt);
 
   beforeEach(() => {
     jest.setSystemTime(new Date(stampedAt));
   });
 
-  test("スタンプを押すとそのラリー直下に日時が出る", async () => {
+  test("スタンプを押すとそのラリーの今日の丸が記録済みになる", async () => {
     const user = await renderHomeWithRally("今年会った研究者");
 
     await user.press(
       screen.getByRole("button", { name: "今年会った研究者にスタンプを押す" }),
     );
 
-    expect(await screen.findByText(stampDateTime)).toBeOnTheScreen();
+    expect(await screen.findByLabelText(activityLabel)).toBeOnTheScreen();
   });
 
-  test("人・場所・行動どれも同じ操作で押せ、出るのは日時だけ", async () => {
+  test("人・場所・行動どれも同じ操作で押せ、今日の丸が記録済みになる", async () => {
     const rallies = [
       { name: "同期の仲間", type: "person" },
       { name: "山手線の駅", type: "place" },
@@ -147,7 +153,7 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
     }
 
     expect(
-      (await screen.findAllByText(stampDateTime)).length,
+      (await screen.findAllByLabelText(activityLabel)).length,
     ).toBeGreaterThanOrEqual(3);
     expect(screen.queryByText("誰")).not.toBeOnTheScreen();
     expect(screen.queryByText("どこ")).not.toBeOnTheScreen();
@@ -180,7 +186,7 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
 
 describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
   const stampedAt = "2026-09-20T15:00:00.000Z";
-  const stampDateTime = formatDateTime(stampedAt);
+  const activityLabel = recordedActivityLabel(stampedAt);
 
   beforeEach(() => {
     jest.setSystemTime(new Date(stampedAt));
@@ -196,7 +202,7 @@ describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
       }),
     );
 
-    expect(await screen.findByText(stampDateTime)).toBeOnTheScreen();
+    expect(await screen.findByLabelText(activityLabel)).toBeOnTheScreen();
     expect(toast).toHaveBeenCalledWith(
       "メモを追加しますか？",
       expect.objectContaining({
@@ -212,20 +218,20 @@ describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
       jest.advanceTimersByTime(5000);
     });
 
-    expect(screen.getByText(stampDateTime)).toBeOnTheScreen();
+    expect(screen.getByLabelText(activityLabel)).toBeOnTheScreen();
   });
 });
 
 describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
   const stampedAt = "2026-09-21T10:00:00.000Z";
-  const stampDateTime = formatDateTime(stampedAt);
+  const activityLabel = recordedActivityLabel(stampedAt);
 
   beforeEach(() => {
     jest.setSystemTime(new Date(stampedAt));
     jest.mocked(toast).mockClear();
   });
 
-  test("トーストの「メモを追加」で formSheet が開き、保存するとラリー直下にメモが見える", async () => {
+  test("トーストの「メモを追加」で formSheet が開き、保存後も記録済みの丸が残る", async () => {
     const user = await renderHomeWithRally("メモ追加用のラリー");
 
     await user.press(
@@ -234,7 +240,9 @@ describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
       }),
     );
 
-    expect(await screen.findByText(stampDateTime)).toBeOnTheScreen();
+    expect(
+      (await screen.findAllByLabelText(activityLabel)).length,
+    ).toBeGreaterThan(0);
 
     const action = findToastAction();
     expect(action.label).toBe("メモを追加");
@@ -252,8 +260,12 @@ describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
     await user.type(screen.getByPlaceholderText("メモを入力"), "会った");
     await user.press(screen.getByRole("button", { name: "保存" }));
 
-    expect(await screen.findByText("会った")).toBeOnTheScreen();
-    expect(screen.getByText(stampDateTime)).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("button", {
+        name: "メモ追加用のラリーにスタンプを押す",
+      }),
+    ).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(activityLabel).length).toBeGreaterThan(0);
   });
 });
 

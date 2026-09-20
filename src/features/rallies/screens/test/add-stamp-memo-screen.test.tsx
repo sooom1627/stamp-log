@@ -38,7 +38,11 @@ describe("S-002 T-002 RT-003 ST-002 メモの保存", () => {
       fireEvent(memoInput, "submitEditing");
     });
 
-    expect(await screen.findByText("会った")).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("button", {
+        name: "メモ追加用のラリーにスタンプを押す",
+      }),
+    ).toBeOnTheScreen();
     const [updated] = await listStamps();
     expect(updated.memo).toBe("会った");
   });
