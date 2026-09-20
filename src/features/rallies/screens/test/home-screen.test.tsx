@@ -72,6 +72,15 @@ describe("S-022 section heading", () => {
       screen.getByRole("heading", { name: "Your Days" }),
     ).toBeOnTheScreen();
   });
+
+  test("opens rallies list from View All", async () => {
+    const user = await renderHomeWithRally("View All check");
+
+    await user.press(screen.getByRole("link", { name: "View All" }));
+
+    expect(await screen.findByLabelText("Rallies list")).toBeOnTheScreen();
+    expect(screen.queryByText("View All check")).not.toBeOnTheScreen();
+  });
 });
 
 describe("T-002 ST-001 delete button", () => {

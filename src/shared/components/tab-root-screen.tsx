@@ -11,6 +11,13 @@ export const tabRootScreenOptions = {
   headerLargeTitleEnabled: true,
 } as const;
 
+export const ralliesListScreenOptions = {
+  headerLargeTitleEnabled: false,
+  title: "",
+  headerBackButtonDisplayMode: "minimal",
+  headerShadowVisible: false,
+} as const;
+
 const logoPlaceholderStyle = {
   width: 32,
   height: 32,

@@ -82,12 +82,21 @@ export function HomeScreen() {
           </View>
         ) : null}
         {rallies.data?.length ? (
-          <Text
-            role="heading"
-            className="text-main mt-2 mb-1 text-lg font-semibold dark:text-slate-100"
-          >
-            Your Days
-          </Text>
+          <View className="mt-2 mb-1 flex-row items-center justify-between">
+            <Text
+              role="heading"
+              className="text-main text-lg font-semibold dark:text-slate-100"
+            >
+              Your Days
+            </Text>
+            <Link href="/rallies-list" asChild>
+              <Pressable accessibilityRole="link">
+                <Text className="text-main text-sm dark:text-slate-100">
+                  View All
+                </Text>
+              </Pressable>
+            </Link>
+          </View>
         ) : null}
         {rallies.data?.map((rally) => (
           <RallyRow
