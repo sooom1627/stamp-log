@@ -8,8 +8,8 @@ beforeEach(() => {
   jest.setSystemTime(new Date("2026-09-19T12:34:00.000Z"));
 });
 
-describe("ST-002 stamps の SQLite", () => {
-  test("save した stamp が戻り値と list に rallyId と ISO stampedAt 付きで戻る", async () => {
+describe("ST-002 stamps SQLite", () => {
+  test("returns saved stamp with rallyId and ISO stampedAt", async () => {
     const saved = await saveStamp({ rallyId: 1 });
     expect(saved).toMatchObject({
       rallyId: 1,
@@ -21,7 +21,7 @@ describe("ST-002 stamps の SQLite", () => {
     expect(latest).toEqual(saved);
   });
 
-  test("2件 save すると新しい方が先", async () => {
+  test("lists newest stamp first after two saves", async () => {
     await saveStamp({ rallyId: 10 });
     await saveStamp({ rallyId: 11 });
 
@@ -30,7 +30,7 @@ describe("ST-002 stamps の SQLite", () => {
     expect(second.rallyId).toBe(10);
   });
 
-  test("rallyId 列が無い旧 stamps テーブルでも save / list できる", async () => {
+  test("supports save and list on legacy stamps table without rallyId column", async () => {
     const db = await getDb();
     await db.execAsync("DROP TABLE IF EXISTS stamps");
     await db.execAsync(
@@ -43,8 +43,8 @@ describe("ST-002 stamps の SQLite", () => {
   });
 });
 
-describe("ST-003 stamps の memo", () => {
-  test("save した stamp の memo は null", async () => {
+describe("ST-003 stamp memo", () => {
+  test("saved stamp has null memo", async () => {
     const saved = await saveStamp({ rallyId: 1 });
     expect(saved.memo).toBeNull();
 
@@ -52,13 +52,13 @@ describe("ST-003 stamps の memo", () => {
     expect(latest).toEqual(saved);
   });
 
-  test("updateStampMemo すると list に memo が残る", async () => {
+  test("updateStampMemo persists memo in list", async () => {
     const saved = await saveStamp({ rallyId: 1 });
-    const updated = await updateStampMemo({ id: saved.id, memo: "会った" });
+    const updated = await updateStampMemo({ id: saved.id, memo: "Met them" });
 
     expect(updated).toEqual({
       ...saved,
-      memo: "会った",
+      memo: "Met them",
     });
 
     const [latest] = await listStamps();
@@ -67,7 +67,7 @@ describe("ST-003 stamps の memo", () => {
     expect(latest.stampedAt).toBe("2026-09-19T12:34:00.000Z");
   });
 
-  test("memo 列が無い旧 stamps テーブルでも save / list / update できる", async () => {
+  test("supports save, list, and update on legacy stamps table without memo column", async () => {
     const db = await getDb();
     await db.execAsync("DROP TABLE IF EXISTS stamps");
     await db.execAsync(
@@ -78,8 +78,8 @@ describe("ST-003 stamps の memo", () => {
     expect(saved.memo).toBeNull();
     await expect(listStamps()).resolves.toEqual([saved]);
 
-    const updated = await updateStampMemo({ id: saved.id, memo: "京都" });
-    expect(updated.memo).toBe("京都");
+    const updated = await updateStampMemo({ id: saved.id, memo: "Kyoto" });
+    expect(updated.memo).toBe("Kyoto");
     await expect(listStamps()).resolves.toEqual([updated]);
   });
 });

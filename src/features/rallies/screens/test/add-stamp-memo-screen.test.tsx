@@ -13,37 +13,37 @@ import { listStamps, saveStamp } from "../../db/stamps-db";
 
 jest.useFakeTimers();
 
-describe("S-002 T-002 RT-003 ST-002 メモの保存", () => {
-  test("メモを入れて保存すると stamp に残る", async () => {
-    await saveRally({ name: "メモ追加用のラリー", type: "place" });
+describe("S-002 T-002 RT-003 ST-002 save memo", () => {
+  test("persists memo on stamp after save", async () => {
+    await saveRally({ name: "Memo save rally", type: "place" });
     const [rally] = await listRallies();
     const stamp = await saveStamp({ rallyId: rally.id });
 
     await renderRouter("./src/app");
-    expect(await screen.findByText("メモ追加用のラリー")).toBeOnTheScreen();
+    expect(await screen.findByText("Memo save rally")).toBeOnTheScreen();
 
     await act(() => {
       router.push(`/add-stamp-memo?stampId=${stamp.id}`);
     });
 
     const user = userEvent.setup();
-    expect(await screen.findByText("メモ")).toBeOnTheScreen();
+    expect(await screen.findByText("Memo")).toBeOnTheScreen();
     expect(
-      screen.queryByRole("heading", { name: "メモを追加" }),
+      screen.queryByRole("heading", { name: "Add memo" }),
     ).not.toBeOnTheScreen();
 
-    const memoInput = screen.getByPlaceholderText("メモを入力");
-    await user.type(memoInput, "会った");
+    const memoInput = screen.getByPlaceholderText("Enter memo");
+    await user.type(memoInput, "Met them");
     await act(async () => {
       fireEvent(memoInput, "submitEditing");
     });
 
     expect(
       await screen.findByRole("button", {
-        name: "メモ追加用のラリーは今日記録済み",
+        name: "Memo save rally already stamped today",
       }),
     ).toBeDisabled();
     const [updated] = await listStamps();
-    expect(updated.memo).toBe("会った");
+    expect(updated.memo).toBe("Met them");
   });
 });

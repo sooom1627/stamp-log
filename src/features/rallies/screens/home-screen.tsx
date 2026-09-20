@@ -35,10 +35,10 @@ export function HomeScreen() {
   };
 
   const confirmDelete = (rally: Rally) =>
-    Alert.alert("ラリーを削除しますか？", "この操作は取り消せません。", [
-      { text: "キャンセル", style: "cancel" },
+    Alert.alert("Delete rally?", "This action cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: "削除",
+        text: "Delete",
         style: "destructive",
         onPress: () => remove.mutate(rally.id),
       },
@@ -49,7 +49,7 @@ export function HomeScreen() {
       floatingAction={
         <Link href="/create-rally" asChild>
           <Pressable
-            accessibilityLabel="ラリーを作る"
+            accessibilityLabel="Create rally"
             className="bg-main active:bg-main-hover dark:bg-main-hover absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
             style={{ boxShadow: "0 8px 24px rgba(30, 41, 59, 0.22)" }}
           >
@@ -69,22 +69,22 @@ export function HomeScreen() {
         {isListError ? (
           <View className="items-center gap-2 py-12">
             <Text selectable className="text-danger">
-              読み込めませんでした
+              Couldn't load
             </Text>
             <Pressable role="button" onPress={retryLists}>
-              <Text className="text-main dark:text-slate-100">再試行</Text>
+              <Text className="text-main dark:text-slate-100">Retry</Text>
             </Pressable>
           </View>
         ) : null}
         {rallies.data?.length === 0 ? (
           <View className="items-center py-12">
-            <Text>ラリーはまだありません</Text>
+            <Text>No rallies yet</Text>
           </View>
         ) : null}
         {rallies.data?.length ? (
           <Text
             role="heading"
-            className="text-main mt-2 mb-1 text-sm font-semibold dark:text-slate-100"
+            className="text-main mt-2 mb-1 text-lg font-semibold dark:text-slate-100"
           >
             Your Days
           </Text>
@@ -100,7 +100,7 @@ export function HomeScreen() {
                 { rallyId: rally.id },
                 {
                   onSuccess: (stamp) => {
-                    const toastId = toast("メモを追加しますか？", {
+                    const toastId = toast("Add a memo?", {
                       duration: 5000,
                       styles: {
                         textContainer: {
@@ -115,7 +115,7 @@ export function HomeScreen() {
                         },
                       },
                       action: {
-                        label: "メモを追加",
+                        label: "Add memo",
                         onClick: () => {
                           toast.dismiss(toastId);
                           router.push(`/add-stamp-memo?stampId=${stamp.id}`);

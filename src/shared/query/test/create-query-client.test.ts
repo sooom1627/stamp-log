@@ -12,14 +12,14 @@ afterEach(() => {
 });
 
 describe("ST-001 createQueryClient", () => {
-  test("query の retry は false", () => {
+  test("sets query retry to false", () => {
     const client = createQueryClient();
     queryClients.push(client);
 
     expect(client.getDefaultOptions().queries?.retry).toBe(false);
   });
 
-  test("mutation が失敗すると onMutationError が呼ばれる", async () => {
+  test("calls onMutationError when mutation fails", async () => {
     const onMutationError = jest.fn();
     const client = createQueryClient({ onMutationError });
     queryClients.push(client);

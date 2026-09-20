@@ -41,12 +41,12 @@ export function TabRootScreen({
       <Stack.Title large>{getSessionGreeting()}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
-          <View accessibilityLabel="ロゴ" style={logoPlaceholderStyle} />
+          <View accessibilityLabel="Logo" style={logoPlaceholderStyle} />
         </Stack.Toolbar.View>
       </Stack.Toolbar>
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
-          accessibilityLabel="メニュー"
+          accessibilityLabel="Menu"
           icon="line.3.horizontal"
           onPress={() => {}}
         />

@@ -16,7 +16,7 @@ export function EmojiKeyboard({
         <Pressable
           key={emoji}
           role="button"
-          accessibilityLabel={`${emoji}を選ぶ`}
+          accessibilityLabel={`Select ${emoji}`}
           onPress={() => onEmojiSelected({ emoji })}
         >
           <Text>{emoji}</Text>

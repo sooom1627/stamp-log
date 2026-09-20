@@ -15,17 +15,17 @@ const segmentClassName = "bg-main rounded-full dark:bg-slate-100";
 const typeDetails = [
   {
     type: "person",
-    label: "人",
+    label: "Person",
     Icon: UsersRound,
   },
   {
     type: "place",
-    label: "場所",
+    label: "Place",
     Icon: MapPinPen,
   },
   {
     type: "action",
-    label: "行動",
+    label: "Action",
     Icon: ListChecks,
   },
 ] as const;
@@ -60,7 +60,7 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
       stampedAt.getMonth() === now.getMonth()
     );
   }).length;
-  const accessibilityLabel = `累計${stamps.length}個、今月${monthCount}個、人${typeCounts.person}個、場所${typeCounts.place}個、行動${typeCounts.action}個`;
+  const accessibilityLabel = `Total ${stamps.length}, ${monthCount} this month, ${typeCounts.person} person, ${typeCounts.place} place, ${typeCounts.action} action`;
 
   return (
     <View

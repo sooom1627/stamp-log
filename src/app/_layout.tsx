@@ -27,7 +27,7 @@ export default function RootLayout() {
   const [queryClient] = useState(() =>
     createQueryClient({
       onMutationError: () => {
-        toast.error("うまくいきませんでした。もう一度お試しください。");
+        toast.error("Something went wrong. Please try again.");
       },
     }),
   );

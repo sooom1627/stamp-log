@@ -3,25 +3,25 @@ import { getDb } from "@/shared/db/get-db";
 import { deleteRally, listRallies, saveRally } from "../rallies-db";
 import { listStamps, saveStamp } from "../stamps-db";
 
-describe("S-023 T-001 ST-002 rallies の絵文字", () => {
-  test("選んだ絵文字を保存して一覧から取得できる", async () => {
-    await saveRally({ name: "京都旅行", type: "place", emoji: "⛩️" });
+describe("S-023 T-001 ST-002 rally emoji", () => {
+  test("saves chosen emoji and returns it from list", async () => {
+    await saveRally({ name: "Kyoto trip", type: "place", emoji: "⛩️" });
 
     await expect(listRallies()).resolves.toEqual([
-      expect.objectContaining({ name: "京都旅行", emoji: "⛩️" }),
+      expect.objectContaining({ name: "Kyoto trip", emoji: "⛩️" }),
     ]);
   });
 
-  test("絵文字を省略するとタイプの初期絵文字を保存する", async () => {
-    await saveRally({ name: "会った人", type: "person" });
+  test("uses type default emoji when emoji is omitted", async () => {
+    await saveRally({ name: "People met", type: "person" });
 
     const [latest] = await listRallies();
     expect(latest).toEqual(
-      expect.objectContaining({ name: "会った人", emoji: "😀" }),
+      expect.objectContaining({ name: "People met", emoji: "😀" }),
     );
   });
 
-  test("emoji 列がない既存 rallies テーブルをタイプの初期値で補完する", async () => {
+  test("backfills legacy rallies table without emoji column", async () => {
     const db = await getDb();
     await db.execAsync("DROP TABLE IF EXISTS rallies");
     await db.execAsync(`
@@ -30,17 +30,17 @@ describe("S-023 T-001 ST-002 rallies の絵文字", () => {
         name TEXT NOT NULL,
         type TEXT NOT NULL
       );
-      INSERT INTO rallies (name, type) VALUES ('散歩', 'action');
+      INSERT INTO rallies (name, type) VALUES ('Walk', 'action');
     `);
 
     await expect(listRallies()).resolves.toEqual([
-      { id: 1, name: "散歩", type: "action", emoji: "👏" },
+      { id: 1, name: "Walk", type: "action", emoji: "👏" },
     ]);
   });
 });
 
 describe("deleteRally", () => {
-  test("ラリーを削除するとそのスタンプも消え、他のラリーのスタンプは残る", async () => {
+  test("deletes rally stamps but keeps stamps from other rallies", async () => {
     await saveStamp({ rallyId: 1 });
     await saveStamp({ rallyId: 2 });
 

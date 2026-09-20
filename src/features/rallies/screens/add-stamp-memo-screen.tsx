@@ -18,9 +18,9 @@ type AddStampMemoScreenProps = {
   stampId: number;
 };
 
-// formSheet 内では ScrollView / KeyboardAvoidingView を使わない
-// （理由は create-rally-screen.tsx を参照）。
-// メモ入力は高さ上限を付け、入力欄自身の内部スクロールに任せる。
+// Do not use ScrollView / KeyboardAvoidingView inside formSheet
+// (see create-rally-screen.tsx for why).
+// Cap memo input height and rely on the field's internal scrolling.
 export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   const [memo, setMemo] = useState("");
   const { back } = useRouter();
@@ -46,14 +46,14 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
     >
       <View className="gap-2">
         <Text className="text-main text-sm font-semibold dark:text-slate-100">
-          メモ
+          Memo
         </Text>
         <TextInput
           value={memo}
           onChangeText={setMemo}
           onSubmitEditing={handleSave}
-          placeholder="メモを入力"
-          accessibilityLabel="メモ"
+          placeholder="Enter memo"
+          accessibilityLabel="Memo"
           autoFocus
           multiline
           returnKeyType="done"
@@ -68,7 +68,7 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
 
       <Pressable
         role="button"
-        accessibilityLabel={update.isPending ? "保存中…" : "保存"}
+        accessibilityLabel={update.isPending ? "Saving…" : "Save"}
         accessibilityState={{
           disabled: !canSave,
           busy: update.isPending,
@@ -94,7 +94,7 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
               : "text-text-muted text-base font-semibold"
           }
         >
-          {update.isPending ? "保存中…" : "保存"}
+          {update.isPending ? "Saving…" : "Save"}
         </Text>
       </Pressable>
     </View>

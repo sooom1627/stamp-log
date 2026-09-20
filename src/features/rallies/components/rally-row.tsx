@@ -29,7 +29,7 @@ export function RallyRow({
           <Text
             selectable
             numberOfLines={1}
-            className="text-main text-lg font-semibold dark:text-slate-100"
+            className="text-main text-base font-semibold dark:text-slate-100"
           >
             {name}
           </Text>
@@ -39,7 +39,7 @@ export function RallyRow({
         </View>
         <Pressable
           role="button"
-          aria-label={`${name}を削除`}
+          aria-label={`Delete ${name}`}
           className="active:bg-surface-muted size-10 items-center justify-center rounded-full dark:active:bg-slate-800"
           onPress={onDelete}
         >

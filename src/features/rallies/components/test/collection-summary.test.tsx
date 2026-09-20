@@ -21,7 +21,7 @@ const stamps: Stamp[] = [
 ];
 
 describe("S-020 T-004 ST-001 CollectionSummary", () => {
-  test("累計、今月、タイプ別件数と構成比バーが分かる", async () => {
+  test("shows total, this month, type counts, and composition bar", async () => {
     jest.setSystemTime(new Date("2026-09-20T03:00:00.000Z"));
 
     await render(<CollectionSummary rallies={rallies} stamps={stamps} />);
@@ -30,18 +30,22 @@ describe("S-020 T-004 ST-001 CollectionSummary", () => {
     expect(screen.getByText("STAMPS")).toBeOnTheScreen();
     expect(screen.getByText("This month + 3")).toBeOnTheScreen();
     expect(
-      screen.getByLabelText("累計5個、今月3個、人2個、場所2個、行動1個"),
+      screen.getByLabelText(
+        "Total 5, 3 this month, 2 person, 2 place, 1 action",
+      ),
     ).toBeOnTheScreen();
     expect(screen.getAllByTestId("collection-segment")).toHaveLength(3);
   });
 
-  test("スタンプがないときは0件と淡色のバーが出る", async () => {
+  test("shows zero counts and a muted bar when there are no stamps", async () => {
     jest.setSystemTime(new Date("2026-09-20T03:00:00.000Z"));
 
     await render(<CollectionSummary rallies={[]} stamps={[]} />);
 
     expect(
-      screen.getByLabelText("累計0個、今月0個、人0個、場所0個、行動0個"),
+      screen.getByLabelText(
+        "Total 0, 0 this month, 0 person, 0 place, 0 action",
+      ),
     ).toBeOnTheScreen();
     expect(screen.getByText("This month + 0")).toBeOnTheScreen();
     expect(screen.getByTestId("collection-empty-track")).toBeOnTheScreen();

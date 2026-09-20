@@ -5,13 +5,13 @@ import { act, screen } from "@testing-library/react-native";
 
 jest.useFakeTimers();
 
-describe("S-018 T-001 ST-001 ボトムタブ", () => {
-  test("ホーム・記録・カレンダーのタブで切り替えられる", async () => {
+describe("S-018 T-001 ST-001 bottom tabs", () => {
+  test("switches between home, logs, and calendar tabs", async () => {
     const app = renderRouter("./src/app");
     await app;
 
     expect(
-      await screen.findByRole("link", { name: "ラリーを作る" }),
+      await screen.findByRole("link", { name: "Create rally" }),
     ).toBeOnTheScreen();
     expect(app.getPathname()).toBe("/");
 
@@ -19,22 +19,20 @@ describe("S-018 T-001 ST-001 ボトムタブ", () => {
       router.push("/records");
     });
     expect(app.getPathname()).toBe("/records");
-    expect(screen.getByText("まだスタンプがありません")).toBeOnTheScreen();
+    expect(screen.getByText("No stamps yet")).toBeOnTheScreen();
 
     await act(() => {
       router.push("/calendar");
     });
     expect(app.getPathname()).toBe("/calendar");
-    expect(
-      screen.getByRole("heading", { name: "カレンダー" }),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole("heading", { name: "Calendar" })).toBeOnTheScreen();
 
     await act(() => {
       router.push("/");
     });
     expect(app.getPathname()).toBe("/");
     expect(
-      screen.getByRole("link", { name: "ラリーを作る" }),
+      screen.getByRole("link", { name: "Create rally" }),
     ).toBeOnTheScreen();
   });
 });

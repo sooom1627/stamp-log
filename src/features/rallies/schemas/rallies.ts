@@ -21,9 +21,9 @@ export type Rally = z.infer<typeof rallySchema>;
 export type SaveRallyInput = z.infer<typeof saveRallyInputSchema>;
 
 export const rallyTypeLabels: Record<RallyType, string> = {
-  place: "場所",
-  action: "行動",
-  person: "人",
+  place: "Place",
+  action: "Action",
+  person: "Person",
 };
 
 export const rallyTypeEmojis: Record<RallyType, string> = {

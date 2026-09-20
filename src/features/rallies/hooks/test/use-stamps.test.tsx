@@ -32,8 +32,8 @@ function useStampsFlow() {
   return { query, save, updateMemo };
 }
 
-describe("ST-003 stamps の Query hooks", () => {
-  test("初期は空配列", async () => {
+describe("ST-003 stamp Query hooks", () => {
+  test("starts with an empty array", async () => {
     const { result } = await renderHook(() => useStamps(), {
       wrapper: createWrapper(),
     });
@@ -44,7 +44,7 @@ describe("ST-003 stamps の Query hooks", () => {
     expect(result.current.data).toEqual([]);
   });
 
-  test("save のあと list が新しい stamp を返す", async () => {
+  test("returns new stamp in list after save", async () => {
     const { result } = await renderHook(() => useStampsFlow(), {
       wrapper: createWrapper(),
     });
@@ -64,8 +64,8 @@ describe("ST-003 stamps の Query hooks", () => {
   });
 });
 
-describe("ST-004 memo 更新の Query hook", () => {
-  test("update のあと list が memo 付き stamp を返す", async () => {
+describe("ST-004 memo update Query hook", () => {
+  test("returns stamp with memo in list after update", async () => {
     const { result } = await renderHook(() => useStampsFlow(), {
       wrapper: createWrapper(),
     });
@@ -89,18 +89,18 @@ describe("ST-004 memo 更新の Query hook", () => {
     await act(async () => {
       await result.current.updateMemo.mutateAsync({
         id: savedId,
-        memo: "会った",
+        memo: "Met them",
       });
     });
 
     await waitFor(() => {
       expect(
         result.current.query.data?.find((stamp) => stamp.id === savedId)?.memo,
-      ).toBe("会った");
+      ).toBe("Met them");
     });
   });
 
-  test("空 memo の update は isError になり list は変わらない", async () => {
+  test("empty memo update sets isError and leaves list unchanged", async () => {
     const { result } = await renderHook(() => useStampsFlow(), {
       wrapper: createWrapper(),
     });

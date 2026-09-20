@@ -7,8 +7,8 @@ import { formatHeaderDate } from "@/shared/utils/format-header-date";
 
 jest.useFakeTimers();
 
-describe("S-019 T-001 ST-002 タブルートヘッダー", () => {
-  test("3タブの本文先頭に今日の日付が出る", async () => {
+describe("S-019 T-001 ST-002 tab root header", () => {
+  test("shows today's date at the top of all three tabs", async () => {
     const today = formatHeaderDate(new Date());
     const app = renderRouter("./src/app");
     await app;
@@ -19,21 +19,19 @@ describe("S-019 T-001 ST-002 タブルートヘッダー", () => {
       expect.stringContaining("mb-4"),
     );
     expect(
-      screen.getByRole("link", { name: "ラリーを作る" }),
+      screen.getByRole("link", { name: "Create rally" }),
     ).toBeOnTheScreen();
 
     await act(() => {
       router.push("/records");
     });
     expect(screen.getAllByText(today)).toHaveLength(3);
-    expect(screen.getByText("まだスタンプがありません")).toBeOnTheScreen();
+    expect(screen.getByText("No stamps yet")).toBeOnTheScreen();
 
     await act(() => {
       router.push("/calendar");
     });
     expect(screen.getAllByText(today)).toHaveLength(3);
-    expect(
-      screen.getByRole("heading", { name: "カレンダー" }),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole("heading", { name: "Calendar" })).toBeOnTheScreen();
   });
 });

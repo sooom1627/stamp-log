@@ -3,11 +3,11 @@ import { getSessionGreeting } from "../session-greeting";
 const greetings = ["Hello", "Welcome back", "Good morning"];
 
 describe("S-019 ST-001 getSessionGreeting", () => {
-  test("Hello / Welcome back / Good morning のいずれかを返す", () => {
+  test("returns Hello, Welcome back, or Good morning", () => {
     expect(greetings).toContain(getSessionGreeting());
   });
 
-  test("同じ起動では同じ挨拶を返す", () => {
+  test("returns the same greeting within one app launch", () => {
     expect(getSessionGreeting()).toBe(getSessionGreeting());
   });
 });

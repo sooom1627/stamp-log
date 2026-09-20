@@ -27,16 +27,16 @@ import {
 } from "../schemas/rallies";
 
 const rallyNamePlaceholders: Record<RallyType, string> = {
-  place: "記録したい場所を入力",
-  action: "記録したい行動を入力",
-  person: "記録したい人を入力",
+  place: "Enter a place to track",
+  action: "Enter an action to track",
+  person: "Enter a person to track",
 };
 
-// formSheet 内では ScrollView / KeyboardAvoidingView を使わない。
-// react-native-screens が ScrollView のフレームをシート全体に強制上書きし、
-// 後続の兄弟（フッター）と干渉して中身が描画されなくなるため。
-// キーボード表示時は iOS がシートを最大 detent に拡張するので、
-// 保存ボタンを入力欄の直下に置けば常にキーボードの上に表示される。
+// Do not use ScrollView / KeyboardAvoidingView inside formSheet.
+// react-native-screens force-overrides the ScrollView frame to the full sheet,
+// which interferes with sibling content (footer) and stops rendering.
+// When the keyboard opens, iOS expands the sheet to the max detent, so placing
+// the save button directly below the inputs keeps it above the keyboard.
 export function CreateRallyScreen() {
   const [selectedType, setSelectedType] = useState<RallyType>(
     rallyTypeSchema.options[0],
@@ -78,24 +78,24 @@ export function CreateRallyScreen() {
       <View className="gap-6">
         <View className="gap-2">
           <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            タイプ
+            Type
           </Text>
           <RallyTypeRadios value={selectedType} onChange={handleTypeChange} />
         </View>
 
         <View className="gap-2">
           <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            絵文字
+            Emoji
           </Text>
           <Pressable
             role="button"
-            accessibilityLabel={`絵文字を選ぶ（現在 ${emoji}）`}
+            accessibilityLabel={`Select emoji (currently ${emoji})`}
             onPress={() => setIsEmojiPickerOpen((isOpen) => !isOpen)}
             className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active dark:bg-main-hover flex-row items-center gap-3 rounded-2xl border px-4 py-3 dark:border-slate-700"
           >
             <Text className="text-3xl">{emoji}</Text>
             <Text className="text-text-muted flex-1 text-sm dark:text-slate-400">
-              タップして変更
+              Tap to change
             </Text>
           </Pressable>
           {isEmojiPickerOpen ? (
@@ -114,7 +114,7 @@ export function CreateRallyScreen() {
 
         <View className="gap-2">
           <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            名称
+            Name
           </Text>
           <TextInput
             value={name}
@@ -122,7 +122,7 @@ export function CreateRallyScreen() {
             onFocus={() => setIsEmojiPickerOpen(false)}
             onSubmitEditing={handleSave}
             placeholder={rallyNamePlaceholders[selectedType]}
-            accessibilityLabel="名称"
+            accessibilityLabel="Name"
             returnKeyType="done"
             submitBehavior="blurAndSubmit"
             className="border-continuous border-border bg-surface-muted text-main focus:border-accent dark:bg-main-hover rounded-2xl border px-4 py-3.5 text-base dark:border-slate-700 dark:text-slate-100"
@@ -135,7 +135,7 @@ export function CreateRallyScreen() {
 
       <Pressable
         role="button"
-        accessibilityLabel={save.isPending ? "保存中…" : "保存"}
+        accessibilityLabel={save.isPending ? "Saving…" : "Save"}
         accessibilityState={{
           disabled: !canSave,
           busy: save.isPending,
@@ -161,7 +161,7 @@ export function CreateRallyScreen() {
               : "text-text-muted text-base font-semibold"
           }
         >
-          {save.isPending ? "保存中…" : "保存"}
+          {save.isPending ? "Saving…" : "Save"}
         </Text>
       </Pressable>
     </View>

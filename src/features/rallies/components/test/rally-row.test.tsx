@@ -7,7 +7,7 @@ jest.useFakeTimers();
 const NOW = new Date("2026-09-20T12:00:00.000Z");
 
 const defaultProps = {
-  name: "京都旅行",
+  name: "Kyoto trip",
   emoji: "⛩️",
   stampDates: [] as string[],
   onPressStamp: () => {},
@@ -19,24 +19,24 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     jest.setSystemTime(NOW);
   });
 
-  test("絵文字、名称、スタンプ数、今日の追加、削除が出る", async () => {
+  test("shows emoji, name, stamp count, today stamp, and delete", async () => {
     await render(<RallyRow {...defaultProps} />);
 
     expect(screen.getByText("⛩️")).toBeOnTheScreen();
-    expect(screen.getByText("京都旅行")).toBeOnTheScreen();
-    expect(screen.queryByText("場所")).toBeNull();
-    expect(screen.queryByLabelText("場所")).toBeNull();
+    expect(screen.getByText("Kyoto trip")).toBeOnTheScreen();
+    expect(screen.queryByText("Place")).toBeNull();
+    expect(screen.queryByLabelText("Place")).toBeNull();
     expect(screen.getByText("0 stamps")).toBeOnTheScreen();
     expect(
-      screen.getByRole("button", { name: "京都旅行に今日のスタンプを押す" }),
+      screen.getByRole("button", { name: "Stamp Kyoto trip for today" }),
     ).toBeOnTheScreen();
-    expect(screen.queryByText("押す")).toBeNull();
+    expect(screen.queryByText("Stamp")).toBeNull();
     expect(
-      screen.getByRole("button", { name: "京都旅行を削除" }),
+      screen.getByRole("button", { name: "Delete Kyoto trip" }),
     ).toBeOnTheScreen();
   });
 
-  test("今日までの曜日と7個の丸だけが横幅いっぱいに出る", async () => {
+  test("shows weekdays and 7 circles full width", async () => {
     await render(<RallyRow {...defaultProps} />);
 
     expect(screen.queryByText("Last 7 days")).toBeNull();
@@ -53,16 +53,16 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     );
   });
 
-  test("todayRing は今日の丸だけをリングで示す", async () => {
+  test("todayRing highlights only today with a ring", async () => {
     await render(<RallyRow {...defaultProps} />);
 
     expect(screen.getAllByTestId("activity-today-ring")).toHaveLength(1);
     expect(
-      screen.getByRole("button", { name: "京都旅行に今日のスタンプを押す" }),
+      screen.getByRole("button", { name: "Stamp Kyoto trip for today" }),
     ).toContainElement(screen.getByTestId("activity-today-ring"));
   });
 
-  test("記録がある日だけ選択され、同じ日の複数件は1つの丸になる", async () => {
+  test("marks recorded days only; multiple stamps on one day become one dot", async () => {
     await render(
       <RallyRow
         {...defaultProps}
@@ -76,13 +76,13 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     ).toEqual({ selected: true });
     expect(
       screen.getByRole("button", {
-        name: "京都旅行に今日のスタンプを押す",
+        name: "Stamp Kyoto trip for today",
       }).props.accessibilityState,
     ).toEqual({ disabled: false, selected: false });
     expect(screen.getAllByTestId("activity-day")).toHaveLength(7);
   });
 
-  test("今日が記録済みなら今日セルから追加できない", async () => {
+  test("cannot add from today cell when already recorded today", async () => {
     const onPressStamp = jest.fn();
     const user = userEvent.setup();
     await render(
@@ -94,7 +94,7 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     );
 
     const todayButton = screen.getByRole("button", {
-      name: "京都旅行は今日記録済み",
+      name: "Kyoto trip already stamped today",
     });
     expect(todayButton.props.accessibilityState).toEqual({
       disabled: true,
@@ -105,7 +105,7 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     expect(onPressStamp).not.toHaveBeenCalled();
   });
 
-  test("直近7日の境界外は表示せず、境界内の記録を表示する", async () => {
+  test("hides records outside the last 7 days and shows in-range records", async () => {
     await render(
       <RallyRow
         {...defaultProps}
@@ -121,7 +121,7 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     expect(screen.queryByLabelText("Sep 13, 2026, recorded")).toBeNull();
   });
 
-  test("スタンプと削除を押すとそれぞれの callback が呼ばれる", async () => {
+  test("stamp and delete buttons call their callbacks", async () => {
     const onPressStamp = jest.fn();
     const onDelete = jest.fn();
     const user = userEvent.setup();
@@ -135,9 +135,9 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     );
 
     await user.press(
-      screen.getByRole("button", { name: "京都旅行に今日のスタンプを押す" }),
+      screen.getByRole("button", { name: "Stamp Kyoto trip for today" }),
     );
-    await user.press(screen.getByRole("button", { name: "京都旅行を削除" }));
+    await user.press(screen.getByRole("button", { name: "Delete Kyoto trip" }));
 
     expect(onPressStamp).toHaveBeenCalledTimes(1);
     expect(onDelete).toHaveBeenCalledTimes(1);

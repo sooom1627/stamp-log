@@ -17,92 +17,94 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-describe("S-002 T-002 RT-003 ST-002 ラリーの保存", () => {
-  test("名称、タイプ、選んだ絵文字を保存するとホームに絵文字が出る", async () => {
+describe("S-002 T-002 RT-003 ST-002 save rally", () => {
+  test("saves name, type, and chosen emoji and shows emoji on home", async () => {
     await renderRouter("./src/app");
 
     const user = userEvent.setup();
-    await user.press(screen.getByRole("link", { name: "ラリーを作る" }));
+    await user.press(screen.getByRole("link", { name: "Create rally" }));
 
     await user.type(
-      await screen.findByPlaceholderText("記録したい場所を入力"),
-      "京都旅行",
+      await screen.findByPlaceholderText("Enter a place to track"),
+      "Kyoto trip",
     );
-    await user.press(screen.getByRole("radio", { name: "人" }));
+    await user.press(screen.getByRole("radio", { name: "Person" }));
 
-    expect(screen.getByDisplayValue("京都旅行")).toBeOnTheScreen();
-    expect(screen.getByPlaceholderText("記録したい人を入力")).toBeOnTheScreen();
+    expect(screen.getByDisplayValue("Kyoto trip")).toBeOnTheScreen();
+    expect(
+      screen.getByPlaceholderText("Enter a person to track"),
+    ).toBeOnTheScreen();
     await user.press(
-      screen.getByRole("button", { name: "絵文字を選ぶ（現在 😀）" }),
+      screen.getByRole("button", { name: "Select emoji (currently 😀)" }),
     );
     expect(screen.getByTestId("emoji-picker")).toBeOnTheScreen();
-    await user.press(screen.getByRole("button", { name: "🔬を選ぶ" }));
+    await user.press(screen.getByRole("button", { name: "Select 🔬" }));
 
-    await user.press(screen.getByRole("button", { name: "保存" }));
+    await user.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(await screen.findByText("京都旅行")).toBeOnTheScreen();
+    expect(await screen.findByText("Kyoto trip")).toBeOnTheScreen();
     expect(screen.getByText("🔬")).toBeOnTheScreen();
-    expect(screen.queryByText("人")).toBeNull();
-    expect(screen.queryByLabelText("人")).toBeNull();
+    expect(screen.queryByText("Person")).toBeNull();
+    expect(screen.queryByLabelText("Person")).toBeNull();
   });
 
-  test("未変更ならタイプの初期絵文字が追随し、選んだ後は維持する", async () => {
+  test("follows type default emoji until customized, then keeps custom emoji", async () => {
     await renderRouter("./src/app", { initialUrl: "/create-rally" });
     const user = userEvent.setup();
 
     expect(
       await screen.findByRole("button", {
-        name: "絵文字を選ぶ（現在 🏠）",
+        name: "Select emoji (currently 🏠)",
       }),
     ).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("radio", { name: "人" }));
+    await user.press(screen.getByRole("radio", { name: "Person" }));
     await user.press(
-      screen.getByRole("button", { name: "絵文字を選ぶ（現在 😀）" }),
+      screen.getByRole("button", { name: "Select emoji (currently 😀)" }),
     );
-    await user.press(screen.getByRole("button", { name: "🎯を選ぶ" }));
-    await user.press(screen.getByRole("radio", { name: "行動" }));
+    await user.press(screen.getByRole("button", { name: "Select 🎯" }));
+    await user.press(screen.getByRole("radio", { name: "Action" }));
     expect(
-      screen.getByRole("button", { name: "絵文字を選ぶ（現在 🎯）" }),
+      screen.getByRole("button", { name: "Select emoji (currently 🎯)" }),
     ).toBeOnTheScreen();
   });
 
-  test("カラー選択は出さず、名称にフォーカスするとPickerが閉じる", async () => {
+  test("hides color selector and closes picker when name field is focused", async () => {
     await renderRouter("./src/app", { initialUrl: "/create-rally" });
     const user = userEvent.setup();
 
     await user.press(
       await screen.findByRole("button", {
-        name: "絵文字を選ぶ（現在 🏠）",
+        name: "Select emoji (currently 🏠)",
       }),
     );
     expect(screen.getByTestId("emoji-picker")).toBeOnTheScreen();
     expect(screen.queryByTestId("emoji-color-selector")).toBeNull();
 
     await act(async () => {
-      fireEvent(screen.getByLabelText("名称"), "focus");
+      fireEvent(screen.getByLabelText("Name"), "focus");
     });
     expect(screen.queryByTestId("emoji-picker")).toBeNull();
   });
 
-  test("項目ラベルがあり、Doneからも保存できる", async () => {
+  test("shows field labels and saves from Done", async () => {
     await renderRouter("./src/app");
     const user = userEvent.setup();
-    await user.press(screen.getByRole("link", { name: "ラリーを作る" }));
+    await user.press(screen.getByRole("link", { name: "Create rally" }));
 
-    expect(await screen.findByText("タイプ")).toBeOnTheScreen();
-    expect(screen.getByText("名称")).toBeOnTheScreen();
+    expect(await screen.findByText("Type")).toBeOnTheScreen();
+    expect(screen.getByText("Name")).toBeOnTheScreen();
 
-    const nameInput = screen.getByPlaceholderText("記録したい場所を入力");
-    await user.type(nameInput, "鎌倉の寺");
+    const nameInput = screen.getByPlaceholderText("Enter a place to track");
+    await user.type(nameInput, "Kamakura temples");
     await act(async () => {
       fireEvent(nameInput, "submitEditing");
     });
 
-    expect(await screen.findByText("鎌倉の寺")).toBeOnTheScreen();
+    expect(await screen.findByText("Kamakura temples")).toBeOnTheScreen();
   });
 
-  test("保存中は状態が表示され、保存ボタンを再度押せない", async () => {
+  test("shows saving state and disables save button while pending", async () => {
     jest
       .spyOn(ralliesDb, "saveRally")
       .mockImplementation(() => new Promise<void>(() => {}));
@@ -110,31 +112,31 @@ describe("S-002 T-002 RT-003 ST-002 ラリーの保存", () => {
 
     const user = userEvent.setup();
     await user.type(
-      await screen.findByPlaceholderText("記録したい場所を入力"),
-      "保存中のラリー",
+      await screen.findByPlaceholderText("Enter a place to track"),
+      "Saving rally",
     );
-    await user.press(screen.getByRole("button", { name: "保存" }));
+    await user.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(await screen.findByText("保存中…")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "保存中…" })).toBeDisabled();
+    expect(await screen.findByText("Saving…")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
   });
 });
 
-describe("S-002 T-002 RT-003 ST-002 名称の必須チェック", () => {
-  test("名称が空のときは保存できない", async () => {
+describe("S-002 T-002 RT-003 ST-002 name required", () => {
+  test("cannot save when name is empty", async () => {
     await renderRouter("./src/app", { initialUrl: "/create-rally" });
 
-    expect(await screen.findByRole("button", { name: "保存" })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: "Save" })).toBeDisabled();
   });
 
-  test("空白だけのときも保存できない", async () => {
+  test("cannot save when name is whitespace only", async () => {
     await renderRouter("./src/app", { initialUrl: "/create-rally" });
     const user = userEvent.setup();
     await user.type(
-      await screen.findByPlaceholderText("記録したい場所を入力"),
+      await screen.findByPlaceholderText("Enter a place to track"),
       "   ",
     );
 
-    expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 });

@@ -63,8 +63,8 @@ function ActivityDayCircle({
         role="button"
         accessibilityLabel={
           day.isRecorded
-            ? `${rallyName}は今日記録済み`
-            : `${rallyName}に今日のスタンプを押す`
+            ? `${rallyName} already stamped today`
+            : `Stamp ${rallyName} for today`
         }
         accessibilityState={{
           disabled: day.isRecorded,

@@ -48,25 +48,25 @@ async function renderHomeWithRally(name: string, type: RallyType = "place") {
   return userEvent.setup();
 }
 
-describe("ST-001 ラリー作成入口", () => {
-  test("ホームの「ラリーを作る」を押すと作成画面が開く", async () => {
+describe("ST-001 create rally entry", () => {
+  test("opens create screen from Create rally on home", async () => {
     await renderRouter("./src/app");
 
     const user = userEvent.setup();
-    await user.press(screen.getByRole("link", { name: "ラリーを作る" }));
+    await user.press(screen.getByRole("link", { name: "Create rally" }));
 
     expect(
-      await screen.findByPlaceholderText("記録したい場所を入力"),
+      await screen.findByPlaceholderText("Enter a place to track"),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByRole("heading", { name: "ラリーを作る" }),
+      screen.queryByRole("heading", { name: "Create rally" }),
     ).not.toBeOnTheScreen();
   });
 });
 
-describe("S-022 セクション見出し", () => {
-  test("ラリーがあるとき Your Days が出る", async () => {
-    await renderHomeWithRally("Your Days確認用");
+describe("S-022 section heading", () => {
+  test("shows Your Days when rallies exist", async () => {
+    await renderHomeWithRally("Your Days check");
 
     expect(
       screen.getByRole("heading", { name: "Your Days" }),
@@ -74,75 +74,77 @@ describe("S-022 セクション見出し", () => {
   });
 });
 
-describe("T-002 ST-001 削除ボタン", () => {
-  test("一覧のラリーに削除ボタンが出る", async () => {
-    await renderHomeWithRally("東京の美術館");
+describe("T-002 ST-001 delete button", () => {
+  test("shows delete button on each rally in the list", async () => {
+    await renderHomeWithRally("Tokyo museums");
 
     expect(
-      screen.getByRole("button", { name: "東京の美術館を削除" }),
+      screen.getByRole("button", { name: "Delete Tokyo museums" }),
     ).toBeOnTheScreen();
   });
 });
 
-describe("T-002 ST-002 削除の確認", () => {
-  test("削除を押すと確認が出て、キャンセルするとラリーは残る", async () => {
-    const user = await renderHomeWithRally("山手線全駅");
+describe("T-002 ST-002 delete confirmation", () => {
+  test("shows confirmation on delete and keeps rally on cancel", async () => {
+    const user = await renderHomeWithRally("Yamanote stations");
 
-    await user.press(screen.getByRole("button", { name: "山手線全駅を削除" }));
+    await user.press(
+      screen.getByRole("button", { name: "Delete Yamanote stations" }),
+    );
 
     expect(Alert.alert).toHaveBeenCalledTimes(1);
 
     findAlertButton("cancel").onPress?.();
 
-    expect(screen.getByText("山手線全駅")).toBeOnTheScreen();
+    expect(screen.getByText("Yamanote stations")).toBeOnTheScreen();
   });
 });
 
-describe("T-002 ST-003 削除の確定", () => {
-  test("確認で削除すると、ホーム一覧から消える", async () => {
-    const user = await renderHomeWithRally("週末のランニング");
+describe("T-002 ST-003 delete confirm", () => {
+  test("removes rally from home list after confirming delete", async () => {
+    const user = await renderHomeWithRally("Weekend running");
 
     await user.press(
-      screen.getByRole("button", { name: "週末のランニングを削除" }),
+      screen.getByRole("button", { name: "Delete Weekend running" }),
     );
     await act(async () => {
       findAlertButton("destructive").onPress?.();
     });
 
     await waitFor(() => {
-      expect(screen.queryByText("週末のランニング")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Weekend running")).not.toBeOnTheScreen();
     });
   });
 });
 
-describe("S-002 T-001 ST-004 スタンプを押す", () => {
+describe("S-002 T-001 ST-004 stamp rally", () => {
   const stampedAt = "2026-09-19T12:34:00.000Z";
 
   beforeEach(() => {
     jest.setSystemTime(new Date(stampedAt));
   });
 
-  test("スタンプを押すとそのラリーの今日の丸が記録済みになる", async () => {
-    const user = await renderHomeWithRally("今年会った研究者");
+  test("marks today as recorded after stamping", async () => {
+    const user = await renderHomeWithRally("Researchers met this year");
 
     await user.press(
       screen.getByRole("button", {
-        name: "今年会った研究者に今日のスタンプを押す",
+        name: "Stamp Researchers met this year for today",
       }),
     );
 
     expect(
       await screen.findByRole("button", {
-        name: "今年会った研究者は今日記録済み",
+        name: "Researchers met this year already stamped today",
       }),
     ).toBeDisabled();
   });
 
-  test("人・場所・行動どれも同じ操作で押せ、今日の丸が記録済みになる", async () => {
+  test("stamps person, place, and action rallies the same way", async () => {
     const rallies = [
-      { name: "同期の仲間", type: "person" },
-      { name: "山手線の駅", type: "place" },
-      { name: "今年やりたいこと", type: "action" },
+      { name: "Classmates", type: "person" },
+      { name: "Stations on Yamanote", type: "place" },
+      { name: "Goals this year", type: "action" },
     ] as const;
 
     for (const rally of rallies) {
@@ -151,12 +153,12 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
 
     await renderRouter("./src/app");
     const user = userEvent.setup();
-    expect(await screen.findByText("同期の仲間")).toBeOnTheScreen();
+    expect(await screen.findByText("Classmates")).toBeOnTheScreen();
 
     for (const rally of rallies) {
       await user.press(
         screen.getByRole("button", {
-          name: `${rally.name}に今日のスタンプを押す`,
+          name: `Stamp ${rally.name} for today`,
         }),
       );
     }
@@ -164,42 +166,42 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
     expect(
       (
         await screen.findAllByRole("button", {
-          name: /は今日記録済み/,
+          name: /already stamped today/,
         })
       ).length,
     ).toBeGreaterThanOrEqual(3);
-    expect(screen.queryByText("誰")).not.toBeOnTheScreen();
-    expect(screen.queryByText("どこ")).not.toBeOnTheScreen();
-    expect(screen.queryByText("何")).not.toBeOnTheScreen();
+    expect(screen.queryByText("Who")).not.toBeOnTheScreen();
+    expect(screen.queryByText("Where")).not.toBeOnTheScreen();
+    expect(screen.queryByText("What")).not.toBeOnTheScreen();
   });
 
-  test("保存に失敗するとエラーのトーストが出る", async () => {
+  test("shows error toast when save fails", async () => {
     jest.spyOn(stampsDb, "saveStamp").mockRejectedValue(new Error("disk full"));
     jest.mocked(toast.error).mockClear();
 
-    const user = await renderHomeWithRally("失敗するラリー");
+    const user = await renderHomeWithRally("Failing rally");
     await user.press(
       screen.getByRole("button", {
-        name: "失敗するラリーに今日のスタンプを押す",
+        name: "Stamp Failing rally for today",
       }),
     );
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "うまくいきませんでした。もう一度お試しください。",
+        "Something went wrong. Please try again.",
       );
     });
     expect(
-      screen.queryByText("保存できませんでした。もう一度お試しください。"),
+      screen.queryByText("Could not save. Please try again."),
     ).not.toBeOnTheScreen();
     expect(Alert.alert).not.toHaveBeenCalledWith(
-      "保存できませんでした。もう一度お試しください。",
+      "Could not save. Please try again.",
       "disk full",
     );
   });
 });
 
-describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
+describe("S-002 T-002 ST-001 memo toast", () => {
   const stampedAt = "2026-09-20T15:00:00.000Z";
 
   beforeEach(() => {
@@ -207,26 +209,26 @@ describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
     jest.mocked(toast).mockClear();
   });
 
-  test("押すとトーストが出て、約5秒で消えてもスタンプは残る", async () => {
-    const user = await renderHomeWithRally("メモ確認用のラリー");
+  test("shows toast on stamp and keeps stamp after it dismisses", async () => {
+    const user = await renderHomeWithRally("Memo toast rally");
 
     await user.press(
       screen.getByRole("button", {
-        name: "メモ確認用のラリーに今日のスタンプを押す",
+        name: "Stamp Memo toast rally for today",
       }),
     );
 
     expect(
       await screen.findByRole("button", {
-        name: "メモ確認用のラリーは今日記録済み",
+        name: "Memo toast rally already stamped today",
       }),
     ).toBeDisabled();
     expect(toast).toHaveBeenCalledWith(
-      "メモを追加しますか？",
+      "Add a memo?",
       expect.objectContaining({
         duration: 5000,
         action: {
-          label: "メモを追加",
+          label: "Add memo",
           onClick: expect.any(Function),
         },
       }),
@@ -238,13 +240,13 @@ describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
 
     expect(
       screen.getByRole("button", {
-        name: "メモ確認用のラリーは今日記録済み",
+        name: "Memo toast rally already stamped today",
       }),
     ).toBeDisabled();
   });
 });
 
-describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
+describe("S-002 T-002 ST-005 memo formSheet", () => {
   const stampedAt = "2026-09-21T10:00:00.000Z";
 
   beforeEach(() => {
@@ -252,97 +254,97 @@ describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
     jest.mocked(toast).mockClear();
   });
 
-  test("トーストの「メモを追加」で formSheet が開き、保存後も記録済みの丸が残る", async () => {
-    const user = await renderHomeWithRally("メモ追加用のラリー");
+  test("opens formSheet from Add memo and keeps recorded dot after save", async () => {
+    const user = await renderHomeWithRally("Memo formSheet rally");
 
     await user.press(
       screen.getByRole("button", {
-        name: "メモ追加用のラリーに今日のスタンプを押す",
+        name: "Stamp Memo formSheet rally for today",
       }),
     );
 
     expect(
       await screen.findByRole("button", {
-        name: "メモ追加用のラリーは今日記録済み",
+        name: "Memo formSheet rally already stamped today",
       }),
     ).toBeDisabled();
 
     const action = findToastAction();
-    expect(action.label).toBe("メモを追加");
+    expect(action.label).toBe("Add memo");
 
     await act(async () => {
       action.onClick();
     });
 
     expect(toast.dismiss).toHaveBeenCalled();
-    expect(await screen.findByText("メモ")).toBeOnTheScreen();
+    expect(await screen.findByText("Memo")).toBeOnTheScreen();
     expect(
-      screen.queryByRole("heading", { name: "メモを追加" }),
+      screen.queryByRole("heading", { name: "Add memo" }),
     ).not.toBeOnTheScreen();
 
-    await user.type(screen.getByPlaceholderText("メモを入力"), "会った");
-    await user.press(screen.getByRole("button", { name: "保存" }));
+    await user.type(screen.getByPlaceholderText("Enter memo"), "Met them");
+    await user.press(screen.getByRole("button", { name: "Save" }));
 
     expect(
       await screen.findByRole("button", {
-        name: "メモ追加用のラリーは今日記録済み",
+        name: "Memo formSheet rally already stamped today",
       }),
     ).toBeDisabled();
   });
 });
 
-describe("S-002 T-002 RT-002 失敗表示", () => {
-  test("ラリー一覧の読込に失敗すると読込エラーと再試行が出る", async () => {
+describe("S-002 T-002 RT-002 error display", () => {
+  test("shows load error and retry when rally list fails", async () => {
     jest
       .spyOn(ralliesDb, "listRallies")
       .mockRejectedValue(new Error("disk full"));
 
     await renderRouter("./src/app");
 
-    expect(await screen.findByText("読み込めませんでした")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "再試行" })).toBeOnTheScreen();
+    expect(await screen.findByText("Couldn't load")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeOnTheScreen();
     expect(
-      screen.queryByText("保存できませんでした。もう一度お試しください。"),
+      screen.queryByText("Could not save. Please try again."),
     ).not.toBeOnTheScreen();
   });
 
-  test("スタンプ一覧の読込に失敗すると読込エラーと再試行が出る", async () => {
+  test("shows load error and retry when stamp list fails", async () => {
     jest
       .spyOn(stampsDb, "listStamps")
       .mockRejectedValue(new Error("disk full"));
 
     await renderRouter("./src/app");
 
-    expect(await screen.findByText("読み込めませんでした")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "再試行" })).toBeOnTheScreen();
+    expect(await screen.findByText("Couldn't load")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeOnTheScreen();
   });
 
-  test("読込失敗のあと再試行すると一覧が出る", async () => {
+  test("shows list after retrying a failed load", async () => {
     const listSpy = jest
       .spyOn(ralliesDb, "listRallies")
       .mockRejectedValue(new Error("disk full"));
 
     await renderRouter("./src/app");
-    expect(await screen.findByText("読み込めませんでした")).toBeOnTheScreen();
+    expect(await screen.findByText("Couldn't load")).toBeOnTheScreen();
 
     listSpy.mockResolvedValue([]);
     const user = userEvent.setup();
-    await user.press(screen.getByRole("button", { name: "再試行" }));
+    await user.press(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() => {
-      expect(screen.queryByText("読み込めませんでした")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Couldn't load")).not.toBeOnTheScreen();
     });
   });
 
-  test("削除に失敗するとエラーのトーストが出る", async () => {
+  test("shows error toast when delete fails", async () => {
     jest
       .spyOn(ralliesDb, "deleteRally")
       .mockRejectedValue(new Error("disk full"));
     jest.mocked(toast.error).mockClear();
 
-    const user = await renderHomeWithRally("削除失敗するラリー");
+    const user = await renderHomeWithRally("Delete fails rally");
     await user.press(
-      screen.getByRole("button", { name: "削除失敗するラリーを削除" }),
+      screen.getByRole("button", { name: "Delete Delete fails rally" }),
     );
     await act(async () => {
       findAlertButton("destructive").onPress?.();
@@ -350,9 +352,9 @@ describe("S-002 T-002 RT-002 失敗表示", () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "うまくいきませんでした。もう一度お試しください。",
+        "Something went wrong. Please try again.",
       );
     });
-    expect(screen.getByText("削除失敗するラリー")).toBeOnTheScreen();
+    expect(screen.getByText("Delete fails rally")).toBeOnTheScreen();
   });
 });
