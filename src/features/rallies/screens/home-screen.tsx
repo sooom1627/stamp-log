@@ -1,6 +1,7 @@
 import { Alert, Pressable, Text, View } from "react-native";
 
 import { Link, useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 
 import { toast } from "sonner-native";
 
@@ -53,11 +54,14 @@ export function HomeScreen() {
         <Link href="/create-rally" asChild>
           <Pressable
             accessibilityLabel="ラリーを作る"
-            className="absolute right-5 bottom-24 size-14 items-center justify-center rounded-full bg-black shadow-lg dark:bg-white"
+            className="bg-main active:bg-main-hover dark:bg-main-hover absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
+            style={{ boxShadow: "0 8px 24px rgba(30, 41, 59, 0.22)" }}
           >
-            <Text className="text-3xl leading-none text-white dark:text-black">
-              ＋
-            </Text>
+            <SymbolView
+              name={{ ios: "plus", android: "add", web: "add" }}
+              size={24}
+              tintColor="#ffffff"
+            />
           </Pressable>
         </Link>
       }
@@ -65,11 +69,11 @@ export function HomeScreen() {
       <View className="w-full">
         {isListError ? (
           <View className="items-center gap-2 py-12">
-            <Text selectable className="text-[#ff3b30]">
+            <Text selectable className="text-danger">
               読み込めませんでした
             </Text>
             <Pressable role="button" onPress={retryLists}>
-              <Text>再試行</Text>
+              <Text className="text-main dark:text-slate-100">再試行</Text>
             </Pressable>
           </View>
         ) : null}
@@ -82,7 +86,11 @@ export function HomeScreen() {
           <RallyRow
             key={rally.id}
             name={rally.name}
+            type={rally.type}
             typeLabel={rallyTypeLabels[rally.type]}
+            stampCount={
+              stamps.filter((stamp) => stamp.rallyId === rally.id).length
+            }
             stampLabels={stampLabelsForRally(stamps, rally.id)}
             onPressStamp={() =>
               pressStamp(

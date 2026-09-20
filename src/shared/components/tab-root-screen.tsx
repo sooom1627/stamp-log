@@ -30,7 +30,7 @@ export function TabRootScreen({
   return (
     <>
       <ScrollView
-        className="flex-1"
+        className="bg-surface dark:bg-main-dark flex-1"
         contentContainerClassName="px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
       >
