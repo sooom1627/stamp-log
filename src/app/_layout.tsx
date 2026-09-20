@@ -12,6 +12,7 @@ import {
 import { QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { toast, Toaster } from "sonner-native";
+import { useResolveClassNames } from "uniwind";
 
 import { createQueryClient } from "@/shared/query/create-query-client";
 
@@ -19,6 +20,10 @@ import "../../tailwind.css";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const sheetBackgroundStyle = useResolveClassNames(
+    "bg-surface dark:bg-main-dark",
+  );
+  const sheetTitleStyle = useResolveClassNames("text-main dark:text-slate-100");
   const [queryClient] = useState(() =>
     createQueryClient({
       onMutationError: () => {
@@ -42,6 +47,10 @@ export default function RootLayout() {
                 presentation: "formSheet",
                 sheetGrabberVisible: true,
                 sheetAllowedDetents: [0.5, 1],
+                contentStyle: sheetBackgroundStyle,
+                headerStyle: sheetBackgroundStyle,
+                headerTintColor: sheetTitleStyle.color,
+                headerShadowVisible: false,
               }}
             />
             <Stack.Screen
@@ -51,6 +60,10 @@ export default function RootLayout() {
                 presentation: "formSheet",
                 sheetGrabberVisible: true,
                 sheetAllowedDetents: [0.5, 1],
+                contentStyle: sheetBackgroundStyle,
+                headerStyle: sheetBackgroundStyle,
+                headerTintColor: sheetTitleStyle.color,
+                headerShadowVisible: false,
               }}
             />
           </Stack>

@@ -1,8 +1,18 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 
+import { useResolveClassNames } from "uniwind";
+
 export default function TabsLayout() {
+  const selectedTabStyle = useResolveClassNames(
+    "text-main dark:text-slate-100",
+  );
+
   return (
-    <NativeTabs minimizeBehavior="onScrollDown" disableTransparentOnScrollEdge>
+    <NativeTabs
+      minimizeBehavior="onScrollDown"
+      disableTransparentOnScrollEdge
+      tintColor={selectedTabStyle.color}
+    >
       <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Icon
           sf={{ default: "house", selected: "house.fill" }}
@@ -22,7 +32,7 @@ export default function TabsLayout() {
           sf={{ default: "calendar", selected: "calendar" }}
           md="calendar_month"
         />
-        <NativeTabs.Trigger.Label>calendar</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>Calendar</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

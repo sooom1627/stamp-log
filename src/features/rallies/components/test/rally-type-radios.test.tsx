@@ -13,6 +13,8 @@ describe("S-002 T-002 RT-003 ST-001 RallyTypeRadios", () => {
     expect(typeRadios[0]).toHaveAccessibleName("場所");
     expect(typeRadios[1]).toHaveAccessibleName("行動");
     expect(typeRadios[2]).toHaveAccessibleName("人");
+    expect(typeRadios[0]).toBeChecked();
+    expect(typeRadios[1]).not.toBeChecked();
   });
 
   test("ラジオを押すと onChange にタイプが渡る", async () => {

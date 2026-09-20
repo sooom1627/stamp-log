@@ -1,7 +1,12 @@
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, screen, userEvent } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  screen,
+  userEvent,
+} from "@testing-library/react-native";
 
 import { listRallies, saveRally } from "../../db/rallies-db";
 import { listStamps, saveStamp } from "../../db/stamps-db";
@@ -22,8 +27,16 @@ describe("S-002 T-002 RT-003 ST-002 メモの保存", () => {
     });
 
     const user = userEvent.setup();
-    await user.type(await screen.findByPlaceholderText("メモを入力"), "会った");
-    await user.press(screen.getByRole("button", { name: "保存" }));
+    expect(await screen.findByText("メモ")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("heading", { name: "メモを追加" }),
+    ).not.toBeOnTheScreen();
+
+    const memoInput = screen.getByPlaceholderText("メモを入力");
+    await user.type(memoInput, "会った");
+    await act(async () => {
+      fireEvent(memoInput, "submitEditing");
+    });
 
     expect(await screen.findByText("会った")).toBeOnTheScreen();
     const [updated] = await listStamps();

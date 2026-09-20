@@ -58,8 +58,11 @@ describe("ST-001 ラリー作成入口", () => {
     await user.press(screen.getByRole("link", { name: "ラリーを作る" }));
 
     expect(
-      await screen.findByRole("heading", { name: "ラリーを作る" }),
+      await screen.findByPlaceholderText("記録したい場所を入力"),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("heading", { name: "ラリーを作る" }),
+    ).not.toBeOnTheScreen();
   });
 });
 
@@ -241,9 +244,10 @@ describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
     });
 
     expect(toast.dismiss).toHaveBeenCalled();
+    expect(await screen.findByText("メモ")).toBeOnTheScreen();
     expect(
-      await screen.findByRole("heading", { name: "メモを追加" }),
-    ).toBeOnTheScreen();
+      screen.queryByRole("heading", { name: "メモを追加" }),
+    ).not.toBeOnTheScreen();
 
     await user.type(screen.getByPlaceholderText("メモを入力"), "会った");
     await user.press(screen.getByRole("button", { name: "保存" }));
