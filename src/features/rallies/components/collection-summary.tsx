@@ -1,6 +1,6 @@
 import { Text, useColorScheme, View } from "react-native";
 
-import { SymbolView } from "expo-symbols";
+import { ListChecks, MapPinPen } from "lucide-react-native";
 
 import { type Rally, type RallyType } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
@@ -10,35 +10,23 @@ type CollectionSummaryProps = {
   stamps: Stamp[];
 };
 
+const segmentClassName = "bg-main rounded-full dark:bg-slate-100";
+
 const typeDetails = [
   {
     type: "person",
     label: "人",
-    segmentClassName: "bg-accent rounded-full",
-    symbol: { ios: "person.2.fill", android: "group", web: "group" },
-    tintColor: "#f97316",
+    Icon: ListChecks,
   },
   {
     type: "place",
     label: "場所",
-    segmentClassName: "bg-main rounded-full dark:bg-slate-100",
-    symbol: {
-      ios: "mappin.and.ellipse",
-      android: "location_on",
-      web: "location_on",
-    },
-    tintColor: "#1e293b",
+    Icon: MapPinPen,
   },
   {
     type: "action",
     label: "行動",
-    segmentClassName: "bg-text-muted rounded-full dark:bg-slate-400",
-    symbol: {
-      ios: "figure.walk",
-      android: "directions_run",
-      web: "directions_run",
-    },
-    tintColor: "#64748b",
+    Icon: ListChecks,
   },
 ] as const;
 
@@ -60,6 +48,7 @@ function getTypeCounts(rallies: Rally[], stamps: Stamp[]) {
 
 export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
   const isDark = useColorScheme() === "dark";
+  const iconColor = isDark ? "#f1f5f9" : "#1e293b";
   const now = new Date();
   const typeCounts = getTypeCounts(rallies, stamps);
   const categorizedStampCount =
@@ -113,7 +102,7 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
           return count > 0 ? (
             <View
               key={detail.type}
-              className={detail.segmentClassName}
+              className={segmentClassName}
               style={{ flexBasis: 0, flexGrow: count }}
               testID="collection-segment"
             />
@@ -121,24 +110,22 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
         })}
       </View>
 
-      <View className="flex-row items-center justify-between">
-        {typeDetails.map((detail) => (
-          <View key={detail.type} className="flex-row items-center gap-1.5">
-            <SymbolView
-              name={detail.symbol}
-              size={15}
-              tintColor={
-                isDark && detail.type === "place" ? "#f1f5f9" : detail.tintColor
-              }
-            />
-            <Text
-              className="text-main-hover text-sm font-medium dark:text-slate-200"
-              style={{ fontVariant: ["tabular-nums"] }}
-            >
-              {typeCounts[detail.type]}
-            </Text>
-          </View>
-        ))}
+      <View className="flex-row items-center justify-end gap-4">
+        {typeDetails.map((detail) => {
+          const { Icon } = detail;
+
+          return (
+            <View key={detail.type} className="flex-row items-center gap-1.5">
+              <Icon color={iconColor} size={15} strokeWidth={2} />
+              <Text
+                className="text-main text-sm font-medium dark:text-slate-100"
+                style={{ fontVariant: ["tabular-nums"] }}
+              >
+                {typeCounts[detail.type]}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
