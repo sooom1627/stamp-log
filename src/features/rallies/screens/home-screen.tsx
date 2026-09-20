@@ -11,7 +11,7 @@ import { CollectionSummary } from "../components/collection-summary";
 import { RallyRow } from "../components/rally-row";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
-import { rallyTypeLabels, type Rally } from "../schemas/rallies";
+import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 
 function stampDatesForRally(stamps: Stamp[], rallyId: number) {
@@ -86,7 +86,6 @@ export function HomeScreen() {
             key={rally.id}
             name={rally.name}
             type={rally.type}
-            typeLabel={rallyTypeLabels[rally.type]}
             stampDates={stampDatesForRally(stamps, rally.id)}
             onPressStamp={() =>
               pressStamp(

@@ -1,6 +1,6 @@
 import { Text, useColorScheme, View } from "react-native";
 
-import { ListChecks, MapPinPen } from "lucide-react-native";
+import { ListChecks, MapPinPen, UsersRound } from "lucide-react-native";
 
 import { type Rally, type RallyType } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
@@ -16,7 +16,7 @@ const typeDetails = [
   {
     type: "person",
     label: "人",
-    Icon: ListChecks,
+    Icon: UsersRound,
   },
   {
     type: "place",

@@ -6,3 +6,4 @@ function MockIcon() {
 
 export const ListChecks = MockIcon;
 export const MapPinPen = MockIcon;
+export const UsersRound = MockIcon;

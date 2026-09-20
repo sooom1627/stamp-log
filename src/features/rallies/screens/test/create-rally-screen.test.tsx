@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 describe("S-002 T-002 RT-003 ST-002 ラリーの保存", () => {
-  test("名称とタイプを保存すると、ホームに名称とタイプが出る", async () => {
+  test("名称とタイプを保存すると、ホームに名称とタイプアイコンが出る", async () => {
     await renderRouter("./src/app");
 
     const user = userEvent.setup();
@@ -34,7 +34,8 @@ describe("S-002 T-002 RT-003 ST-002 ラリーの保存", () => {
     await user.press(screen.getByRole("button", { name: "保存" }));
 
     expect(await screen.findByText("京都旅行")).toBeOnTheScreen();
-    expect(screen.getByText("人")).toBeOnTheScreen();
+    expect(screen.queryByText("人")).toBeNull();
+    expect(screen.getByLabelText("人")).toBeOnTheScreen();
   });
 
   test("項目ラベルがあり、Doneからも保存できる", async () => {

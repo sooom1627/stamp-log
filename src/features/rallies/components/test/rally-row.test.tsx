@@ -9,22 +9,22 @@ const NOW = new Date("2026-09-20T12:00:00.000Z");
 const defaultProps = {
   name: "京都旅行",
   type: "place" as const,
-  typeLabel: "場所",
   stampDates: [] as string[],
   onPressStamp: () => {},
   onDelete: () => {},
 };
 
-describe("S-020 T-003 ST-001 RallyRow heatmap", () => {
+describe("S-020 T-005 ST-001 compact RallyRow", () => {
   beforeEach(() => {
     jest.setSystemTime(NOW);
   });
 
-  test("名称・タイプとスタンプ・削除ボタンが出る", async () => {
+  test("タイプはアイコンで示し、名称・スタンプ数・操作が出る", async () => {
     await render(<RallyRow {...defaultProps} />);
 
     expect(screen.getByText("京都旅行")).toBeOnTheScreen();
-    expect(screen.getByText("場所")).toBeOnTheScreen();
+    expect(screen.queryByText("場所")).toBeNull();
+    expect(screen.getByLabelText("場所")).toBeOnTheScreen();
     expect(screen.getByText("スタンプ 0個")).toBeOnTheScreen();
     expect(
       screen.getByRole("button", { name: "京都旅行にスタンプを押す" }),
