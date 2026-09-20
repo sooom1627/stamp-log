@@ -8,7 +8,7 @@ const NOW = new Date("2026-09-20T12:00:00.000Z");
 
 const defaultProps = {
   name: "京都旅行",
-  type: "place" as const,
+  emoji: "⛩️",
   stampDates: [] as string[],
   onPressStamp: () => {},
   onDelete: () => {},
@@ -19,12 +19,13 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     jest.setSystemTime(NOW);
   });
 
-  test("タイプ、名称、スタンプ数、今日の追加、削除が出る", async () => {
+  test("絵文字、名称、スタンプ数、今日の追加、削除が出る", async () => {
     await render(<RallyRow {...defaultProps} />);
 
+    expect(screen.getByText("⛩️")).toBeOnTheScreen();
     expect(screen.getByText("京都旅行")).toBeOnTheScreen();
     expect(screen.queryByText("場所")).toBeNull();
-    expect(screen.getByLabelText("場所")).toBeOnTheScreen();
+    expect(screen.queryByLabelText("場所")).toBeNull();
     expect(screen.getByText("0 stamps")).toBeOnTheScreen();
     expect(
       screen.getByRole("button", { name: "京都旅行に今日のスタンプを押す" }),

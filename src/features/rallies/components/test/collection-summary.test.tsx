@@ -2,14 +2,14 @@ import { render, screen } from "@testing-library/react-native";
 
 import { type Rally } from "../../schemas/rallies";
 import { type Stamp } from "../../schemas/stamps";
-import { CollectionSummary } from "../collection-summary";
+import { CollectionSummary } from "../collection-summary.tsx";
 
 jest.useFakeTimers();
 
 const rallies: Rally[] = [
-  { id: 1, name: "人", type: "person" },
-  { id: 2, name: "場所", type: "place" },
-  { id: 3, name: "行動", type: "action" },
+  { id: 1, name: "Person", type: "person", emoji: "👤" },
+  { id: 2, name: "Place", type: "place", emoji: "🏠" },
+  { id: 3, name: "Action", type: "action", emoji: "👍" },
 ];
 
 const stamps: Stamp[] = [
@@ -28,7 +28,7 @@ describe("S-020 T-004 ST-001 CollectionSummary", () => {
 
     expect(screen.getByText("5")).toBeOnTheScreen();
     expect(screen.getByText("STAMPS")).toBeOnTheScreen();
-    expect(screen.getByText("今月 +3")).toBeOnTheScreen();
+    expect(screen.getByText("This month + 3")).toBeOnTheScreen();
     expect(
       screen.getByLabelText("累計5個、今月3個、人2個、場所2個、行動1個"),
     ).toBeOnTheScreen();
@@ -43,7 +43,7 @@ describe("S-020 T-004 ST-001 CollectionSummary", () => {
     expect(
       screen.getByLabelText("累計0個、今月0個、人0個、場所0個、行動0個"),
     ).toBeOnTheScreen();
-    expect(screen.getByText("今月 +0")).toBeOnTheScreen();
+    expect(screen.getByText("This month + 0")).toBeOnTheScreen();
     expect(screen.getByTestId("collection-empty-track")).toBeOnTheScreen();
     expect(screen.queryAllByTestId("collection-segment")).toHaveLength(0);
   });

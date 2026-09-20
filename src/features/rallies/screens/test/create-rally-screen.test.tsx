@@ -9,6 +9,8 @@ import {
 
 import * as ralliesDb from "../../db/rallies-db";
 
+jest.mock("@softwhere-uz/react-native-emoji-keyboard");
+
 jest.useFakeTimers();
 
 afterEach(() => {
@@ -16,7 +18,7 @@ afterEach(() => {
 });
 
 describe("S-002 T-002 RT-003 ST-002 ラリーの保存", () => {
-  test("名称とタイプを保存すると、ホームに名称とタイプアイコンが出る", async () => {
+  test("名称、タイプ、選んだ絵文字を保存するとホームに絵文字が出る", async () => {
     await renderRouter("./src/app");
 
     const user = userEvent.setup();
@@ -30,12 +32,57 @@ describe("S-002 T-002 RT-003 ST-002 ラリーの保存", () => {
 
     expect(screen.getByDisplayValue("京都旅行")).toBeOnTheScreen();
     expect(screen.getByPlaceholderText("記録したい人を入力")).toBeOnTheScreen();
+    await user.press(
+      screen.getByRole("button", { name: "絵文字を選ぶ（現在 😀）" }),
+    );
+    expect(screen.getByTestId("emoji-picker")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "🔬を選ぶ" }));
 
     await user.press(screen.getByRole("button", { name: "保存" }));
 
     expect(await screen.findByText("京都旅行")).toBeOnTheScreen();
+    expect(screen.getByText("🔬")).toBeOnTheScreen();
     expect(screen.queryByText("人")).toBeNull();
-    expect(screen.getByLabelText("人")).toBeOnTheScreen();
+    expect(screen.queryByLabelText("人")).toBeNull();
+  });
+
+  test("未変更ならタイプの初期絵文字が追随し、選んだ後は維持する", async () => {
+    await renderRouter("./src/app", { initialUrl: "/create-rally" });
+    const user = userEvent.setup();
+
+    expect(
+      await screen.findByRole("button", {
+        name: "絵文字を選ぶ（現在 🏠）",
+      }),
+    ).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("radio", { name: "人" }));
+    await user.press(
+      screen.getByRole("button", { name: "絵文字を選ぶ（現在 😀）" }),
+    );
+    await user.press(screen.getByRole("button", { name: "🎯を選ぶ" }));
+    await user.press(screen.getByRole("radio", { name: "行動" }));
+    expect(
+      screen.getByRole("button", { name: "絵文字を選ぶ（現在 🎯）" }),
+    ).toBeOnTheScreen();
+  });
+
+  test("カラー選択は出さず、名称にフォーカスするとPickerが閉じる", async () => {
+    await renderRouter("./src/app", { initialUrl: "/create-rally" });
+    const user = userEvent.setup();
+
+    await user.press(
+      await screen.findByRole("button", {
+        name: "絵文字を選ぶ（現在 🏠）",
+      }),
+    );
+    expect(screen.getByTestId("emoji-picker")).toBeOnTheScreen();
+    expect(screen.queryByTestId("emoji-color-selector")).toBeNull();
+
+    await act(async () => {
+      fireEvent(screen.getByLabelText("名称"), "focus");
+    });
+    expect(screen.queryByTestId("emoji-picker")).toBeNull();
   });
 
   test("項目ラベルがあり、Doneからも保存できる", async () => {

@@ -86,7 +86,7 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
             className="text-text-muted text-xs font-medium dark:text-slate-300"
             style={{ fontVariant: ["tabular-nums"] }}
           >
-            今月 +{monthCount}
+            This month + {monthCount}
           </Text>
         </View>
       </View>

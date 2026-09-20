@@ -1,55 +1,29 @@
-import { Pressable, Text, useColorScheme, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { SymbolView } from "expo-symbols";
-
-import { rallyTypeLabels, type RallyType } from "../schemas/rallies";
 
 import { RallyActivityWeek } from "./rally-activity-week";
 
 type RallyRowProps = {
   name: string;
-  type: RallyType;
+  emoji: string;
   stampDates: string[];
   onPressStamp: () => void;
   onDelete: () => void;
 };
 
-const rallyTypeSymbols = {
-  person: { ios: "person.2.fill", android: "group", web: "group" },
-  place: {
-    ios: "mappin.and.ellipse",
-    android: "location_on",
-    web: "location_on",
-  },
-  action: {
-    ios: "figure.walk",
-    android: "directions_run",
-    web: "directions_run",
-  },
-} as const;
-
 export function RallyRow({
   name,
-  type,
+  emoji,
   stampDates,
   onPressStamp,
   onDelete,
 }: RallyRowProps) {
-  const isDark = useColorScheme() === "dark";
-
   return (
     <View className="border-border w-full gap-3 border-b py-4 dark:border-slate-700">
       <View className="flex-row items-center gap-3">
-        <View
-          accessible
-          accessibilityLabel={rallyTypeLabels[type]}
-          className="bg-surface-muted dark:bg-main-hover size-11 items-center justify-center rounded-2xl"
-        >
-          <SymbolView
-            name={rallyTypeSymbols[type]}
-            size={21}
-            tintColor={isDark ? "#f1f5f9" : "#1e293b"}
-          />
+        <View className="bg-surface-muted dark:bg-main-hover size-11 items-center justify-center rounded-2xl">
+          <Text className="text-2xl">{emoji}</Text>
         </View>
         <View className="min-w-0 flex-1 gap-0.5">
           <Text

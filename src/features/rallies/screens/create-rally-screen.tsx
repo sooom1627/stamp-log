@@ -11,10 +11,17 @@ import {
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
+import {
+  EmojiKeyboard,
+  type EmojiType,
+} from "@softwhere-uz/react-native-emoji-keyboard";
+
 import { RallyTypeRadios } from "../components/rally-type-radios";
 import { useSaveRally } from "../hooks/use-rallies";
 import {
+  rallyEmojiSchema,
   rallyNameSchema,
+  rallyTypeEmojis,
   rallyTypeSchema,
   type RallyType,
 } from "../schemas/rallies";
@@ -34,18 +41,33 @@ export function CreateRallyScreen() {
   const [selectedType, setSelectedType] = useState<RallyType>(
     rallyTypeSchema.options[0],
   );
+  const [emoji, setEmoji] = useState(rallyTypeEmojis[selectedType]);
+  const [isEmojiCustomized, setIsEmojiCustomized] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [name, setName] = useState("");
   const { back } = useRouter();
   const headerHeight = useHeaderHeight();
   const save = useSaveRally();
 
   const isNameValid = rallyNameSchema.safeParse(name).success;
-  const canSave = isNameValid && !save.isPending;
+  const isEmojiValid = rallyEmojiSchema.safeParse(emoji).success;
+  const canSave = isNameValid && isEmojiValid && !save.isPending;
+
+  const handleTypeChange = (type: RallyType) => {
+    setSelectedType(type);
+    if (!isEmojiCustomized) setEmoji(rallyTypeEmojis[type]);
+  };
+
+  const handleEmojiSelect = (selectedEmoji: EmojiType) => {
+    setEmoji(selectedEmoji.emoji);
+    setIsEmojiCustomized(true);
+    setIsEmojiPickerOpen(false);
+  };
 
   const handleSave = () => {
     if (!canSave) return;
 
-    save.mutate({ name, type: selectedType }, { onSuccess: back });
+    save.mutate({ name, type: selectedType, emoji }, { onSuccess: back });
   };
 
   return (
@@ -58,7 +80,36 @@ export function CreateRallyScreen() {
           <Text className="text-main text-sm font-semibold dark:text-slate-100">
             タイプ
           </Text>
-          <RallyTypeRadios value={selectedType} onChange={setSelectedType} />
+          <RallyTypeRadios value={selectedType} onChange={handleTypeChange} />
+        </View>
+
+        <View className="gap-2">
+          <Text className="text-main text-sm font-semibold dark:text-slate-100">
+            絵文字
+          </Text>
+          <Pressable
+            role="button"
+            accessibilityLabel={`絵文字を選ぶ（現在 ${emoji}）`}
+            onPress={() => setIsEmojiPickerOpen((isOpen) => !isOpen)}
+            className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active dark:bg-main-hover flex-row items-center gap-3 rounded-2xl border px-4 py-3 dark:border-slate-700"
+          >
+            <Text className="text-3xl">{emoji}</Text>
+            <Text className="text-text-muted flex-1 text-sm dark:text-slate-400">
+              タップして変更
+            </Text>
+          </Pressable>
+          {isEmojiPickerOpen ? (
+            <View className="border-continuous border-border h-80 overflow-hidden rounded-2xl border dark:border-slate-700">
+              <EmojiKeyboard
+                onEmojiSelected={handleEmojiSelect}
+                hideHeader
+                enableSearchBar
+                categoryPosition="top"
+                defaultHeight={320}
+                disableSafeArea
+              />
+            </View>
+          ) : null}
         </View>
 
         <View className="gap-2">
@@ -68,6 +119,7 @@ export function CreateRallyScreen() {
           <TextInput
             value={name}
             onChangeText={setName}
+            onFocus={() => setIsEmojiPickerOpen(false)}
             onSubmitEditing={handleSave}
             placeholder={rallyNamePlaceholders[selectedType]}
             accessibilityLabel="名称"

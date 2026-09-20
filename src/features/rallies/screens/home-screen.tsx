@@ -93,7 +93,7 @@ export function HomeScreen() {
           <RallyRow
             key={rally.id}
             name={rally.name}
-            type={rally.type}
+            emoji={rally.emoji}
             stampDates={stampDatesForRally(stamps, rally.id)}
             onPressStamp={() =>
               pressStamp(

@@ -4,18 +4,42 @@ import { getDb } from "@/shared/db/get-db";
 
 import {
   rallySchema,
+  rallyTypeEmojis,
   saveRallyInputSchema,
   type Rally,
   type SaveRallyInput,
 } from "../schemas/rallies";
 
+async function rallyColumnNames(db: SQLiteDatabase) {
+  const rows = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(rallies)",
+  );
+  return rows.map((row) => row.name.toLowerCase());
+}
+
 async function ensureRallies(db: SQLiteDatabase) {
+  const columns = await rallyColumnNames(db);
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS rallies (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      type TEXT NOT NULL
+      type TEXT NOT NULL,
+      emoji TEXT NOT NULL
     );
+  `);
+
+  if (columns.length > 0 && !columns.includes("emoji")) {
+    await db.execAsync("ALTER TABLE rallies ADD COLUMN emoji TEXT");
+  }
+
+  await db.execAsync(`
+    UPDATE rallies
+    SET emoji = CASE type
+      WHEN 'person' THEN '😀'
+      WHEN 'place' THEN '🏠'
+      ELSE '👏'
+    END
+    WHERE emoji IS NULL OR TRIM(emoji) = '';
   `);
 }
 
@@ -26,12 +50,13 @@ async function withRalliesDb() {
 }
 
 export async function saveRally(input: SaveRallyInput): Promise<void> {
-  const { name, type } = saveRallyInputSchema.parse(input);
+  const { name, type, emoji } = saveRallyInputSchema.parse(input);
   const db = await withRalliesDb();
   await db.runAsync(
-    "INSERT INTO rallies (name, type) VALUES (?, ?)",
+    "INSERT INTO rallies (name, type, emoji) VALUES (?, ?, ?)",
     name,
     type,
+    emoji ?? rallyTypeEmojis[type],
   );
 }
 
@@ -52,6 +77,7 @@ export async function listRallies(): Promise<Rally[]> {
     id: number;
     name: string;
     type: string;
-  }>("SELECT id, name, type FROM rallies ORDER BY id DESC");
+    emoji: string;
+  }>("SELECT id, name, type, emoji FROM rallies ORDER BY id DESC");
   return rows.map((row) => rallySchema.parse(row));
 }
