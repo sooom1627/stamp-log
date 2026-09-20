@@ -96,6 +96,23 @@ Tasks:
   - [x] ST-002: rallies の絵文字を SQLite に保存し、既存行を補完する
   - [x] ST-003: 作成画面で絵文字を指定し、ホームのタイプアイコンを絵文字に置き換える
 
+### Story: S-024 formSheet の保存操作を初期表示で見せる
+
+As a ラリーやメモを入力するユーザー
+I want formSheet を開いた時点で保存操作を確認したい
+so that シートを広げなくても入力後の操作が分かる
+
+受け入れ:
+
+- Given ラリー作成の formSheet を開いた When 見る Then 入力欄の下に Save が見える
+- Given 絵文字Pickerを開いた When 見る Then シートが内容に合わせて伸び、Save が見える
+- Given メモ追加の formSheet を開いた When 見る Then 入力欄の下に Save が見える
+
+Tasks:
+
+- [ ] T-001: formSheet を内容の高さに合わせて Save を見せる
+  - [ ] ST-001: create-rally / add-stamp-memo を fitToContents にして既存の保存操作を保つ
+
 ---
 
 ## Epic: E-002 ラリーにスタンプを押す

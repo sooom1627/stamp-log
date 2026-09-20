@@ -35,8 +35,7 @@ const rallyNamePlaceholders: Record<RallyType, string> = {
 // Do not use ScrollView / KeyboardAvoidingView inside formSheet.
 // react-native-screens force-overrides the ScrollView frame to the full sheet,
 // which interferes with sibling content (footer) and stops rendering.
-// When the keyboard opens, iOS expands the sheet to the max detent, so placing
-// the save button directly below the inputs keeps it above the keyboard.
+// Keep the root intrinsically sized so fitToContents includes the Save button.
 export function CreateRallyScreen() {
   const [selectedType, setSelectedType] = useState<RallyType>(
     rallyTypeSchema.options[0],
@@ -72,7 +71,8 @@ export function CreateRallyScreen() {
 
   return (
     <View
-      className="bg-surface dark:bg-main-dark flex-1 px-5 pb-6"
+      testID="create-rally-form"
+      className="bg-surface dark:bg-main-dark px-5 pb-6"
       style={{ paddingTop: headerHeight + 16 }}
     >
       <View className="gap-6">

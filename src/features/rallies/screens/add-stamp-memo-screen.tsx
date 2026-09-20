@@ -41,7 +41,8 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
 
   return (
     <View
-      className="bg-surface dark:bg-main-dark flex-1 px-5 pb-6"
+      testID="add-stamp-memo-form"
+      className="bg-surface dark:bg-main-dark px-5 pb-6"
       style={{ paddingTop: headerHeight + 16 }}
     >
       <View className="gap-2">

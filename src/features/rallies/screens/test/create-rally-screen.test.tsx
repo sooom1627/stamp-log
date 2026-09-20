@@ -17,6 +17,17 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
+describe("S-024 T-001 ST-001 fit form sheet", () => {
+  test("keeps Save inside intrinsically sized create content", async () => {
+    await renderRouter("./src/app", { initialUrl: "/create-rally" });
+
+    const form = await screen.findByTestId("create-rally-form");
+
+    expect(form).not.toHaveProp("className", expect.stringContaining("flex-1"));
+    expect(screen.getByRole("button", { name: "Save" })).toBeOnTheScreen();
+  });
+});
+
 describe("S-002 T-002 RT-003 ST-002 save rally", () => {
   test("saves name, type, and chosen emoji and shows emoji on home", async () => {
     await renderRouter("./src/app");
