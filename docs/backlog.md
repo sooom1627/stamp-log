@@ -2,15 +2,16 @@
 
 Single source of truth for Epic / Story / Task / Sub. Lightweight agile only — no sprints, velocity, or points.
 
-プロダクト定義（概要・ビジョン・基盤）は [product.md](./product.md) を参照する。
+プロダクト定義（概要・ビジョン・基盤）は [product.md](./product.md) を参照する。画面・IA は [design.md](./design.md) を参照する。
 
 ## How to use
 
 1. Add or refine a **Story** before implementation. Link it under an **Epic**.
-2. Cut a **Story branch once**, then plan: split into **Tasks** (user-visible behavior) and **Subs** (implementation units; horizontal layers are allowed: schema / db / hooks / UI). Write them in this file.
-3. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm (non-UI: layer tests; UI: RNTL acceptance). **Do not commit unless asked** (then one Sub = one commit). Mark Sub checkboxes after that commit.
-4. When a Task’s Subs are Done, **merge the Task branch into the Story branch**. When the Story is Done, merge the Story branch to `main`.
-5. IDs: `E-###`, `S-###`, `T-###`, `ST-###`（Sub は Task 内で 001 から。Task が変わるたびにリセット）。Reference Story + Task + Sub IDs in commit messages.
+2. If the Story adds or changes screens, write or update `docs/screens/*.md` on a `docs/` branch and merge to `master` before coding (see [design.md](./design.md)).
+3. Cut a **Story branch once**, then plan: split into **Tasks** (user-visible behavior) and **Subs** (implementation units; horizontal layers are allowed: schema / db / hooks / UI). Write them in this file.
+4. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm (non-UI: layer tests; UI: RNTL acceptance). **Do not commit unless asked** (then one Sub = one commit). Mark Sub checkboxes after that commit.
+5. When a Task’s Subs are Done, **merge the Task branch into the Story branch**. When the Story is Done, merge the Story branch to `main`.
+6. IDs: `E-###`, `S-###`, `T-###`, `ST-###`（Sub は Task 内で 001 から。Task が変わるたびにリセット）。Reference Story + Task + Sub IDs in commit messages.
 
 Template (copy under an epic):
 
@@ -167,7 +168,7 @@ Tasks:
 
 ゴール: ラリーごとに何が集まったか、どれだけ進んだかを確認できるようにする。「集めている」「進んでいる」感覚を与えることを目的とする。
 
-注記: S-002 Done の次はここ。S-003（位置情報）は後回し。
+注記: S-002 Done の次はここ。S-003（位置情報）は後回し。実装前に [design.md](./design.md) と該当 `docs/screens/*.md` を `master` に揃える。Tasks はデザインが `master` に入ってから分割する。画面は [home.md](./screens/home.md) / [create-rally.md](./screens/create-rally.md) / [rally-detail.md](./screens/rally-detail.md) / [stamp-detail.md](./screens/stamp-detail.md)。
 
 ### Story: S-006 ラリーの内容を見る
 
@@ -237,6 +238,8 @@ Tasks:
 ## Epic: E-004 時間軸で振り返る
 
 ゴール: ラリーを横断して、いつ何をしていたかを時系列やカレンダーから振り返れるようにする。
+
+注記: 実装前に [design.md](./design.md) と該当 `docs/screens/*.md` を `master` に揃える。Tasks はデザインが `master` に入ってから分割する。骨格は [records-timeline.md](./screens/records-timeline.md) / [calendar.md](./screens/calendar.md) / [day-detail.md](./screens/day-detail.md)。
 
 ### Story: S-010 すべての記録を時系列で見る
 

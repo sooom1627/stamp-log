@@ -44,9 +44,10 @@ main
 ## Before coding
 
 1. Confirm the target Story ID in `docs/backlog.md`. If missing, add the story first.
-2. Ensure the Story branch exists; cut a Task branch only after Tasks/Subs are written.
-3. Split the Task into Subs (typically schema → db → hooks → UI). Do not implement an unsplit Task as one blob.
-4. Split the Story itself if it has more than 5 acceptance criteria or cannot ship in one PR after Task/Sub split.
+2. If the Story adds or changes screens, the matching `docs/screens/*.md` must already be on `master` (see [docs/design.md](docs/design.md)).
+3. Ensure the Story branch exists; cut a Task branch only after Tasks/Subs are written.
+4. Split the Task into Subs (typically schema → db → hooks → UI). Do not implement an unsplit Task as one blob.
+5. Split the Story itself if it has more than 5 acceptance criteria or cannot ship in one PR after Task/Sub split.
 
 ## Subs may be horizontal
 
@@ -82,4 +83,5 @@ main
 ## Exceptions (no story required)
 
 - `chore`: dependencies, tooling, config（専用ブランチ可。Story フロー不要）
+- `docs`: プロダクト / IA / 画面 Markdown（専用ブランチ可。Story 不要。本番コードを入れない）
 - Time-boxed spikes: leave no production code
