@@ -26,11 +26,20 @@ export function RallyTypeRadios({ value, onChange }: RallyTypeRadiosProps) {
             onPress={() => onChange(type)}
             className={
               isSelected
-                ? "border-continuous flex-1 items-center rounded-[10px] bg-[#007aff] py-3"
-                : "border-continuous flex-1 items-center rounded-[10px] bg-[#f2f2f7] py-3"
+                ? "border-continuous bg-main active:bg-main-hover flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-3 dark:bg-slate-100"
+                : "border-continuous bg-surface-muted active:bg-surface-muted-active dark:bg-main-hover flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-3"
             }
           >
-            <Text className={isSelected ? "text-white" : "text-black"}>
+            {isSelected ? (
+              <View className="bg-accent size-1.5 rounded-full" />
+            ) : null}
+            <Text
+              className={
+                isSelected
+                  ? "dark:text-main-dark font-medium text-white"
+                  : "text-main font-medium dark:text-slate-100"
+              }
+            >
               {label}
             </Text>
           </Pressable>

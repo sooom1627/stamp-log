@@ -7,6 +7,7 @@
 ## Documentation
 
 - [docs/product.md](docs/product.md) — プロダクト定義（概要・ビジョン・基盤）
+- [docs/design.md](docs/design.md) — IA・画面定義
 - [docs/backlog.md](docs/backlog.md) — Epic / Story / Task
 
 ## Requirements

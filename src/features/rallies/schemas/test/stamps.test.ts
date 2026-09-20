@@ -5,8 +5,8 @@ import {
   updateStampMemoInputSchema,
 } from "../stamps";
 
-describe("ST-001 stamps の型", () => {
-  test("正当な stamp を parse できる", () => {
+describe("ST-001 stamp schema", () => {
+  test("parses a valid stamp", () => {
     const stamp = {
       id: 1,
       rallyId: 2,
@@ -17,7 +17,7 @@ describe("ST-001 stamps の型", () => {
     expect(stampSchema.parse(stamp)).toEqual(stamp);
   });
 
-  test("stampedAt が日時でないと reject する", () => {
+  test("rejects when stampedAt is not a datetime", () => {
     expect(() =>
       stampSchema.parse({
         id: 1,
@@ -27,12 +27,12 @@ describe("ST-001 stamps の型", () => {
     ).toThrow();
   });
 
-  test("save 入力は rallyId だけ通し、欠けると reject する", () => {
+  test("save input accepts rallyId only and rejects when missing", () => {
     expect(saveStampInputSchema.parse({ rallyId: 3 })).toEqual({ rallyId: 3 });
     expect(() => saveStampInputSchema.parse({})).toThrow();
   });
 
-  test("ネイティブ SQLite の小文字カラム名も stamp にできる", () => {
+  test("parses native SQLite lowercase column names", () => {
     expect(
       parseStampRow({
         id: 1,
@@ -47,7 +47,7 @@ describe("ST-001 stamps の型", () => {
     });
   });
 
-  test("id と rallyId が文字列でも stamp にできる", () => {
+  test("parses string id and rallyId", () => {
     expect(
       parseStampRow({
         id: "1",
@@ -63,19 +63,19 @@ describe("ST-001 stamps の型", () => {
   });
 });
 
-describe("ST-002 stamp の任意 memo", () => {
-  test("memo 付き stamp を parse できる", () => {
+describe("ST-002 optional stamp memo", () => {
+  test("parses stamp with memo", () => {
     const stamp = {
       id: 1,
       rallyId: 2,
       stampedAt: "2026-09-19T12:34:00.000Z",
-      memo: "会った",
+      memo: "Met them",
     };
 
     expect(stampSchema.parse(stamp)).toEqual(stamp);
   });
 
-  test("memo が null の stamp を parse できる", () => {
+  test("parses stamp with null memo", () => {
     const stamp = {
       id: 1,
       rallyId: 2,
@@ -86,7 +86,7 @@ describe("ST-002 stamp の任意 memo", () => {
     expect(stampSchema.parse(stamp)).toEqual(stamp);
   });
 
-  test("parseStampRow で memo が無い行は null になる", () => {
+  test("parseStampRow sets memo to null when column is missing", () => {
     expect(
       parseStampRow({
         id: 1,
@@ -101,10 +101,10 @@ describe("ST-002 stamp の任意 memo", () => {
     });
   });
 
-  test("update 入力は id と memo を通し、空や空白のみは reject する", () => {
-    expect(updateStampMemoInputSchema.parse({ id: 1, memo: "会った" })).toEqual(
-      { id: 1, memo: "会った" },
-    );
+  test("update input accepts id and memo and rejects empty values", () => {
+    expect(
+      updateStampMemoInputSchema.parse({ id: 1, memo: "Met them" }),
+    ).toEqual({ id: 1, memo: "Met them" });
     expect(() =>
       updateStampMemoInputSchema.parse({ id: 1, memo: "" }),
     ).toThrow();

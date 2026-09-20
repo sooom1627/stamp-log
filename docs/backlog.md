@@ -2,15 +2,16 @@
 
 Single source of truth for Epic / Story / Task / Sub. Lightweight agile only — no sprints, velocity, or points.
 
-プロダクト定義（概要・ビジョン・基盤）は [product.md](./product.md) を参照する。
+プロダクト定義（概要・ビジョン・基盤）は [product.md](./product.md) を参照する。画面・IA は [design.md](./design.md) を参照する。
 
 ## How to use
 
 1. Add or refine a **Story** before implementation. Link it under an **Epic**.
-2. Cut a **Story branch once**, then plan: split into **Tasks** (user-visible behavior) and **Subs** (implementation units; horizontal layers are allowed: schema / db / hooks / UI). Write them in this file.
-3. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm (non-UI: layer tests; UI: RNTL acceptance). **Do not commit unless asked** (then one Sub = one commit). Mark Sub checkboxes after that commit.
-4. When a Task’s Subs are Done, **merge the Task branch into the Story branch**. When the Story is Done, merge the Story branch to `main`.
-5. IDs: `E-###`, `S-###`, `T-###`, `ST-###`（Sub は Task 内で 001 から。Task が変わるたびにリセット）。Reference Story + Task + Sub IDs in commit messages.
+2. If the Story adds or changes screens, write or update `docs/screens/*.md` on a `docs/` branch and merge to `master` before coding (see [design.md](./design.md)).
+3. Cut a **Story branch once**, then plan: split into **Tasks** (user-visible behavior) and **Subs** (implementation units; horizontal layers are allowed: schema / db / hooks / UI). Write them in this file.
+4. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm (non-UI: layer tests; UI: RNTL acceptance). **Do not commit unless asked** (then one Sub = one commit). Mark Sub checkboxes after that commit.
+5. When a Task’s Subs are Done, **merge the Task branch into the Story branch**. When the Story is Done, merge the Story branch to `main`.
+6. IDs: `E-###`, `S-###`, `T-###`, `ST-###`（Sub は Task 内で 001 から。Task が変わるたびにリセット）。Reference Story + Task + Sub IDs in commit messages.
 
 Template (copy under an epic):
 
@@ -72,6 +73,45 @@ Tasks:
   - [x] ST-001: 一覧の各ラリーに削除ボタンが出る
   - [x] ST-002: 削除を押すと確認（Confirm）が出る。キャンセルすると残る
   - [x] ST-003: 確認するとラリーが消え、ホーム一覧から消える
+
+### Story: S-023 ラリーに絵文字を付ける
+
+As a ラリーを作るユーザー
+I want ラリーに好きな絵文字を付けたい
+so that 一覧でテーマを一目で見分けたい
+
+受け入れ:
+
+- Given 作成画面を開いている When 見る Then タイプに応じた初期絵文字が出ている
+- Given 絵文字を選ぶ When 絵文字Pickerから1つ選択する Then その絵文字に変わる
+- Given 初期絵文字または選んだ絵文字で保存した When ホームを見る Then ラリー行に絵文字が出て、タイプアイコンは出ない
+- Given 絵文字カラムのない既存ラリーがある When ホームを見る Then タイプに応じた初期絵文字が出る
+- Given 絵文字を変更せずタイプを切り替えた When 見る Then 初期絵文字がタイプに追随する
+- Given 絵文字を自分で選んだ When タイプを切り替える Then 選んだ絵文字を保つ
+
+Tasks:
+
+- [x] T-001: 作成時に絵文字を指定し、ホームのラリー行で確認できる
+  - [x] ST-001: ラリー絵文字のスキーマとタイプ別初期値
+  - [x] ST-002: rallies の絵文字を SQLite に保存し、既存行を補完する
+  - [x] ST-003: 作成画面で絵文字を指定し、ホームのタイプアイコンを絵文字に置き換える
+
+### Story: S-024 formSheet の保存操作を初期表示で見せる
+
+As a ラリーやメモを入力するユーザー
+I want formSheet を開いた時点で保存操作を確認したい
+so that シートを広げなくても入力後の操作が分かる
+
+受け入れ:
+
+- Given ラリー作成の formSheet を開いた When 見る Then 入力欄の下に Save が見える
+- Given 絵文字Pickerを開いた When 見る Then シートが内容に合わせて伸び、Save が見える
+- Given メモ追加の formSheet を開いた When 見る Then 入力欄の下に Save が見える
+
+Tasks:
+
+- [x] T-001: formSheet を内容の高さに合わせて Save を見せる
+  - [x] ST-001: create-rally / add-stamp-memo を fitToContents にして既存の保存操作を保つ
 
 ---
 
@@ -167,7 +207,119 @@ Tasks:
 
 ゴール: ラリーごとに何が集まったか、どれだけ進んだかを確認できるようにする。「集めている」「進んでいる」感覚を与えることを目的とする。
 
-注記: S-002 Done の次はここ。S-003（位置情報）は後回し。
+注記: S-002 Done の次はここ。S-003（位置情報）は後回し。実装前に [design.md](./design.md) と該当 `docs/screens/*.md` を `master` に揃える。Tasks はデザインが `master` に入ってから分割する。画面は [home.md](./screens/home.md) / [create-rally.md](./screens/create-rally.md) / [rally-detail.md](./screens/rally-detail.md) / [stamp-detail.md](./screens/stamp-detail.md)。タブの枠は S-018。
+
+### Story: S-018 3つの領域をタブで切り替える
+
+As a ユーザー
+I want ホーム・記録・カレンダーをタブで行き来したい
+so that 押す場所と振り返る場所をすぐ切り替えたい
+
+受け入れ:
+
+- Given アプリを開いている When 見る Then ホーム・記録・カレンダーのタブがある
+- Given ホームにいる When 記録を選ぶ Then 記録の骨格（空状態）が見える
+- Given ホームにいる When カレンダーを選ぶ Then カレンダーの骨格が見える
+
+Tasks:
+
+- [ ] T-001: 3タブで領域を切り替えられる
+  - [x] ST-001: NativeTabs でホーム / 記録 / カレンダーを切り替えられる（記録・カレンダーは骨格）
+
+### Story: S-019 タブルートのヘッダーを揃える
+
+As a ユーザー
+I want ホーム・記録・カレンダーで同じヘッダーを見たい
+so that タブを切り替えても、今どこにいるかが同じ枠で分かる
+
+受け入れ:
+
+- Given タブルートを開いている When 見る Then 大きな挨拶（Hello / Welcome back / Good morning のいずれか）が出る
+- Given 同じ起動のままタブを切り替える When 見る Then 挨拶は変わらない
+- Given タブルートを開いている When 見る Then 今日の日付が `26 May, 2026` 形式で本文先頭にある
+- Given タブルートを開いている When 見る Then 左にロゴのプレースホルダ、右にメニューがある
+- Given メニューを押す When 今の時点 Then 何も起きない
+
+Tasks:
+
+- [x] T-001: タブルートのヘッダーが揃う
+  - [x] ST-001: 日付フォーマットと起動時挨拶の helper + 層テスト
+  - [x] ST-002: `TabRootScreen` を3タブに載せ、large title / ロゴ / メニュー / 日付を出す
+
+### Story: S-020 ホームをシンプルに見渡す
+
+As a ラリーを持つユーザー
+I want ホームのラリーと主要操作を迷わず見つけたい
+so that 素早くラリーを作成し、スタンプを押せる
+
+受け入れ:
+
+- Given ホームを開いている When 見る Then ラリーが区切り線のあるフラットな一覧で並ぶ
+- Given ラリーがある When 見る Then 名称、タイプ、スタンプ数、直近の記録がまとまって見える
+- Given ラリーがある When 見る Then タイプはアイコンで分かり、名称と同じ行からスタンプを押せ、名称直下にスタンプ数が見える
+- Given ホームを開いている When 見る Then 右下のフローティングボタンからラリーを作れる
+- Given ラリーがある When 見る Then スタンプと削除の操作を識別できる
+- Given ラリーがある When ホームを見る Then 今日までの直近7日の記録有無が丸の色で分かる
+- Given 直近7日を表示している When `Last 7 days` を開く Then 過去21日が上へ加わり、直近28日が古い週から順に見える
+- Given ヒートマップを開閉する When 見る Then 既存のスタンプ保存、メモ、削除、総数表示は変わらない
+- Given ホームを開いている When 見る Then 累計スタンプ数、今月の件数、人・場所・行動の構成比が上部に見える
+
+Tasks:
+
+- [x] T-001: ホームをフラット一覧と作成 FAB に整える
+  - [x] ST-001: 既存の操作を保ったままホームのレイアウトを簡素化する
+- [x] T-002: 色とアイコンでホームの情報階層を分かりやすくする
+  - [x] ST-001: フラット一覧を保ち、薄いブルーグレーの背景、ネイビーの主要操作、オレンジのアクセント、最新3件の記録で視認性を整える
+- [x] T-003: 直近の活動日を丸型ヒートマップで見渡せる
+  - [x] ST-001: 表示デザインだけを7日/28日ヒートマップとアコーディオンへ変える（schema / db / hooks は変更しない）
+- [x] T-004: コレクション全体の積み重ねをホーム上部で見渡せる
+  - [x] ST-001: 累計、今月、タイプ別件数を構成比バー付きのサマリーで表示する
+- [x] T-005: ラリー行を主要情報と操作がまとまる配置にする
+  - [x] ST-001: タイプ文言を省き、名称行にスタンプ操作、名称直下に収集数を配置する
+
+### Story: S-021 タブと入力画面の見た目を揃える
+
+As a アプリを使うユーザー
+I want タブと入力画面が同じ配色と操作感で表示されてほしい
+so that 画面を移動しても迷わず主要操作を見つけられる
+
+受け入れ:
+
+- Given タブを表示している When 選択中のタブを見る Then ネイビーで識別できる
+- Given formSheet を開いている When 見る Then 英語のネイティブタイトルと整理された入力欄が表示される
+- Given 有効な値を入力している When Return / Done または下部の保存を押す Then 保存できる
+- Given 保存処理中 When formSheet を見る Then 保存中であることが分かり、二重送信できない
+
+Tasks:
+
+- [x] T-001: タブと formSheet を共通カラーと操作感に揃える
+  - [x] ST-001: タブ、ラリー作成、メモ追加をネイビー・ブルーグレー・オレンジの階層で整える
+
+### Story: S-022 直近の活動を軽く見渡す
+
+As a ラリーを持つユーザー
+I want 直近の活動をラリー行になじむ軽い表示で見たい
+so that ホームの情報を箱に区切られすぎず見渡せる
+
+受け入れ:
+
+- Given ラリーがある When ホームを見る Then 直近7日の曜日と記録有無が背景や見出しなしで横幅いっぱいに見える
+- Given 直近7日を見る When 今日を確認する Then 今日だけリングで識別できる
+- Given ホームを見る When 活動表示を確認する Then 比較切替やアコーディオンは表示されない
+- Given 今日が未記録 When 今日の `＋` を押す Then そのラリーにスタンプが付く
+- Given 今日が記録済み When 今日を見る Then オレンジの丸になりホームから同日に追加できない
+- Given ラリーがある When ホームを見る Then 一覧の上に Your Days が見える
+
+Tasks:
+
+- [x] T-001: 箱なし inset の3案をホームで切り替えて比較できる
+  - [x] ST-001: RallyRow に flush / weekOnly / todayRing を追加し、ホームに一時切替を置く
+- [x] T-002: todayRing に固定し、活動表示を横幅いっぱいにする
+  - [x] ST-001: 見出し、アコーディオン、一時切替を削除して直近7日だけを表示する
+- [x] T-003: 今日のセルからスタンプを押せる
+  - [x] ST-001: 上部の押すボタンを今日の `＋` へ移し、記録済みならホームUIだけ無効にする
+- [x] T-004: 一覧に Your Days 見出しを置く
+  - [x] ST-001: ラリーがあるときだけ英語のセクション見出しを表示する
 
 ### Story: S-006 ラリーの内容を見る
 
@@ -237,6 +389,8 @@ Tasks:
 ## Epic: E-004 時間軸で振り返る
 
 ゴール: ラリーを横断して、いつ何をしていたかを時系列やカレンダーから振り返れるようにする。
+
+注記: 実装前に [design.md](./design.md) と該当 `docs/screens/*.md` を `master` に揃える。Tasks はデザインが `master` に入ってから分割する。骨格は [records-timeline.md](./screens/records-timeline.md) / [calendar.md](./screens/calendar.md) / [day-detail.md](./screens/day-detail.md)。
 
 ### Story: S-010 すべての記録を時系列で見る
 

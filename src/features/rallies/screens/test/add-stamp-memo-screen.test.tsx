@@ -1,32 +1,62 @@
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, screen, userEvent } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  screen,
+  userEvent,
+} from "@testing-library/react-native";
 
 import { listRallies, saveRally } from "../../db/rallies-db";
 import { listStamps, saveStamp } from "../../db/stamps-db";
 
 jest.useFakeTimers();
 
-describe("S-002 T-002 RT-003 ST-002 メモの保存", () => {
-  test("メモを入れて保存すると stamp に残る", async () => {
-    await saveRally({ name: "メモ追加用のラリー", type: "place" });
+describe("S-024 T-001 ST-001 fit form sheet", () => {
+  test("keeps Save inside intrinsically sized memo content", async () => {
+    await renderRouter("./src/app", {
+      initialUrl: "/add-stamp-memo?stampId=1",
+    });
+
+    const form = await screen.findByTestId("add-stamp-memo-form");
+
+    expect(form).not.toHaveProp("className", expect.stringContaining("flex-1"));
+    expect(screen.getByRole("button", { name: "Save" })).toBeOnTheScreen();
+  });
+});
+
+describe("S-002 T-002 RT-003 ST-002 save memo", () => {
+  test("persists memo on stamp after save", async () => {
+    await saveRally({ name: "Memo save rally", type: "place" });
     const [rally] = await listRallies();
     const stamp = await saveStamp({ rallyId: rally.id });
 
     await renderRouter("./src/app");
-    expect(await screen.findByText("メモ追加用のラリー")).toBeOnTheScreen();
+    expect(await screen.findByText("Memo save rally")).toBeOnTheScreen();
 
     await act(() => {
       router.push(`/add-stamp-memo?stampId=${stamp.id}`);
     });
 
     const user = userEvent.setup();
-    await user.type(await screen.findByPlaceholderText("メモを入力"), "会った");
-    await user.press(screen.getByRole("button", { name: "保存" }));
+    expect(await screen.findByText("Memo")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("heading", { name: "Add memo" }),
+    ).not.toBeOnTheScreen();
 
-    expect(await screen.findByText("会った")).toBeOnTheScreen();
+    const memoInput = screen.getByPlaceholderText("Enter memo");
+    await user.type(memoInput, "Met them");
+    await act(async () => {
+      fireEvent(memoInput, "submitEditing");
+    });
+
+    expect(
+      await screen.findByRole("button", {
+        name: "Memo save rally already stamped today",
+      }),
+    ).toBeDisabled();
     const [updated] = await listStamps();
-    expect(updated.memo).toBe("会った");
+    expect(updated.memo).toBe("Met them");
   });
 });

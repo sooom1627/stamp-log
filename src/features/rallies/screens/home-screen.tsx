@@ -1,25 +1,22 @@
-import { Alert, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { Link, useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 
 import { toast } from "sonner-native";
 
-import { formatDateTime } from "@/shared/utils/format-date-time";
+import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
+import { CollectionSummary } from "../components/collection-summary";
 import { RallyRow } from "../components/rally-row";
-import { useDeleteRally, useRallies } from "../hooks/use-rallies";
+import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
-import { rallyTypeLabels, type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 
-function stampLabelsForRally(stamps: Stamp[], rallyId: number) {
+function stampDatesForRally(stamps: Stamp[], rallyId: number) {
   return stamps
     .filter((stamp) => stamp.rallyId === rallyId)
-    .map((stamp) => ({
-      id: stamp.id,
-      label: formatDateTime(stamp.stampedAt),
-      memo: stamp.memo,
-    }));
+    .map((stamp) => stamp.stampedAt);
 }
 
 export function HomeScreen() {
@@ -27,7 +24,6 @@ export function HomeScreen() {
   const rallies = useRallies();
   const stampsQuery = useStamps();
   const stamps: Stamp[] = stampsQuery.data ?? [];
-  const remove = useDeleteRally();
   const { mutate: pressStamp } = useSaveStamp();
   const isListError = rallies.isError || stampsQuery.isError;
 
@@ -36,69 +32,101 @@ export function HomeScreen() {
     void stampsQuery.refetch();
   };
 
-  const confirmDelete = (rally: Rally) =>
-    Alert.alert("ラリーを削除しますか？", "この操作は取り消せません。", [
-      { text: "キャンセル", style: "cancel" },
-      {
-        text: "削除",
-        style: "destructive",
-        onPress: () => remove.mutate(rally.id),
-      },
-    ]);
-
   return (
-    <View className="flex-1 items-center justify-center gap-4">
-      <Link href="/create-rally">ラリーを作る</Link>
-      {isListError ? (
-        <View className="items-center gap-2">
-          <Text selectable className="text-[#ff3b30]">
-            読み込めませんでした
-          </Text>
-          <Pressable role="button" onPress={retryLists}>
-            <Text>再試行</Text>
+    <TabRootScreen
+      floatingAction={
+        <Link href="/create-rally" asChild>
+          <Pressable
+            accessibilityLabel="Create rally"
+            className="bg-main active:bg-main-hover dark:bg-main-hover absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
+            style={{ boxShadow: "0 8px 24px rgba(30, 41, 59, 0.22)" }}
+          >
+            <SymbolView
+              name={{ ios: "plus", android: "add", web: "add" }}
+              size={24}
+              tintColor="#ffffff"
+            />
           </Pressable>
-        </View>
-      ) : null}
-      {rallies.data?.map((rally) => (
-        <RallyRow
-          key={rally.id}
-          name={rally.name}
-          typeLabel={rallyTypeLabels[rally.type]}
-          stampLabels={stampLabelsForRally(stamps, rally.id)}
-          onPressStamp={() =>
-            pressStamp(
-              { rallyId: rally.id },
-              {
-                onSuccess: (stamp) => {
-                  const toastId = toast("メモを追加しますか？", {
-                    duration: 5000,
-                    styles: {
-                      textContainer: {
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 8,
+        </Link>
+      }
+    >
+      <View className="w-full">
+        {rallies.data && stampsQuery.data ? (
+          <CollectionSummary rallies={rallies.data} stamps={stampsQuery.data} />
+        ) : null}
+        {isListError ? (
+          <View className="items-center gap-2 py-12">
+            <Text selectable className="text-danger">
+              Couldn't load
+            </Text>
+            <Pressable role="button" onPress={retryLists}>
+              <Text className="text-main dark:text-slate-100">Retry</Text>
+            </Pressable>
+          </View>
+        ) : null}
+        {rallies.data?.length === 0 ? (
+          <View className="items-center py-12">
+            <Text>No rallies yet</Text>
+          </View>
+        ) : null}
+        {rallies.data?.length ? (
+          <View className="mt-2 mb-1 flex-row items-center justify-between">
+            <Text
+              role="heading"
+              className="text-main text-lg font-semibold dark:text-slate-100"
+            >
+              Your Days
+            </Text>
+            <Link href="/rallies-list" asChild>
+              <Pressable accessibilityRole="link">
+                <Text className="text-main text-sm dark:text-slate-100">
+                  View All
+                </Text>
+              </Pressable>
+            </Link>
+          </View>
+        ) : null}
+        {rallies.data?.map((rally) => (
+          <RallyRow
+            key={rally.id}
+            name={rally.name}
+            emoji={rally.emoji}
+            stampDates={stampDatesForRally(stamps, rally.id)}
+            onPressStamp={() =>
+              pressStamp(
+                { rallyId: rally.id },
+                {
+                  onSuccess: (stamp) => {
+                    const toastId = toast("Add a memo?", {
+                      duration: 5000,
+                      styles: {
+                        textContainer: {
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 8,
+                        },
+                        buttons: {
+                          marginTop: 0,
+                          marginLeft: "auto",
+                        },
                       },
-                      buttons: {
-                        marginTop: 0,
-                        marginLeft: "auto",
+                      action: {
+                        label: "Add memo",
+                        onClick: () => {
+                          toast.dismiss(toastId);
+                          router.push(`/add-stamp-memo?stampId=${stamp.id}`);
+                        },
                       },
-                    },
-                    action: {
-                      label: "メモを追加",
-                      onClick: () => {
-                        toast.dismiss(toastId);
-                        router.push(`/add-stamp-memo?stampId=${stamp.id}`);
-                      },
-                    },
-                  });
+                    });
+                  },
                 },
-              },
-            )
-          }
-          onDelete={() => confirmDelete(rally)}
-        />
-      ))}
-    </View>
+              )
+            }
+            onPressDetail={() => router.push(`/rallies/${rally.id}`)}
+          />
+        ))}
+      </View>
+    </TabRootScreen>
   );
 }

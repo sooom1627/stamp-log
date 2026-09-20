@@ -1,5 +1,5 @@
 import { HomeScreen } from "@/features/rallies/screens/home-screen";
 
-export default function Index() {
+export default function HomeRoute() {
   return <HomeScreen />;
 }
