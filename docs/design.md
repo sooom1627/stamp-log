@@ -53,16 +53,16 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 
 ## 画面一覧
 
-| 画面 | ファイル | 深さ | Story |
-| --- | --- | --- | --- |
-| ホーム | [screens/home.md](./screens/home.md) | 既存 → 目標 | S-001, S-002, S-008 |
-| ラリーを作る | [screens/create-rally.md](./screens/create-rally.md) | 既存 → 目標 | S-001, S-009 |
-| メモを追加 | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md) | 既存 → 目標 | S-002 |
-| ラリー詳細 | [screens/rally-detail.md](./screens/rally-detail.md) | ワイヤー | S-006, S-008, S-009 |
-| スタンプ詳細 | [screens/stamp-detail.md](./screens/stamp-detail.md) | ワイヤー | S-007 |
-| 記録（タイムライン） | [screens/records-timeline.md](./screens/records-timeline.md) | 骨格 | S-010 |
-| カレンダー | [screens/calendar.md](./screens/calendar.md) | 骨格 | S-011 |
-| 日詳細 | [screens/day-detail.md](./screens/day-detail.md) | 骨格 | S-012 |
+| 画面                 | ファイル                                                     | 深さ        | Story               |
+| -------------------- | ------------------------------------------------------------ | ----------- | ------------------- |
+| ホーム               | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008 |
+| ラリーを作る         | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009        |
+| メモを追加           | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002               |
+| ラリー詳細           | [screens/rally-detail.md](./screens/rally-detail.md)         | ワイヤー    | S-006, S-008, S-009 |
+| スタンプ詳細         | [screens/stamp-detail.md](./screens/stamp-detail.md)         | ワイヤー    | S-007               |
+| 記録（タイムライン） | [screens/records-timeline.md](./screens/records-timeline.md) | 骨格        | S-010               |
+| カレンダー           | [screens/calendar.md](./screens/calendar.md)                 | 骨格        | S-011               |
+| 日詳細               | [screens/day-detail.md](./screens/day-detail.md)             | 骨格        | S-012               |
 
 ## ルート案
 
