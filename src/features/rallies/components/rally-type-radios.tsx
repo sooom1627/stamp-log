@@ -1,7 +1,10 @@
 import { Pressable, Text, View } from "react-native";
 
-import { rallyTypeLabels } from "../constants/rallies-constants";
-import { rallyTypeSchema, type RallyType } from "../schemas/rallies";
+import {
+  rallyTypeLabels,
+  rallyTypeSchema,
+  type RallyType,
+} from "../schemas/rallies";
 
 type RallyTypeRadiosProps = {
   value: RallyType;

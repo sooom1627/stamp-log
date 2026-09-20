@@ -15,3 +15,9 @@ export const saveRallyInputSchema = rallySchema.pick({
 export type RallyType = z.infer<typeof rallyTypeSchema>;
 export type Rally = z.infer<typeof rallySchema>;
 export type SaveRallyInput = z.infer<typeof saveRallyInputSchema>;
+
+export const rallyTypeLabels: Record<RallyType, string> = {
+  place: "場所",
+  action: "行動",
+  person: "人",
+};

@@ -7,8 +7,8 @@ Single source of truth for Epic / Story / Task / Sub. Lightweight agile only —
 ## How to use
 
 1. Add or refine a **Story** before implementation. Link it under an **Epic**.
-2. Cut a **Story branch once**, then plan: split into **Tasks** and **Subs** (user-confirmable steps, not layers). Write them in this file.
-3. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm → commit. Mark Sub checkboxes as you commit.
+2. Cut a **Story branch once**, then plan: split into **Tasks** (user-visible behavior) and **Subs** (implementation units; horizontal layers are allowed: schema / db / hooks / UI). Write them in this file.
+3. Cut a **Task branch** from the Story branch. On it: each **Sub** = test → confirm (non-UI: layer tests; UI: RNTL acceptance). **Do not commit unless asked** (then one Sub = one commit). Mark Sub checkboxes after that commit.
 4. When a Task’s Subs are Done, **merge the Task branch into the Story branch**. When the Story is Done, merge the Story branch to `main`.
 5. IDs: `E-###`, `S-###`, `T-###`, `ST-###`（Sub は Task 内で 001 から。Task が変わるたびにリセット）。Reference Story + Task + Sub IDs in commit messages.
 
@@ -29,9 +29,9 @@ As a ... I want ... so that ...
 
 Tasks:
 
-- [ ] T-001: （振る舞いのまとまり）
-  - [ ] ST-001: （ユーザーが確認できる一歩）
-  - [ ] ST-002: （次の一歩）
+- [ ] T-001: （ユーザーに見える振る舞いのまとまり）
+  - [ ] ST-001: （schema / db / hooks / UI など、層でも可）
+  - [ ] ST-002: （次の層）
 ```
 
 ---
@@ -77,60 +77,75 @@ Tasks:
 
 ## Epic: E-002 ラリーにスタンプを押す
 
-ゴール: 体験したその場で、ラリーを選んで最小限の入力でスタンプを押せるようにする。入力項目はラリーのタイプで決まり、日時は自動で付く。
+ゴール: ラリーを選んでワンタップでスタンプを押せる。記録の本体は日時。補足メモは押した直後に任意。位置情報は別 Story。タイプによる入力差はない。
 
-### Story: S-002 人のラリーにスタンプを押す
+### Story: S-002 ラリーにスタンプを押す
 
-As a 人のラリーを持つユーザー
-I want 会った人の名前を入れてスタンプを押したい
-so that 誰と会ったかを忘れないうちにラリーに残したい
-
-受け入れ:
-
-- Given 人のラリーがある When そのラリーでスタンプを押す操作を始める Then 誰に会ったかを入力する画面が開く
-- Given 名前を入力した When 押す Then そのラリーにスタンプが追加され、名前が保持される
-- Given スタンプを押した When 記録を確認する Then 押した日時が自動で保持されている（手入力なし）
-- Given 名前が空（または空白のみ） When 押そうとする Then 押せない
-- Given 任意のメモを入力した When 押す Then メモが保持される
-
-Tasks:
-
-- （実装着手時に垂直スライスで追加）
-
-### Story: S-003 場所のラリーにスタンプを押す
-
-As a 場所のラリーを持つユーザー
-I want 訪れた場所の名称を入れてスタンプを押したい
-so that どこへ行ったかをラリーに蓄積したい
+As a ラリーを持つユーザー
+I want ラリーを選んでワンタップでスタンプを押したい
+so that 体験したその場で、入力に煩わされず記録を残したい
 
 受け入れ:
 
-- Given 場所のラリーがある When そのラリーでスタンプを押す操作を始める Then どこに行ったかを入力する画面が開く
-- Given 場所名を入力した When 押す Then そのラリーにスタンプが追加され、場所名と日時が保持される
-- Given 位置情報が利用可能なとき When 押す Then 位置情報を記録できる
-- Given 位置情報が利用できないとき When 押す Then 場所名だけでスタンプを押せる
+- Given ラリーがある When 「スタンプを押す」を押す Then そのラリーに日時付きスタンプが付き、ホームのそのラリー直下で確認できる
+- Given 人・場所・行動いずれのラリーがある When スタンプを押す Then 同じ操作で押せ、タイプで記録内容は変わらない
+- Given スタンプを押した When 「メモを追加しますか？」のトーストが約5秒で消える Then メモなしのまま完了する（スタンプは残る。操作は止まらない）
+- Given スタンプを押した When トーストの「メモを追加」を選ぶ Then formSheet でメモを入れられ、保存するとそのスタンプにメモが見える
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- [x] T-001: どのタイプのラリーでもワンタップでスタンプが付く
+  - [x] ST-001: stamps の型（Zod）
+  - [x] ST-002: stamps の SQLite（save / list）
+  - [x] ST-003: stamps の Query hooks
+  - [x] ST-004: ホームで押し、ラリー直下に日時が出る（人・場所・行動で形は同じ）
+  - [x] RT-001: デバッグ残骸の除去と Query/エラーを既存パターンに揃える
+  - [x] RT-002: ホームのラリー行を RallyRow に抽出
+  - [x] RT-003: getDb / QueryClient / 日時表示を shared へ
+  - [x] RT-004: db を rallies-db / stamps-db に分割
+- [x] T-002: 押したあと任意でメモを足せる
+      注記: 確認は Alert にしない（操作が止まる）。`sonner-native` のトースト。約5秒で消えるとメモなし。明示の「いいえ」は置かない。`memo` は nullable。押下時は日時だけ保存し、メモは update。
+  - [x] ST-001: 押すと「メモを追加しますか？」のトーストが出る。約5秒で消えたらメモなしで残る
+  - [x] ST-002: stamp に任意 memo の型（Zod）
+  - [x] ST-003: stamps の SQLite（memo カラム + update）
+  - [x] ST-004: memo 更新の Query hook
+  - [x] ST-005: トーストの「メモを追加」で formSheet が開き、保存するとラリー直下にメモが見える
+  - [x] RT-001: 1箇所専用の constants をやめ、タイプラベルだけスキーマ横に置く
+  - [x] RT-002: Query / Mutation の失敗表示を揃える
+    - [x] ST-001: QueryClient に MutationCache.onError（layout が toast.error を渡す）。query retry は false
+    - [x] ST-002: ホームの list 失敗は読込エラー+再試行。mutation の inline は外し toast に統一
+  - [x] RT-003: ホーム画面テストを画面 / コンポーネントに分割する
+    - [x] ST-001: RallyRow / RallyTypeRadios のコンポーネントテスト
+    - [x] ST-002: create-rally / add-stamp-memo の画面テストを切り出し
+    - [x] ST-003: home を seed + 結合だけに削る
+
+### Story: S-003 スタンプに位置情報を付けられる
+
+注記: 後回し。E-002 の実装順から外す。S-002 のスキーマ・ワンタップには混ぜない。タイプは問わない。位置用の確認ダイアログは出さない（取れなければスキップ）。必要になったときに着手する。
+
+As a スタンプを押したユーザー
+I want 取れるときだけ位置も残したい
+so that 押す操作を増やさずに、あとからどこにいたかを思い出せるようにしたい
+
+受け入れ:
+
+- Given 位置情報が使える When スタンプを押す Then 日時に加えて位置が記録され、ラリー直下で「位置情報あり」と分かる
+- Given 位置情報が使えない When スタンプを押す Then 日時だけのスタンプとして押せる（ブロックしない）
+- Given どのタイプのラリーでも When 位置を付ける Then 操作もデータ形も同じである
+
+Tasks:
+
+- [ ] T-001: 取れたときだけ位置が付く
+  - [ ] ST-001: 位置が使えると、押したスタンプに位置が付き「位置情報あり」と分かる（`expo-location` + nullable カラムはこの Sub）
+  - [ ] ST-002: 使えない／拒否でも、日時スタンプはこれまで通り押せる
 
 ### Story: S-004 行動のラリーにスタンプを押す
 
-As a 行動のラリーを持つユーザー
-I want 何をしたかを入れてスタンプを押したい
-so that 場所や人に限定されない日々の体験もラリーに残したい
-
-受け入れ:
-
-- Given 行動のラリーがある When そのラリーでスタンプを押す操作を始める Then 何をしたかを入力する画面が開く
-- Given 行動内容を入力した When 押す Then そのラリーにスタンプが追加され、行動内容と日時が保持される
-- Given 行動内容が空（または空白のみ） When 押そうとする Then 押せない
-
-Tasks:
-
-- （実装着手時に垂直スライスで追加）
+取り下げ: タイプ別の行動入力は不要。押す操作は S-002 に統合した。
 
 ### Story: S-005 押したスタンプに補足を残す
+
+注記: 押下直後の任意メモは S-002 T-002。本 Story は E-002 の実装順から外す。写真等の証跡は必要になってから扱う。
 
 As a スタンプを押したユーザー
 I want 必要なときだけスタンプに補足情報を加えたい
@@ -142,17 +157,17 @@ so that 後で見返したときに当時の状況を思い出したい
 - Given 補足情報を入力していない When 押す Then スタンプを押せる
 - Given 将来の拡張として When データ構造を定義する Then 写真等の証跡を追加できる構造とする
 
-注記: 押下時の任意メモは S-002〜S-004 でも扱う。本 Story は写真等の証跡を足せる構造、および押下時以外の補足を対象とする。
-
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （写真等が必要になったときに Task / Sub で追加）
 
 ---
 
 ## Epic: E-003 ラリーの中身と進捗を見る
 
 ゴール: ラリーごとに何が集まったか、どれだけ進んだかを確認できるようにする。「集めている」「進んでいる」感覚を与えることを目的とする。
+
+注記: S-002 Done の次はここ。S-003（位置情報）は後回し。
 
 ### Story: S-006 ラリーの内容を見る
 
@@ -168,7 +183,7 @@ so that そのテーマでこれまで何を集めたかを確認したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-007 スタンプの詳細を見る
 
@@ -184,7 +199,7 @@ so that そのときに残した情報を改めて確認したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-008 ラリーの収集数を見る
 
@@ -199,7 +214,7 @@ so that 自分の活動が積み上がっていることを実感したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-009 目標数に対する進捗を見る
 
@@ -215,7 +230,7 @@ so that 目標までどれくらい進んだかを楽しみたい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ---
 
@@ -238,7 +253,7 @@ so that 自分が最近何をしていたかを簡単に振り返りたい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-011 記録がある日をカレンダーで見る
 
@@ -253,7 +268,7 @@ so that 自分の活動の流れを時間軸で振り返りたい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-012 特定の日の記録を見る
 
@@ -269,7 +284,7 @@ so that その日に何をしていたかを思い出したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ---
 
@@ -291,7 +306,7 @@ so that テーマの言い方や目標を途中で見直したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-014 スタンプを編集する
 
@@ -306,7 +321,7 @@ so that 入力間違いを修正したり、後から情報を補足したい
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-015 スタンプを別のラリーへ移す
 
@@ -322,7 +337,7 @@ so that 押す瞬間にラリーを間違えても、記録を作り直さずに
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-016 スタンプを削除する
 
@@ -337,7 +352,7 @@ so that 誤って押した記録を残したくない
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）
 
 ### Story: S-017 ラリーを削除する
 
@@ -355,4 +370,4 @@ so that 使わなくなったテーマでホームが埋まらないようにし
 
 Tasks:
 
-- （実装着手時に垂直スライスで追加）
+- （実装着手時に Task / Sub で追加）

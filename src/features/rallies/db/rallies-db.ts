@@ -1,4 +1,6 @@
-import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
+import { type SQLiteDatabase } from "expo-sqlite";
+
+import { getDb } from "@/shared/db/get-db";
 
 import {
   rallySchema,
@@ -7,25 +9,25 @@ import {
   type SaveRallyInput,
 } from "../schemas/rallies";
 
-let dbPromise: Promise<SQLiteDatabase> | undefined;
+async function ensureRallies(db: SQLiteDatabase) {
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS rallies (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL
+    );
+  `);
+}
 
-function getDb(): Promise<SQLiteDatabase> {
-  dbPromise ??= openDatabaseAsync("stamp-log.db").then(async (db) => {
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS rallies (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL
-      );
-    `);
-    return db;
-  });
-  return dbPromise;
+async function withRalliesDb() {
+  const db = await getDb();
+  await ensureRallies(db);
+  return db;
 }
 
 export async function saveRally(input: SaveRallyInput): Promise<void> {
   const { name, type } = saveRallyInputSchema.parse(input);
-  const db = await getDb();
+  const db = await withRalliesDb();
   await db.runAsync(
     "INSERT INTO rallies (name, type) VALUES (?, ?)",
     name,
@@ -34,12 +36,18 @@ export async function saveRally(input: SaveRallyInput): Promise<void> {
 }
 
 export async function deleteRally(id: Rally["id"]): Promise<void> {
-  const db = await getDb();
+  const db = await withRalliesDb();
+  const stampTables = await db.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'stamps'",
+  );
+  if (stampTables.length > 0) {
+    await db.runAsync("DELETE FROM stamps WHERE rally_id = ?", id);
+  }
   await db.runAsync("DELETE FROM rallies WHERE id = ?", id);
 }
 
 export async function listRallies(): Promise<Rally[]> {
-  const db = await getDb();
+  const db = await withRalliesDb();
   const rows = await db.getAllAsync<{
     id: number;
     name: string;
