@@ -8,21 +8,21 @@ export default function TabsLayout() {
           sf={{ default: "house", selected: "house.fill" }}
           md={{ default: "home", selected: "home_filled" }}
         />
-        <NativeTabs.Trigger.Label>ホーム</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="records">
         <NativeTabs.Trigger.Icon
           sf={{ default: "list.bullet", selected: "list.bullet" }}
           md="format_list_bulleted"
         />
-        <NativeTabs.Trigger.Label>記録</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>Logs</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="calendar">
         <NativeTabs.Trigger.Icon
           sf={{ default: "calendar", selected: "calendar" }}
           md="calendar_month"
         />
-        <NativeTabs.Trigger.Label>カレンダー</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>calendar</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

@@ -38,7 +38,7 @@ export default function RootLayout() {
             <Stack.Screen
               name="create-rally"
               options={{
-                title: "ラリーを作る",
+                title: "Create rally",
                 presentation: "formSheet",
                 sheetGrabberVisible: true,
                 sheetAllowedDetents: [0.5, 1],
@@ -47,7 +47,7 @@ export default function RootLayout() {
             <Stack.Screen
               name="add-stamp-memo"
               options={{
-                title: "メモを追加",
+                title: "Add memo",
                 presentation: "formSheet",
                 sheetGrabberVisible: true,
                 sheetAllowedDetents: [0.5, 1],
