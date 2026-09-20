@@ -1,9 +1,11 @@
-import { Text, View } from "react-native";
+import { Text } from "react-native";
+
+import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
 export function CalendarScreen() {
   return (
-    <View className="flex-1 items-center justify-center">
+    <TabRootScreen>
       <Text role="heading">カレンダー</Text>
-    </View>
+    </TabRootScreen>
   );
 }

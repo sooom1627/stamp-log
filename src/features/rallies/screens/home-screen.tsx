@@ -4,6 +4,7 @@ import { Link, useRouter } from "expo-router";
 
 import { toast } from "sonner-native";
 
+import { TabRootScreen } from "@/shared/components/tab-root-screen";
 import { formatDateTime } from "@/shared/utils/format-date-time";
 
 import { RallyRow } from "../components/rally-row";
@@ -47,58 +48,77 @@ export function HomeScreen() {
     ]);
 
   return (
-    <View className="flex-1 items-center justify-center gap-4">
-      <Link href="/create-rally">ラリーを作る</Link>
-      {isListError ? (
-        <View className="items-center gap-2">
-          <Text selectable className="text-[#ff3b30]">
-            読み込めませんでした
-          </Text>
-          <Pressable role="button" onPress={retryLists}>
-            <Text>再試行</Text>
+    <TabRootScreen
+      floatingAction={
+        <Link href="/create-rally" asChild>
+          <Pressable
+            accessibilityLabel="ラリーを作る"
+            className="absolute right-5 bottom-24 size-14 items-center justify-center rounded-full bg-black shadow-lg dark:bg-white"
+          >
+            <Text className="text-3xl leading-none text-white dark:text-black">
+              ＋
+            </Text>
           </Pressable>
-        </View>
-      ) : null}
-      {rallies.data?.map((rally) => (
-        <RallyRow
-          key={rally.id}
-          name={rally.name}
-          typeLabel={rallyTypeLabels[rally.type]}
-          stampLabels={stampLabelsForRally(stamps, rally.id)}
-          onPressStamp={() =>
-            pressStamp(
-              { rallyId: rally.id },
-              {
-                onSuccess: (stamp) => {
-                  const toastId = toast("メモを追加しますか？", {
-                    duration: 5000,
-                    styles: {
-                      textContainer: {
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 8,
+        </Link>
+      }
+    >
+      <View className="w-full">
+        {isListError ? (
+          <View className="items-center gap-2 py-12">
+            <Text selectable className="text-[#ff3b30]">
+              読み込めませんでした
+            </Text>
+            <Pressable role="button" onPress={retryLists}>
+              <Text>再試行</Text>
+            </Pressable>
+          </View>
+        ) : null}
+        {rallies.data?.length === 0 ? (
+          <View className="items-center py-12">
+            <Text>ラリーはまだありません</Text>
+          </View>
+        ) : null}
+        {rallies.data?.map((rally) => (
+          <RallyRow
+            key={rally.id}
+            name={rally.name}
+            typeLabel={rallyTypeLabels[rally.type]}
+            stampLabels={stampLabelsForRally(stamps, rally.id)}
+            onPressStamp={() =>
+              pressStamp(
+                { rallyId: rally.id },
+                {
+                  onSuccess: (stamp) => {
+                    const toastId = toast("メモを追加しますか？", {
+                      duration: 5000,
+                      styles: {
+                        textContainer: {
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 8,
+                        },
+                        buttons: {
+                          marginTop: 0,
+                          marginLeft: "auto",
+                        },
                       },
-                      buttons: {
-                        marginTop: 0,
-                        marginLeft: "auto",
+                      action: {
+                        label: "メモを追加",
+                        onClick: () => {
+                          toast.dismiss(toastId);
+                          router.push(`/add-stamp-memo?stampId=${stamp.id}`);
+                        },
                       },
-                    },
-                    action: {
-                      label: "メモを追加",
-                      onClick: () => {
-                        toast.dismiss(toastId);
-                        router.push(`/add-stamp-memo?stampId=${stamp.id}`);
-                      },
-                    },
-                  });
+                    });
+                  },
                 },
-              },
-            )
-          }
-          onDelete={() => confirmDelete(rally)}
-        />
-      ))}
-    </View>
+              )
+            }
+            onDelete={() => confirmDelete(rally)}
+          />
+        ))}
+      </View>
+    </TabRootScreen>
   );
 }

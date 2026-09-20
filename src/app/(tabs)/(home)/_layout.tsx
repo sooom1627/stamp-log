@@ -1,9 +1,11 @@
 import { Stack } from "expo-router";
 
+import { tabRootScreenOptions } from "@/shared/components/tab-root-screen";
+
 export default function HomeLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: "ホーム" }} />
+    <Stack screenOptions={tabRootScreenOptions}>
+      <Stack.Screen name="index" />
     </Stack>
   );
 }
