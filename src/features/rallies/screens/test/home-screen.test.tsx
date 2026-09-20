@@ -1,4 +1,4 @@
-import { Alert, type AlertButton } from "react-native";
+import { Alert } from "react-native";
 
 import { renderRouter } from "expo-router/testing-library";
 
@@ -18,14 +18,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-function findAlertButton(style: AlertButton["style"]): AlertButton {
-  const alertSpy = jest.mocked(Alert.alert);
-  const buttons = alertSpy.mock.calls.at(-1)?.[2] ?? [];
-  const button = buttons.find((candidate) => candidate.style === style);
-  if (!button) throw new Error(`Alert button with style ${style} not found`);
-  return button;
-}
 
 function findToastAction(): { label: string; onClick: () => void } {
   const options = jest.mocked(toast).mock.calls.at(-1)?.[1];
@@ -83,46 +75,18 @@ describe("S-022 section heading", () => {
   });
 });
 
-describe("T-002 ST-001 delete button", () => {
-  test("shows delete button on each rally in the list", async () => {
-    await renderHomeWithRally("Tokyo museums");
+describe("Rally detail navigation", () => {
+  test("opens rally detail from the row header", async () => {
+    const user = await renderHomeWithRally("Tokyo museums");
 
+    await user.press(
+      screen.getByRole("button", { name: "View Tokyo museums details" }),
+    );
+
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
     expect(
-      screen.getByRole("button", { name: "Delete Tokyo museums" }),
+      screen.getByRole("heading", { name: "Tokyo museums" }),
     ).toBeOnTheScreen();
-  });
-});
-
-describe("T-002 ST-002 delete confirmation", () => {
-  test("shows confirmation on delete and keeps rally on cancel", async () => {
-    const user = await renderHomeWithRally("Yamanote stations");
-
-    await user.press(
-      screen.getByRole("button", { name: "Delete Yamanote stations" }),
-    );
-
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
-
-    findAlertButton("cancel").onPress?.();
-
-    expect(screen.getByText("Yamanote stations")).toBeOnTheScreen();
-  });
-});
-
-describe("T-002 ST-003 delete confirm", () => {
-  test("removes rally from home list after confirming delete", async () => {
-    const user = await renderHomeWithRally("Weekend running");
-
-    await user.press(
-      screen.getByRole("button", { name: "Delete Weekend running" }),
-    );
-    await act(async () => {
-      findAlertButton("destructive").onPress?.();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText("Weekend running")).not.toBeOnTheScreen();
-    });
   });
 });
 
@@ -343,27 +307,5 @@ describe("S-002 T-002 RT-002 error display", () => {
     await waitFor(() => {
       expect(screen.queryByText("Couldn't load")).not.toBeOnTheScreen();
     });
-  });
-
-  test("shows error toast when delete fails", async () => {
-    jest
-      .spyOn(ralliesDb, "deleteRally")
-      .mockRejectedValue(new Error("disk full"));
-    jest.mocked(toast.error).mockClear();
-
-    const user = await renderHomeWithRally("Delete fails rally");
-    await user.press(
-      screen.getByRole("button", { name: "Delete Delete fails rally" }),
-    );
-    await act(async () => {
-      findAlertButton("destructive").onPress?.();
-    });
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        "Something went wrong. Please try again.",
-      );
-    });
-    expect(screen.getByText("Delete fails rally")).toBeOnTheScreen();
   });
 });

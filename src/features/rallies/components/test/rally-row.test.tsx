@@ -11,7 +11,7 @@ const defaultProps = {
   emoji: "⛩️",
   stampDates: [] as string[],
   onPressStamp: () => {},
-  onDelete: () => {},
+  onPressDetail: () => {},
 };
 
 describe("S-020 T-005 ST-001 compact RallyRow", () => {
@@ -19,7 +19,7 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     jest.setSystemTime(NOW);
   });
 
-  test("shows emoji, name, stamp count, today stamp, and delete", async () => {
+  test("shows emoji, name, stamp count, today stamp, and detail link", async () => {
     await render(<RallyRow {...defaultProps} />);
 
     expect(screen.getByText("⛩️")).toBeOnTheScreen();
@@ -32,7 +32,7 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     ).toBeOnTheScreen();
     expect(screen.queryByText("Stamp")).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Delete Kyoto trip" }),
+      screen.getByRole("button", { name: "View Kyoto trip details" }),
     ).toBeOnTheScreen();
   });
 
@@ -121,25 +121,27 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     expect(screen.queryByLabelText("Sep 13, 2026, recorded")).toBeNull();
   });
 
-  test("stamp and delete buttons call their callbacks", async () => {
+  test("stamp and detail buttons call their callbacks", async () => {
     const onPressStamp = jest.fn();
-    const onDelete = jest.fn();
+    const onPressDetail = jest.fn();
     const user = userEvent.setup();
 
     await render(
       <RallyRow
         {...defaultProps}
         onPressStamp={onPressStamp}
-        onDelete={onDelete}
+        onPressDetail={onPressDetail}
       />,
     );
 
     await user.press(
       screen.getByRole("button", { name: "Stamp Kyoto trip for today" }),
     );
-    await user.press(screen.getByRole("button", { name: "Delete Kyoto trip" }));
+    await user.press(
+      screen.getByRole("button", { name: "View Kyoto trip details" }),
+    );
 
     expect(onPressStamp).toHaveBeenCalledTimes(1);
-    expect(onDelete).toHaveBeenCalledTimes(1);
+    expect(onPressDetail).toHaveBeenCalledTimes(1);
   });
 });

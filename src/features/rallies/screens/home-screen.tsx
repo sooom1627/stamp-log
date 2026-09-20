@@ -1,4 +1,4 @@
-import { Alert, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { Link, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -9,9 +9,8 @@ import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
 import { CollectionSummary } from "../components/collection-summary";
 import { RallyRow } from "../components/rally-row";
-import { useDeleteRally, useRallies } from "../hooks/use-rallies";
+import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
-import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 
 function stampDatesForRally(stamps: Stamp[], rallyId: number) {
@@ -25,7 +24,6 @@ export function HomeScreen() {
   const rallies = useRallies();
   const stampsQuery = useStamps();
   const stamps: Stamp[] = stampsQuery.data ?? [];
-  const remove = useDeleteRally();
   const { mutate: pressStamp } = useSaveStamp();
   const isListError = rallies.isError || stampsQuery.isError;
 
@@ -33,16 +31,6 @@ export function HomeScreen() {
     void rallies.refetch();
     void stampsQuery.refetch();
   };
-
-  const confirmDelete = (rally: Rally) =>
-    Alert.alert("Delete rally?", "This action cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => remove.mutate(rally.id),
-      },
-    ]);
 
   return (
     <TabRootScreen
@@ -135,7 +123,7 @@ export function HomeScreen() {
                 },
               )
             }
-            onDelete={() => confirmDelete(rally)}
+            onPressDetail={() => router.push(`/rallies/${rally.id}`)}
           />
         ))}
       </View>

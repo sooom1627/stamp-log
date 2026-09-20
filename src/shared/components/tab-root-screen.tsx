@@ -18,6 +18,12 @@ export const ralliesListScreenOptions = {
   headerShadowVisible: false,
 } as const;
 
+export const rallyDetailScreenOptions = {
+  headerLargeTitleEnabled: false,
+  headerBackButtonDisplayMode: "minimal",
+  headerShadowVisible: false,
+} as const;
+
 const logoPlaceholderStyle = {
   width: 32,
   height: 32,
