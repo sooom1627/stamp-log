@@ -40,9 +40,9 @@ describe("S-002 T-002 RT-003 ST-002 メモの保存", () => {
 
     expect(
       await screen.findByRole("button", {
-        name: "メモ追加用のラリーにスタンプを押す",
+        name: "メモ追加用のラリーは今日記録済み",
       }),
-    ).toBeOnTheScreen();
+    ).toBeDisabled();
     const [updated] = await listStamps();
     expect(updated.memo).toBe("会った");
   });

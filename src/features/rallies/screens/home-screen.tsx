@@ -81,6 +81,14 @@ export function HomeScreen() {
             <Text>ラリーはまだありません</Text>
           </View>
         ) : null}
+        {rallies.data?.length ? (
+          <Text
+            role="heading"
+            className="text-main mt-2 mb-1 text-sm font-semibold dark:text-slate-100"
+          >
+            Your Days
+          </Text>
+        ) : null}
         {rallies.data?.map((rally) => (
           <RallyRow
             key={rally.id}

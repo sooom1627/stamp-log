@@ -11,14 +11,6 @@ import { type RallyType } from "../../schemas/rallies";
 
 jest.useFakeTimers();
 
-const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-});
-
-function recordedActivityLabel(iso: string) {
-  return `${activityDateFormatter.format(new Date(iso))}, recorded`;
-}
-
 beforeEach(() => {
   jest.spyOn(Alert, "alert").mockImplementation(() => {});
 });
@@ -72,6 +64,16 @@ describe("ST-001 ラリー作成入口", () => {
   });
 });
 
+describe("S-022 セクション見出し", () => {
+  test("ラリーがあるとき Your Days が出る", async () => {
+    await renderHomeWithRally("Your Days確認用");
+
+    expect(
+      screen.getByRole("heading", { name: "Your Days" }),
+    ).toBeOnTheScreen();
+  });
+});
+
 describe("T-002 ST-001 削除ボタン", () => {
   test("一覧のラリーに削除ボタンが出る", async () => {
     await renderHomeWithRally("東京の美術館");
@@ -115,7 +117,6 @@ describe("T-002 ST-003 削除の確定", () => {
 
 describe("S-002 T-001 ST-004 スタンプを押す", () => {
   const stampedAt = "2026-09-19T12:34:00.000Z";
-  const activityLabel = recordedActivityLabel(stampedAt);
 
   beforeEach(() => {
     jest.setSystemTime(new Date(stampedAt));
@@ -125,10 +126,16 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
     const user = await renderHomeWithRally("今年会った研究者");
 
     await user.press(
-      screen.getByRole("button", { name: "今年会った研究者にスタンプを押す" }),
+      screen.getByRole("button", {
+        name: "今年会った研究者に今日のスタンプを押す",
+      }),
     );
 
-    expect(await screen.findByLabelText(activityLabel)).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("button", {
+        name: "今年会った研究者は今日記録済み",
+      }),
+    ).toBeDisabled();
   });
 
   test("人・場所・行動どれも同じ操作で押せ、今日の丸が記録済みになる", async () => {
@@ -148,12 +155,18 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
 
     for (const rally of rallies) {
       await user.press(
-        screen.getByRole("button", { name: `${rally.name}にスタンプを押す` }),
+        screen.getByRole("button", {
+          name: `${rally.name}に今日のスタンプを押す`,
+        }),
       );
     }
 
     expect(
-      (await screen.findAllByLabelText(activityLabel)).length,
+      (
+        await screen.findAllByRole("button", {
+          name: /は今日記録済み/,
+        })
+      ).length,
     ).toBeGreaterThanOrEqual(3);
     expect(screen.queryByText("誰")).not.toBeOnTheScreen();
     expect(screen.queryByText("どこ")).not.toBeOnTheScreen();
@@ -166,7 +179,9 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
 
     const user = await renderHomeWithRally("失敗するラリー");
     await user.press(
-      screen.getByRole("button", { name: "失敗するラリーにスタンプを押す" }),
+      screen.getByRole("button", {
+        name: "失敗するラリーに今日のスタンプを押す",
+      }),
     );
 
     await waitFor(() => {
@@ -186,7 +201,6 @@ describe("S-002 T-001 ST-004 スタンプを押す", () => {
 
 describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
   const stampedAt = "2026-09-20T15:00:00.000Z";
-  const activityLabel = recordedActivityLabel(stampedAt);
 
   beforeEach(() => {
     jest.setSystemTime(new Date(stampedAt));
@@ -198,11 +212,15 @@ describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
 
     await user.press(
       screen.getByRole("button", {
-        name: "メモ確認用のラリーにスタンプを押す",
+        name: "メモ確認用のラリーに今日のスタンプを押す",
       }),
     );
 
-    expect(await screen.findByLabelText(activityLabel)).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("button", {
+        name: "メモ確認用のラリーは今日記録済み",
+      }),
+    ).toBeDisabled();
     expect(toast).toHaveBeenCalledWith(
       "メモを追加しますか？",
       expect.objectContaining({
@@ -218,13 +236,16 @@ describe("S-002 T-002 ST-001 メモ追加のトースト", () => {
       jest.advanceTimersByTime(5000);
     });
 
-    expect(screen.getByLabelText(activityLabel)).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", {
+        name: "メモ確認用のラリーは今日記録済み",
+      }),
+    ).toBeDisabled();
   });
 });
 
 describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
   const stampedAt = "2026-09-21T10:00:00.000Z";
-  const activityLabel = recordedActivityLabel(stampedAt);
 
   beforeEach(() => {
     jest.setSystemTime(new Date(stampedAt));
@@ -236,13 +257,15 @@ describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
 
     await user.press(
       screen.getByRole("button", {
-        name: "メモ追加用のラリーにスタンプを押す",
+        name: "メモ追加用のラリーに今日のスタンプを押す",
       }),
     );
 
     expect(
-      (await screen.findAllByLabelText(activityLabel)).length,
-    ).toBeGreaterThan(0);
+      await screen.findByRole("button", {
+        name: "メモ追加用のラリーは今日記録済み",
+      }),
+    ).toBeDisabled();
 
     const action = findToastAction();
     expect(action.label).toBe("メモを追加");
@@ -262,10 +285,9 @@ describe("S-002 T-002 ST-005 メモ追加の formSheet", () => {
 
     expect(
       await screen.findByRole("button", {
-        name: "メモ追加用のラリーにスタンプを押す",
+        name: "メモ追加用のラリーは今日記録済み",
       }),
-    ).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(activityLabel).length).toBeGreaterThan(0);
+    ).toBeDisabled();
   });
 });
 

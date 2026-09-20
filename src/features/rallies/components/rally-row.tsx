@@ -1,19 +1,6 @@
-import { useEffect, useState } from "react";
-
 import { Pressable, Text, useColorScheme, View } from "react-native";
 
 import { SymbolView } from "expo-symbols";
-
-import Animated, {
-  Easing,
-  FadeInDown,
-  FadeOut,
-  LinearTransition,
-  ReduceMotion,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 
 import { rallyTypeLabels, type RallyType } from "../schemas/rallies";
 
@@ -45,12 +32,12 @@ const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
 const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
 });
-const easeOut = Easing.bezier(0.23, 1, 0.32, 1);
 
 type ActivityDay = {
   date: Date;
   key: string;
   isRecorded: boolean;
+  isToday: boolean;
 };
 
 function localDateKey(date: Date) {
@@ -70,16 +57,66 @@ function buildActivityDays(stampDates: string[], today = new Date()) {
     today.getDate(),
   );
 
-  return Array.from({ length: 28 }, (_, index): ActivityDay => {
+  return Array.from({ length: 7 }, (_, index): ActivityDay => {
     const date = new Date(localToday);
-    date.setDate(localToday.getDate() - (27 - index));
+    date.setDate(localToday.getDate() - (6 - index));
     const key = localDateKey(date);
-    return { date, key, isRecorded: recordedDateKeys.has(key) };
+    return {
+      date,
+      key,
+      isRecorded: recordedDateKeys.has(key),
+      isToday: index === 6,
+    };
   });
 }
 
-function ActivityDayCircle({ day }: { day: ActivityDay }) {
+function ActivityDayCircle({
+  day,
+  rallyName,
+  onPressToday,
+}: {
+  day: ActivityDay;
+  rallyName: string;
+  onPressToday: () => void;
+}) {
   const formattedDate = activityDateFormatter.format(day.date);
+
+  if (day.isToday) {
+    return (
+      <Pressable
+        role="button"
+        accessibilityLabel={
+          day.isRecorded
+            ? `${rallyName}は今日記録済み`
+            : `${rallyName}に今日のスタンプを押す`
+        }
+        accessibilityState={{
+          disabled: day.isRecorded,
+          selected: day.isRecorded,
+        }}
+        accessibilityValue={{ text: formattedDate }}
+        className="flex-1 items-center"
+        disabled={day.isRecorded}
+        onPress={onPressToday}
+        testID="activity-day"
+      >
+        <View
+          className="border-accent size-6 items-center justify-center rounded-full border"
+          testID="activity-today-ring"
+        >
+          {day.isRecorded ? (
+            <View className="bg-accent size-3 rounded-full" />
+          ) : (
+            <SymbolView
+              name={{ ios: "plus", android: "add", web: "add" }}
+              size={13}
+              tintColor="#f97316"
+            />
+          )}
+        </View>
+      </Pressable>
+    );
+  }
 
   return (
     <View
@@ -92,22 +129,52 @@ function ActivityDayCircle({ day }: { day: ActivityDay }) {
       className="flex-1 items-center"
       testID="activity-day"
     >
-      <View
-        className={
-          day.isRecorded
-            ? "bg-accent size-4 rounded-full"
-            : "bg-border size-4 rounded-full dark:bg-slate-700"
-        }
-      />
+      <View className="size-5 items-center justify-center">
+        <View
+          className={
+            day.isRecorded
+              ? "bg-accent size-3 rounded-full"
+              : "bg-border size-2 rounded-full dark:bg-slate-700"
+          }
+        />
+      </View>
     </View>
   );
 }
 
-function ActivityWeek({ days }: { days: ActivityDay[] }) {
+function ActivityWeek({
+  days,
+  rallyName,
+  onPressToday,
+}: {
+  days: ActivityDay[];
+  rallyName: string;
+  onPressToday: () => void;
+}) {
   return (
     <View className="flex-row">
       {days.map((day) => (
-        <ActivityDayCircle key={day.key} day={day} />
+        <ActivityDayCircle
+          key={day.key}
+          day={day}
+          rallyName={rallyName}
+          onPressToday={onPressToday}
+        />
+      ))}
+    </View>
+  );
+}
+
+function WeekdayLabels({ days }: { days: ActivityDay[] }) {
+  return (
+    <View className="flex-row">
+      {days.map((day) => (
+        <Text
+          key={day.key}
+          className="text-text-muted flex-1 text-center text-xs dark:text-slate-400"
+        >
+          {weekdayFormatter.format(day.date)}
+        </Text>
       ))}
     </View>
   );
@@ -121,41 +188,10 @@ export function RallyRow({
   onDelete,
 }: RallyRowProps) {
   const isDark = useColorScheme() === "dark";
-  const [isExpanded, setIsExpanded] = useState(false);
-  const chevronRotation = useSharedValue(0);
   const activityDays = buildActivityDays(stampDates);
-  const previousDays = activityDays.slice(0, 21);
-  const recentDays = activityDays.slice(21);
-  const previousWeeks = [
-    previousDays.slice(0, 7),
-    previousDays.slice(7, 14),
-    previousDays.slice(14, 21),
-  ];
-  const entering = FadeInDown.duration(180)
-    .easing(easeOut)
-    .reduceMotion(ReduceMotion.System);
-  const rowLayout = LinearTransition.duration(180)
-    .easing(easeOut)
-    .reduceMotion(ReduceMotion.System);
-  const chevronStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${chevronRotation.get()}deg` }],
-  }));
-
-  useEffect(() => {
-    chevronRotation.set(
-      withTiming(isExpanded ? 180 : 0, {
-        duration: 150,
-        easing: easeOut,
-        reduceMotion: ReduceMotion.System,
-      }),
-    );
-  }, [chevronRotation, isExpanded]);
 
   return (
-    <Animated.View
-      className="border-border w-full gap-3 border-b py-4 dark:border-slate-700"
-      layout={rowLayout}
-    >
+    <View className="border-border w-full gap-3 border-b py-4 dark:border-slate-700">
       <View className="flex-row items-center gap-3">
         <View
           accessible
@@ -182,19 +218,6 @@ export function RallyRow({
         </View>
         <Pressable
           role="button"
-          aria-label={`${name}にスタンプを押す`}
-          className="bg-main active:bg-main-hover dark:bg-main-hover flex-row items-center gap-1.5 rounded-full px-3 py-2"
-          onPress={onPressStamp}
-        >
-          <SymbolView
-            name={{ ios: "plus", android: "add", web: "add" }}
-            size={16}
-            tintColor="#ffffff"
-          />
-          <Text className="font-semibold text-white">押す</Text>
-        </Pressable>
-        <Pressable
-          role="button"
           aria-label={`${name}を削除`}
           className="active:bg-surface-muted size-10 items-center justify-center rounded-full dark:active:bg-slate-800"
           onPress={onDelete}
@@ -206,54 +229,14 @@ export function RallyRow({
           />
         </Pressable>
       </View>
-      <View className="bg-surface-muted dark:bg-main-hover gap-3 rounded-2xl p-3">
-        <Pressable
-          role="button"
-          accessibilityLabel={
-            isExpanded ? "Show last 7 days" : "Show last 4 weeks"
-          }
-          accessibilityState={{ expanded: isExpanded }}
-          className="min-h-11 flex-row items-center justify-between"
-          onPress={() => setIsExpanded((current) => !current)}
-        >
-          <Text className="text-main-hover text-sm font-semibold dark:text-slate-200">
-            {isExpanded ? "Last 4 weeks" : "Last 7 days"}
-          </Text>
-          <Animated.View style={chevronStyle}>
-            <SymbolView
-              name={{
-                ios: "chevron.down",
-                android: "expand_more",
-                web: "expand_more",
-              }}
-              size={16}
-              tintColor={isDark ? "#cbd5e1" : "#475569"}
-            />
-          </Animated.View>
-        </Pressable>
-        <View className="flex-row">
-          {recentDays.map((day) => (
-            <Text
-              key={day.key}
-              className="text-text-muted flex-1 text-center text-xs dark:text-slate-400"
-            >
-              {weekdayFormatter.format(day.date)}
-            </Text>
-          ))}
-        </View>
-        {isExpanded ? (
-          <Animated.View
-            className="gap-3"
-            entering={entering}
-            exiting={FadeOut.duration(120).reduceMotion(ReduceMotion.System)}
-          >
-            {previousWeeks.map((week) => (
-              <ActivityWeek key={week[0].key} days={week} />
-            ))}
-          </Animated.View>
-        ) : null}
-        <ActivityWeek days={recentDays} />
+      <View className="w-full gap-3 pt-1" testID="activity-week">
+        <WeekdayLabels days={activityDays} />
+        <ActivityWeek
+          days={activityDays}
+          rallyName={name}
+          onPressToday={onPressStamp}
+        />
       </View>
-    </Animated.View>
+    </View>
   );
 }
