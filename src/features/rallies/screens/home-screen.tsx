@@ -7,6 +7,7 @@ import { toast } from "sonner-native";
 
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
+import { CollectionSummary } from "../components/collection-summary";
 import { RallyRow } from "../components/rally-row";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
@@ -62,6 +63,9 @@ export function HomeScreen() {
       }
     >
       <View className="w-full">
+        {rallies.data && stampsQuery.data ? (
+          <CollectionSummary rallies={rallies.data} stamps={stampsQuery.data} />
+        ) : null}
         {isListError ? (
           <View className="items-center gap-2 py-12">
             <Text selectable className="text-danger">
