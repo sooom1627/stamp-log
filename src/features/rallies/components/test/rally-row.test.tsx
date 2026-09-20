@@ -43,6 +43,7 @@ describe("S-002 T-002 RT-003 ST-001 RallyRow", () => {
     expect(screen.getByText("2026/09/19 21:34")).toBeOnTheScreen();
     expect(screen.getByText("会った")).toBeOnTheScreen();
     expect(screen.getByText("2026/09/20 10:00")).toBeOnTheScreen();
+    expect(screen.getByText("スタンプ 2個")).toBeOnTheScreen();
   });
 
   test("スタンプと削除を押すとそれぞれの callback が呼ばれる", async () => {
