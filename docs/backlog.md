@@ -110,8 +110,8 @@ so that シートを広げなくても入力後の操作が分かる
 
 Tasks:
 
-- [ ] T-001: formSheet を内容の高さに合わせて Save を見せる
-  - [ ] ST-001: create-rally / add-stamp-memo を fitToContents にして既存の保存操作を保つ
+- [x] T-001: formSheet を内容の高さに合わせて Save を見せる
+  - [x] ST-001: create-rally / add-stamp-memo を fitToContents にして既存の保存操作を保つ
 
 ---
 
