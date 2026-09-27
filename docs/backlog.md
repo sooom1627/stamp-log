@@ -159,6 +159,42 @@ Tasks:
     - [x] ST-002: create-rally / add-stamp-memo の画面テストを切り出し
     - [x] ST-003: home を seed + 結合だけに削る
 
+### Story: S-025 過去の日付にスタンプを押す
+
+As a ラリーを持つユーザー
+I want 忘れた日を選んでスタンプを押したい
+so that あとからでも、そのラリーの記録を欠けなく残したい
+
+受け入れ:
+
+- Given スタンプ詳細またはラリー詳細を開いている When 「過去のスタンプ」を選ぶ Then 日付と時刻を選べる formSheet が開く
+- Given formSheet で日付と時刻を選んだ When 保存する Then そのラリーに、選んだ日時のスタンプが付き、ラリー詳細・スタンプ詳細・ホーム・カレンダー系で確認できる
+- Given ラリー作成日より前の日付 When 選んで保存する Then 保存できる
+- Given 現在より未来の日時 When 保存しようとする Then 保存できない
+- Given そのラリーで同じカレンダー日に既にスタンプがある When 保存しようとする Then 保存できない（時刻が違っても同一日は不可。ホームの「今日1件」と同じルール）
+- Given 過去日でスタンプを保存した When 保存が成功する Then S-002 と同様、任意メモのトーストが出る（約5秒で消えればメモなしのまま）
+
+Tasks:
+
+- [ ] T-001: スタンプ詳細・ラリー詳細から日時を選んでスタンプを足せる
+  - [ ] ST-001: `saveStampInput` に任意 `stampedAt`（ISO）と未来日時 reject（schema テスト）
+  - [ ] ST-002: `saveStamp` が指定 `stampedAt` で保存し、同一ラリー・同一ローカル日は reject（db テスト）
+  - [ ] ST-003: 既存 `useSaveStamp` で past 保存後に stamps Query を invalidate（hooks テスト）
+  - [ ] ST-004: `/add-past-stamp` formSheet（日付・時刻ピッカー + Save、成功後 S-002 同等のメモトースト。RNTL）
+  - [ ] ST-005: ラリー詳細にスタンプ一覧（新しい順）と「過去のスタンプ」入口（RNTL）
+  - [ ] ST-006: `/stamps/[id]` 最小スタンプ詳細（S-007 ワイヤー最小）と「過去のスタンプ」入口（RNTL）
+  - [ ] ST-007: `pnpm run check` と手動確認（DoD）
+
+実装順: ST-001 → ST-002 → ST-003 → ST-004 → ST-005 → ST-006 → ST-007（UI Sub でも schema / db / hooks を先に）。
+
+ブランチ:
+
+1. Docs: `docs/s-025-past-stamp` → `master`（本 Story の画面 Markdown と backlog 更新）
+2. Story: `feat/s-025-past-stamp`（`master` から 1 回）
+3. Task: `feat/s-025-t-001-past-stamp-datetime`（Story から。Sub はこの Task 上）
+
+注記: 画面は [add-past-stamp.md](./screens/add-past-stamp.md) / [stamp-detail.md](./screens/stamp-detail.md) / [rally-detail.md](./screens/rally-detail.md)。コード着手前に docs を `master` に揃える。
+
 ### Story: S-003 スタンプに位置情報を付けられる
 
 注記: 後回し。E-002 の実装順から外す。S-002 のスキーマ・ワンタップには混ぜない。タイプは問わない。位置用の確認ダイアログは出さない（取れなければスキップ）。必要になったときに着手する。
@@ -352,6 +388,8 @@ so that そのときに残した情報を改めて確認したい
 Tasks:
 
 - （実装着手時に Task / Sub で追加）
+
+注記: S-025 T-001 ST-006 で [stamp-detail.md](./screens/stamp-detail.md) の最小版を先に出す。本 Story の残り受け入れは別 Task で分割する。
 
 ### Story: S-008 ラリーの収集数を見る
 
