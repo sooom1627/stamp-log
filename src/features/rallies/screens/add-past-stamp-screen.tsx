@@ -4,10 +4,10 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
-import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 
 import { localDateKey } from "@/shared/utils/local-date-key";
 
+import { PastStampPicker } from "../components/past-stamp-picker";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
@@ -44,14 +44,14 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   const canSave =
     rally !== undefined && !isFuture && !hasStampOnDay && !save.isPending;
 
-  const handleDateChange = (_event: unknown, date: Date) =>
+  const handleDateChange = (date: Date) =>
     setStampedAt((current) => {
       const next = new Date(current);
       next.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
       return next;
     });
 
-  const handleTimeChange = (_event: unknown, date: Date) =>
+  const handleTimeChange = (date: Date) =>
     setStampedAt((current) => {
       const next = new Date(current);
       next.setHours(date.getHours(), date.getMinutes(), 0, 0);
@@ -95,13 +95,12 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
         <Text className="text-main text-sm font-semibold dark:text-slate-100">
           Date
         </Text>
-        <DateTimePicker
+        <PastStampPicker
           testID="past-stamp-date"
           mode="date"
           value={stampedAt}
           maximumDate={new Date()}
-          accentColor="#f97316"
-          onValueChange={handleDateChange}
+          onChange={handleDateChange}
         />
       </View>
 
@@ -109,12 +108,11 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
         <Text className="text-main text-sm font-semibold dark:text-slate-100">
           Time
         </Text>
-        <DateTimePicker
+        <PastStampPicker
           testID="past-stamp-time"
           mode="time"
           value={stampedAt}
-          accentColor="#f97316"
-          onValueChange={handleTimeChange}
+          onChange={handleTimeChange}
         />
       </View>
 
