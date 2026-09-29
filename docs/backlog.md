@@ -182,7 +182,7 @@ Tasks:
   - [x] ST-003: 既存 `useSaveStamp` で past 保存後に stamps Query に反映、同日重複は mutation error（hooks テスト）
   - [x] ST-004: S-002 のメモトーストを共通関数に切り出し、ホームを置き換える（既存ホーム RNTL が Green のまま）
   - [x] ST-005: `/add-past-stamp` formSheet（日付・時刻ピッカー + Save、未来・同日はインラインで保存不可、成功後に共通メモトースト。RNTL）
-  - [ ] ST-006: ラリー詳細に「過去のスタンプ」ボタンだけ置き、formSheet を開く（RNTL）
+  - [x] ST-006: ラリー詳細に「過去のスタンプ」ボタンだけ置き、formSheet を開く（RNTL）
   - [ ] ST-007: `pnpm run check` と手動確認（DoD）
 
 実装順: ST-001 → ST-002 → ST-003 → ST-004 → ST-005 → ST-006 → ST-007（UI Sub でも schema / db / hooks を先に）。

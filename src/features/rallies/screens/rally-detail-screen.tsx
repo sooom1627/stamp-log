@@ -9,7 +9,7 @@ import { useStamps } from "../hooks/use-stamps";
 
 export function RallyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { back } = useRouter();
+  const { back, push } = useRouter();
   const rallies = useRallies();
   const stamps = useStamps();
   const remove = useDeleteRally();
@@ -60,6 +60,15 @@ export function RallyDetailScreen() {
             {stampCount} {stampCount === 1 ? "stamp" : "stamps"}
           </Text>
         </View>
+        <Pressable
+          role="button"
+          className="border-continuous bg-main active:bg-main-hover items-center rounded-xl px-4 py-3 dark:bg-slate-100"
+          onPress={() => push(`/add-past-stamp?rallyId=${rally.id}`)}
+        >
+          <Text className="dark:text-main-dark font-semibold text-white">
+            Past stamp
+          </Text>
+        </Pressable>
         <Pressable
           role="button"
           aria-label={`Delete ${rally.name}`}

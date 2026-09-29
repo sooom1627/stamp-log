@@ -7,7 +7,7 @@ import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
 import * as ralliesDb from "../../db/rallies-db";
-import { saveStamp } from "../../db/stamps-db";
+import { listStamps, saveStamp } from "../../db/stamps-db";
 
 jest.useFakeTimers();
 
@@ -66,14 +66,14 @@ describe("Rally detail", () => {
       findAlertButton("destructive").onPress?.();
     });
 
-    await waitFor(async () => {
-      expect(
-        (await ralliesDb.listRallies()).some(
-          (candidate) => candidate.id === rally.id,
-        ),
-      ).toBe(false);
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
     });
-    expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
+    expect(
+      (await ralliesDb.listRallies()).some(
+        (candidate) => candidate.id === rally.id,
+      ),
+    ).toBe(false);
   });
 
   test("shows the global error toast when deletion fails", async () => {
@@ -95,5 +95,25 @@ describe("Rally detail", () => {
       );
     });
     expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+  });
+});
+
+describe("S-025 T-001 ST-006 past stamp entry", () => {
+  test("opens the past stamp formSheet and returns with the new stamp counted", async () => {
+    const { rally, user } = await openRallyDetail("Past stamp entry");
+    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Past stamp" }));
+
+    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(screen.queryByTestId("add-past-stamp-form")).not.toBeOnTheScreen();
+    const stamps = (await listStamps()).filter(
+      (stamp) => stamp.rallyId === rally.id,
+    );
+    expect(stamps).toHaveLength(2);
   });
 });
