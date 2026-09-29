@@ -1,0 +1,38 @@
+name: Task
+description: Story 内のユーザーに見える振る舞いのまとまり（T-### / リファクタは RT-###）。Sub はチェックリスト
+title: "S-### T-### "
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        タイトルは `S-### T-### タイトル`（T は Story ごとに 001 から）。親 Story の sub-issue にし、同じマイルストーンを付ける。
+        リファクタの Task は `RT-###` とし、`refactor` ラベルも付ける。
+  - type: input
+    id: story
+    attributes:
+      label: 親 Story
+      placeholder: "#12"
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 振る舞い
+      description: この Task で見えるようになること
+    validations:
+      required: true
+  - type: textarea
+    id: subs
+    attributes:
+      label: Subs
+      description: 1 Sub = 1 TDD サイクル = 1 コミット。層で分けてよい（schema → db → hooks → UI）。コミット後にチェックする
+      value: |
+        - [ ] ST-001:
+        - [ ] ST-002:
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: メモ
