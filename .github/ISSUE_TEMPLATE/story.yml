@@ -1,0 +1,46 @@
+name: Story
+description: ユーザーに見える価値の単位（S-###）。1 Story = 1 Story ブランチ = master への 1 PR
+title: "S-### "
+labels: ["story"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        タイトルは `S-### タイトル`。ID は既存 Issue の最大 `S-` + 1。
+        Epic はマイルストーン（`E-###`）で指定する。画面を足す・変える Story は、該当する `docs/screens/*.md` を先に `master` へ入れる。
+  - type: textarea
+    id: story
+    attributes:
+      label: Story
+      value: |
+        As a
+        I want
+        so that
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受け入れ
+      description: Given / When / Then。5 件を超えるなら Story を分ける
+      value: |
+        - Given  When  Then
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: 計画時に Task Issue を作り、sub-issue として紐付ける（未分割なら実装しない）
+      value: |
+        - （計画時に Task Issue を追加）
+  - type: textarea
+    id: screens
+    attributes:
+      label: 画面
+      description: 関係する docs/screens/*.md
+  - type: textarea
+    id: notes
+    attributes:
+      label: 決定事項・スコープ外
+      description: この Story だけの判断。仕様そのものは docs/ に書く

@@ -40,4 +40,4 @@ Reproduce with a failing test (Red) first, then fix (Green).
 
 - Never commit unless the user explicitly asks
 - Format: `prefix: message` (see `AGENTS.md`)
-- Include Story ID and Sub ID in the message or body (e.g. `S-001 ST-003`)
+- Include Story ID, Sub ID and the Task issue number in the message or body (e.g. `S-001 ST-003 (#12)`)
