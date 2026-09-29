@@ -1,6 +1,6 @@
 # Product
 
-プロダクト定義（概要・ビジョン・基盤）。画面・IA は [design.md](./design.md) を参照する。実装チケットは [backlog.md](./backlog.md) を参照する。
+プロダクト定義（概要・ビジョン・基盤）。画面・IA は [design.md](./design.md) を参照する。Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues) を参照する。
 
 # 1. 概要
 
@@ -153,14 +153,6 @@ UI上の名称は開発過程で変更可能とする。画面の配置・遷移
 
 初期段階では、他ユーザーへの公開・SNS的な共有・ランキング等を必須要件としない。
 
-# 3. Epic 一覧
+# 3. Epic
 
-詳細・受け入れ条件・タスクは [backlog.md](./backlog.md) を参照する。
-
-| ID    | タイトル                 |
-| ----- | ------------------------ |
-| E-001 | ラリーを作る             |
-| E-002 | ラリーにスタンプを押す   |
-| E-003 | ラリーの中身と進捗を見る |
-| E-004 | 時間軸で振り返る         |
-| E-005 | 後から修正・整理する     |
+Epic は GitHub の [Milestones](https://github.com/sooom1627/stamp-log/milestones)（`E-###`）で管理する。Story と受け入れ条件は各 Issue に書く。移行前の記録は [archive/backlog.md](./archive/backlog.md)。

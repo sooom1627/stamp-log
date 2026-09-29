@@ -1,14 +1,12 @@
 # Design
 
-画面と情報設計（IA）の正。プロダクト原則は [product.md](./product.md)、チケットは [backlog.md](./backlog.md)。
+画面と情報設計（IA）の正。プロダクト原則は [product.md](./product.md)、Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues)。この文書は現在の仕様（目標を含む）だけを書き、Story ごとの判断やスコープ外は Issue に書く。
 
 Figma は使わない。色・余白・トークンはコード（Uniwind）側。この文書は配置・遷移・出す情報だけを決める。
 
-実装は各 Story。ルート案はここに書くが、`src/` は Story ブランチで入れる。
-
 ## 書き方
 
-新規画面・既存画面の見た目を変える Story は、該当する `docs/screens/<kebab>.md` を `master` に入れてから実装する。
+画面ごとに `docs/screens/<kebab>.md` を置く。画面を足す・変える Story は、この文書を先に `master` へ入れる（[agile-workflow](../.cursor/rules/agile-workflow.mdc)）。
 
 画面 Markdown の型:
 
@@ -19,7 +17,7 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 - 空 / 読込 / エラー
 - 未決事項
 
-既存画面は「現状 → 目標」を書く。E-004 は骨格（配置・遷移・空状態）まで。ワイヤーまで書くのは既存と E-003。
+既存画面は「現状 → 目標」を書く。着手前の画面は骨格（配置・遷移・空状態）まででよい。
 
 ## IA
 
@@ -44,7 +42,7 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 - アイコンは実装時（iOS は SF Symbol、Android は Material）。色・選択色は Uniwind / システム
 - **ホーム:** 押す場所。ラリー一覧、作成、ワンタップ。収集数。直下は最新数件まで。全件はラリー詳細へ。
 - **記録:** 振り返り。横断タイムラインがこのタブのルート。ここからラリー詳細・スタンプ詳細。
-- **カレンダー:** 月 → 日詳細。実装は E-004。E-003 ではタブがあっても中身は骨格でよい。
+- **カレンダー:** 月 → 日詳細。
 
 ラリー詳細・スタンプ詳細はタブではなくスタック。ホームからも記録からも開ける。
 
@@ -56,17 +54,13 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 カレンダー ──日付──► 日詳細 ──タップ──► スタンプ詳細
 ```
 
-### 目標数（S-009）
+### 目標数
 
-作成シートに任意項目として置く。未入力なら目標なし。編集画面は E-005 なので、この段階では **作成時のみ** 設定できる、と明記する。スキーマ実装は E-003 の Story。
+作成シートに任意項目として置く。未入力なら目標なし。
 
-### ラリーの絵文字（S-023）
+### ラリーの絵文字
 
-作成シートに絵文字項目を置く。タイプに応じた初期値を持ち、絵文字Pickerから1つ選べる。ホームのラリー行ではタイプアイコンを絵文字に置き換える。編集は E-005 で扱い、この段階では **作成時のみ** 指定できる。
-
-### 将来（E-005）
-
-画面名だけ: ラリー編集 / スタンプ編集 / スタンプの移動。ワイヤーは書かない。
+作成シートに絵文字項目を置く。タイプに応じた初期値を持ち、絵文字Pickerから1つ選べる。ホームのラリー行ではタイプアイコンを絵文字に置き換える。
 
 ## 画面一覧
 
@@ -75,16 +69,14 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 | ホーム               | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008        |
 | ラリーを作る         | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009               |
 | メモを追加           | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002                      |
-| 過去のスタンプ       | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 目標        | S-025                      |
-| ラリー詳細           | [screens/rally-detail.md](./screens/rally-detail.md)         | ワイヤー    | S-006, S-008, S-009, S-025 |
+| 過去のスタンプ       | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                      |
+| ラリー詳細           | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-009, S-025 |
 | スタンプ詳細         | [screens/stamp-detail.md](./screens/stamp-detail.md)         | ワイヤー    | S-007                      |
 | 記録（タイムライン） | [screens/records-timeline.md](./screens/records-timeline.md) | 骨格        | S-010                      |
 | カレンダー           | [screens/calendar.md](./screens/calendar.md)                 | 骨格        | S-011                      |
 | 日詳細               | [screens/day-detail.md](./screens/day-detail.md)             | 骨格        | S-012                      |
 
 ## ルート案
-
-実装は Story 側。案だけ固定する。
 
 - `/` — ホーム（タブ）
 - `/create-rally` — ラリーを作る（formSheet）

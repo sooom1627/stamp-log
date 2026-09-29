@@ -11,12 +11,12 @@
 - 入り:
   - [rally-detail.md](./rally-detail.md) の「過去のスタンプ」（そのラリーを渡す）
   - ルート `/add-past-stamp?rallyId=`（formSheet）
-  - スタンプ詳細からの入口は今は作らない（S-025 スコープ外）
+  - 入口はラリー詳細だけ。スタンプ詳細からは開かない
 - 出: 保存成功でシートを閉じ、ラリー詳細に戻る。stamps Query は invalidate され、ラリー詳細の収集数とホーム（週表示・収集数）に選んだ日時で反映される
 
 ## レイアウト
 
-S-024 / [create-rally.md](./create-rally.md) と同様、formSheet は内容の高さに合わせ、保存操作を初期表示で見せる。
+[create-rally.md](./create-rally.md) と同様、formSheet は内容の高さに合わせ、保存操作を初期表示で見せる。
 
 ```
 過去のスタンプ
@@ -37,7 +37,7 @@ S-024 / [create-rally.md](./create-rally.md) と同様、formSheet は内容の�
 - 日付の下限は設けない。ラリー作成日より前の日付も選べる
 - 未来の日時は選べない。上限は「いま」（端末の現在日時）
 - そのラリーで同じカレンダー日に既にスタンプがある日は保存できない（重複防止。時刻が違っても同一日は不可）。このルールは過去のスタンプだけに適用し、いま押すスタンプはホームの UI 制御のまま
-- 保存後の任意メモは S-002 と同じトースト（約5秒）→ 任意で [add-stamp-memo.md](./add-stamp-memo.md)。トーストはホームと共通の関数で出す。過去押印専用のメモ画面は作らない
+- 保存後の任意メモはホームで押したときと同じトースト（約5秒）→ 任意で [add-stamp-memo.md](./add-stamp-memo.md)。トーストはホームと共通の関数で出す。過去押印専用のメモ画面は作らない
 - formSheet なのでタブバーは出さない
 
 ## 出すデータ
@@ -53,10 +53,10 @@ S-024 / [create-rally.md](./create-rally.md) と同様、formSheet は内容の�
 
 ## 未決事項
 
-- 今後、ラリー作成時に「1 日 1 回 / 何回でも」を選べるようにしたい。その際、同日ルールはラリー設定に従う（S-025 では実装しない）
+- ラリー作成時に「1 日 1 回 / 何回でも」を選べるようにするか。選べるなら、同日ルールはラリー設定に従う
 
-## 実装メモ（ドキュメントのみ）
+## 実装
 
 - 日時 UI: `@expo/ui/swift-ui` の `DatePicker`（`title` で「ラベル左・値右」の行を SwiftUI に任せる。formSheet 内は create-rally / add-stamp-memo と同様 ScrollView なし）。iOS のみ。Android は対象外（対応時は押してダイアログを開く方式を別途設計）
-- 同一ローカル日判定: ホーム activity と同じカレンダー日キー（`localDateKey` を `src/shared/utils/` へ移して共有）でラリー単位に 1 件。`stampedAt` 指定時のみ db 層で enforce し、UI でも保存前に判定する
-- 保存 API: 既存 `saveStamp` / `useSaveStamp` を `stampedAt` 付き入力に拡張（専用 mutation は作らない）
+- 同一ローカル日判定: ホーム activity と同じカレンダー日キー（`src/shared/utils/` の `localDateKey`）でラリー単位に 1 件。`stampedAt` 指定時のみ db 層で enforce し、UI でも保存前に判定する
+- 保存 API: `saveStamp` / `useSaveStamp` に任意の `stampedAt` を渡す（専用 mutation はない）
