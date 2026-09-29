@@ -113,3 +113,47 @@ describe("ST-002 optional stamp memo", () => {
     ).toThrow();
   });
 });
+
+describe("S-025 ST-001 past stamp save input", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-09-19T12:34:00.000Z"));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test("accepts a past stampedAt", () => {
+    expect(
+      saveStampInputSchema.parse({
+        rallyId: 3,
+        stampedAt: "2026-09-18T11:40:00.000Z",
+      }),
+    ).toEqual({ rallyId: 3, stampedAt: "2026-09-18T11:40:00.000Z" });
+  });
+
+  test("accepts stampedAt equal to now", () => {
+    expect(
+      saveStampInputSchema.parse({
+        rallyId: 3,
+        stampedAt: "2026-09-19T12:34:00.000Z",
+      }),
+    ).toEqual({ rallyId: 3, stampedAt: "2026-09-19T12:34:00.000Z" });
+  });
+
+  test("rejects a future stampedAt", () => {
+    expect(() =>
+      saveStampInputSchema.parse({
+        rallyId: 3,
+        stampedAt: "2026-09-19T12:35:00.000Z",
+      }),
+    ).toThrow();
+  });
+
+  test("rejects stampedAt that is not an ISO datetime", () => {
+    expect(() =>
+      saveStampInputSchema.parse({ rallyId: 3, stampedAt: "yesterday" }),
+    ).toThrow();
+  });
+});

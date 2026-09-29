@@ -159,6 +159,49 @@ Tasks:
     - [x] ST-002: create-rally / add-stamp-memo の画面テストを切り出し
     - [x] ST-003: home を seed + 結合だけに削る
 
+### Story: S-025 過去の日付にスタンプを押す
+
+As a ラリーを持つユーザー
+I want 忘れた日を選んでスタンプを押したい
+so that あとからでも、そのラリーの記録を欠けなく残したい
+
+受け入れ:
+
+- Given ラリー詳細を開いている When 「過去のスタンプ」を選ぶ Then 日付と時刻を選べる formSheet が開く
+- Given formSheet で日付と時刻を選んだ When 保存する Then そのラリーに、選んだ日時のスタンプが付き、ラリー詳細の収集数とホーム（直近 7 日の週表示・収集数）で確認できる
+- Given ラリー作成日より前の日付 When 選んで保存する Then 保存できる
+- Given 現在より未来の日時 When 保存しようとする Then 保存できない
+- Given そのラリーで同じカレンダー日に既にスタンプがある When 過去のスタンプを保存しようとする Then 保存できない（時刻が違っても同一日は不可）
+- Given 過去日でスタンプを保存した When 保存が成功する Then S-002 と同様、任意メモのトーストが出る（約5秒で消えればメモなしのまま）
+
+Tasks:
+
+- [ ] T-001: ラリー詳細から日時を選んでスタンプを足せる
+  - [x] ST-001: `saveStampInputSchema` に任意 `stampedAt`（ISO）を足し、未来日時を reject（schema テスト）
+  - [x] ST-002: `saveStamp` が指定 `stampedAt` で保存し、`stampedAt` 指定時のみ同一ラリー・同一ローカル日を reject。`listStamps` を `stamped_at` の新しい順に。`localDateKey` を `src/shared/utils/` へ移す（db / utils テスト）
+  - [x] ST-003: 既存 `useSaveStamp` で past 保存後に stamps Query に反映、同日重複は mutation error（hooks テスト）
+  - [x] ST-004: S-002 のメモトーストを共通関数に切り出し、ホームを置き換える（既存ホーム RNTL が Green のまま）
+  - [x] ST-005: `/add-past-stamp` formSheet（日付・時刻ピッカー + Save、未来・同日はインラインで保存不可、成功後に共通メモトースト。RNTL）
+  - [x] ST-006: ラリー詳細に「過去のスタンプ」ボタンだけ置き、formSheet を開く（RNTL）
+  - [ ] ST-007: `pnpm run check` と手動確認（DoD）
+
+実装順: ST-001 → ST-002 → ST-003 → ST-004 → ST-005 → ST-006 → ST-007（UI Sub でも schema / db / hooks を先に）。
+
+ブランチ:
+
+1. Docs: `docs/s-025-past-stamp` → `master`（本 Story の画面 Markdown と backlog 更新）
+2. Story: `feat/s-025-past-stamp`（`master` から 1 回）
+3. Task: `feat/s-025-t-001-past-stamp-datetime`（Story から。Sub はこの Task 上）
+
+注記: 画面は [add-past-stamp.md](./screens/add-past-stamp.md) / [rally-detail.md](./screens/rally-detail.md)。コード着手前に docs を `master` に揃える。
+
+注記（スコープ外）:
+
+- 同日 1 件ルールは過去のスタンプ（`stampedAt` 指定）だけに適用する。いま押すスタンプはホームの UI 制御のまま（db では enforce しない）
+- 今後、ラリー作成時に「1 日 1 回 / 何回でも」を選べるようにしたい。その Story で同日ルールをラリー設定に従わせる（本 Story では実装しない）
+- ラリー詳細のスタンプ一覧・スタンプ詳細 `/stamps/[id]` からの入口は本 Story では作らない。ラリー詳細は今後カレンダーとタイムラインを置く想定
+- カレンダー / 記録タブでの確認は E-004 で扱う
+
 ### Story: S-003 スタンプに位置情報を付けられる
 
 注記: 後回し。E-002 の実装順から外す。S-002 のスキーマ・ワンタップには混ぜない。タイプは問わない。位置用の確認ダイアログは出さない（取れなければスキップ）。必要になったときに着手する。

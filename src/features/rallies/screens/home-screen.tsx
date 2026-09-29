@@ -3,12 +3,11 @@ import { Pressable, Text, View } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 
-import { toast } from "sonner-native";
-
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
 import { CollectionSummary } from "../components/collection-summary";
 import { RallyRow } from "../components/rally-row";
+import { showAddMemoToast } from "../components/show-add-memo-toast";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
@@ -95,32 +94,7 @@ export function HomeScreen() {
             onPressStamp={() =>
               pressStamp(
                 { rallyId: rally.id },
-                {
-                  onSuccess: (stamp) => {
-                    const toastId = toast("Add a memo?", {
-                      duration: 5000,
-                      styles: {
-                        textContainer: {
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: 8,
-                        },
-                        buttons: {
-                          marginTop: 0,
-                          marginLeft: "auto",
-                        },
-                      },
-                      action: {
-                        label: "Add memo",
-                        onClick: () => {
-                          toast.dismiss(toastId);
-                          router.push(`/add-stamp-memo?stampId=${stamp.id}`);
-                        },
-                      },
-                    });
-                  },
-                },
+                { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
               )
             }
             onPressDetail={() => router.push(`/rallies/${rally.id}`)}

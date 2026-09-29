@@ -83,3 +83,62 @@ describe("ST-003 stamp memo", () => {
     await expect(listStamps()).resolves.toEqual([updated]);
   });
 });
+
+describe("S-025 ST-002 past stamp", () => {
+  const pastStampedAt = new Date(2026, 8, 17, 11, 40).toISOString();
+
+  test("saves a stamp with the given past stampedAt", async () => {
+    const saved = await saveStamp({ rallyId: 201, stampedAt: pastStampedAt });
+    expect(saved).toMatchObject({ rallyId: 201, stampedAt: pastStampedAt });
+
+    const stamps = await listStamps();
+    expect(stamps).toContainEqual(saved);
+  });
+
+  test("rejects a past stamp on a local day the rally already has", async () => {
+    await saveStamp({ rallyId: 202, stampedAt: pastStampedAt });
+
+    await expect(
+      saveStamp({
+        rallyId: 202,
+        stampedAt: new Date(2026, 8, 17, 21, 5).toISOString(),
+      }),
+    ).rejects.toThrow("already has a stamp");
+
+    const stamps = await listStamps();
+    expect(stamps.filter((stamp) => stamp.rallyId === 202)).toHaveLength(1);
+  });
+
+  test("allows a past stamp on the same day for another rally", async () => {
+    await saveStamp({ rallyId: 203, stampedAt: pastStampedAt });
+
+    await expect(
+      saveStamp({ rallyId: 204, stampedAt: pastStampedAt }),
+    ).resolves.toMatchObject({ rallyId: 204 });
+  });
+
+  test("keeps stamping now without the same-day check", async () => {
+    await saveStamp({ rallyId: 205 });
+
+    await expect(saveStamp({ rallyId: 205 })).resolves.toMatchObject({
+      rallyId: 205,
+    });
+  });
+
+  test("rejects a future stampedAt", async () => {
+    await expect(
+      saveStamp({ rallyId: 206, stampedAt: "2026-09-19T12:35:00.000Z" }),
+    ).rejects.toThrow();
+  });
+
+  test("lists stamps newest stampedAt first", async () => {
+    const now = await saveStamp({ rallyId: 207 });
+    const past = await saveStamp({ rallyId: 207, stampedAt: pastStampedAt });
+
+    const stamps = await listStamps();
+    expect(stamps.filter((stamp) => stamp.rallyId === 207)).toEqual([
+      now,
+      past,
+    ]);
+  });
+});

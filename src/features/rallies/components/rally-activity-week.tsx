@@ -2,6 +2,8 @@ import { Pressable, Text, View } from "react-native";
 
 import { SymbolView } from "expo-symbols";
 
+import { localDateKey } from "@/shared/utils/local-date-key";
+
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
 });
@@ -15,13 +17,6 @@ type ActivityDay = {
   isRecorded: boolean;
   isToday: boolean;
 };
-
-function localDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 function buildActivityDays(stampDates: string[], today = new Date()) {
   const recordedDateKeys = new Set(
