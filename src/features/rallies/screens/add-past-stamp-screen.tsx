@@ -4,10 +4,11 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
+import { DatePicker, Host } from "@expo/ui/swift-ui";
+import { tint } from "@expo/ui/swift-ui/modifiers";
 
 import { localDateKey } from "@/shared/utils/local-date-key";
 
-import { PastStampPicker } from "../components/past-stamp-picker";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
@@ -91,30 +92,28 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
         </View>
       ) : null}
 
-      <View className="flex-row items-center justify-between">
-        <Text className="text-main text-sm font-semibold dark:text-slate-100">
-          Date
-        </Text>
-        <PastStampPicker
+      <Host matchContents={{ vertical: true }}>
+        <DatePicker
           testID="past-stamp-date"
-          mode="date"
-          value={stampedAt}
-          maximumDate={new Date()}
-          onChange={handleDateChange}
+          title="Date"
+          selection={stampedAt}
+          displayedComponents={["date"]}
+          range={{ end: new Date() }}
+          onDateChange={handleDateChange}
+          modifiers={[tint("#f97316")]}
         />
-      </View>
+      </Host>
 
-      <View className="flex-row items-center justify-between">
-        <Text className="text-main text-sm font-semibold dark:text-slate-100">
-          Time
-        </Text>
-        <PastStampPicker
+      <Host matchContents={{ vertical: true }}>
+        <DatePicker
           testID="past-stamp-time"
-          mode="time"
-          value={stampedAt}
-          onChange={handleTimeChange}
+          title="Time"
+          selection={stampedAt}
+          displayedComponents={["hourAndMinute"]}
+          onDateChange={handleTimeChange}
+          modifiers={[tint("#f97316")]}
         />
-      </View>
+      </Host>
 
       {isFuture ? (
         <Text className="text-danger text-sm">

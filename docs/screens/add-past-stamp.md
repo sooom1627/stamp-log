@@ -57,6 +57,6 @@ S-024 / [create-rally.md](./create-rally.md) と同様、formSheet は内容の�
 
 ## 実装メモ（ドキュメントのみ）
 
-- 日時 UI: `@expo/ui/community/datetime-picker`（formSheet 内。create-rally / add-stamp-memo と同様 ScrollView なし）
+- 日時 UI: `@expo/ui/swift-ui` の `DatePicker`（`title` で「ラベル左・値右」の行を SwiftUI に任せる。formSheet 内は create-rally / add-stamp-memo と同様 ScrollView なし）。iOS のみ。Android は対象外（対応時は押してダイアログを開く方式を別途設計）
 - 同一ローカル日判定: ホーム activity と同じカレンダー日キー（`localDateKey` を `src/shared/utils/` へ移して共有）でラリー単位に 1 件。`stampedAt` 指定時のみ db 層で enforce し、UI でも保存前に判定する
 - 保存 API: 既存 `saveStamp` / `useSaveStamp` を `stampedAt` 付き入力に拡張（専用 mutation は作らない）
