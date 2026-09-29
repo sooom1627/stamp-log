@@ -167,22 +167,22 @@ so that あとからでも、そのラリーの記録を欠けなく残したい
 
 受け入れ:
 
-- Given スタンプ詳細またはラリー詳細を開いている When 「過去のスタンプ」を選ぶ Then 日付と時刻を選べる formSheet が開く
-- Given formSheet で日付と時刻を選んだ When 保存する Then そのラリーに、選んだ日時のスタンプが付き、ラリー詳細・スタンプ詳細・ホーム・カレンダー系で確認できる
+- Given ラリー詳細を開いている When 「過去のスタンプ」を選ぶ Then 日付と時刻を選べる formSheet が開く
+- Given formSheet で日付と時刻を選んだ When 保存する Then そのラリーに、選んだ日時のスタンプが付き、ラリー詳細の収集数とホーム（直近 7 日の週表示・収集数）で確認できる
 - Given ラリー作成日より前の日付 When 選んで保存する Then 保存できる
 - Given 現在より未来の日時 When 保存しようとする Then 保存できない
-- Given そのラリーで同じカレンダー日に既にスタンプがある When 保存しようとする Then 保存できない（時刻が違っても同一日は不可。ホームの「今日1件」と同じルール）
+- Given そのラリーで同じカレンダー日に既にスタンプがある When 過去のスタンプを保存しようとする Then 保存できない（時刻が違っても同一日は不可）
 - Given 過去日でスタンプを保存した When 保存が成功する Then S-002 と同様、任意メモのトーストが出る（約5秒で消えればメモなしのまま）
 
 Tasks:
 
-- [ ] T-001: スタンプ詳細・ラリー詳細から日時を選んでスタンプを足せる
-  - [ ] ST-001: `saveStampInput` に任意 `stampedAt`（ISO）と未来日時 reject（schema テスト）
-  - [ ] ST-002: `saveStamp` が指定 `stampedAt` で保存し、同一ラリー・同一ローカル日は reject（db テスト）
-  - [ ] ST-003: 既存 `useSaveStamp` で past 保存後に stamps Query を invalidate（hooks テスト）
-  - [ ] ST-004: `/add-past-stamp` formSheet（日付・時刻ピッカー + Save、成功後 S-002 同等のメモトースト。RNTL）
-  - [ ] ST-005: ラリー詳細にスタンプ一覧（新しい順）と「過去のスタンプ」入口（RNTL）
-  - [ ] ST-006: `/stamps/[id]` 最小スタンプ詳細（S-007 ワイヤー最小）と「過去のスタンプ」入口（RNTL）
+- [ ] T-001: ラリー詳細から日時を選んでスタンプを足せる
+  - [ ] ST-001: `saveStampInputSchema` に任意 `stampedAt`（ISO）を足し、未来日時を reject（schema テスト）
+  - [ ] ST-002: `saveStamp` が指定 `stampedAt` で保存し、`stampedAt` 指定時のみ同一ラリー・同一ローカル日を reject。`listStamps` を `stamped_at` の新しい順に。`localDateKey` を `src/shared/utils/` へ移す（db / utils テスト）
+  - [ ] ST-003: 既存 `useSaveStamp` で past 保存後に stamps Query に反映、同日重複は mutation error（hooks テスト）
+  - [ ] ST-004: S-002 のメモトーストを共通関数に切り出し、ホームを置き換える（既存ホーム RNTL が Green のまま）
+  - [ ] ST-005: `/add-past-stamp` formSheet（日付・時刻ピッカー + Save、未来・同日はインラインで保存不可、成功後に共通メモトースト。RNTL）
+  - [ ] ST-006: ラリー詳細に「過去のスタンプ」ボタンだけ置き、formSheet を開く（RNTL）
   - [ ] ST-007: `pnpm run check` と手動確認（DoD）
 
 実装順: ST-001 → ST-002 → ST-003 → ST-004 → ST-005 → ST-006 → ST-007（UI Sub でも schema / db / hooks を先に）。
@@ -193,7 +193,14 @@ Tasks:
 2. Story: `feat/s-025-past-stamp`（`master` から 1 回）
 3. Task: `feat/s-025-t-001-past-stamp-datetime`（Story から。Sub はこの Task 上）
 
-注記: 画面は [add-past-stamp.md](./screens/add-past-stamp.md) / [stamp-detail.md](./screens/stamp-detail.md) / [rally-detail.md](./screens/rally-detail.md)。コード着手前に docs を `master` に揃える。
+注記: 画面は [add-past-stamp.md](./screens/add-past-stamp.md) / [rally-detail.md](./screens/rally-detail.md)。コード着手前に docs を `master` に揃える。
+
+注記（スコープ外）:
+
+- 同日 1 件ルールは過去のスタンプ（`stampedAt` 指定）だけに適用する。いま押すスタンプはホームの UI 制御のまま（db では enforce しない）
+- 今後、ラリー作成時に「1 日 1 回 / 何回でも」を選べるようにしたい。その Story で同日ルールをラリー設定に従わせる（本 Story では実装しない）
+- ラリー詳細のスタンプ一覧・スタンプ詳細 `/stamps/[id]` からの入口は本 Story では作らない。ラリー詳細は今後カレンダーとタイムラインを置く想定
+- カレンダー / 記録タブでの確認は E-004 で扱う
 
 ### Story: S-003 スタンプに位置情報を付けられる
 
@@ -388,8 +395,6 @@ so that そのときに残した情報を改めて確認したい
 Tasks:
 
 - （実装着手時に Task / Sub で追加）
-
-注記: S-025 T-001 ST-006 で [stamp-detail.md](./screens/stamp-detail.md) の最小版を先に出す。本 Story の残り受け入れは別 Task で分割する。
 
 ### Story: S-008 ラリーの収集数を見る
 
