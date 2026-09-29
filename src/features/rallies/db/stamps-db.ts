@@ -1,6 +1,7 @@
 import { type SQLiteDatabase } from "expo-sqlite";
 
 import { getDb } from "@/shared/db/get-db";
+import { localDateKey } from "@/shared/utils/local-date-key";
 
 import {
   parseStampRow,
@@ -45,10 +46,30 @@ async function withStampsDb() {
   return db;
 }
 
+async function hasStampOnLocalDay(
+  db: SQLiteDatabase,
+  rallyId: number,
+  stampedAt: string,
+) {
+  const rows = await db.getAllAsync<{ stamped_at: string }>(
+    "SELECT stamped_at FROM stamps WHERE rally_id = ?",
+    rallyId,
+  );
+  const dayKey = localDateKey(new Date(stampedAt));
+  return rows.some((row) => localDateKey(new Date(row.stamped_at)) === dayKey);
+}
+
 export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
-  const { rallyId } = saveStampInputSchema.parse(input);
-  const stampedAt = new Date().toISOString();
+  const parsed = saveStampInputSchema.parse(input);
+  const { rallyId } = parsed;
+  const stampedAt = parsed.stampedAt ?? new Date().toISOString();
   const db = await withStampsDb();
+  if (
+    parsed.stampedAt !== undefined &&
+    (await hasStampOnLocalDay(db, rallyId, stampedAt))
+  ) {
+    throw new Error("This rally already has a stamp on that day");
+  }
   const result = await db.runAsync(
     "INSERT INTO stamps (rally_id, stamped_at) VALUES (?, ?)",
     rallyId,
@@ -64,7 +85,7 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
 export async function listStamps(): Promise<Stamp[]> {
   const db = await withStampsDb();
   const rows = await db.getAllAsync<Record<string, unknown>>(
-    "SELECT id, rally_id, stamped_at, memo FROM stamps ORDER BY id DESC",
+    "SELECT id, rally_id, stamped_at, memo FROM stamps ORDER BY stamped_at DESC, id DESC",
   );
   return rows.map((row) => parseStampRow(row));
 }

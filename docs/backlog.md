@@ -178,7 +178,7 @@ Tasks:
 
 - [ ] T-001: ラリー詳細から日時を選んでスタンプを足せる
   - [x] ST-001: `saveStampInputSchema` に任意 `stampedAt`（ISO）を足し、未来日時を reject（schema テスト）
-  - [ ] ST-002: `saveStamp` が指定 `stampedAt` で保存し、`stampedAt` 指定時のみ同一ラリー・同一ローカル日を reject。`listStamps` を `stamped_at` の新しい順に。`localDateKey` を `src/shared/utils/` へ移す（db / utils テスト）
+  - [x] ST-002: `saveStamp` が指定 `stampedAt` で保存し、`stampedAt` 指定時のみ同一ラリー・同一ローカル日を reject。`listStamps` を `stamped_at` の新しい順に。`localDateKey` を `src/shared/utils/` へ移す（db / utils テスト）
   - [ ] ST-003: 既存 `useSaveStamp` で past 保存後に stamps Query に反映、同日重複は mutation error（hooks テスト）
   - [ ] ST-004: S-002 のメモトーストを共通関数に切り出し、ホームを置き換える（既存ホーム RNTL が Green のまま）
   - [ ] ST-005: `/add-past-stamp` formSheet（日付・時刻ピッカー + Save、未来・同日はインラインで保存不可、成功後に共通メモトースト。RNTL）
