@@ -196,7 +196,9 @@ describe("S-025 ST-003 past stamp Query hook", () => {
       ).rejects.toThrow("already has a stamp");
     });
 
-    expect(result.current.save.isError).toBe(true);
+    await waitFor(() => {
+      expect(result.current.save.isError).toBe(true);
+    });
     expect(
       result.current.query.data?.filter((stamp) => stamp.rallyId === 302),
     ).toHaveLength(1);
