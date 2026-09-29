@@ -8,7 +8,8 @@
 
 - [docs/product.md](docs/product.md) — プロダクト定義（概要・ビジョン・基盤）
 - [docs/design.md](docs/design.md) — IA・画面定義
-- [docs/backlog.md](docs/backlog.md) — Epic / Story / Task
+- [GitHub Issues](https://github.com/sooom1627/stamp-log/issues) — Story / Task（Epic は [Milestones](https://github.com/sooom1627/stamp-log/milestones)）
+- [docs/archive/backlog.md](docs/archive/backlog.md) — 移行前のバックログ（凍結）
 
 ## Requirements
 

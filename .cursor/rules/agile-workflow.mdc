@@ -1,53 +1,70 @@
 ---
-description: Epic / Story / Task / Sub workflow with horizontal Subs and branch-per-story/task
+description: Epic / Story / Task / Sub workflow on GitHub Issues with horizontal Subs and branch-per-story/task
 alwaysApply: true
 ---
 
 # Agile Workflow (Lightweight)
 
-Source of truth for tickets: `docs/backlog.md`. No sprint ceremonies, velocity, or story points.
+Source of truth for tickets: **GitHub Issues** of `sooom1627/stamp-log`. No sprint ceremonies, velocity, or story points. `docs/` holds the current spec only (product / IA / screens); Story-specific decisions and status live in Issues. `docs/archive/backlog.md` is a frozen record of finished work — do not edit it.
+
+Read and write Issues with the GitHub MCP tools or `gh issue view` / `gh issue edit`.
 
 ## Hierarchy
 
-- **Epic (`E-###`)**: Multi-story outcome. Never an implementation unit.
-- **Story (`S-###`)**: One user-visible value. As a / I want / so that + Given/When/Then. **Always the unit of delivery.**
-- **Task (`T-###`)**: A coherent user-visible behavior chunk within the story. Groups related Subs. Done when all child Subs are Done and the task branch is merged.
-- **Sub (`ST-###`)**: **The implementation unit.** May be a **horizontal layer** (schema / db / hooks / UI). One TDD cycle, one `pnpm run check`, one commit.
+| Level | Where | Title |
+| --- | --- | --- |
+| **Epic (`E-###`)** | Milestone (goal in its description). Never an implementation unit. | `E-003 …` |
+| **Story (`S-###`)** | Issue, label `story`, Epic milestone | `S-025 …` |
+| **Task (`T-###`)** | Issue, label `task`, sub-issue of its Story, same milestone | `S-025 T-001 …` |
+| **Sub (`ST-###`)** | Checklist item in the Task issue body | `- [ ] ST-001: …` |
+
+- **Story**: One user-visible value. As a / I want / so that + Given/When/Then. **Always the unit of delivery.**
+- **Task**: A coherent user-visible behavior chunk within the story. Groups related Subs. Done when all child Subs are Done and the task branch is merged.
+- **Refactor Task (`RT-###`)**: A Task that changes structure without changing behavior. Label `task` + `refactor`.
+- **Sub**: **The implementation unit.** May be a **horizontal layer** (schema / db / hooks / UI). One TDD cycle, one `pnpm run check`, one commit.
+- IDs: next Story ID = the largest `S-` in issue titles + 1. `T-###` / `RT-###` restart at 001 per Story; `ST-###` restarts at 001 per Task.
+- Deferred Stories keep the `deferred` label. Withdrawn Stories are closed as "not planned".
+- Issue forms: `.github/ISSUE_TEMPLATE/story.yml`, `task.yml`.
 
 ## Branching
 
 ```
-main
+master
   └── feat/s-001-…          ← Story ブランチ（Story 開始時に1回だけ切る）
         └── feat/s-001-t-001-…  ← Task ブランチ（計画後、Task 着手時に切る）
               commits: ST-001, ST-002, …  ← Sub ごとに1コミット
         ← Task 完了で Story ブランチへマージ
-  ← Story 完了で main へマージ（PR）
+  ← Story 完了で master へマージ（PR）
 ```
 
 1. **Story ブランチを1回切る**（例: `feat/s-001-record-person`）。以降その Story の作業の親にする
-2. **計画を作る**（Task / Sub の分割を `docs/backlog.md` に書く。未分割なら実装しない）
+2. **計画を作る**（Task Issue を作り、Story の sub-issue にする。Sub は Task Issue 本文のチェックリストに書く。未分割なら実装しない）
 3. **Task ブランチを切る**（Story ブランチから。例: `feat/s-001-t-001-save-person`）
 4. **Sub ごとに** テスト → 確認（Red→Green + `pnpm run check`）。完了したら止めて報告する
 5. **Task 完了で** Task ブランチを Story ブランチへマージする。次の Task も同様
-6. **Story 完了で** Story ブランチを `main` へ PR / マージする
+6. **Story 完了で** Story ブランチを `master` へ PR / マージする。PR 本文に Story と全 Task を `Closes #…` で並べる（自動クローズは `master` への PR でだけ効く）
 
 - 同時に進める Story は1つ。同時に進める Task ブランチも原則1つ
-- Sub のコミットメッセージに Story ID と Sub ID を含める（例: `S-001 ST-003`）
+- Sub のコミットメッセージに Story ID・Sub ID と Task Issue 番号を含める（例: `feat: S-001 ST-003 … (#12)`）
 
 ## Commits
 
 - **Never commit unless the user explicitly asks.** Task / Sub 完了、`pnpm run check` 成功、DoD 到達だけではコミットしない
 - ユーザーがコミットを依頼したときだけ実行する。粒度は **1 Sub = 1 コミット**
-- コミット後に `docs/backlog.md` の Sub チェックボックスを更新する
+- コミット後に Task Issue の Sub チェックボックスを更新する
 
 ## Before coding
 
-1. Confirm the target Story ID in `docs/backlog.md`. If missing, add the story first.
+1. Find the target Story issue. If missing, create it first (Story form, Epic milestone).
 2. If the Story adds or changes screens, the matching `docs/screens/*.md` must already be on `master` (see [docs/design.md](docs/design.md)).
-3. Ensure the Story branch exists; cut a Task branch only after Tasks/Subs are written.
+3. Ensure the Story branch exists; cut a Task branch only after the Task issues and their Sub checklists are written.
 4. Split the Task into Subs (typically schema → db → hooks → UI). Do not implement an unsplit Task as one blob.
 5. Split the Story itself if it has more than 5 acceptance criteria or cannot ship in one PR after Task/Sub split.
+
+## Where to write what
+
+- **Issue**: acceptance, Task / Sub split, status, and decisions that only matter for this Story (scope-outs, "not in this Story", implementation notes).
+- **`docs/`**: what the product and screens are now (or are meant to be). No Story-scoped notes such as "S-0xx では作らない". When a Story changes the spec, update the doc to the new state.
 
 ## Subs may be horizontal
 
@@ -65,8 +82,8 @@ main
 - Non-UI: that layer’s contract is covered by tests. UI: Task acceptance is covered by RNTL
 - Red → Green per `tdd-cycle` rule
 - `pnpm run check` passed
-- Ready to commit on the **Task** branch (message includes Story ID and Sub ID, e.g. `S-001 ST-003`) — **do not commit until asked**
-- After the user-requested commit, update the `docs/backlog.md` Sub checkbox
+- Ready to commit on the **Task** branch (message includes Story ID, Sub ID and Task issue, e.g. `S-001 ST-003 (#12)`) — **do not commit until asked**
+- After the user-requested commit, tick the Sub checkbox in the Task issue
 
 ### Task
 
@@ -77,7 +94,7 @@ main
 
 - Acceptance criteria are covered
 - All Tasks (and their Subs) are Done and merged into the Story branch
-- Story branch merged to `main` (PR)
+- Story branch merged to `master` (PR with `Closes` for the Story and every Task)
 - Do not start the next story until the current story is Done
 
 ## Exceptions (no story required)
