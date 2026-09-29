@@ -133,3 +133,72 @@ describe("ST-004 memo update Query hook", () => {
     ).toBeNull();
   });
 });
+
+function yesterdayAt(hours: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  date.setHours(hours, 0, 0, 0);
+  return date.toISOString();
+}
+
+describe("S-025 ST-003 past stamp Query hook", () => {
+  test("returns the past stamp in the list after save", async () => {
+    const { result } = await renderHook(() => useStampsFlow(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.isSuccess).toBe(true);
+    });
+
+    const stampedAt = yesterdayAt(12);
+    await act(async () => {
+      await result.current.save.mutateAsync({ rallyId: 301, stampedAt });
+    });
+
+    await waitFor(() => {
+      expect(
+        result.current.query.data?.some(
+          (stamp) => stamp.rallyId === 301 && stamp.stampedAt === stampedAt,
+        ),
+      ).toBe(true);
+    });
+  });
+
+  test("same-day past stamp sets isError and leaves list unchanged", async () => {
+    const { result } = await renderHook(() => useStampsFlow(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.isSuccess).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.save.mutateAsync({
+        rallyId: 302,
+        stampedAt: yesterdayAt(12),
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        result.current.query.data?.filter((stamp) => stamp.rallyId === 302),
+      ).toHaveLength(1);
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.save.mutateAsync({
+          rallyId: 302,
+          stampedAt: yesterdayAt(20),
+        }),
+      ).rejects.toThrow("already has a stamp");
+    });
+
+    expect(result.current.save.isError).toBe(true);
+    expect(
+      result.current.query.data?.filter((stamp) => stamp.rallyId === 302),
+    ).toHaveLength(1);
+  });
+});
