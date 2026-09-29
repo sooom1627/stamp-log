@@ -1,6 +1,8 @@
 module.exports = {
   preset: "jest-expo",
   passWithNoTests: true,
+  // The first renderRouter("./src/app") in a suite loads the whole route tree; without a transform cache (CI) that exceeds 5 s.
+  testTimeout: 15000,
   setupFilesAfterEnv: ["./jest-setup.ts"],
   testPathIgnorePatterns: [
     "/node_modules/",
