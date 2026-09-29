@@ -6,9 +6,16 @@ export const stampSchema = z.object({
   stampedAt: z.iso.datetime(),
   memo: z.string().nullable(),
 });
-export const saveStampInputSchema = stampSchema.pick({
-  rallyId: true,
-});
+export const saveStampInputSchema = z
+  .object({
+    rallyId: stampSchema.shape.rallyId,
+    stampedAt: stampSchema.shape.stampedAt.optional(),
+  })
+  .refine(
+    ({ stampedAt }) =>
+      stampedAt === undefined || Date.parse(stampedAt) <= Date.now(),
+    { path: ["stampedAt"], message: "stampedAt must not be in the future" },
+  );
 export const updateStampMemoInputSchema = z.object({
   id: stampSchema.shape.id,
   memo: z.string().trim().min(1),
