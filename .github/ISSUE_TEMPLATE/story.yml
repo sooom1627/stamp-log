@@ -7,7 +7,14 @@ body:
     attributes:
       value: |
         タイトルは `S-### タイトル`。ID は既存 Issue の最大 `S-` + 1。
-        Epic はマイルストーン（`E-###`）で指定する。画面を足す・変える Story は、該当する `docs/screens/*.md` を先に `master` へ入れる。
+        Epic 欄に `Epic: E-###` を書く（Epic 一覧は docs/product.md §3。マイルストーンは使わない）。画面を足す・変える Story は、該当する `docs/screens/*.md` を先に `master` へ入れる。
+  - type: input
+    id: epic
+    attributes:
+      label: Epic
+      placeholder: "Epic: E-003"
+    validations:
+      required: true
   - type: textarea
     id: story
     attributes:

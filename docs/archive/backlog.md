@@ -2,7 +2,7 @@
 
 2026-09-29 に凍結した、GitHub Issues へ移行する前のバックログ。完了した Story と取り下げた Story だけを残す。編集しない。
 
-- 未完了の Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues)、Epic は [Milestones](https://github.com/sooom1627/stamp-log/milestones) にある
+- 未完了の Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues)にある。Epic 一覧は [product.md](../product.md) §3
 - 運用ルールは [agile-workflow](../../.cursor/rules/agile-workflow.mdc)
 - 移行前の全文（未完了分・旧運用ルールを含む）は git 履歴の `docs/backlog.md` を参照する
 

@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        タイトルは `S-### T-### タイトル`（T は Story ごとに 001 から）。親 Story の sub-issue にし、同じマイルストーンを付ける。
+        タイトルは `S-### T-### タイトル`（T は Story ごとに 001 から）。親 Story の sub-issue にする。
         リファクタの Task は `RT-###` とし、`refactor` ラベルも付ける。
   - type: input
     id: story
