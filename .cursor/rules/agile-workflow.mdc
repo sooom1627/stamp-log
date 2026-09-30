@@ -13,9 +13,9 @@ Read and write Issues with the GitHub MCP tools or `gh issue view` / `gh issue e
 
 | Level | Where | Title |
 | --- | --- | --- |
-| **Epic (`E-###`)** | Milestone (goal in its description). Never an implementation unit. | `E-003 …` |
-| **Story (`S-###`)** | Issue, label `story`, Epic milestone | `S-025 …` |
-| **Task (`T-###`)** | Issue, label `task`, sub-issue of its Story, same milestone | `S-025 T-001 …` |
+| **Epic (`E-###`)** | Table in [docs/product.md](docs/product.md) §3 (ID, title, goal). No issue, no milestone. Never an implementation unit. | `E-003 …` |
+| **Story (`S-###`)** | Issue, label `story`. Body contains `Epic: E-###` (the Story form has a field for it) | `S-025 …` |
+| **Task (`T-###`)** | Issue, label `task`, sub-issue of its Story | `S-025 T-001 …` |
 | **Sub (`ST-###`)** | Checklist item in the Task issue body | `- [ ] ST-001: …` |
 
 - **Story**: One user-visible value. As a / I want / so that + Given/When/Then. **Always the unit of delivery.**
@@ -25,6 +25,7 @@ Read and write Issues with the GitHub MCP tools or `gh issue view` / `gh issue e
 - IDs: next Story ID = the largest `S-` in issue titles + 1. `T-###` / `RT-###` restart at 001 per Story; `ST-###` restarts at 001 per Task.
 - Deferred Stories keep the `deferred` label. Withdrawn Stories are closed as "not planned".
 - Issue forms: `.github/ISSUE_TEMPLATE/story.yml`, `task.yml`.
+- Milestones and GitHub Projects are not used. To list an Epic's Stories, search issues for `"Epic: E-###"`.
 
 ## Branching
 
@@ -55,7 +56,7 @@ master
 
 ## Before coding
 
-1. Find the target Story issue. If missing, create it first (Story form, Epic milestone).
+1. Find the target Story issue. If missing, create it first (Story form, `Epic: E-###` line). A new Epic is added to the table in `docs/product.md` first.
 2. If the Story adds or changes screens, the matching `docs/screens/*.md` must already be on `master` (see [docs/design.md](docs/design.md)).
 3. Ensure the Story branch exists; cut a Task branch only after the Task issues and their Sub checklists are written.
 4. Split the Task into Subs (typically schema → db → hooks → UI). Do not implement an unsplit Task as one blob.
