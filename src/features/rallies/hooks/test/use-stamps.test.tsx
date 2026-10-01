@@ -3,7 +3,13 @@ import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 
-import { useSaveStamp, useStamps, useUpdateStampMemo } from "../use-stamps";
+import { useDeleteRally } from "../use-rallies";
+import {
+  useRallyStamps,
+  useSaveStamp,
+  useStamps,
+  useUpdateStampMemo,
+} from "../use-stamps";
 
 const queryClients: QueryClient[] = [];
 
@@ -202,5 +208,112 @@ describe("S-025 ST-003 past stamp Query hook", () => {
     expect(
       result.current.query.data?.filter((stamp) => stamp.rallyId === 302),
     ).toHaveLength(1);
+  });
+});
+
+function daysAgoAt(days: number, hours: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  date.setHours(hours, 0, 0, 0);
+  return date.toISOString();
+}
+
+function useRallyStampsFlow(rallyId: number) {
+  return {
+    query: useRallyStamps(rallyId),
+    save: useSaveStamp(),
+    updateMemo: useUpdateStampMemo(),
+    deleteRally: useDeleteRally(),
+  };
+}
+
+describe("S-006 ST-002 useRallyStamps", () => {
+  test("returns only this rally's stamps, newest first, after save", async () => {
+    const { result } = await renderHook(() => useRallyStampsFlow(601), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.isSuccess).toBe(true);
+    });
+
+    const threeDaysAgo = daysAgoAt(3, 12);
+    const oneDayAgo = daysAgoAt(1, 12);
+    let now = "";
+    await act(async () => {
+      await result.current.save.mutateAsync({
+        rallyId: 601,
+        stampedAt: threeDaysAgo,
+      });
+      now = (await result.current.save.mutateAsync({ rallyId: 601 })).stampedAt;
+      await result.current.save.mutateAsync({
+        rallyId: 601,
+        stampedAt: oneDayAgo,
+      });
+      await result.current.save.mutateAsync({ rallyId: 602 });
+    });
+
+    await waitFor(() => {
+      expect(
+        result.current.query.data?.map((stamp) => stamp.stampedAt),
+      ).toEqual([now, oneDayAgo, threeDaysAgo]);
+    });
+    expect(
+      result.current.query.data?.every((stamp) => stamp.rallyId === 601),
+    ).toBe(true);
+  });
+
+  test("returns the memo after update", async () => {
+    const { result } = await renderHook(() => useRallyStampsFlow(602), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.isSuccess).toBe(true);
+    });
+
+    let savedId = 0;
+    await act(async () => {
+      savedId = (await result.current.save.mutateAsync({ rallyId: 602 })).id;
+    });
+
+    await act(async () => {
+      await result.current.updateMemo.mutateAsync({
+        id: savedId,
+        memo: "Met them",
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        result.current.query.data?.find((stamp) => stamp.id === savedId)?.memo,
+      ).toBe("Met them");
+    });
+  });
+
+  test("returns an empty list after the rally is deleted", async () => {
+    const { result } = await renderHook(() => useRallyStampsFlow(603), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.isSuccess).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.save.mutateAsync({ rallyId: 603 });
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.data).toHaveLength(1);
+    });
+
+    await act(async () => {
+      await result.current.deleteRally.mutateAsync(603);
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.data).toEqual([]);
+    });
   });
 });

@@ -18,6 +18,15 @@ export function useStamps(): UseQueryResult<Stamp[]> {
   });
 }
 
+export function useRallyStamps(rallyId: Stamp["rallyId"]) {
+  return useQuery({
+    queryKey: stampsQueryKey,
+    queryFn: listStamps,
+    staleTime: Infinity,
+    select: (stamps) => stamps.filter((stamp) => stamp.rallyId === rallyId),
+  });
+}
+
 export function useSaveStamp() {
   const queryClient = useQueryClient();
 
