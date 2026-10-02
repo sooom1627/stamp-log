@@ -38,7 +38,7 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 - ラベルと順はこの3つで固定。4つ目は足さない
 - **タブルート**（ホーム / 記録 / カレンダー）に出す
 - **スタック**（ラリー詳細 / スタンプ詳細 / 日詳細）でも残す。戻ると元のタブ
-- **formSheet**（ラリーを作る / メモを追加 / 過去のスタンプ）では出さない
+- **formSheet**（ラリーを作る / メモを追加 / 過去のスタンプ / スタンプを編集）では出さない
 - アイコンは実装時（iOS は SF Symbol、Android は Material）。色・選択色は Uniwind / システム
 - **ホーム:** 押す場所。ラリー一覧、作成、ワンタップ。収集数。直下は最新数件まで。全件はラリー詳細へ。
 - **記録:** 振り返り。横断タイムラインがこのタブのルート。ここからラリー詳細・スタンプ詳細。
@@ -74,6 +74,7 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 | ラリーを作る         | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009               |
 | メモを追加           | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002                      |
 | 過去のスタンプ       | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                      |
+| スタンプを編集       | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014               |
 | ラリー詳細           | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-009, S-025 |
 | スタンプ詳細         | [screens/stamp-detail.md](./screens/stamp-detail.md)         | ワイヤー    | S-007                      |
 | 記録（タイムライン） | [screens/records-timeline.md](./screens/records-timeline.md) | 骨格        | S-010                      |
@@ -86,6 +87,7 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 - `/create-rally` — ラリーを作る（formSheet）
 - `/add-stamp-memo?stampId=` — メモを追加（formSheet）
 - `/add-past-stamp?rallyId=` — 過去の日にスタンプ（formSheet）
+- `/edit-stamp?stampId=` — スタンプを編集（formSheet）
 - `/rallies/[id]` — ラリー詳細（スタック）
 - `/stamps/[id]` — スタンプ詳細（スタック）
 - `/records` — 記録タイムライン（タブ）
