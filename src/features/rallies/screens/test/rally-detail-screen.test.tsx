@@ -6,8 +6,10 @@ import { renderRouter } from "expo-router/testing-library";
 import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
+import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
+
 import * as ralliesDb from "../../db/rallies-db";
-import { listStamps, saveStamp } from "../../db/stamps-db";
+import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
 
@@ -26,10 +28,14 @@ function findAlertButton(style: AlertButton["style"]): AlertButton {
   return button;
 }
 
-async function openRallyDetail(name: string) {
+async function openRallyDetail(
+  name: string,
+  seed?: (rallyId: number) => Promise<void>,
+) {
   await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
   const [rally] = await ralliesDb.listRallies();
   await saveStamp({ rallyId: rally.id });
+  await seed?.(rally.id);
 
   await renderRouter("./src/app");
   expect(await screen.findByText(name)).toBeOnTheScreen();
@@ -115,5 +121,49 @@ describe("S-025 T-001 ST-006 past stamp entry", () => {
       (stamp) => stamp.rallyId === rally.id,
     );
     expect(stamps).toHaveLength(2);
+  });
+});
+
+function daysAgoAt(days: number, hours: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  date.setHours(hours, 0, 0, 0);
+  return date.toISOString();
+}
+
+const stampDateTimePattern = / (AM|PM)$/;
+
+describe("S-006 T-001 ST-003 stamp timeline", () => {
+  test("shows this rally's stamps newest first with the memo in full", async () => {
+    const oneDayAgo = daysAgoAt(1, 12);
+    const threeDaysAgo = daysAgoAt(3, 12);
+    const { rally } = await openRallyDetail("Timeline", async (rallyId) => {
+      const withMemo = await saveStamp({ rallyId, stampedAt: oneDayAgo });
+      await updateStampMemo({ id: withMemo.id, memo: "Talked in the lab" });
+      await saveStamp({ rallyId, stampedAt: threeDaysAgo });
+    });
+    const [now] = (await listStamps())
+      .filter((stamp) => stamp.rallyId === rally.id)
+      .map((stamp) => stamp.stampedAt);
+
+    const dateTimes = await screen.findAllByText(stampDateTimePattern);
+    expect(dateTimes).toHaveLength(3);
+    [now, oneDayAgo, threeDaysAgo].forEach((stampedAt, index) => {
+      expect(dateTimes[index]).toHaveTextContent(
+        formatStampDateTime(new Date(stampedAt)),
+      );
+    });
+    expect(screen.getByText("Talked in the lab")).toBeOnTheScreen();
+    expect(screen.getAllByText(/Talked/)).toHaveLength(1);
+  });
+
+  test("does not show stamps of other rallies", async () => {
+    await ralliesDb.saveRally({ name: "Other", type: "place", emoji: "🎨" });
+    const [other] = await ralliesDb.listRallies();
+    await saveStamp({ rallyId: other.id });
+
+    await openRallyDetail("Own stamps only");
+
+    expect(await screen.findAllByText(stampDateTimePattern)).toHaveLength(1);
   });
 });
