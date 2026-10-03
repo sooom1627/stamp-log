@@ -2,6 +2,8 @@ import { ActivityIndicator, Pressable, Text } from "react-native";
 
 type ButtonProps = {
   label: string;
+  /** Shown instead of `label` while `isLoading` (e.g. "Saving…"). */
+  loadingLabel?: string;
   onPress: () => void;
   variant?: "primary" | "danger";
   disabled?: boolean;
@@ -25,6 +27,7 @@ const labelClassNames = {
 
 export function Button({
   label,
+  loadingLabel,
   onPress,
   variant = "primary",
   disabled = false,
@@ -34,11 +37,12 @@ export function Button({
 }: ButtonProps) {
   // While loading the button keeps its variant look; only an idle disabled button is muted.
   const look = disabled && !isLoading ? "disabled" : variant;
+  const shownLabel = isLoading && loadingLabel ? loadingLabel : label;
 
   return (
     <Pressable
       role="button"
-      aria-label={ariaLabel ?? label}
+      aria-label={ariaLabel ?? shownLabel}
       aria-disabled={disabled || isLoading}
       aria-busy={isLoading}
       disabled={disabled || isLoading}
@@ -55,7 +59,7 @@ export function Button({
         />
       ) : null}
       <Text className={`text-base font-semibold ${labelClassNames[look]}`}>
-        {label}
+        {shownLabel}
       </Text>
     </Pressable>
   );

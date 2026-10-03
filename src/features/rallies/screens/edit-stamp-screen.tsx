@@ -158,7 +158,8 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
       ) : null}
 
       <Button
-        label={isSaving ? "Saving…" : "Save"}
+        label="Save"
+        loadingLabel="Saving…"
         onPress={handleSave}
         disabled={!canSave}
         isLoading={isSaving}

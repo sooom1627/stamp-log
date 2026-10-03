@@ -129,7 +129,8 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
       ) : null}
 
       <Button
-        label={isSaving ? "Saving…" : "Save"}
+        label="Save"
+        loadingLabel="Saving…"
         onPress={handleSave}
         disabled={!canSave}
         isLoading={isSaving}

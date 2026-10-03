@@ -95,3 +95,23 @@ describe("S-006 RT-001 ST-001 Button", () => {
     );
   });
 });
+
+describe("S-006 RT-005 ST-002 Button loadingLabel", () => {
+  test("shows loadingLabel while loading and label otherwise", async () => {
+    const { rerender } = await render(
+      <Button label="Save" loadingLabel="Saving…" onPress={() => {}} />,
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toBeOnTheScreen();
+
+    await rerender(
+      <Button
+        label="Save"
+        loadingLabel="Saving…"
+        onPress={() => {}}
+        isLoading
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeBusy();
+    expect(screen.queryByText("Save")).not.toBeOnTheScreen();
+  });
+});

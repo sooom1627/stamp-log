@@ -124,7 +124,8 @@ export function CreateRallyScreen() {
       </View>
 
       <Button
-        label={isSaving ? "Saving…" : "Save"}
+        label="Save"
+        loadingLabel="Saving…"
         onPress={handleSave}
         disabled={!canSave}
         isLoading={isSaving}

@@ -62,7 +62,8 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
       </View>
 
       <Button
-        label={isSaving ? "Saving…" : "Save"}
+        label="Save"
+        loadingLabel="Saving…"
         onPress={handleSave}
         disabled={!canSave}
         isLoading={isSaving}
