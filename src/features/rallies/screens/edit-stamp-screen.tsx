@@ -8,6 +8,7 @@ import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { tint } from "@expo/ui/swift-ui/modifiers";
 
 import { Button } from "@/shared/components/button";
+import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 import { useRallies } from "../hooks/use-rallies";
@@ -58,6 +59,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   const [memo, setMemo] = useState(stamp.memo ?? "");
   const { back } = useRouter();
   const headerHeight = useHeaderHeight();
+  const accentColor = useAccentColor();
   const update = useUpdateStamp();
 
   const isFuture = stampedAt.getTime() > Date.now();
@@ -120,7 +122,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
           displayedComponents={["date"]}
           range={{ end: new Date() }}
           onDateChange={handleDateChange}
-          modifiers={[tint("#f97316")]}
+          modifiers={[tint(accentColor)]}
         />
       </Host>
 
@@ -131,7 +133,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
           selection={stampedAt}
           displayedComponents={["hourAndMinute"]}
           onDateChange={handleTimeChange}
-          modifiers={[tint("#f97316")]}
+          modifiers={[tint(accentColor)]}
         />
       </Host>
 

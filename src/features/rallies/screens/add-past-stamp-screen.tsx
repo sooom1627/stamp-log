@@ -8,6 +8,7 @@ import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { tint } from "@expo/ui/swift-ui/modifiers";
 
 import { Button } from "@/shared/components/button";
+import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 import { showAddMemoToast } from "../components/show-add-memo-toast";
@@ -31,6 +32,7 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   const [stampedAt, setStampedAt] = useState(yesterdayNoon);
   const { back } = useRouter();
   const headerHeight = useHeaderHeight();
+  const accentColor = useAccentColor();
   const rallies = useRallies();
   const stamps = useStamps();
   const save = useSaveStamp();
@@ -101,7 +103,7 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
           displayedComponents={["date"]}
           range={{ end: new Date() }}
           onDateChange={handleDateChange}
-          modifiers={[tint("#f97316")]}
+          modifiers={[tint(accentColor)]}
         />
       </Host>
 
@@ -112,7 +114,7 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
           selection={stampedAt}
           displayedComponents={["hourAndMinute"]}
           onDateChange={handleTimeChange}
-          modifiers={[tint("#f97316")]}
+          modifiers={[tint(accentColor)]}
         />
       </Host>
 

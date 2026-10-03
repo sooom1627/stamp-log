@@ -12,6 +12,7 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 
 import { Button as AppButton } from "@/shared/components/button";
+import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
@@ -36,6 +37,8 @@ function StampPost({
   onEdit,
   onDelete,
 }: StampPostProps) {
+  const accentColor = useAccentColor();
+
   return (
     <View className="flex-row gap-3">
       <Text aria-hidden className="text-2xl">
@@ -60,7 +63,7 @@ function StampPost({
             <Image
               testID={`stamp-menu-icon-${id}`}
               systemName="ellipsis"
-              color="#f97316"
+              color={accentColor}
               modifiers={[
                 frame({ width: 44, height: 44 }),
                 contentShape(shapes.rectangle()),
