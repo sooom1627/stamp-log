@@ -17,6 +17,7 @@ import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
+import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
@@ -193,6 +194,9 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                 {formatStampCount(stamps.length)}
               </Text>
             ) : null}
+            <RallyMonthCalendar
+              stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+            />
           </View>
         }
         ListEmptyComponent={

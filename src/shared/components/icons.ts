@@ -1,4 +1,5 @@
 import {
+  ChevronLeft as LucideChevronLeft,
   ChevronRight as LucideChevronRight,
   ListChecks as LucideListChecks,
   MapPinPen as LucideMapPinPen,
@@ -9,6 +10,7 @@ import { withUniwind } from "uniwind";
 
 // Lucide icons wrapped once for `colorClassName="accent-*"` (Uniwind: never wrap
 // the same component in more than one file). Import icons from here.
+export const ChevronLeft = withUniwind(LucideChevronLeft);
 export const ChevronRight = withUniwind(LucideChevronRight);
 export const ListChecks = withUniwind(LucideListChecks);
 export const MapPinPen = withUniwind(LucideMapPinPen);

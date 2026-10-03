@@ -322,3 +322,61 @@ describe("S-006 T-001 ST-010 menu tap target", () => {
     );
   });
 });
+
+describe("S-006 T-002 ST-002 month calendar", () => {
+  test("marks this rally's recorded days in the current month", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    await ralliesDb.saveRally({ name: "Other", type: "place", emoji: "🎨" });
+    const [other] = await ralliesDb.listRallies();
+    await saveStamp({
+      rallyId: other.id,
+      stampedAt: new Date(2026, 8, 10, 9).toISOString(),
+    });
+
+    await openRallyDetail("Calendar marks", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 2, 8).toISOString(),
+      });
+    });
+
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Sep 20, 2026, recorded")).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Sep 3, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Sep 10, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/, recorded$/)).toHaveLength(2);
+  });
+});
+
+describe("S-006 T-002 ST-003 month navigation", () => {
+  test("moves to the previous and next months with their recorded days", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail(
+      "Calendar months",
+      async (rallyId) => {
+        await saveStamp({
+          rallyId,
+          stampedAt: new Date(2026, 7, 15, 9).toISOString(),
+        });
+      },
+    );
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Previous month" }));
+
+    expect(await screen.findByText("August 2026")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Aug 15, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/, recorded$/)).toHaveLength(1);
+
+    await user.press(screen.getByRole("button", { name: "Next month" }));
+    await user.press(screen.getByRole("button", { name: "Next month" }));
+
+    expect(await screen.findByText("October 2026")).toBeOnTheScreen();
+    expect(screen.queryAllByLabelText(/, recorded$/)).toHaveLength(0);
+  });
+});

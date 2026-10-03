@@ -4,6 +4,7 @@ function MockIcon() {
   return <View testID="lucide-icon" />;
 }
 
+export const ChevronLeft = MockIcon;
 export const ChevronRight = MockIcon;
 export const ListChecks = MockIcon;
 export const MapPinPen = MockIcon;
