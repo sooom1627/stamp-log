@@ -19,7 +19,7 @@ function stampDatesForRally(stamps: Stamp[], rallyId: number) {
 }
 
 export function HomeScreen() {
-  const router = useRouter();
+  const { push } = useRouter();
   const rallies = useRallies();
   const stampsQuery = useStamps();
   const stamps: Stamp[] = stampsQuery.data ?? [];
@@ -97,7 +97,9 @@ export function HomeScreen() {
                 { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
               )
             }
-            onPressDetail={() => router.push(`/rallies/${rally.id}`)}
+            onPressDetail={() =>
+              push({ pathname: "/rallies/[id]", params: { id: rally.id } })
+            }
           />
         ))}
       </View>

@@ -176,7 +176,9 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             emoji={rally.emoji}
             stampedAt={item.stampedAt}
             memo={item.memo}
-            onEdit={(stampId) => push(`/edit-stamp?stampId=${stampId}`)}
+            onEdit={(stampId) =>
+              push({ pathname: "/edit-stamp", params: { stampId } })
+            }
             onDelete={confirmDeleteStamp}
           />
         )}
@@ -209,7 +211,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           <View className="gap-6">
             <AppButton
               label="Past stamp"
-              onPress={() => push(`/add-past-stamp?rallyId=${rally.id}`)}
+              onPress={() =>
+                push({
+                  pathname: "/add-past-stamp",
+                  params: { rallyId: rally.id },
+                })
+              }
             />
             <AppButton
               label="Delete rally"
