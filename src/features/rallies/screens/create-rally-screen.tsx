@@ -1,12 +1,6 @@
 import { useState } from "react";
 
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -15,6 +9,8 @@ import {
   EmojiKeyboard,
   type EmojiType,
 } from "@softwhere-uz/react-native-emoji-keyboard";
+
+import { Button } from "@/shared/components/button";
 
 import { RallyTypeRadios } from "../components/rally-type-radios";
 import { useSaveRally } from "../hooks/use-rallies";
@@ -133,37 +129,13 @@ export function CreateRallyScreen() {
         </View>
       </View>
 
-      <Pressable
-        role="button"
-        accessibilityLabel={save.isPending ? "Saving…" : "Save"}
-        accessibilityState={{
-          disabled: !canSave,
-          busy: save.isPending,
-        }}
-        disabled={!canSave}
+      <Button
+        label={save.isPending ? "Saving…" : "Save"}
         onPress={handleSave}
-        className={
-          canSave || save.isPending
-            ? "border-continuous bg-main active:bg-main-hover mt-8 flex-row items-center justify-center gap-2 rounded-2xl py-4 dark:bg-slate-100"
-            : "border-continuous bg-surface-muted-active mt-8 flex-row items-center justify-center gap-2 rounded-2xl py-4"
-        }
-      >
-        {save.isPending ? (
-          <ActivityIndicator
-            size="small"
-            colorClassName="accent-white dark:accent-main-dark"
-          />
-        ) : null}
-        <Text
-          className={
-            canSave || save.isPending
-              ? "dark:text-main-dark text-base font-semibold text-white"
-              : "text-text-muted text-base font-semibold"
-          }
-        >
-          {save.isPending ? "Saving…" : "Save"}
-        </Text>
-      </Pressable>
+        disabled={!canSave}
+        isLoading={save.isPending}
+        className="mt-8"
+      />
     </View>
   );
 }
