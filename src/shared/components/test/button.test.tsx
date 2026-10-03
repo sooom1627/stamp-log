@@ -84,7 +84,7 @@ describe("S-006 RT-001 ST-001 Button", () => {
       );
     }
     expect(save).toHaveProp("className", expect.stringContaining("mt-8"));
-    expect(save).toHaveProp("className", expect.stringContaining("bg-main"));
+    expect(save).toHaveProp("className", expect.stringContaining("bg-primary"));
     expect(remove).toHaveProp(
       "className",
       expect.stringContaining("border-danger"),

@@ -12,6 +12,7 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 
 import { Button as AppButton } from "@/shared/components/button";
+import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
@@ -36,20 +37,19 @@ function StampPost({
   onEdit,
   onDelete,
 }: StampPostProps) {
+  const accentColor = useAccentColor();
+
   return (
     <View className="flex-row gap-3">
       <Text aria-hidden className="text-2xl">
         {emoji}
       </Text>
       <View className="flex-1 gap-1">
-        <Text
-          selectable
-          className="text-main-hover text-sm dark:text-slate-300"
-        >
+        <Text selectable className="text-foreground-secondary text-sm">
           {formatStampDateTime(new Date(stampedAt))}
         </Text>
         {memo ? (
-          <Text selectable className="text-main text-base dark:text-slate-100">
+          <Text selectable className="text-foreground text-base">
             {memo}
           </Text>
         ) : null}
@@ -63,7 +63,7 @@ function StampPost({
             <Image
               testID={`stamp-menu-icon-${id}`}
               systemName="ellipsis"
-              color="#f97316"
+              color={accentColor}
               modifiers={[
                 frame({ width: 44, height: 44 }),
                 contentShape(shapes.rectangle()),
@@ -105,7 +105,7 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
           Couldn't load
         </Text>
         <Pressable role="button" onPress={onRetry}>
-          <Text className="text-main dark:text-slate-100">Retry</Text>
+          <Text className="text-foreground">Retry</Text>
         </Pressable>
       </View>
     );
@@ -114,7 +114,7 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
 
   return (
     <View className="items-center py-12">
-      <Text className="text-main-hover dark:text-slate-300">No stamps yet</Text>
+      <Text className="text-foreground-secondary">No stamps yet</Text>
     </View>
   );
 }
@@ -164,8 +164,8 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   return (
     <>
       <FlatList
-        accessibilityLabel="Rally detail"
-        className="bg-surface dark:bg-main-dark flex-1"
+        aria-label="Rally detail"
+        className="bg-background flex-1"
         contentContainerClassName="gap-6 px-5 py-6"
         contentInsetAdjustmentBehavior="automatic"
         data={stamps.data}
@@ -188,12 +188,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             <Text
               selectable
               role="heading"
-              className="text-main text-2xl font-semibold dark:text-slate-100"
+              className="text-foreground text-2xl font-semibold"
             >
               {rally.name}
             </Text>
             {stamps.data ? (
-              <Text className="text-main-hover text-base dark:text-slate-300">
+              <Text className="text-foreground-secondary text-base">
                 {stamps.data.length}{" "}
                 {stamps.data.length === 1 ? "stamp" : "stamps"}
               </Text>

@@ -11,13 +11,6 @@ export const tabRootScreenOptions = {
   headerLargeTitleEnabled: true,
 } as const;
 
-const logoPlaceholderStyle = {
-  width: 32,
-  height: 32,
-  borderRadius: 16,
-  backgroundColor: "#c7c7cc",
-} as const;
-
 type TabRootScreenProps = {
   children: ReactNode;
   floatingAction?: ReactNode;
@@ -30,18 +23,23 @@ export function TabRootScreen({
   return (
     <>
       <ScrollView
-        className="bg-surface dark:bg-main-dark flex-1"
+        className="bg-background flex-1"
         contentContainerClassName="px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
       >
-        <Text className="mb-4 text-sm">{formatHeaderDate(new Date())}</Text>
+        <Text className="text-foreground-secondary mb-4 text-sm">
+          {formatHeaderDate(new Date())}
+        </Text>
         {children}
       </ScrollView>
       {floatingAction}
       <Stack.Title large>{getSessionGreeting()}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
-          <View accessibilityLabel="Logo" style={logoPlaceholderStyle} />
+          <View
+            aria-label="Logo"
+            className="size-8 rounded-full bg-[#c7c7cc]"
+          />
         </Stack.Toolbar.View>
       </Stack.Toolbar>
       <Stack.Toolbar placement="right">

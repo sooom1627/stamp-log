@@ -68,34 +68,30 @@ export function CreateRallyScreen() {
   return (
     <View
       testID="create-rally-form"
-      className="bg-surface dark:bg-main-dark px-5 pb-6"
+      className="bg-background px-5 pb-6"
       style={{ paddingTop: headerHeight + 16 }}
     >
       <View className="gap-6">
         <View className="gap-2">
-          <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            Type
-          </Text>
+          <Text className="text-foreground text-sm font-semibold">Type</Text>
           <RallyTypeRadios value={selectedType} onChange={handleTypeChange} />
         </View>
 
         <View className="gap-2">
-          <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            Emoji
-          </Text>
+          <Text className="text-foreground text-sm font-semibold">Emoji</Text>
           <Pressable
             role="button"
-            accessibilityLabel={`Select emoji (currently ${emoji})`}
+            aria-label={`Select emoji (currently ${emoji})`}
             onPress={() => setIsEmojiPickerOpen((isOpen) => !isOpen)}
-            className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active dark:bg-main-hover flex-row items-center gap-3 rounded-2xl border px-4 py-3 dark:border-slate-700"
+            className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active flex-row items-center gap-3 rounded-2xl border px-4 py-3"
           >
             <Text className="text-3xl">{emoji}</Text>
-            <Text className="text-text-muted flex-1 text-sm dark:text-slate-400">
+            <Text className="text-foreground-muted flex-1 text-sm">
               Tap to change
             </Text>
           </Pressable>
           {isEmojiPickerOpen ? (
-            <View className="border-continuous border-border h-80 overflow-hidden rounded-2xl border dark:border-slate-700">
+            <View className="border-continuous border-border h-80 overflow-hidden rounded-2xl border">
               <EmojiKeyboard
                 onEmojiSelected={handleEmojiSelect}
                 hideHeader
@@ -109,19 +105,17 @@ export function CreateRallyScreen() {
         </View>
 
         <View className="gap-2">
-          <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            Name
-          </Text>
+          <Text className="text-foreground text-sm font-semibold">Name</Text>
           <TextInput
             value={name}
             onChangeText={setName}
             onFocus={() => setIsEmojiPickerOpen(false)}
             onSubmitEditing={handleSave}
             placeholder={rallyNamePlaceholders[selectedType]}
-            accessibilityLabel="Name"
+            aria-label="Name"
             returnKeyType="done"
             submitBehavior="blurAndSubmit"
-            className="border-continuous border-border bg-surface-muted text-main focus:border-accent dark:bg-main-hover rounded-2xl border px-4 py-3.5 text-base dark:border-slate-700 dark:text-slate-100"
+            className="border-continuous border-border bg-surface-muted text-foreground focus:border-accent rounded-2xl border px-4 py-3.5 text-base"
             cursorColorClassName="accent-accent"
             selectionColorClassName="accent-accent"
             placeholderTextColorClassName="accent-text-muted"
