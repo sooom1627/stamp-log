@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
-import { useHeaderHeight } from "expo-router/react-navigation";
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { tint } from "@expo/ui/swift-ui/modifiers";
 
 import { Button } from "@/shared/components/button";
+import { FormSheetContainer } from "@/shared/components/form-sheet";
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
@@ -26,12 +26,9 @@ function yesterdayNoon() {
   return date;
 }
 
-// Do not use ScrollView / KeyboardAvoidingView inside formSheet
-// (see create-rally-screen.tsx for why).
 export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   const [stampedAt, setStampedAt] = useState(yesterdayNoon);
   const { back } = useRouter();
-  const headerHeight = useHeaderHeight();
   const accentColor = useAccentColor();
   const { data: rallies } = useRallies();
   const { data: rallyStamps } = useRallyStamps(rallyId);
@@ -76,11 +73,7 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   };
 
   return (
-    <View
-      testID="add-past-stamp-form"
-      className="bg-background gap-5 px-5 pb-6"
-      style={{ paddingTop: headerHeight + 16 }}
-    >
+    <FormSheetContainer testID="add-past-stamp-form" className="gap-5">
       {rally ? (
         <View className="flex-row items-center gap-2">
           <Text className="text-xl">{rally.emoji}</Text>
@@ -136,6 +129,6 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
         isLoading={isSaving}
         className="mt-3"
       />
-    </View>
+    </FormSheetContainer>
   );
 }

@@ -1,9 +1,8 @@
 import { useState } from "react";
 
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
-import { useHeaderHeight } from "expo-router/react-navigation";
 
 import {
   EmojiKeyboard,
@@ -11,6 +10,11 @@ import {
 } from "@softwhere-uz/react-native-emoji-keyboard";
 
 import { Button } from "@/shared/components/button";
+import {
+  FormField,
+  FormSheetContainer,
+  FormTextInput,
+} from "@/shared/components/form-sheet";
 
 import { RallyTypeRadios } from "../components/rally-type-radios";
 import { useSaveRally } from "../hooks/use-rallies";
@@ -28,10 +32,6 @@ const rallyNamePlaceholders: Record<RallyType, string> = {
   person: "Enter a person to track",
 };
 
-// Do not use ScrollView / KeyboardAvoidingView inside formSheet.
-// react-native-screens force-overrides the ScrollView frame to the full sheet,
-// which interferes with sibling content (footer) and stops rendering.
-// Keep the root intrinsically sized so fitToContents includes the Save button.
 export function CreateRallyScreen() {
   const [selectedType, setSelectedType] = useState<RallyType>(
     rallyTypeSchema.options[0],
@@ -41,7 +41,6 @@ export function CreateRallyScreen() {
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [name, setName] = useState("");
   const { back } = useRouter();
-  const headerHeight = useHeaderHeight();
   const { mutate: saveRally, isPending: isSaving } = useSaveRally();
 
   const isNameValid = rallyNameSchema.safeParse(name).success;
@@ -66,19 +65,13 @@ export function CreateRallyScreen() {
   };
 
   return (
-    <View
-      testID="create-rally-form"
-      className="bg-background px-5 pb-6"
-      style={{ paddingTop: headerHeight + 16 }}
-    >
+    <FormSheetContainer testID="create-rally-form">
       <View className="gap-6">
-        <View className="gap-2">
-          <Text className="text-foreground text-sm font-semibold">Type</Text>
+        <FormField label="Type">
           <RallyTypeRadios value={selectedType} onChange={handleTypeChange} />
-        </View>
+        </FormField>
 
-        <View className="gap-2">
-          <Text className="text-foreground text-sm font-semibold">Emoji</Text>
+        <FormField label="Emoji">
           <Pressable
             role="button"
             aria-label={`Select emoji (currently ${emoji})`}
@@ -102,11 +95,10 @@ export function CreateRallyScreen() {
               />
             </View>
           ) : null}
-        </View>
+        </FormField>
 
-        <View className="gap-2">
-          <Text className="text-foreground text-sm font-semibold">Name</Text>
-          <TextInput
+        <FormField label="Name">
+          <FormTextInput
             value={name}
             onChangeText={setName}
             onFocus={() => setIsEmojiPickerOpen(false)}
@@ -115,12 +107,8 @@ export function CreateRallyScreen() {
             aria-label="Name"
             returnKeyType="done"
             submitBehavior="blurAndSubmit"
-            className="border-continuous border-border bg-surface-muted text-foreground focus:border-accent rounded-2xl border px-4 py-3.5 text-base"
-            cursorColorClassName="accent-accent"
-            selectionColorClassName="accent-accent"
-            placeholderTextColorClassName="accent-text-muted"
           />
-        </View>
+        </FormField>
       </View>
 
       <Button
@@ -131,6 +119,6 @@ export function CreateRallyScreen() {
         isLoading={isSaving}
         className="mt-8"
       />
-    </View>
+    </FormSheetContainer>
   );
 }

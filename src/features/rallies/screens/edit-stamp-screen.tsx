@@ -1,13 +1,17 @@
 import { useState } from "react";
 
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
-import { useHeaderHeight } from "expo-router/react-navigation";
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { tint } from "@expo/ui/swift-ui/modifiers";
 
 import { Button } from "@/shared/components/button";
+import {
+  FormField,
+  FormSheetContainer,
+  FormTextInput,
+} from "@/shared/components/form-sheet";
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
@@ -45,13 +49,10 @@ type EditStampFormProps = {
   stamps: Stamp[];
 };
 
-// Do not use ScrollView / KeyboardAvoidingView inside formSheet
-// (see create-rally-screen.tsx for why).
 function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   const [stampedAt, setStampedAt] = useState(() => new Date(stamp.stampedAt));
   const [memo, setMemo] = useState(stamp.memo ?? "");
   const { back } = useRouter();
-  const headerHeight = useHeaderHeight();
   const accentColor = useAccentColor();
   const { mutate: updateStamp, isPending: isSaving } = useUpdateStamp();
 
@@ -91,11 +92,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   };
 
   return (
-    <View
-      testID="edit-stamp-form"
-      className="bg-background gap-5 px-5 pb-6"
-      style={{ paddingTop: headerHeight + 16 }}
-    >
+    <FormSheetContainer testID="edit-stamp-form" className="gap-5">
       <View className="flex-row items-center gap-2">
         <Text className="text-xl">{rally.emoji}</Text>
         <Text
@@ -130,21 +127,17 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
         />
       </Host>
 
-      <View className="gap-2">
-        <Text className="text-foreground text-sm font-semibold">Memo</Text>
-        <TextInput
+      <FormField label="Memo">
+        <FormTextInput
           value={memo}
           onChangeText={setMemo}
           placeholder="Enter memo"
           aria-label="Memo"
           multiline
           textAlignVertical="top"
-          className="border-continuous border-border bg-surface-muted text-foreground focus:border-accent max-h-48 min-h-32 rounded-2xl border px-4 py-3.5 text-base"
-          cursorColorClassName="accent-accent"
-          selectionColorClassName="accent-accent"
-          placeholderTextColorClassName="accent-text-muted"
+          className="max-h-48 min-h-32"
         />
-      </View>
+      </FormField>
 
       {isFuture ? (
         <Text className="text-danger text-sm">
@@ -165,6 +158,6 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
         isLoading={isSaving}
         className="mt-3"
       />
-    </View>
+    </FormSheetContainer>
   );
 }
