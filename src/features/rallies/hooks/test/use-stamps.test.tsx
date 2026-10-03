@@ -1,10 +1,18 @@
-import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
+import {
+  QueryClientProvider,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 
-import { useDeleteRally } from "../use-rallies";
+import { saveRally } from "../../db/rallies-db";
+import { type Rally } from "../../schemas/rallies";
+import { type Stamp } from "../../schemas/stamps";
+import { ralliesQueryKey, useDeleteRally, useRallies } from "../use-rallies";
 import {
+  stampsQueryKey,
   useDeleteStamp,
   useRallyStamps,
   useSaveStamp,
@@ -436,5 +444,51 @@ describe("S-006 ST-006 stamp update and delete Query hooks", () => {
     expect(
       result.current.query.data?.some((stamp) => stamp.id === removedId),
     ).toBe(false);
+  });
+});
+
+describe("S-006 RT-002 ST-005 invalidate before mutation success", () => {
+  test("the caller's onSuccess sees rallies and stamps without the deleted rally", async () => {
+    await saveRally({ name: "Refetch check", type: "place" });
+    const { result } = await renderHook(
+      () => ({
+        queryClient: useQueryClient(),
+        rallies: useRallies(),
+        stamps: useStamps(),
+        deleteRally: useDeleteRally(),
+        save: useSaveStamp(),
+      }),
+      { wrapper: createWrapper() },
+    );
+    await waitFor(() => {
+      expect(result.current.rallies.isSuccess).toBe(true);
+      expect(result.current.stamps.isSuccess).toBe(true);
+    });
+    const rally = result.current.rallies.data?.find(
+      (candidate) => candidate.name === "Refetch check",
+    );
+    if (!rally) throw new Error("rally not saved");
+    await act(async () => {
+      await result.current.save.mutateAsync({ rallyId: rally.id });
+    });
+
+    let seen: { rallies?: Rally[]; stamps?: Stamp[] } = {};
+    await act(async () => {
+      await result.current.deleteRally.mutateAsync(rally.id, {
+        onSuccess: () => {
+          seen = {
+            rallies: result.current.queryClient.getQueryData(ralliesQueryKey),
+            stamps: result.current.queryClient.getQueryData(stampsQueryKey),
+          };
+        },
+      });
+    });
+
+    expect(seen.rallies?.some((candidate) => candidate.id === rally.id)).toBe(
+      false,
+    );
+    expect(seen.stamps?.some((stamp) => stamp.rallyId === rally.id)).toBe(
+      false,
+    );
   });
 });
