@@ -73,6 +73,12 @@ describe("ST-003 stamp memo", () => {
     expect(latest.stampedAt).toBe("2026-09-19T12:34:00.000Z");
   });
 
+  test("updateStampMemo rejects an unknown stamp id", async () => {
+    await expect(
+      updateStampMemo({ id: 999999, memo: "Met them" }),
+    ).rejects.toThrow("Stamp not found");
+  });
+
   test("supports save, list, and update on legacy stamps table without memo column", async () => {
     const { getDb, stampsDb } = loadFreshDb();
     const db = await getDb();

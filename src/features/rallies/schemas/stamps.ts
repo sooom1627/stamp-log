@@ -46,12 +46,3 @@ export function hasStampOnLocalDay(
       localDateKey(new Date(stamp.stampedAt)) === dayKey,
   );
 }
-
-export function parseStampRow(row: Record<string, unknown>): Stamp {
-  return stampSchema.parse({
-    id: Number(row.id),
-    rallyId: Number(row.rallyId ?? row.rally_id ?? row.rallyid),
-    stampedAt: String(row.stampedAt ?? row.stamped_at ?? row.stampedat),
-    memo: row.memo ?? null,
-  });
-}

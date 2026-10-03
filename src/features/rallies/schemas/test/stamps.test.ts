@@ -1,7 +1,6 @@
 import {
   hasStampOnLocalDay,
   notFutureDatetimeSchema,
-  parseStampRow,
   saveStampInputSchema,
   stampSchema,
   updateStampInputSchema,
@@ -34,36 +33,6 @@ describe("ST-001 stamp schema", () => {
     expect(saveStampInputSchema.parse({ rallyId: 3 })).toEqual({ rallyId: 3 });
     expect(() => saveStampInputSchema.parse({})).toThrow();
   });
-
-  test("parses native SQLite lowercase column names", () => {
-    expect(
-      parseStampRow({
-        id: 1,
-        rallyid: 2,
-        stampedat: "2026-09-19T12:34:00.000Z",
-      }),
-    ).toEqual({
-      id: 1,
-      rallyId: 2,
-      stampedAt: "2026-09-19T12:34:00.000Z",
-      memo: null,
-    });
-  });
-
-  test("parses string id and rallyId", () => {
-    expect(
-      parseStampRow({
-        id: "1",
-        rallyId: "2",
-        stampedAt: "2026-09-19T12:34:00.000Z",
-      }),
-    ).toEqual({
-      id: 1,
-      rallyId: 2,
-      stampedAt: "2026-09-19T12:34:00.000Z",
-      memo: null,
-    });
-  });
 });
 
 describe("ST-002 optional stamp memo", () => {
@@ -87,21 +56,6 @@ describe("ST-002 optional stamp memo", () => {
     };
 
     expect(stampSchema.parse(stamp)).toEqual(stamp);
-  });
-
-  test("parseStampRow sets memo to null when column is missing", () => {
-    expect(
-      parseStampRow({
-        id: 1,
-        rallyId: 2,
-        stampedAt: "2026-09-19T12:34:00.000Z",
-      }),
-    ).toEqual({
-      id: 1,
-      rallyId: 2,
-      stampedAt: "2026-09-19T12:34:00.000Z",
-      memo: null,
-    });
   });
 
   test("update input accepts id and memo and rejects empty values", () => {
