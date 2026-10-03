@@ -227,7 +227,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           </View>
         }
       />
-      <Stack.Screen options={{ title: rally.name }} />
+      <Stack.Title>{rally.name}</Stack.Title>
     </>
   );
 }
