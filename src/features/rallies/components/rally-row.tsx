@@ -27,7 +27,7 @@ export function RallyRow({
         className="flex-row items-center gap-3 active:opacity-70"
         onPress={onPressDetail}
       >
-        <View className="bg-surface-muted size-11 items-center justify-center rounded-2xl">
+        <View className="bg-surface-muted border-continuous size-11 items-center justify-center rounded-2xl">
           <Text className="text-2xl">{emoji}</Text>
         </View>
         <View className="min-w-0 flex-1 gap-0.5">

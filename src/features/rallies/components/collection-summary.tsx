@@ -64,8 +64,7 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
     <View
       accessible
       accessibilityLabel={accessibilityLabel}
-      className="bg-surface-muted mb-4 gap-3.5 rounded-2xl p-4"
-      style={{ borderCurve: "continuous" }}
+      className="bg-surface-muted border-continuous mb-4 gap-3.5 rounded-2xl p-4"
     >
       <View className="flex-row items-center justify-between gap-4">
         <View className="flex-row items-baseline gap-1.5">

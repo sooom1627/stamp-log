@@ -38,3 +38,7 @@
     }
   }
 }
+
+@utility shadow-fab {
+  box-shadow: 0 8px 24px rgba(30, 41, 59, 0.22);
+}

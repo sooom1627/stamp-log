@@ -11,13 +11,6 @@ export const tabRootScreenOptions = {
   headerLargeTitleEnabled: true,
 } as const;
 
-const logoPlaceholderStyle = {
-  width: 32,
-  height: 32,
-  borderRadius: 16,
-  backgroundColor: "#c7c7cc",
-} as const;
-
 type TabRootScreenProps = {
   children: ReactNode;
   floatingAction?: ReactNode;
@@ -43,7 +36,10 @@ export function TabRootScreen({
       <Stack.Title large>{getSessionGreeting()}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
-          <View accessibilityLabel="Logo" style={logoPlaceholderStyle} />
+          <View
+            accessibilityLabel="Logo"
+            className="size-8 rounded-full bg-[#c7c7cc]"
+          />
         </Stack.Toolbar.View>
       </Stack.Toolbar>
       <Stack.Toolbar placement="right">

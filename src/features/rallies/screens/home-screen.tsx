@@ -37,8 +37,7 @@ export function HomeScreen() {
         <Link href="/create-rally" asChild>
           <Pressable
             accessibilityLabel="Create rally"
-            className="bg-inverse active:bg-main-hover absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
-            style={{ boxShadow: "0 8px 24px rgba(30, 41, 59, 0.22)" }}
+            className="bg-inverse active:bg-main-hover shadow-fab absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
           >
             <Plus colorClassName="accent-white" size={24} strokeWidth={2.5} />
           </Pressable>
