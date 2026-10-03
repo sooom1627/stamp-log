@@ -6,26 +6,18 @@ export const stampSchema = z.object({
   stampedAt: z.iso.datetime(),
   memo: z.string().nullable(),
 });
-export const saveStampInputSchema = z
-  .object({
-    rallyId: stampSchema.shape.rallyId,
-    stampedAt: stampSchema.shape.stampedAt.optional(),
-  })
-  .refine(
-    ({ stampedAt }) =>
-      stampedAt === undefined || Date.parse(stampedAt) <= Date.now(),
-    { path: ["stampedAt"], message: "stampedAt must not be in the future" },
-  );
-export const updateStampMemoInputSchema = z.object({
-  id: stampSchema.shape.id,
-  memo: z.string().trim().min(1),
-});
-export const updateStampInputSchema = z.object({
-  id: stampSchema.shape.id,
-  stampedAt: stampSchema.shape.stampedAt.refine(
-    (stampedAt) => Date.parse(stampedAt) <= Date.now(),
-    { message: "stampedAt must not be in the future" },
-  ),
+export const notFutureDatetimeSchema = stampSchema.shape.stampedAt.refine(
+  (stampedAt) => Date.parse(stampedAt) <= Date.now(),
+  { message: "stampedAt must not be in the future" },
+);
+export const saveStampInputSchema = stampSchema
+  .pick({ rallyId: true })
+  .extend({ stampedAt: notFutureDatetimeSchema.optional() });
+export const updateStampMemoInputSchema = stampSchema
+  .pick({ id: true })
+  .extend({ memo: z.string().trim().min(1) });
+export const updateStampInputSchema = stampSchema.pick({ id: true }).extend({
+  stampedAt: notFutureDatetimeSchema,
   memo: z
     .string()
     .trim()

@@ -1,4 +1,5 @@
 import {
+  notFutureDatetimeSchema,
   parseStampRow,
   saveStampInputSchema,
   stampSchema,
@@ -232,5 +233,31 @@ describe("S-006 ST-004 stamp update input", () => {
         memo: "Met them",
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("S-006 RT-002 ST-001 not-future datetime", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-09-19T12:34:00.000Z"));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test("accepts a past datetime and now", () => {
+    for (const value of [
+      "2026-09-18T11:40:00.000Z",
+      "2026-09-19T12:34:00.000Z",
+    ]) {
+      expect(notFutureDatetimeSchema.parse(value)).toBe(value);
+    }
+  });
+
+  test("rejects a future datetime and a non-ISO value", () => {
+    for (const value of ["2026-09-19T12:35:00.000Z", "yesterday"]) {
+      expect(notFutureDatetimeSchema.safeParse(value).success).toBe(false);
+    }
   });
 });
