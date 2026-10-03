@@ -352,3 +352,31 @@ describe("S-006 T-002 ST-002 month calendar", () => {
     expect(screen.getAllByLabelText(/, recorded$/)).toHaveLength(2);
   });
 });
+
+describe("S-006 T-002 ST-003 month navigation", () => {
+  test("moves to the previous and next months with their recorded days", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail(
+      "Calendar months",
+      async (rallyId) => {
+        await saveStamp({
+          rallyId,
+          stampedAt: new Date(2026, 7, 15, 9).toISOString(),
+        });
+      },
+    );
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Previous month" }));
+
+    expect(await screen.findByText("August 2026")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Aug 15, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/, recorded$/)).toHaveLength(1);
+
+    await user.press(screen.getByRole("button", { name: "Next month" }));
+    await user.press(screen.getByRole("button", { name: "Next month" }));
+
+    expect(await screen.findByText("October 2026")).toBeOnTheScreen();
+    expect(screen.queryAllByLabelText(/, recorded$/)).toHaveLength(0);
+  });
+});

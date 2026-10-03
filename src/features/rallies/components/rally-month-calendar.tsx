@@ -1,4 +1,8 @@
-import { Text, View } from "react-native";
+import { useState } from "react";
+
+import { Pressable, Text, View } from "react-native";
+
+import { ChevronLeft, ChevronRight } from "@/shared/components/icons";
 
 import { buildMonthWeeks, type MonthDay } from "../utils/month-grid";
 
@@ -35,14 +39,38 @@ type RallyMonthCalendarProps = {
 };
 
 export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
-  const month = new Date();
+  const [month, setMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
   const weeks = buildMonthWeeks(month, stampDates);
+
+  const shiftMonth = (delta: number) =>
+    setMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
 
   return (
     <View className="w-full gap-2 pt-2">
-      <Text className="text-foreground text-center text-base font-semibold">
-        {monthFormatter.format(month)}
-      </Text>
+      <View className="flex-row items-center justify-between">
+        <Pressable
+          role="button"
+          aria-label="Previous month"
+          className="size-11 items-center justify-center"
+          onPress={() => shiftMonth(-1)}
+        >
+          <ChevronLeft colorClassName="accent-accent" size={20} />
+        </Pressable>
+        <Text className="text-foreground text-base font-semibold">
+          {monthFormatter.format(month)}
+        </Text>
+        <Pressable
+          role="button"
+          aria-label="Next month"
+          className="size-11 items-center justify-center"
+          onPress={() => shiftMonth(1)}
+        >
+          <ChevronRight colorClassName="accent-accent" size={20} />
+        </Pressable>
+      </View>
       <View className="flex-row">
         {WEEKDAYS.map((weekday) => (
           <Text
