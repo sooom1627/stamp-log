@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Button, Host, Menu } from "@expo/ui/swift-ui";
+import { labelStyle, tint } from "@expo/ui/swift-ui/modifiers";
 
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
@@ -11,12 +13,14 @@ import { useRallyStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
 
 type StampPostProps = {
+  id: Stamp["id"];
   emoji: string;
   stampedAt: Stamp["stampedAt"];
   memo: Stamp["memo"];
+  onEdit: (id: Stamp["id"]) => void;
 };
 
-function StampPost({ emoji, stampedAt, memo }: StampPostProps) {
+function StampPost({ id, emoji, stampedAt, memo, onEdit }: StampPostProps) {
   return (
     <View className="flex-row gap-3">
       <Text aria-hidden className="text-2xl">
@@ -35,6 +39,21 @@ function StampPost({ emoji, stampedAt, memo }: StampPostProps) {
           </Text>
         ) : null}
       </View>
+      <Host matchContents>
+        <Menu
+          testID={`stamp-menu-${id}`}
+          label="More"
+          systemImage="ellipsis"
+          modifiers={[labelStyle("iconOnly"), tint("#f97316")]}
+        >
+          <Button
+            testID={`stamp-edit-${id}`}
+            label="Edit"
+            systemImage="pencil"
+            onPress={() => onEdit(id)}
+          />
+        </Menu>
+      </Host>
     </View>
   );
 }
@@ -81,9 +100,11 @@ export function RallyDetailScreen() {
         keyExtractor={(stamp) => String(stamp.id)}
         renderItem={({ item }) => (
           <StampPost
+            id={item.id}
             emoji={rally.emoji}
             stampedAt={item.stampedAt}
             memo={item.memo}
+            onEdit={(stampId) => push(`/edit-stamp?stampId=${stampId}`)}
           />
         )}
         ListHeaderComponent={
