@@ -1,7 +1,7 @@
-import { getDb } from "@/shared/db/get-db";
-
 import { deleteRally, listRallies, saveRally } from "../rallies-db";
 import { listStamps, saveStamp } from "../stamps-db";
+
+import { loadFreshDb } from "./load-fresh-db";
 
 describe("S-023 T-001 ST-002 rally emoji", () => {
   test("saves chosen emoji and returns it from list", async () => {
@@ -22,8 +22,8 @@ describe("S-023 T-001 ST-002 rally emoji", () => {
   });
 
   test("backfills legacy rallies table without emoji column", async () => {
+    const { getDb, ralliesDb } = loadFreshDb();
     const db = await getDb();
-    await db.execAsync("DROP TABLE IF EXISTS rallies");
     await db.execAsync(`
       CREATE TABLE rallies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,15 +31,29 @@ describe("S-023 T-001 ST-002 rally emoji", () => {
         type TEXT NOT NULL
       );
       INSERT INTO rallies (name, type) VALUES ('Walk', 'action');
+      INSERT INTO rallies (name, type) VALUES ('Cafe', 'place');
+      INSERT INTO rallies (name, type) VALUES ('Friends', 'person');
     `);
 
-    await expect(listRallies()).resolves.toEqual([
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 3, name: "Friends", type: "person", emoji: "😀" },
+      { id: 2, name: "Cafe", type: "place", emoji: "🏠" },
       { id: 1, name: "Walk", type: "action", emoji: "👏" },
     ]);
   });
 });
 
 describe("deleteRally", () => {
+  test("deletes a rally before any stamp table exists", async () => {
+    const { ralliesDb } = loadFreshDb();
+    await ralliesDb.saveRally({ name: "Walk", type: "action" });
+    const [rally] = await ralliesDb.listRallies();
+
+    await ralliesDb.deleteRally(rally.id);
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([]);
+  });
+
   test("deletes rally stamps but keeps stamps from other rallies", async () => {
     await saveStamp({ rallyId: 1 });
     await saveStamp({ rallyId: 2 });

@@ -14,15 +14,10 @@ import {
   type UpdateStampMemoInput,
 } from "../schemas/stamps";
 
-async function stampColumnNames(db: SQLiteDatabase) {
-  const rows = await db.getAllAsync<{ name: string }>(
-    "PRAGMA table_info(stamps)",
-  );
-  return rows.map((row) => row.name.toLowerCase());
-}
+import { tableColumnNames } from "./table-columns";
 
 async function ensureStamps(db: SQLiteDatabase) {
-  let columns = await stampColumnNames(db);
+  let columns = await tableColumnNames(db, "stamps");
   if (columns.length > 0 && !columns.includes("rally_id")) {
     await db.execAsync("DROP TABLE stamps");
     columns = [];
@@ -42,10 +37,20 @@ async function ensureStamps(db: SQLiteDatabase) {
   }
 }
 
-async function withStampsDb() {
-  const db = await getDb();
-  await ensureStamps(db);
-  return db;
+let stampsDbReady: Promise<SQLiteDatabase> | undefined;
+
+// Sets up the table once per app start; a failed setup is retried on the next call.
+export function withStampsDb() {
+  stampsDbReady ??= getDb()
+    .then(async (db) => {
+      await ensureStamps(db);
+      return db;
+    })
+    .catch((error: unknown) => {
+      stampsDbReady = undefined;
+      throw error;
+    });
+  return stampsDbReady;
 }
 
 async function hasStampOnLocalDay(

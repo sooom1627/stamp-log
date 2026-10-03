@@ -1,5 +1,3 @@
-import { getDb } from "@/shared/db/get-db";
-
 import {
   deleteStamp,
   listStamps,
@@ -7,6 +5,8 @@ import {
   updateStamp,
   updateStampMemo,
 } from "../stamps-db";
+
+import { loadFreshDb } from "./load-fresh-db";
 
 jest.useFakeTimers();
 
@@ -37,15 +37,15 @@ describe("ST-002 stamps SQLite", () => {
   });
 
   test("supports save and list on legacy stamps table without rallyId column", async () => {
+    const { getDb, stampsDb } = loadFreshDb();
     const db = await getDb();
-    await db.execAsync("DROP TABLE IF EXISTS stamps");
     await db.execAsync(
       "CREATE TABLE stamps (id INTEGER PRIMARY KEY AUTOINCREMENT, stamped_at TEXT)",
     );
 
-    const saved = await saveStamp({ rallyId: 99 });
+    const saved = await stampsDb.saveStamp({ rallyId: 99 });
     expect(saved.rallyId).toBe(99);
-    await expect(listStamps()).resolves.toEqual([saved]);
+    await expect(stampsDb.listStamps()).resolves.toEqual([saved]);
   });
 });
 
@@ -74,19 +74,22 @@ describe("ST-003 stamp memo", () => {
   });
 
   test("supports save, list, and update on legacy stamps table without memo column", async () => {
+    const { getDb, stampsDb } = loadFreshDb();
     const db = await getDb();
-    await db.execAsync("DROP TABLE IF EXISTS stamps");
     await db.execAsync(
       "CREATE TABLE stamps (id INTEGER PRIMARY KEY AUTOINCREMENT, rally_id INTEGER NOT NULL, stamped_at TEXT NOT NULL)",
     );
 
-    const saved = await saveStamp({ rallyId: 99 });
+    const saved = await stampsDb.saveStamp({ rallyId: 99 });
     expect(saved.memo).toBeNull();
-    await expect(listStamps()).resolves.toEqual([saved]);
+    await expect(stampsDb.listStamps()).resolves.toEqual([saved]);
 
-    const updated = await updateStampMemo({ id: saved.id, memo: "Kyoto" });
+    const updated = await stampsDb.updateStampMemo({
+      id: saved.id,
+      memo: "Kyoto",
+    });
     expect(updated.memo).toBe("Kyoto");
-    await expect(listStamps()).resolves.toEqual([updated]);
+    await expect(stampsDb.listStamps()).resolves.toEqual([updated]);
   });
 });
 
