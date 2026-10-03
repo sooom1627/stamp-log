@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 
 import { ChevronRight } from "@/shared/components/icons";
+import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
 import { RallyActivityWeek } from "./rally-activity-week";
 
@@ -46,7 +47,7 @@ export function RallyRow({
             />
           </View>
           <Text className="text-foreground-secondary text-sm font-medium">
-            {stampDates.length} stamps
+            {formatStampCount(stampDates.length)}
           </Text>
         </View>
       </Pressable>

@@ -80,6 +80,14 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     expect(screen.getAllByTestId("activity-day")).toHaveLength(7);
   });
 
+  test("uses the singular for one stamp", async () => {
+    await render(
+      <RallyRow {...defaultProps} stampDates={["2026-09-19T02:00:00.000Z"]} />,
+    );
+
+    expect(screen.getByText("1 stamp")).toBeOnTheScreen();
+  });
+
   test("cannot add from today cell when already recorded today", async () => {
     const onPressStamp = jest.fn();
     const user = userEvent.setup();

@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { Link, useRouter } from "expo-router";
 
 import { Plus } from "@/shared/components/icons";
+import { LoadError } from "@/shared/components/load-error";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
 import { CollectionSummary } from "../components/collection-summary";
@@ -55,16 +56,7 @@ export function HomeScreen() {
         {rallies && stamps ? (
           <CollectionSummary rallies={rallies} stamps={stamps} />
         ) : null}
-        {isListError ? (
-          <View className="items-center gap-2 py-12">
-            <Text selectable className="text-danger">
-              Couldn't load
-            </Text>
-            <Pressable role="button" onPress={retryLists}>
-              <Text className="text-foreground">Retry</Text>
-            </Pressable>
-          </View>
-        ) : null}
+        {isListError ? <LoadError onRetry={retryLists} /> : null}
         {rallies?.length === 0 ? (
           <View className="items-center py-12">
             <Text className="text-foreground-secondary">No rallies yet</Text>

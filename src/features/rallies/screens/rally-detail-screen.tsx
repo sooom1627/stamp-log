@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { Alert, FlatList, Pressable, Text, View } from "react-native";
+import { Alert, FlatList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
@@ -12,7 +12,9 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 
 import { Button as AppButton } from "@/shared/components/button";
+import { LoadError } from "@/shared/components/load-error";
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
+import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
@@ -98,18 +100,7 @@ type TimelineEmptyProps = {
 };
 
 function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
-  if (isError) {
-    return (
-      <View className="items-center gap-2 py-12">
-        <Text selectable className="text-danger">
-          Couldn't load
-        </Text>
-        <Pressable role="button" onPress={onRetry}>
-          <Text className="text-foreground">Retry</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  if (isError) return <LoadError onRetry={onRetry} />;
   if (!isLoaded) return null;
 
   return (
@@ -199,7 +190,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             </Text>
             {stamps ? (
               <Text className="text-foreground-secondary text-base">
-                {stamps.length} {stamps.length === 1 ? "stamp" : "stamps"}
+                {formatStampCount(stamps.length)}
               </Text>
             ) : null}
           </View>
