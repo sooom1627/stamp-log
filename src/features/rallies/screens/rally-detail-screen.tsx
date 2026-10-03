@@ -11,6 +11,7 @@ import {
   shapes,
 } from "@expo/ui/swift-ui/modifiers";
 
+import { Button as AppButton } from "@/shared/components/button";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
@@ -203,23 +204,16 @@ export function RallyDetailScreen() {
         }
         ListFooterComponent={
           <View className="gap-6">
-            <Pressable
-              role="button"
-              className="border-continuous bg-main active:bg-main-hover items-center rounded-xl px-4 py-3 dark:bg-slate-100"
+            <AppButton
+              label="Past stamp"
               onPress={() => push(`/add-past-stamp?rallyId=${rally.id}`)}
-            >
-              <Text className="dark:text-main-dark font-semibold text-white">
-                Past stamp
-              </Text>
-            </Pressable>
-            <Pressable
-              role="button"
+            />
+            <AppButton
+              label="Delete rally"
               aria-label={`Delete ${rally.name}`}
-              className="border-danger active:bg-danger/10 items-center rounded-xl border px-4 py-3"
+              variant="danger"
               onPress={confirmDelete}
-            >
-              <Text className="text-danger font-semibold">Delete rally</Text>
-            </Pressable>
+            />
           </View>
         }
       />

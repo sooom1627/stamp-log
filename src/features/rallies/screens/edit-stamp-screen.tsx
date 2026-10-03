@@ -1,18 +1,13 @@
 import { useState } from "react";
 
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Text, TextInput, View } from "react-native";
 
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { tint } from "@expo/ui/swift-ui/modifiers";
 
+import { Button } from "@/shared/components/button";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 import { useRallies } from "../hooks/use-rallies";
@@ -169,34 +164,13 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
         </Text>
       ) : null}
 
-      <Pressable
-        role="button"
-        accessibilityLabel={update.isPending ? "Saving…" : "Save"}
-        accessibilityState={{ disabled: !canSave, busy: update.isPending }}
-        disabled={!canSave}
+      <Button
+        label={update.isPending ? "Saving…" : "Save"}
         onPress={handleSave}
-        className={
-          canSave || update.isPending
-            ? "border-continuous bg-main active:bg-main-hover mt-3 flex-row items-center justify-center gap-2 rounded-2xl py-4 dark:bg-slate-100"
-            : "border-continuous bg-surface-muted-active mt-3 flex-row items-center justify-center gap-2 rounded-2xl py-4"
-        }
-      >
-        {update.isPending ? (
-          <ActivityIndicator
-            size="small"
-            colorClassName="accent-white dark:accent-main-dark"
-          />
-        ) : null}
-        <Text
-          className={
-            canSave || update.isPending
-              ? "dark:text-main-dark text-base font-semibold text-white"
-              : "text-text-muted text-base font-semibold"
-          }
-        >
-          {update.isPending ? "Saving…" : "Save"}
-        </Text>
-      </Pressable>
+        disabled={!canSave}
+        isLoading={update.isPending}
+        className="mt-3"
+      />
     </View>
   );
 }
