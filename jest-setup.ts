@@ -9,6 +9,7 @@ jest.mock("react-native-reanimated", () => {
 
 jest.mock("expo-sqlite");
 jest.mock("uniwind", () => ({
+  withUniwind: <T>(Component: T) => Component,
   useResolveClassNames: () => ({
     backgroundColor: "#ffffff",
     color: "#1e293b",

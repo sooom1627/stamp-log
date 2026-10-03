@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 
-import { ChevronRight } from "lucide-react-native";
+import { ChevronRight } from "@/shared/components/icons";
 
 import { RallyActivityWeek } from "./rally-activity-week";
 
@@ -39,7 +39,11 @@ export function RallyRow({
             >
               {name}
             </Text>
-            <ChevronRight color="#64748b" size={14} strokeWidth={2} />
+            <ChevronRight
+              colorClassName="accent-text-muted"
+              size={14}
+              strokeWidth={2}
+            />
           </View>
           <Text className="text-foreground-secondary text-sm font-medium">
             {stampDates.length} stamps

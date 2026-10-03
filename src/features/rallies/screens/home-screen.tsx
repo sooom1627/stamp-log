@@ -1,8 +1,8 @@
 import { Pressable, Text, View } from "react-native";
 
 import { Link, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 
+import { Plus } from "@/shared/components/icons";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
 import { CollectionSummary } from "../components/collection-summary";
@@ -40,11 +40,7 @@ export function HomeScreen() {
             className="bg-inverse active:bg-main-hover absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
             style={{ boxShadow: "0 8px 24px rgba(30, 41, 59, 0.22)" }}
           >
-            <SymbolView
-              name={{ ios: "plus", android: "add", web: "add" }}
-              size={24}
-              tintColor="#ffffff"
-            />
+            <Plus colorClassName="accent-white" size={24} strokeWidth={2.5} />
           </Pressable>
         </Link>
       }

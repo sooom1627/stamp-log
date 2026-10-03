@@ -1,7 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 
-import { SymbolView } from "expo-symbols";
-
+import { Plus } from "@/shared/components/icons";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
@@ -78,11 +77,7 @@ function ActivityDayCircle({
           {day.isRecorded ? (
             <View className="bg-accent size-3 rounded-full" />
           ) : (
-            <SymbolView
-              name={{ ios: "plus", android: "add", web: "add" }}
-              size={13}
-              tintColor="#f97316"
-            />
+            <Plus colorClassName="accent-accent" size={13} strokeWidth={2.5} />
           )}
         </View>
       </Pressable>

@@ -1,6 +1,6 @@
-import { Text, useColorScheme, View } from "react-native";
+import { Text, View } from "react-native";
 
-import { ListChecks, MapPinPen, UsersRound } from "lucide-react-native";
+import { ListChecks, MapPinPen, UsersRound } from "@/shared/components/icons";
 
 import { type Rally, type RallyType } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
@@ -47,8 +47,6 @@ function getTypeCounts(rallies: Rally[], stamps: Stamp[]) {
 }
 
 export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
-  const isDark = useColorScheme() === "dark";
-  const iconColor = isDark ? "#f1f5f9" : "#1e293b";
   const now = new Date();
   const typeCounts = getTypeCounts(rallies, stamps);
   const categorizedStampCount =
@@ -116,7 +114,11 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
 
           return (
             <View key={detail.type} className="flex-row items-center gap-1.5">
-              <Icon color={iconColor} size={15} strokeWidth={2} />
+              <Icon
+                colorClassName="accent-foreground"
+                size={15}
+                strokeWidth={2}
+              />
               <Text
                 className="text-foreground text-sm font-medium"
                 style={{ fontVariant: ["tabular-nums"] }}
