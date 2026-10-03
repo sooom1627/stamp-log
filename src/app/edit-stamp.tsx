@@ -1,9 +1,9 @@
-import { useLocalSearchParams } from "expo-router";
-
+import { useIdParam } from "@/features/rallies/hooks/use-id-param";
 import { EditStampScreen } from "@/features/rallies/screens/edit-stamp-screen";
 
 export default function EditStamp() {
-  const { stampId } = useLocalSearchParams<{ stampId: string }>();
+  const stampId = useIdParam("stampId");
+  if (stampId === undefined) return null;
 
-  return <EditStampScreen stampId={Number(stampId)} />;
+  return <EditStampScreen stampId={stampId} />;
 }

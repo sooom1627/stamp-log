@@ -1,9 +1,9 @@
-import { useLocalSearchParams } from "expo-router";
-
+import { useIdParam } from "@/features/rallies/hooks/use-id-param";
 import { AddPastStampScreen } from "@/features/rallies/screens/add-past-stamp-screen";
 
 export default function AddPastStamp() {
-  const { rallyId } = useLocalSearchParams<{ rallyId: string }>();
+  const rallyId = useIdParam("rallyId");
+  if (rallyId === undefined) return null;
 
-  return <AddPastStampScreen rallyId={Number(rallyId)} />;
+  return <AddPastStampScreen rallyId={rallyId} />;
 }

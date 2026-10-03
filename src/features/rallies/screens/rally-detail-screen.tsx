@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
 import {
   accessibilityLabel,
@@ -16,6 +16,7 @@ import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
+import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 
 type StampPostProps = {
@@ -118,10 +119,12 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
   );
 }
 
-export function RallyDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+type RallyDetailScreenProps = {
+  rallyId: Rally["id"];
+};
+
+export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
-  const rallyId = Number(id);
   const rallies = useRallies();
   const stamps = useRallyStamps(rallyId);
   const remove = useDeleteRally();
