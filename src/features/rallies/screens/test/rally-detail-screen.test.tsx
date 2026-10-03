@@ -3,12 +3,19 @@ import { Alert, type AlertButton } from "react-native";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import * as ralliesDb from "../../db/rallies-db";
+import * as stampsDb from "../../db/stamps-db";
 import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
@@ -165,5 +172,79 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
     await openRallyDetail("Own stamps only");
 
     expect(await screen.findAllByText(stampDateTimePattern)).toHaveLength(1);
+  });
+});
+
+describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
+  async function openWithTwoStamps(name: string) {
+    const { rally } = await openRallyDetail(name, async (rallyId) => {
+      await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+    });
+    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
+    // listStamps is newest first, so the last one is the stamp from yesterday.
+    const pastStamp = (await stampsOf(rally.id)).at(-1);
+    if (!pastStamp) throw new Error("Past stamp not found");
+    await fireEvent(
+      screen.getByTestId(`stamp-delete-${pastStamp.id}`),
+      "buttonPress",
+    );
+    return { rally, pastStamp };
+  }
+
+  async function stampsOf(rallyId: number) {
+    return (await listStamps()).filter((stamp) => stamp.rallyId === rallyId);
+  }
+
+  test("deletes the stamp after confirmation and stays on rally detail", async () => {
+    const { rally, pastStamp } = await openWithTwoStamps("Delete stamp");
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete stamp?",
+      "This action cannot be undone.",
+      expect.any(Array),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+    expect(screen.getAllByText(stampDateTimePattern)).toHaveLength(1);
+    expect(
+      screen.queryByText(formatStampDateTime(new Date(pastStamp.stampedAt))),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(
+      (await stampsOf(rally.id)).some((stamp) => stamp.id === pastStamp.id),
+    ).toBe(false);
+  });
+
+  test("keeps the stamp when the deletion is cancelled", async () => {
+    const { rally } = await openWithTwoStamps("Cancel stamp delete");
+
+    await act(async () => {
+      findAlertButton("cancel").onPress?.();
+    });
+
+    expect(screen.getByText("2 stamps")).toBeOnTheScreen();
+    expect(await stampsOf(rally.id)).toHaveLength(2);
+  });
+
+  test("shows the global error toast when deletion fails", async () => {
+    jest
+      .spyOn(stampsDb, "deleteStamp")
+      .mockRejectedValueOnce(new Error("delete failed"));
+    const { rally } = await openWithTwoStamps("Stamp delete fails");
+
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Something went wrong. Please try again.",
+      );
+    });
+    expect(screen.getByText("2 stamps")).toBeOnTheScreen();
+    expect(await stampsOf(rally.id)).toHaveLength(2);
   });
 });

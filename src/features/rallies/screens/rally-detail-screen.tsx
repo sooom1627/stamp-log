@@ -9,7 +9,7 @@ import { labelStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
-import { useRallyStamps } from "../hooks/use-stamps";
+import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
 
 type StampPostProps = {
@@ -18,9 +18,17 @@ type StampPostProps = {
   stampedAt: Stamp["stampedAt"];
   memo: Stamp["memo"];
   onEdit: (id: Stamp["id"]) => void;
+  onDelete: (id: Stamp["id"]) => void;
 };
 
-function StampPost({ id, emoji, stampedAt, memo, onEdit }: StampPostProps) {
+function StampPost({
+  id,
+  emoji,
+  stampedAt,
+  memo,
+  onEdit,
+  onDelete,
+}: StampPostProps) {
   return (
     <View className="flex-row gap-3">
       <Text aria-hidden className="text-2xl">
@@ -52,6 +60,13 @@ function StampPost({ id, emoji, stampedAt, memo, onEdit }: StampPostProps) {
             systemImage="pencil"
             onPress={() => onEdit(id)}
           />
+          <Button
+            testID={`stamp-delete-${id}`}
+            label="Delete"
+            systemImage="trash"
+            role="destructive"
+            onPress={() => onDelete(id)}
+          />
         </Menu>
       </Host>
     </View>
@@ -65,6 +80,7 @@ export function RallyDetailScreen() {
   const rallies = useRallies();
   const stamps = useRallyStamps(rallyId);
   const remove = useDeleteRally();
+  const removeStamp = useDeleteStamp();
   const rally = rallies.data?.find((candidate) => candidate.id === rallyId);
 
   useEffect(() => {
@@ -89,6 +105,16 @@ export function RallyDetailScreen() {
       },
     ]);
 
+  const confirmDeleteStamp = (stampId: Stamp["id"]) =>
+    Alert.alert("Delete stamp?", "This action cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => removeStamp.mutate(stampId),
+      },
+    ]);
+
   return (
     <>
       <FlatList
@@ -105,6 +131,7 @@ export function RallyDetailScreen() {
             stampedAt={item.stampedAt}
             memo={item.memo}
             onEdit={(stampId) => push(`/edit-stamp?stampId=${stampId}`)}
+            onDelete={confirmDeleteStamp}
           />
         )}
         ListHeaderComponent={
