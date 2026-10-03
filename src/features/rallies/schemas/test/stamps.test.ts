@@ -2,6 +2,7 @@ import {
   parseStampRow,
   saveStampInputSchema,
   stampSchema,
+  updateStampInputSchema,
   updateStampMemoInputSchema,
 } from "../stamps";
 
@@ -155,5 +156,81 @@ describe("S-025 ST-001 past stamp save input", () => {
     expect(() =>
       saveStampInputSchema.parse({ rallyId: 3, stampedAt: "yesterday" }),
     ).toThrow();
+  });
+});
+
+describe("S-006 ST-004 stamp update input", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-09-19T12:34:00.000Z"));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test("accepts a past stampedAt and trims the memo", () => {
+    expect(
+      updateStampInputSchema.parse({
+        id: 1,
+        stampedAt: "2026-09-18T11:40:00.000Z",
+        memo: "  Met them  ",
+      }),
+    ).toEqual({
+      id: 1,
+      stampedAt: "2026-09-18T11:40:00.000Z",
+      memo: "Met them",
+    });
+  });
+
+  test("accepts stampedAt equal to now", () => {
+    expect(
+      updateStampInputSchema.parse({
+        id: 1,
+        stampedAt: "2026-09-19T12:34:00.000Z",
+        memo: "Met them",
+      }).stampedAt,
+    ).toBe("2026-09-19T12:34:00.000Z");
+  });
+
+  test("rejects a future stampedAt", () => {
+    expect(
+      updateStampInputSchema.safeParse({
+        id: 1,
+        stampedAt: "2026-09-19T12:35:00.000Z",
+        memo: "Met them",
+      }).success,
+    ).toBe(false);
+  });
+
+  test("rejects stampedAt that is not an ISO datetime", () => {
+    expect(
+      updateStampInputSchema.safeParse({
+        id: 1,
+        stampedAt: "yesterday",
+        memo: "Met them",
+      }).success,
+    ).toBe(false);
+  });
+
+  test("turns an empty or blank memo into null", () => {
+    for (const memo of ["", "   "]) {
+      expect(
+        updateStampInputSchema.parse({
+          id: 1,
+          stampedAt: "2026-09-18T11:40:00.000Z",
+          memo,
+        }).memo,
+      ).toBeNull();
+    }
+  });
+
+  test("rejects when id is missing", () => {
+    expect(
+      updateStampInputSchema.safeParse({
+        stampedAt: "2026-09-18T11:40:00.000Z",
+        memo: "Met them",
+      }).success,
+    ).toBe(false);
   });
 });

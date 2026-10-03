@@ -1,19 +1,130 @@
 import { useEffect } from "react";
 
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, Text, View } from "react-native";
 
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
+import {
+  accessibilityLabel,
+  contentShape,
+  frame,
+  shapes,
+} from "@expo/ui/swift-ui/modifiers";
+
+import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
-import { useStamps } from "../hooks/use-stamps";
+import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
+import { type Stamp } from "../schemas/stamps";
+
+type StampPostProps = {
+  id: Stamp["id"];
+  emoji: string;
+  stampedAt: Stamp["stampedAt"];
+  memo: Stamp["memo"];
+  onEdit: (id: Stamp["id"]) => void;
+  onDelete: (id: Stamp["id"]) => void;
+};
+
+function StampPost({
+  id,
+  emoji,
+  stampedAt,
+  memo,
+  onEdit,
+  onDelete,
+}: StampPostProps) {
+  return (
+    <View className="flex-row gap-3">
+      <Text aria-hidden className="text-2xl">
+        {emoji}
+      </Text>
+      <View className="flex-1 gap-1">
+        <Text
+          selectable
+          className="text-main-hover text-sm dark:text-slate-300"
+        >
+          {formatStampDateTime(new Date(stampedAt))}
+        </Text>
+        {memo ? (
+          <Text selectable className="text-main text-base dark:text-slate-100">
+            {memo}
+          </Text>
+        ) : null}
+      </View>
+      <Host matchContents>
+        <Menu
+          testID={`stamp-menu-${id}`}
+          // Size the label itself: a frame outside a SwiftUI Menu does not
+          // widen its hit area. 44pt is Apple's minimum tap target.
+          label={
+            <Image
+              testID={`stamp-menu-icon-${id}`}
+              systemName="ellipsis"
+              color="#f97316"
+              modifiers={[
+                frame({ width: 44, height: 44 }),
+                contentShape(shapes.rectangle()),
+                accessibilityLabel("More"),
+              ]}
+            />
+          }
+        >
+          <Button
+            testID={`stamp-edit-${id}`}
+            label="Edit"
+            systemImage="pencil"
+            onPress={() => onEdit(id)}
+          />
+          <Button
+            testID={`stamp-delete-${id}`}
+            label="Delete"
+            systemImage="trash"
+            role="destructive"
+            onPress={() => onDelete(id)}
+          />
+        </Menu>
+      </Host>
+    </View>
+  );
+}
+
+type TimelineEmptyProps = {
+  isError: boolean;
+  isLoaded: boolean;
+  onRetry: () => void;
+};
+
+function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
+  if (isError) {
+    return (
+      <View className="items-center gap-2 py-12">
+        <Text selectable className="text-danger">
+          Couldn't load
+        </Text>
+        <Pressable role="button" onPress={onRetry}>
+          <Text className="text-main dark:text-slate-100">Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
+  if (!isLoaded) return null;
+
+  return (
+    <View className="items-center py-12">
+      <Text className="text-main-hover dark:text-slate-300">No stamps yet</Text>
+    </View>
+  );
+}
 
 export function RallyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { back, push } = useRouter();
-  const rallies = useRallies();
-  const stamps = useStamps();
-  const remove = useDeleteRally();
   const rallyId = Number(id);
+  const rallies = useRallies();
+  const stamps = useRallyStamps(rallyId);
+  const remove = useDeleteRally();
+  const removeStamp = useDeleteStamp();
   const rally = rallies.data?.find((candidate) => candidate.id === rallyId);
 
   useEffect(() => {
@@ -26,9 +137,6 @@ export function RallyDetailScreen() {
     return null;
   }
 
-  const stampCount =
-    stamps.data?.filter((stamp) => stamp.rallyId === rally.id).length ?? 0;
-
   const confirmDelete = () =>
     Alert.alert("Delete rally?", "This action cannot be undone.", [
       { text: "Cancel", style: "cancel" },
@@ -39,45 +147,82 @@ export function RallyDetailScreen() {
       },
     ]);
 
+  const confirmDeleteStamp = (stampId: Stamp["id"]) =>
+    Alert.alert("Delete stamp?", "This action cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => removeStamp.mutate(stampId),
+      },
+    ]);
+
   return (
     <>
-      <ScrollView
+      <FlatList
         accessibilityLabel="Rally detail"
         className="bg-surface dark:bg-main-dark flex-1"
         contentContainerClassName="gap-6 px-5 py-6"
         contentInsetAdjustmentBehavior="automatic"
-      >
-        <View className="items-center gap-3">
-          <Text className="text-5xl">{rally.emoji}</Text>
-          <Text
-            selectable
-            role="heading"
-            className="text-main text-2xl font-semibold dark:text-slate-100"
-          >
-            {rally.name}
-          </Text>
-          <Text className="text-main-hover text-base dark:text-slate-300">
-            {stampCount} {stampCount === 1 ? "stamp" : "stamps"}
-          </Text>
-        </View>
-        <Pressable
-          role="button"
-          className="border-continuous bg-main active:bg-main-hover items-center rounded-xl px-4 py-3 dark:bg-slate-100"
-          onPress={() => push(`/add-past-stamp?rallyId=${rally.id}`)}
-        >
-          <Text className="dark:text-main-dark font-semibold text-white">
-            Past stamp
-          </Text>
-        </Pressable>
-        <Pressable
-          role="button"
-          aria-label={`Delete ${rally.name}`}
-          className="border-danger active:bg-danger/10 items-center rounded-xl border px-4 py-3"
-          onPress={confirmDelete}
-        >
-          <Text className="text-danger font-semibold">Delete rally</Text>
-        </Pressable>
-      </ScrollView>
+        data={stamps.data}
+        keyExtractor={(stamp) => String(stamp.id)}
+        renderItem={({ item }) => (
+          <StampPost
+            id={item.id}
+            emoji={rally.emoji}
+            stampedAt={item.stampedAt}
+            memo={item.memo}
+            onEdit={(stampId) => push(`/edit-stamp?stampId=${stampId}`)}
+            onDelete={confirmDeleteStamp}
+          />
+        )}
+        ListHeaderComponent={
+          <View className="items-center gap-3">
+            <Text className="text-5xl">{rally.emoji}</Text>
+            <Text
+              selectable
+              role="heading"
+              className="text-main text-2xl font-semibold dark:text-slate-100"
+            >
+              {rally.name}
+            </Text>
+            {stamps.data ? (
+              <Text className="text-main-hover text-base dark:text-slate-300">
+                {stamps.data.length}{" "}
+                {stamps.data.length === 1 ? "stamp" : "stamps"}
+              </Text>
+            ) : null}
+          </View>
+        }
+        ListEmptyComponent={
+          <TimelineEmpty
+            isError={stamps.isError}
+            isLoaded={stamps.isSuccess}
+            onRetry={() => void stamps.refetch()}
+          />
+        }
+        ListFooterComponent={
+          <View className="gap-6">
+            <Pressable
+              role="button"
+              className="border-continuous bg-main active:bg-main-hover items-center rounded-xl px-4 py-3 dark:bg-slate-100"
+              onPress={() => push(`/add-past-stamp?rallyId=${rally.id}`)}
+            >
+              <Text className="dark:text-main-dark font-semibold text-white">
+                Past stamp
+              </Text>
+            </Pressable>
+            <Pressable
+              role="button"
+              aria-label={`Delete ${rally.name}`}
+              className="border-danger active:bg-danger/10 items-center rounded-xl border px-4 py-3"
+              onPress={confirmDelete}
+            >
+              <Text className="text-danger font-semibold">Delete rally</Text>
+            </Pressable>
+          </View>
+        }
+      />
       <Stack.Screen options={{ title: rally.name }} />
     </>
   );

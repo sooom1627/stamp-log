@@ -79,6 +79,19 @@ export default function RootLayout() {
                 headerShadowVisible: false,
               }}
             />
+            <Stack.Screen
+              name="edit-stamp"
+              options={{
+                title: "Edit stamp",
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: "fitToContents",
+                contentStyle: sheetBackgroundStyle,
+                headerStyle: sheetBackgroundStyle,
+                headerTintColor: sheetTitleStyle.color,
+                headerShadowVisible: false,
+              }}
+            />
           </Stack>
         </ThemeProvider>
         <Toaster position="bottom-center" closeButton />
