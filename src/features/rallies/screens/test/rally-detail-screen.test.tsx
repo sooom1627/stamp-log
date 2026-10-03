@@ -304,3 +304,21 @@ describe("S-006 T-001 ST-009 empty and error states", () => {
     expect(within(detail).queryByText("Couldn't load")).not.toBeOnTheScreen();
   });
 });
+
+describe("S-006 T-001 ST-010 menu tap target", () => {
+  test("gives the … menu label a 44pt tap target read as More", async () => {
+    const { rally } = await openRallyDetail("Menu tap target");
+    const [stamp] = (await listStamps()).filter(
+      (candidate) => candidate.rallyId === rally.id,
+    );
+
+    expect(await screen.findByTestId(`stamp-menu-icon-${stamp.id}`)).toHaveProp(
+      "modifiers",
+      expect.arrayContaining([
+        expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
+        expect.objectContaining({ $type: "contentShape" }),
+        expect.objectContaining({ $type: "accessibilityLabel", label: "More" }),
+      ]),
+    );
+  });
+});

@@ -3,8 +3,13 @@ import { useEffect } from "react";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Button, Host, Menu } from "@expo/ui/swift-ui";
-import { labelStyle, tint } from "@expo/ui/swift-ui/modifiers";
+import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
+import {
+  accessibilityLabel,
+  contentShape,
+  frame,
+  shapes,
+} from "@expo/ui/swift-ui/modifiers";
 
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
@@ -50,9 +55,20 @@ function StampPost({
       <Host matchContents>
         <Menu
           testID={`stamp-menu-${id}`}
-          label="More"
-          systemImage="ellipsis"
-          modifiers={[labelStyle("iconOnly"), tint("#f97316")]}
+          // Size the label itself: a frame outside a SwiftUI Menu does not
+          // widen its hit area. 44pt is Apple's minimum tap target.
+          label={
+            <Image
+              testID={`stamp-menu-icon-${id}`}
+              systemName="ellipsis"
+              color="#f97316"
+              modifiers={[
+                frame({ width: 44, height: 44 }),
+                contentShape(shapes.rectangle()),
+                accessibilityLabel("More"),
+              ]}
+            />
+          }
         >
           <Button
             testID={`stamp-edit-${id}`}
