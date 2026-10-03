@@ -1,19 +1,19 @@
 import { useState } from "react";
 
-import { Text, View } from "react-native";
-
 import { useRouter } from "expo-router";
-import { DatePicker, Host } from "@expo/ui/swift-ui";
-import { tint } from "@expo/ui/swift-ui/modifiers";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetContainer } from "@/shared/components/form-sheet";
-import { useAccentColor } from "@/shared/hooks/use-accent-color";
-import { localDateKey } from "@/shared/utils/local-date-key";
 
+import { RallyHeading } from "../components/rally-heading";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
+import {
+  StampDateTimeErrors,
+  StampDateTimeFields,
+} from "../components/stamp-date-time-fields";
 import { useRallies } from "../hooks/use-rallies";
 import { useRallyStamps, useSaveStamp } from "../hooks/use-stamps";
+import { hasStampOnLocalDay } from "../schemas/stamps";
 
 type AddPastStampScreenProps = {
   rallyId: number;
@@ -29,34 +29,18 @@ function yesterdayNoon() {
 export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   const [stampedAt, setStampedAt] = useState(yesterdayNoon);
   const { back } = useRouter();
-  const accentColor = useAccentColor();
   const { data: rallies } = useRallies();
   const { data: rallyStamps } = useRallyStamps(rallyId);
   const { mutate: saveStamp, isPending: isSaving } = useSaveStamp();
 
   const rally = rallies?.find((candidate) => candidate.id === rallyId);
   const isFuture = stampedAt.getTime() > Date.now();
-  const hasStampOnDay =
-    rallyStamps?.some(
-      (stamp) =>
-        localDateKey(new Date(stamp.stampedAt)) === localDateKey(stampedAt),
-    ) ?? false;
+  const hasStampOnDay = hasStampOnLocalDay(rallyStamps ?? [], {
+    rallyId,
+    date: stampedAt,
+  });
   const canSave =
     rally !== undefined && !isFuture && !hasStampOnDay && !isSaving;
-
-  const handleDateChange = (date: Date) =>
-    setStampedAt((current) => {
-      const next = new Date(current);
-      next.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-      return next;
-    });
-
-  const handleTimeChange = (date: Date) =>
-    setStampedAt((current) => {
-      const next = new Date(current);
-      next.setHours(date.getHours(), date.getMinutes(), 0, 0);
-      return next;
-    });
 
   const handleSave = () => {
     if (!canSave) return;
@@ -74,52 +58,15 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
 
   return (
     <FormSheetContainer testID="add-past-stamp-form" className="gap-5">
-      {rally ? (
-        <View className="flex-row items-center gap-2">
-          <Text className="text-xl">{rally.emoji}</Text>
-          <Text
-            selectable
-            numberOfLines={1}
-            className="text-foreground min-w-0 flex-1 text-base font-semibold"
-          >
-            {rally.name}
-          </Text>
-        </View>
-      ) : null}
+      {rally ? <RallyHeading emoji={rally.emoji} name={rally.name} /> : null}
 
-      <Host matchContents={{ vertical: true }}>
-        <DatePicker
-          testID="past-stamp-date"
-          title="Date"
-          selection={stampedAt}
-          displayedComponents={["date"]}
-          range={{ end: new Date() }}
-          onDateChange={handleDateChange}
-          modifiers={[tint(accentColor)]}
-        />
-      </Host>
+      <StampDateTimeFields
+        value={stampedAt}
+        onChange={setStampedAt}
+        testIDPrefix="past-stamp"
+      />
 
-      <Host matchContents={{ vertical: true }}>
-        <DatePicker
-          testID="past-stamp-time"
-          title="Time"
-          selection={stampedAt}
-          displayedComponents={["hourAndMinute"]}
-          onDateChange={handleTimeChange}
-          modifiers={[tint(accentColor)]}
-        />
-      </Host>
-
-      {isFuture ? (
-        <Text className="text-danger text-sm">
-          Future times can't be saved.
-        </Text>
-      ) : null}
-      {hasStampOnDay ? (
-        <Text className="text-danger text-sm">
-          This rally already has a stamp on this day.
-        </Text>
-      ) : null}
+      <StampDateTimeErrors isFuture={isFuture} hasStampOnDay={hasStampOnDay} />
 
       <Button
         label="Save"
