@@ -74,7 +74,7 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
     expect(screen.getByTestId("edit-stamp-date")).toBeOnTheScreen();
     expect(screen.getByTestId("edit-stamp-time")).toBeOnTheScreen();
     expect(screen.getByDisplayValue("Talked in the lab")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 
   test("saves the new date, time and memo and shows them on the timeline", async () => {
@@ -191,5 +191,56 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
     expect((await findStamp(stampId))?.stampedAt).toBe(
       localAt(18, 21, 5).toISOString(),
     );
+  });
+});
+
+describe("S-006 T-001 ST-011 Save only after a change", () => {
+  const openWithMemo = (name: string) =>
+    openEdit(name, async (rallyId) => {
+      const stamp = await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 18, 11, 40, 23).toISOString(),
+      });
+      await updateStampMemo({ id: stamp.id, memo: "Talked" });
+      return stamp.id;
+    });
+
+  test("enables Save when the memo changes and disables it when reverted", async () => {
+    const { user } = await openWithMemo("Memo change rally");
+    const memoInput = screen.getByLabelText("Memo");
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+
+    await user.type(memoInput, " more");
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+
+    await user.clear(memoInput);
+    await user.type(memoInput, "Talked");
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  test("ignores spaces around the memo", async () => {
+    const { user } = await openWithMemo("Memo spaces rally");
+
+    await user.type(screen.getByLabelText("Memo"), "  ");
+
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  test("enables Save when the time changes and disables it when reverted", async () => {
+    await openWithMemo("Time change rally");
+
+    await pickDate("edit-stamp-time", localAt(20, 9, 5));
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+
+    await pickDate("edit-stamp-time", localAt(20, 11, 40));
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  test("enables Save when the date changes", async () => {
+    await openWithMemo("Date change rally");
+
+    await pickDate("edit-stamp-date", localAt(12, 0));
+
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 });

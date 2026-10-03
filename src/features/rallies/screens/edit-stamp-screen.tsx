@@ -20,6 +20,9 @@ import { useStamps, useUpdateStamp } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 
+// Pickers set seconds to 0, so compare at minute precision.
+const toMinutes = (date: Date) => Math.floor(date.getTime() / 60_000);
+
 type EditStampScreenProps = {
   stampId: number;
 };
@@ -69,7 +72,10 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
       other.rallyId === stamp.rallyId &&
       localDateKey(new Date(other.stampedAt)) === localDateKey(stampedAt),
   );
-  const canSave = !isFuture && !hasStampOnDay && !update.isPending;
+  const isChanged =
+    toMinutes(stampedAt) !== toMinutes(new Date(stamp.stampedAt)) ||
+    memo.trim() !== (stamp.memo ?? "");
+  const canSave = isChanged && !isFuture && !hasStampOnDay && !update.isPending;
 
   const handleDateChange = (date: Date) =>
     setStampedAt((current) => {
