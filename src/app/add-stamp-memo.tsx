@@ -1,9 +1,9 @@
-import { useLocalSearchParams } from "expo-router";
-
+import { useIdParam } from "@/features/rallies/hooks/use-id-param";
 import { AddStampMemoScreen } from "@/features/rallies/screens/add-stamp-memo-screen";
 
-export default function AddStampMemo() {
-  const { stampId } = useLocalSearchParams<{ stampId: string }>();
+export default function AddStampMemoSheet() {
+  const stampId = useIdParam("stampId");
+  if (stampId === undefined) return null;
 
-  return <AddStampMemoScreen stampId={Number(stampId)} />;
+  return <AddStampMemoScreen stampId={stampId} />;
 }
