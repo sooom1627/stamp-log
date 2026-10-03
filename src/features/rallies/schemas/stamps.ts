@@ -20,10 +20,22 @@ export const updateStampMemoInputSchema = z.object({
   id: stampSchema.shape.id,
   memo: z.string().trim().min(1),
 });
+export const updateStampInputSchema = z.object({
+  id: stampSchema.shape.id,
+  stampedAt: stampSchema.shape.stampedAt.refine(
+    (stampedAt) => Date.parse(stampedAt) <= Date.now(),
+    { message: "stampedAt must not be in the future" },
+  ),
+  memo: z
+    .string()
+    .trim()
+    .transform((memo) => (memo === "" ? null : memo)),
+});
 
 export type Stamp = z.infer<typeof stampSchema>;
 export type SaveStampInput = z.infer<typeof saveStampInputSchema>;
 export type UpdateStampMemoInput = z.infer<typeof updateStampMemoInputSchema>;
+export type UpdateStampInput = z.input<typeof updateStampInputSchema>;
 
 export function parseStampRow(row: Record<string, unknown>): Stamp {
   return stampSchema.parse({
