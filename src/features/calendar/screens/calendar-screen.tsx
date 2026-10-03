@@ -5,7 +5,9 @@ import { TabRootScreen } from "@/shared/components/tab-root-screen";
 export function CalendarScreen() {
   return (
     <TabRootScreen>
-      <Text role="heading">Calendar</Text>
+      <Text role="heading" className="text-foreground">
+        Calendar
+      </Text>
     </TabRootScreen>
   );
 }

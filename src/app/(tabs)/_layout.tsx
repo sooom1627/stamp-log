@@ -3,9 +3,7 @@ import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { useResolveClassNames } from "uniwind";
 
 export default function TabsLayout() {
-  const selectedTabStyle = useResolveClassNames(
-    "text-main dark:text-slate-100",
-  );
+  const selectedTabStyle = useResolveClassNames("text-foreground");
 
   return (
     <NativeTabs

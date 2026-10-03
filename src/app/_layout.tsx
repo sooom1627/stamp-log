@@ -20,10 +20,17 @@ import "../../tailwind.css";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const sheetBackgroundStyle = useResolveClassNames(
-    "bg-surface dark:bg-main-dark",
-  );
-  const sheetTitleStyle = useResolveClassNames("text-main dark:text-slate-100");
+  const sheetBackgroundStyle = useResolveClassNames("bg-background");
+  const sheetTitleStyle = useResolveClassNames("text-foreground");
+  const formSheetOptions = {
+    presentation: "formSheet",
+    sheetGrabberVisible: true,
+    sheetAllowedDetents: "fitToContents",
+    contentStyle: sheetBackgroundStyle,
+    headerStyle: sheetBackgroundStyle,
+    headerTintColor: sheetTitleStyle.color,
+    headerShadowVisible: false,
+  } as const;
   const [queryClient] = useState(() =>
     createQueryClient({
       onMutationError: () => {
@@ -42,42 +49,19 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen
               name="create-rally"
-              options={{
-                title: "Create rally",
-                presentation: "formSheet",
-                sheetGrabberVisible: true,
-                sheetAllowedDetents: "fitToContents",
-                contentStyle: sheetBackgroundStyle,
-                headerStyle: sheetBackgroundStyle,
-                headerTintColor: sheetTitleStyle.color,
-                headerShadowVisible: false,
-              }}
+              options={{ ...formSheetOptions, title: "Create rally" }}
             />
             <Stack.Screen
               name="add-stamp-memo"
-              options={{
-                title: "Add memo",
-                presentation: "formSheet",
-                sheetGrabberVisible: true,
-                sheetAllowedDetents: "fitToContents",
-                contentStyle: sheetBackgroundStyle,
-                headerStyle: sheetBackgroundStyle,
-                headerTintColor: sheetTitleStyle.color,
-                headerShadowVisible: false,
-              }}
+              options={{ ...formSheetOptions, title: "Add memo" }}
             />
             <Stack.Screen
               name="add-past-stamp"
-              options={{
-                title: "Past stamp",
-                presentation: "formSheet",
-                sheetGrabberVisible: true,
-                sheetAllowedDetents: "fitToContents",
-                contentStyle: sheetBackgroundStyle,
-                headerStyle: sheetBackgroundStyle,
-                headerTintColor: sheetTitleStyle.color,
-                headerShadowVisible: false,
-              }}
+              options={{ ...formSheetOptions, title: "Past stamp" }}
+            />
+            <Stack.Screen
+              name="edit-stamp"
+              options={{ ...formSheetOptions, title: "Edit stamp" }}
             />
           </Stack>
         </ThemeProvider>

@@ -7,4 +7,5 @@ function MockIcon() {
 export const ChevronRight = MockIcon;
 export const ListChecks = MockIcon;
 export const MapPinPen = MockIcon;
+export const Plus = MockIcon;
 export const UsersRound = MockIcon;

@@ -1,7 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 
-import { SymbolView } from "expo-symbols";
-
+import { Plus } from "@/shared/components/icons";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
@@ -56,16 +55,14 @@ function ActivityDayCircle({
     return (
       <Pressable
         role="button"
-        accessibilityLabel={
+        aria-label={
           day.isRecorded
             ? `${rallyName} already stamped today`
             : `Stamp ${rallyName} for today`
         }
-        accessibilityState={{
-          disabled: day.isRecorded,
-          selected: day.isRecorded,
-        }}
-        accessibilityValue={{ text: formattedDate }}
+        aria-disabled={day.isRecorded}
+        aria-selected={day.isRecorded}
+        aria-valuetext={formattedDate}
         className="flex-1 items-center"
         disabled={day.isRecorded}
         onPress={onPressToday}
@@ -78,11 +75,7 @@ function ActivityDayCircle({
           {day.isRecorded ? (
             <View className="bg-accent size-3 rounded-full" />
           ) : (
-            <SymbolView
-              name={{ ios: "plus", android: "add", web: "add" }}
-              size={13}
-              tintColor="#f97316"
-            />
+            <Plus colorClassName="accent-accent" size={13} strokeWidth={2.5} />
           )}
         </View>
       </Pressable>
@@ -92,11 +85,11 @@ function ActivityDayCircle({
   return (
     <View
       accessible
-      accessibilityLabel={`${formattedDate}, ${
+      aria-label={`${formattedDate}, ${
         day.isRecorded ? "recorded" : "not recorded"
       }`}
-      accessibilityState={{ selected: day.isRecorded }}
-      accessibilityValue={{ text: formattedDate }}
+      aria-selected={day.isRecorded}
+      aria-valuetext={formattedDate}
       className="flex-1 items-center"
       testID="activity-day"
     >
@@ -105,7 +98,7 @@ function ActivityDayCircle({
           className={
             day.isRecorded
               ? "bg-accent size-3 rounded-full"
-              : "bg-border size-2 rounded-full dark:bg-slate-700"
+              : "bg-border size-2 rounded-full"
           }
         />
       </View>
@@ -119,7 +112,7 @@ function WeekdayLabels({ days }: { days: ActivityDay[] }) {
       {days.map((day) => (
         <Text
           key={day.key}
-          className="text-text-muted flex-1 text-center text-xs dark:text-slate-400"
+          className="text-foreground-muted flex-1 text-center text-xs"
         >
           {weekdayFormatter.format(day.date)}
         </Text>

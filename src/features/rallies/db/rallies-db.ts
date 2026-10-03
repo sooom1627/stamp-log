@@ -10,15 +10,11 @@ import {
   type SaveRallyInput,
 } from "../schemas/rallies";
 
-async function rallyColumnNames(db: SQLiteDatabase) {
-  const rows = await db.getAllAsync<{ name: string }>(
-    "PRAGMA table_info(rallies)",
-  );
-  return rows.map((row) => row.name.toLowerCase());
-}
+import { withStampsDb } from "./stamps-db";
+import { tableColumnNames } from "./table-columns";
 
 async function ensureRallies(db: SQLiteDatabase) {
-  const columns = await rallyColumnNames(db);
+  const columns = await tableColumnNames(db, "rallies");
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS rallies (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,21 +28,29 @@ async function ensureRallies(db: SQLiteDatabase) {
     await db.execAsync("ALTER TABLE rallies ADD COLUMN emoji TEXT");
   }
 
-  await db.execAsync(`
-    UPDATE rallies
-    SET emoji = CASE type
-      WHEN 'person' THEN '😀'
-      WHEN 'place' THEN '🏠'
-      ELSE '👏'
-    END
-    WHERE emoji IS NULL OR TRIM(emoji) = '';
-  `);
+  for (const [type, emoji] of Object.entries(rallyTypeEmojis)) {
+    await db.runAsync(
+      "UPDATE rallies SET emoji = ? WHERE type = ? AND (emoji IS NULL OR TRIM(emoji) = '')",
+      emoji,
+      type,
+    );
+  }
 }
 
-async function withRalliesDb() {
-  const db = await getDb();
-  await ensureRallies(db);
-  return db;
+let ralliesDbReady: Promise<SQLiteDatabase> | undefined;
+
+// Sets up the table once per app start; a failed setup is retried on the next call.
+function withRalliesDb() {
+  ralliesDbReady ??= getDb()
+    .then(async (db) => {
+      await ensureRallies(db);
+      return db;
+    })
+    .catch((error: unknown) => {
+      ralliesDbReady = undefined;
+      throw error;
+    });
+  return ralliesDbReady;
 }
 
 export async function saveRally(input: SaveRallyInput): Promise<void> {
@@ -62,12 +66,8 @@ export async function saveRally(input: SaveRallyInput): Promise<void> {
 
 export async function deleteRally(id: Rally["id"]): Promise<void> {
   const db = await withRalliesDb();
-  const stampTables = await db.getAllAsync<{ name: string }>(
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'stamps'",
-  );
-  if (stampTables.length > 0) {
-    await db.runAsync("DELETE FROM stamps WHERE rally_id = ?", id);
-  }
+  await withStampsDb();
+  await db.runAsync("DELETE FROM stamps WHERE rally_id = ?", id);
   await db.runAsync("DELETE FROM rallies WHERE id = ?", id);
 }
 

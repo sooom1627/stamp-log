@@ -1,20 +1,20 @@
 import { useState } from "react";
 
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
-import { useHeaderHeight } from "expo-router/react-navigation";
 
 import {
   EmojiKeyboard,
   type EmojiType,
 } from "@softwhere-uz/react-native-emoji-keyboard";
+
+import { Button } from "@/shared/components/button";
+import {
+  FormField,
+  FormSheetContainer,
+  FormTextInput,
+} from "@/shared/components/form-sheet";
 
 import { RallyTypeRadios } from "../components/rally-type-radios";
 import { useSaveRally } from "../hooks/use-rallies";
@@ -32,10 +32,6 @@ const rallyNamePlaceholders: Record<RallyType, string> = {
   person: "Enter a person to track",
 };
 
-// Do not use ScrollView / KeyboardAvoidingView inside formSheet.
-// react-native-screens force-overrides the ScrollView frame to the full sheet,
-// which interferes with sibling content (footer) and stops rendering.
-// Keep the root intrinsically sized so fitToContents includes the Save button.
 export function CreateRallyScreen() {
   const [selectedType, setSelectedType] = useState<RallyType>(
     rallyTypeSchema.options[0],
@@ -45,12 +41,11 @@ export function CreateRallyScreen() {
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [name, setName] = useState("");
   const { back } = useRouter();
-  const headerHeight = useHeaderHeight();
-  const save = useSaveRally();
+  const { mutate: saveRally, isPending: isSaving } = useSaveRally();
 
   const isNameValid = rallyNameSchema.safeParse(name).success;
   const isEmojiValid = rallyEmojiSchema.safeParse(emoji).success;
-  const canSave = isNameValid && isEmojiValid && !save.isPending;
+  const canSave = isNameValid && isEmojiValid && !isSaving;
 
   const handleTypeChange = (type: RallyType) => {
     setSelectedType(type);
@@ -66,40 +61,30 @@ export function CreateRallyScreen() {
   const handleSave = () => {
     if (!canSave) return;
 
-    save.mutate({ name, type: selectedType, emoji }, { onSuccess: back });
+    saveRally({ name, type: selectedType, emoji }, { onSuccess: back });
   };
 
   return (
-    <View
-      testID="create-rally-form"
-      className="bg-surface dark:bg-main-dark px-5 pb-6"
-      style={{ paddingTop: headerHeight + 16 }}
-    >
+    <FormSheetContainer testID="create-rally-form">
       <View className="gap-6">
-        <View className="gap-2">
-          <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            Type
-          </Text>
+        <FormField label="Type">
           <RallyTypeRadios value={selectedType} onChange={handleTypeChange} />
-        </View>
+        </FormField>
 
-        <View className="gap-2">
-          <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            Emoji
-          </Text>
+        <FormField label="Emoji">
           <Pressable
             role="button"
-            accessibilityLabel={`Select emoji (currently ${emoji})`}
+            aria-label={`Select emoji (currently ${emoji})`}
             onPress={() => setIsEmojiPickerOpen((isOpen) => !isOpen)}
-            className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active dark:bg-main-hover flex-row items-center gap-3 rounded-2xl border px-4 py-3 dark:border-slate-700"
+            className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active flex-row items-center gap-3 rounded-2xl border px-4 py-3"
           >
             <Text className="text-3xl">{emoji}</Text>
-            <Text className="text-text-muted flex-1 text-sm dark:text-slate-400">
+            <Text className="text-foreground-muted flex-1 text-sm">
               Tap to change
             </Text>
           </Pressable>
           {isEmojiPickerOpen ? (
-            <View className="border-continuous border-border h-80 overflow-hidden rounded-2xl border dark:border-slate-700">
+            <View className="border-continuous border-border h-80 overflow-hidden rounded-2xl border">
               <EmojiKeyboard
                 onEmojiSelected={handleEmojiSelect}
                 hideHeader
@@ -110,60 +95,30 @@ export function CreateRallyScreen() {
               />
             </View>
           ) : null}
-        </View>
+        </FormField>
 
-        <View className="gap-2">
-          <Text className="text-main text-sm font-semibold dark:text-slate-100">
-            Name
-          </Text>
-          <TextInput
+        <FormField label="Name">
+          <FormTextInput
             value={name}
             onChangeText={setName}
             onFocus={() => setIsEmojiPickerOpen(false)}
             onSubmitEditing={handleSave}
             placeholder={rallyNamePlaceholders[selectedType]}
-            accessibilityLabel="Name"
+            aria-label="Name"
             returnKeyType="done"
             submitBehavior="blurAndSubmit"
-            className="border-continuous border-border bg-surface-muted text-main focus:border-accent dark:bg-main-hover rounded-2xl border px-4 py-3.5 text-base dark:border-slate-700 dark:text-slate-100"
-            cursorColorClassName="accent-accent"
-            selectionColorClassName="accent-accent"
-            placeholderTextColorClassName="accent-text-muted"
           />
-        </View>
+        </FormField>
       </View>
 
-      <Pressable
-        role="button"
-        accessibilityLabel={save.isPending ? "Saving…" : "Save"}
-        accessibilityState={{
-          disabled: !canSave,
-          busy: save.isPending,
-        }}
-        disabled={!canSave}
+      <Button
+        label="Save"
+        loadingLabel="Saving…"
         onPress={handleSave}
-        className={
-          canSave || save.isPending
-            ? "border-continuous bg-main active:bg-main-hover mt-8 flex-row items-center justify-center gap-2 rounded-2xl py-4 dark:bg-slate-100"
-            : "border-continuous bg-surface-muted-active mt-8 flex-row items-center justify-center gap-2 rounded-2xl py-4"
-        }
-      >
-        {save.isPending ? (
-          <ActivityIndicator
-            size="small"
-            colorClassName="accent-white dark:accent-main-dark"
-          />
-        ) : null}
-        <Text
-          className={
-            canSave || save.isPending
-              ? "dark:text-main-dark text-base font-semibold text-white"
-              : "text-text-muted text-base font-semibold"
-          }
-        >
-          {save.isPending ? "Saving…" : "Save"}
-        </Text>
-      </Pressable>
-    </View>
+        disabled={!canSave}
+        isLoading={isSaving}
+        className="mt-8"
+      />
+    </FormSheetContainer>
   );
 }

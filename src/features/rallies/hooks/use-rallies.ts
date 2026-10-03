@@ -10,7 +10,6 @@ export function useRallies() {
   return useQuery({
     queryKey: ralliesQueryKey,
     queryFn: listRallies,
-    staleTime: Infinity,
   });
 }
 
@@ -29,9 +28,10 @@ export function useDeleteRally() {
 
   return useMutation({
     mutationFn: deleteRally,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ralliesQueryKey });
-      queryClient.invalidateQueries({ queryKey: stampsQueryKey });
-    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ralliesQueryKey }),
+        queryClient.invalidateQueries({ queryKey: stampsQueryKey }),
+      ]),
   });
 }
