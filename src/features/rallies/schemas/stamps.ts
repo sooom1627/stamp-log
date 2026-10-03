@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { localDateKey } from "@/shared/utils/local-date-key";
+
 export const stampSchema = z.object({
   id: z.number(),
   rallyId: z.number(),
@@ -28,6 +30,22 @@ export type Stamp = z.infer<typeof stampSchema>;
 export type SaveStampInput = z.infer<typeof saveStampInputSchema>;
 export type UpdateStampMemoInput = z.infer<typeof updateStampMemoInputSchema>;
 export type UpdateStampInput = z.input<typeof updateStampInputSchema>;
+
+export const sameDayStampMessage = "This rally already has a stamp on that day";
+
+// One stamp per rally per local calendar day (S-025 / S-006).
+export function hasStampOnLocalDay(
+  stamps: Pick<Stamp, "id" | "rallyId" | "stampedAt">[],
+  target: { rallyId: Stamp["rallyId"]; date: Date; excludedId?: Stamp["id"] },
+) {
+  const dayKey = localDateKey(target.date);
+  return stamps.some(
+    (stamp) =>
+      stamp.id !== target.excludedId &&
+      stamp.rallyId === target.rallyId &&
+      localDateKey(new Date(stamp.stampedAt)) === dayKey,
+  );
+}
 
 export function parseStampRow(row: Record<string, unknown>): Stamp {
   return stampSchema.parse({

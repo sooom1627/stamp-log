@@ -1,4 +1,5 @@
 import {
+  hasStampOnLocalDay,
   notFutureDatetimeSchema,
   parseStampRow,
   saveStampInputSchema,
@@ -259,5 +260,54 @@ describe("S-006 RT-002 ST-001 not-future datetime", () => {
     for (const value of ["2026-09-19T12:35:00.000Z", "yesterday"]) {
       expect(notFutureDatetimeSchema.safeParse(value).success).toBe(false);
     }
+  });
+});
+
+describe("S-006 RT-002 ST-002 same local day rule", () => {
+  const stamps = [
+    {
+      id: 1,
+      rallyId: 10,
+      stampedAt: new Date(2026, 8, 18, 9, 0).toISOString(),
+    },
+    {
+      id: 2,
+      rallyId: 20,
+      stampedAt: new Date(2026, 8, 19, 9, 0).toISOString(),
+    },
+  ];
+
+  test("is true when the same rally has a stamp on that local day", () => {
+    expect(
+      hasStampOnLocalDay(stamps, {
+        rallyId: 10,
+        date: new Date(2026, 8, 18, 23, 59),
+      }),
+    ).toBe(true);
+  });
+
+  test("is false for another day or another rally", () => {
+    expect(
+      hasStampOnLocalDay(stamps, {
+        rallyId: 10,
+        date: new Date(2026, 8, 19, 0, 0),
+      }),
+    ).toBe(false);
+    expect(
+      hasStampOnLocalDay(stamps, {
+        rallyId: 30,
+        date: new Date(2026, 8, 18, 9, 0),
+      }),
+    ).toBe(false);
+  });
+
+  test("does not count the excluded stamp itself", () => {
+    expect(
+      hasStampOnLocalDay(stamps, {
+        rallyId: 10,
+        date: new Date(2026, 8, 18, 12, 0),
+        excludedId: 1,
+      }),
+    ).toBe(false);
   });
 });
