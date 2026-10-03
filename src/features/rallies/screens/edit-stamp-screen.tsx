@@ -143,7 +143,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
           value={memo}
           onChangeText={setMemo}
           placeholder="Enter memo"
-          accessibilityLabel="Memo"
+          aria-label="Memo"
           multiline
           textAlignVertical="top"
           className="border-continuous border-border bg-surface-muted text-foreground focus:border-accent max-h-48 min-h-32 rounded-2xl border px-4 py-3.5 text-base"

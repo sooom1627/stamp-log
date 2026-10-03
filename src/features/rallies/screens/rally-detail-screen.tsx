@@ -164,7 +164,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   return (
     <>
       <FlatList
-        accessibilityLabel="Rally detail"
+        aria-label="Rally detail"
         className="bg-background flex-1"
         contentContainerClassName="gap-6 px-5 py-6"
         contentInsetAdjustmentBehavior="automatic"

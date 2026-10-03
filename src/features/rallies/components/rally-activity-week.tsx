@@ -55,16 +55,14 @@ function ActivityDayCircle({
     return (
       <Pressable
         role="button"
-        accessibilityLabel={
+        aria-label={
           day.isRecorded
             ? `${rallyName} already stamped today`
             : `Stamp ${rallyName} for today`
         }
-        accessibilityState={{
-          disabled: day.isRecorded,
-          selected: day.isRecorded,
-        }}
-        accessibilityValue={{ text: formattedDate }}
+        aria-disabled={day.isRecorded}
+        aria-selected={day.isRecorded}
+        aria-valuetext={formattedDate}
         className="flex-1 items-center"
         disabled={day.isRecorded}
         onPress={onPressToday}
@@ -87,11 +85,11 @@ function ActivityDayCircle({
   return (
     <View
       accessible
-      accessibilityLabel={`${formattedDate}, ${
+      aria-label={`${formattedDate}, ${
         day.isRecorded ? "recorded" : "not recorded"
       }`}
-      accessibilityState={{ selected: day.isRecorded }}
-      accessibilityValue={{ text: formattedDate }}
+      aria-selected={day.isRecorded}
+      aria-valuetext={formattedDate}
       className="flex-1 items-center"
       testID="activity-day"
     >

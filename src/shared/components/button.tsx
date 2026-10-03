@@ -39,7 +39,8 @@ export function Button({
     <Pressable
       role="button"
       aria-label={ariaLabel ?? label}
-      accessibilityState={{ disabled: disabled || isLoading, busy: isLoading }}
+      aria-disabled={disabled || isLoading}
+      aria-busy={isLoading}
       disabled={disabled || isLoading}
       onPress={onPress}
       className={`border-continuous flex-row items-center justify-center gap-2 rounded-2xl py-4 ${pressableClassNames[look]} ${className}`}

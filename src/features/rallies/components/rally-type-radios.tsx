@@ -33,7 +33,7 @@ export function RallyTypeRadios({ value, onChange }: RallyTypeRadiosProps) {
             key={type}
             role="radio"
             aria-checked={isSelected}
-            accessibilityLabel={label}
+            aria-label={label}
             onPress={() => onChange(type)}
             className={`border-continuous flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-3 ${radioClassNames[state]}`}
           >

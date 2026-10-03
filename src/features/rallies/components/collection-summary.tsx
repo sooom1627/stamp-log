@@ -58,12 +58,12 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
       stampedAt.getMonth() === now.getMonth()
     );
   }).length;
-  const accessibilityLabel = `Total ${stamps.length}, ${monthCount} this month, ${typeCounts.person} person, ${typeCounts.place} place, ${typeCounts.action} action`;
+  const summaryLabel = `Total ${stamps.length}, ${monthCount} this month, ${typeCounts.person} person, ${typeCounts.place} place, ${typeCounts.action} action`;
 
   return (
     <View
       accessible
-      accessibilityLabel={accessibilityLabel}
+      aria-label={summaryLabel}
       className="bg-surface-muted border-continuous mb-4 gap-3.5 rounded-2xl p-4"
     >
       <View className="flex-row items-center justify-between gap-4">

@@ -48,7 +48,7 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
           onChangeText={setMemo}
           onSubmitEditing={handleSave}
           placeholder="Enter memo"
-          accessibilityLabel="Memo"
+          aria-label="Memo"
           autoFocus
           multiline
           returnKeyType="done"

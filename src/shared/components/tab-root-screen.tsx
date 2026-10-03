@@ -37,7 +37,7 @@ export function TabRootScreen({
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
           <View
-            accessibilityLabel="Logo"
+            aria-label="Logo"
             className="size-8 rounded-full bg-[#c7c7cc]"
           />
         </Stack.Toolbar.View>

@@ -36,7 +36,7 @@ export function HomeScreen() {
       floatingAction={
         <Link href="/create-rally" asChild>
           <Pressable
-            accessibilityLabel="Create rally"
+            aria-label="Create rally"
             className="bg-inverse active:bg-main-hover shadow-fab absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
           >
             <Plus colorClassName="accent-white" size={24} strokeWidth={2.5} />
@@ -72,7 +72,7 @@ export function HomeScreen() {
               Your Days
             </Text>
             <Link href="/rallies-list" asChild>
-              <Pressable accessibilityRole="link">
+              <Pressable role="link">
                 <Text className="text-foreground text-sm">View All</Text>
               </Pressable>
             </Link>

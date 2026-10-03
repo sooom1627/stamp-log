@@ -81,7 +81,7 @@ export function CreateRallyScreen() {
           <Text className="text-foreground text-sm font-semibold">Emoji</Text>
           <Pressable
             role="button"
-            accessibilityLabel={`Select emoji (currently ${emoji})`}
+            aria-label={`Select emoji (currently ${emoji})`}
             onPress={() => setIsEmojiPickerOpen((isOpen) => !isOpen)}
             className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active flex-row items-center gap-3 rounded-2xl border px-4 py-3"
           >
@@ -112,7 +112,7 @@ export function CreateRallyScreen() {
             onFocus={() => setIsEmojiPickerOpen(false)}
             onSubmitEditing={handleSave}
             placeholder={rallyNamePlaceholders[selectedType]}
-            accessibilityLabel="Name"
+            aria-label="Name"
             returnKeyType="done"
             submitBehavior="blurAndSubmit"
             className="border-continuous border-border bg-surface-muted text-foreground focus:border-accent rounded-2xl border px-4 py-3.5 text-base"
