@@ -1,9 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type UseQueryResult,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   deleteStamp,
@@ -16,11 +11,10 @@ import { type Stamp } from "../schemas/stamps";
 
 export const stampsQueryKey = ["stamps"] as const;
 
-export function useStamps(): UseQueryResult<Stamp[]> {
+export function useStamps() {
   return useQuery({
     queryKey: stampsQueryKey,
     queryFn: listStamps,
-    staleTime: Infinity,
   });
 }
 
@@ -28,7 +22,6 @@ export function useRallyStamps(rallyId: Stamp["rallyId"]) {
   return useQuery({
     queryKey: stampsQueryKey,
     queryFn: listStamps,
-    staleTime: Infinity,
     select: (stamps) => stamps.filter((stamp) => stamp.rallyId === rallyId),
   });
 }

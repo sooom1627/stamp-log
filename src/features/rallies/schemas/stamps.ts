@@ -1,31 +1,25 @@
 import { z } from "zod";
 
+import { localDateKey } from "@/shared/utils/local-date-key";
+
 export const stampSchema = z.object({
   id: z.number(),
   rallyId: z.number(),
   stampedAt: z.iso.datetime(),
   memo: z.string().nullable(),
 });
-export const saveStampInputSchema = z
-  .object({
-    rallyId: stampSchema.shape.rallyId,
-    stampedAt: stampSchema.shape.stampedAt.optional(),
-  })
-  .refine(
-    ({ stampedAt }) =>
-      stampedAt === undefined || Date.parse(stampedAt) <= Date.now(),
-    { path: ["stampedAt"], message: "stampedAt must not be in the future" },
-  );
-export const updateStampMemoInputSchema = z.object({
-  id: stampSchema.shape.id,
-  memo: z.string().trim().min(1),
-});
-export const updateStampInputSchema = z.object({
-  id: stampSchema.shape.id,
-  stampedAt: stampSchema.shape.stampedAt.refine(
-    (stampedAt) => Date.parse(stampedAt) <= Date.now(),
-    { message: "stampedAt must not be in the future" },
-  ),
+export const notFutureDatetimeSchema = stampSchema.shape.stampedAt.refine(
+  (stampedAt) => Date.parse(stampedAt) <= Date.now(),
+  { message: "stampedAt must not be in the future" },
+);
+export const saveStampInputSchema = stampSchema
+  .pick({ rallyId: true })
+  .extend({ stampedAt: notFutureDatetimeSchema.optional() });
+export const updateStampMemoInputSchema = stampSchema
+  .pick({ id: true })
+  .extend({ memo: z.string().trim().min(1) });
+export const updateStampInputSchema = stampSchema.pick({ id: true }).extend({
+  stampedAt: notFutureDatetimeSchema,
   memo: z
     .string()
     .trim()
@@ -37,11 +31,18 @@ export type SaveStampInput = z.infer<typeof saveStampInputSchema>;
 export type UpdateStampMemoInput = z.infer<typeof updateStampMemoInputSchema>;
 export type UpdateStampInput = z.input<typeof updateStampInputSchema>;
 
-export function parseStampRow(row: Record<string, unknown>): Stamp {
-  return stampSchema.parse({
-    id: Number(row.id),
-    rallyId: Number(row.rallyId ?? row.rally_id ?? row.rallyid),
-    stampedAt: String(row.stampedAt ?? row.stamped_at ?? row.stampedat),
-    memo: row.memo ?? null,
-  });
+export const sameDayStampMessage = "This rally already has a stamp on that day";
+
+// One stamp per rally per local calendar day (S-025 / S-006).
+export function hasStampOnLocalDay(
+  stamps: Pick<Stamp, "id" | "rallyId" | "stampedAt">[],
+  target: { rallyId: Stamp["rallyId"]; date: Date; excludedId?: Stamp["id"] },
+) {
+  const dayKey = localDateKey(target.date);
+  return stamps.some(
+    (stamp) =>
+      stamp.id !== target.excludedId &&
+      stamp.rallyId === target.rallyId &&
+      localDateKey(new Date(stamp.stampedAt)) === dayKey,
+  );
 }

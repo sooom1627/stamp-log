@@ -1,11 +1,12 @@
 import { type SQLiteDatabase } from "expo-sqlite";
 
 import { getDb } from "@/shared/db/get-db";
-import { localDateKey } from "@/shared/utils/local-date-key";
 
 import {
-  parseStampRow,
+  hasStampOnLocalDay,
+  sameDayStampMessage,
   saveStampInputSchema,
+  stampSchema,
   updateStampInputSchema,
   updateStampMemoInputSchema,
   type SaveStampInput,
@@ -14,15 +15,10 @@ import {
   type UpdateStampMemoInput,
 } from "../schemas/stamps";
 
-async function stampColumnNames(db: SQLiteDatabase) {
-  const rows = await db.getAllAsync<{ name: string }>(
-    "PRAGMA table_info(stamps)",
-  );
-  return rows.map((row) => row.name.toLowerCase());
-}
+import { tableColumnNames } from "./table-columns";
 
 async function ensureStamps(db: SQLiteDatabase) {
-  let columns = await stampColumnNames(db);
+  let columns = await tableColumnNames(db, "stamps");
   if (columns.length > 0 && !columns.includes("rally_id")) {
     await db.execAsync("DROP TABLE stamps");
     columns = [];
@@ -42,28 +38,46 @@ async function ensureStamps(db: SQLiteDatabase) {
   }
 }
 
-async function withStampsDb() {
-  const db = await getDb();
-  await ensureStamps(db);
-  return db;
+let stampsDbReady: Promise<SQLiteDatabase> | undefined;
+
+// Sets up the table once per app start; a failed setup is retried on the next call.
+export function withStampsDb() {
+  stampsDbReady ??= getDb()
+    .then(async (db) => {
+      await ensureStamps(db);
+      return db;
+    })
+    .catch((error: unknown) => {
+      stampsDbReady = undefined;
+      throw error;
+    });
+  return stampsDbReady;
 }
 
-async function hasStampOnLocalDay(
+const stampColumns = "id, rally_id AS rallyId, stamped_at AS stampedAt, memo";
+
+async function findStamp(db: SQLiteDatabase, id: Stamp["id"]) {
+  const row = await db.getFirstAsync<Stamp>(
+    `SELECT ${stampColumns} FROM stamps WHERE id = ?`,
+    id,
+  );
+  if (!row) {
+    throw new Error("Stamp not found");
+  }
+  return stampSchema.parse(row);
+}
+
+async function assertNoStampOnLocalDay(
   db: SQLiteDatabase,
-  rallyId: number,
-  stampedAt: string,
-  excludedId?: number,
+  target: Parameters<typeof hasStampOnLocalDay>[1],
 ) {
-  const rows = await db.getAllAsync<{ id: number; stamped_at: string }>(
-    "SELECT id, stamped_at FROM stamps WHERE rally_id = ?",
-    rallyId,
+  const stamps = await db.getAllAsync<Stamp>(
+    `SELECT ${stampColumns} FROM stamps WHERE rally_id = ?`,
+    target.rallyId,
   );
-  const dayKey = localDateKey(new Date(stampedAt));
-  return rows.some(
-    (row) =>
-      row.id !== excludedId &&
-      localDateKey(new Date(row.stamped_at)) === dayKey,
-  );
+  if (hasStampOnLocalDay(stamps, target)) {
+    throw new Error(sameDayStampMessage);
+  }
 }
 
 export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
@@ -71,30 +85,28 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
   const { rallyId } = parsed;
   const stampedAt = parsed.stampedAt ?? new Date().toISOString();
   const db = await withStampsDb();
-  if (
-    parsed.stampedAt !== undefined &&
-    (await hasStampOnLocalDay(db, rallyId, stampedAt))
-  ) {
-    throw new Error("This rally already has a stamp on that day");
+  if (parsed.stampedAt !== undefined) {
+    await assertNoStampOnLocalDay(db, { rallyId, date: new Date(stampedAt) });
   }
   const result = await db.runAsync(
     "INSERT INTO stamps (rally_id, stamped_at) VALUES (?, ?)",
     rallyId,
     stampedAt,
   );
-  return parseStampRow({
+  return stampSchema.parse({
     id: result.lastInsertRowId,
     rallyId,
     stampedAt,
+    memo: null,
   });
 }
 
 export async function listStamps(): Promise<Stamp[]> {
   const db = await withStampsDb();
-  const rows = await db.getAllAsync<Record<string, unknown>>(
-    "SELECT id, rally_id, stamped_at, memo FROM stamps ORDER BY stamped_at DESC, id DESC",
+  const rows = await db.getAllAsync<Stamp>(
+    `SELECT ${stampColumns} FROM stamps ORDER BY stamped_at DESC, id DESC`,
   );
-  return rows.map((row) => parseStampRow(row));
+  return rows.map((row) => stampSchema.parse(row));
 }
 
 export async function updateStampMemo(
@@ -102,34 +114,27 @@ export async function updateStampMemo(
 ): Promise<Stamp> {
   const { id, memo } = updateStampMemoInputSchema.parse(input);
   const db = await withStampsDb();
+  const current = await findStamp(db, id);
   await db.runAsync("UPDATE stamps SET memo = ? WHERE id = ?", memo, id);
-  const row = await db.getFirstAsync<Record<string, unknown>>(
-    "SELECT id, rally_id, stamped_at, memo FROM stamps WHERE id = ?",
-    id,
-  );
-  return parseStampRow(row ?? {});
+  return stampSchema.parse({ ...current, memo });
 }
 
 export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
   const { id, stampedAt, memo } = updateStampInputSchema.parse(input);
   const db = await withStampsDb();
-  const current = await db.getFirstAsync<{ rally_id: number }>(
-    "SELECT rally_id FROM stamps WHERE id = ?",
-    id,
-  );
-  if (!current) {
-    throw new Error("Stamp not found");
-  }
-  if (await hasStampOnLocalDay(db, current.rally_id, stampedAt, id)) {
-    throw new Error("This rally already has a stamp on that day");
-  }
+  const current = await findStamp(db, id);
+  await assertNoStampOnLocalDay(db, {
+    rallyId: current.rallyId,
+    date: new Date(stampedAt),
+    excludedId: id,
+  });
   await db.runAsync(
     "UPDATE stamps SET stamped_at = ?, memo = ? WHERE id = ?",
     stampedAt,
     memo,
     id,
   );
-  return parseStampRow({ id, rallyId: current.rally_id, stampedAt, memo });
+  return stampSchema.parse({ ...current, stampedAt, memo });
 }
 
 export async function deleteStamp(id: Stamp["id"]): Promise<void> {
