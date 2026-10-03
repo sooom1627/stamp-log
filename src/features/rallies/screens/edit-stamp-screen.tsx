@@ -24,25 +24,18 @@ type EditStampScreenProps = {
 };
 
 export function EditStampScreen({ stampId }: EditStampScreenProps) {
-  const rallies = useRallies();
-  const stamps = useStamps();
+  const { data: rallies } = useRallies();
+  const { data: stamps } = useStamps();
 
-  const stamp = stamps.data?.find((candidate) => candidate.id === stampId);
-  const rally = rallies.data?.find(
-    (candidate) => candidate.id === stamp?.rallyId,
-  );
+  const stamp = stamps?.find((candidate) => candidate.id === stampId);
+  const rally = rallies?.find((candidate) => candidate.id === stamp?.rallyId);
 
-  if (!stamp || !rally || !stamps.data) {
+  if (!stamp || !rally || !stamps) {
     return null;
   }
 
   return (
-    <EditStampForm
-      key={stamp.id}
-      stamp={stamp}
-      rally={rally}
-      stamps={stamps.data}
-    />
+    <EditStampForm key={stamp.id} stamp={stamp} rally={rally} stamps={stamps} />
   );
 }
 
@@ -60,7 +53,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   const { back } = useRouter();
   const headerHeight = useHeaderHeight();
   const accentColor = useAccentColor();
-  const update = useUpdateStamp();
+  const { mutate: updateStamp, isPending: isSaving } = useUpdateStamp();
 
   const isFuture = stampedAt.getTime() > Date.now();
   const hasStampOnDay = stamps.some(
@@ -72,7 +65,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   const isChanged =
     toMinutes(stampedAt) !== toMinutes(new Date(stamp.stampedAt)) ||
     memo.trim() !== (stamp.memo ?? "");
-  const canSave = isChanged && !isFuture && !hasStampOnDay && !update.isPending;
+  const canSave = isChanged && !isFuture && !hasStampOnDay && !isSaving;
 
   const handleDateChange = (date: Date) =>
     setStampedAt((current) => {
@@ -91,7 +84,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   const handleSave = () => {
     if (!canSave) return;
 
-    update.mutate(
+    updateStamp(
       { id: stamp.id, stampedAt: stampedAt.toISOString(), memo },
       { onSuccess: back },
     );
@@ -165,10 +158,10 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
       ) : null}
 
       <Button
-        label={update.isPending ? "Saving…" : "Save"}
+        label={isSaving ? "Saving…" : "Save"}
         onPress={handleSave}
         disabled={!canSave}
-        isLoading={update.isPending}
+        isLoading={isSaving}
         className="mt-3"
       />
     </View>

@@ -21,18 +21,18 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   const [memo, setMemo] = useState("");
   const { back } = useRouter();
   const headerHeight = useHeaderHeight();
-  const update = useUpdateStampMemo();
+  const { mutate: updateStampMemo, isPending: isSaving } = useUpdateStampMemo();
 
   const isMemoValid = updateStampMemoInputSchema.safeParse({
     id: stampId,
     memo,
   }).success;
-  const canSave = isMemoValid && !update.isPending;
+  const canSave = isMemoValid && !isSaving;
 
   const handleSave = () => {
     if (!canSave) return;
 
-    update.mutate({ id: stampId, memo }, { onSuccess: back });
+    updateStampMemo({ id: stampId, memo }, { onSuccess: back });
   };
 
   return (
@@ -62,10 +62,10 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
       </View>
 
       <Button
-        label={update.isPending ? "Saving…" : "Save"}
+        label={isSaving ? "Saving…" : "Save"}
         onPress={handleSave}
         disabled={!canSave}
-        isLoading={update.isPending}
+        isLoading={isSaving}
         className="mt-8"
       />
     </View>

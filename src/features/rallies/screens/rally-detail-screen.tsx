@@ -125,17 +125,22 @@ type RallyDetailScreenProps = {
 
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
-  const rallies = useRallies();
-  const stamps = useRallyStamps(rallyId);
-  const remove = useDeleteRally();
-  const removeStamp = useDeleteStamp();
-  const rally = rallies.data?.find((candidate) => candidate.id === rallyId);
+  const { data: rallies, isSuccess: isRalliesLoaded } = useRallies();
+  const {
+    data: stamps,
+    isError: isStampsError,
+    isSuccess: isStampsLoaded,
+    refetch: refetchStamps,
+  } = useRallyStamps(rallyId);
+  const { mutate: deleteRally } = useDeleteRally();
+  const { mutate: deleteStamp } = useDeleteStamp();
+  const rally = rallies?.find((candidate) => candidate.id === rallyId);
 
   useEffect(() => {
-    if (rallies.isSuccess && !rally) {
+    if (isRalliesLoaded && !rally) {
       back();
     }
-  }, [back, rallies.isSuccess, rally]);
+  }, [back, isRalliesLoaded, rally]);
 
   if (!rally) {
     return null;
@@ -147,7 +152,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => remove.mutate(rally.id, { onSuccess: back }),
+        onPress: () => deleteRally(rally.id, { onSuccess: back }),
       },
     ]);
 
@@ -157,7 +162,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => removeStamp.mutate(stampId),
+        onPress: () => deleteStamp(stampId),
       },
     ]);
 
@@ -168,7 +173,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         className="bg-background flex-1"
         contentContainerClassName="gap-6 px-5 py-6"
         contentInsetAdjustmentBehavior="automatic"
-        data={stamps.data}
+        data={stamps}
         keyExtractor={(stamp) => String(stamp.id)}
         renderItem={({ item }) => (
           <StampPost
@@ -192,19 +197,18 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             >
               {rally.name}
             </Text>
-            {stamps.data ? (
+            {stamps ? (
               <Text className="text-foreground-secondary text-base">
-                {stamps.data.length}{" "}
-                {stamps.data.length === 1 ? "stamp" : "stamps"}
+                {stamps.length} {stamps.length === 1 ? "stamp" : "stamps"}
               </Text>
             ) : null}
           </View>
         }
         ListEmptyComponent={
           <TimelineEmpty
-            isError={stamps.isError}
-            isLoaded={stamps.isSuccess}
-            onRetry={() => void stamps.refetch()}
+            isError={isStampsError}
+            isLoaded={isStampsLoaded}
+            onRetry={() => void refetchStamps()}
           />
         }
         ListFooterComponent={

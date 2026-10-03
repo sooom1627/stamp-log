@@ -42,11 +42,11 @@ export function CreateRallyScreen() {
   const [name, setName] = useState("");
   const { back } = useRouter();
   const headerHeight = useHeaderHeight();
-  const save = useSaveRally();
+  const { mutate: saveRally, isPending: isSaving } = useSaveRally();
 
   const isNameValid = rallyNameSchema.safeParse(name).success;
   const isEmojiValid = rallyEmojiSchema.safeParse(emoji).success;
-  const canSave = isNameValid && isEmojiValid && !save.isPending;
+  const canSave = isNameValid && isEmojiValid && !isSaving;
 
   const handleTypeChange = (type: RallyType) => {
     setSelectedType(type);
@@ -62,7 +62,7 @@ export function CreateRallyScreen() {
   const handleSave = () => {
     if (!canSave) return;
 
-    save.mutate({ name, type: selectedType, emoji }, { onSuccess: back });
+    saveRally({ name, type: selectedType, emoji }, { onSuccess: back });
   };
 
   return (
@@ -124,10 +124,10 @@ export function CreateRallyScreen() {
       </View>
 
       <Button
-        label={save.isPending ? "Saving…" : "Save"}
+        label={isSaving ? "Saving…" : "Save"}
         onPress={handleSave}
         disabled={!canSave}
-        isLoading={save.isPending}
+        isLoading={isSaving}
         className="mt-8"
       />
     </View>

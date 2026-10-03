@@ -13,7 +13,7 @@ import { localDateKey } from "@/shared/utils/local-date-key";
 
 import { showAddMemoToast } from "../components/show-add-memo-toast";
 import { useRallies } from "../hooks/use-rallies";
-import { useSaveStamp, useStamps } from "../hooks/use-stamps";
+import { useRallyStamps, useSaveStamp } from "../hooks/use-stamps";
 
 type AddPastStampScreenProps = {
   rallyId: number;
@@ -33,20 +33,19 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   const { back } = useRouter();
   const headerHeight = useHeaderHeight();
   const accentColor = useAccentColor();
-  const rallies = useRallies();
-  const stamps = useStamps();
-  const save = useSaveStamp();
+  const { data: rallies } = useRallies();
+  const { data: rallyStamps } = useRallyStamps(rallyId);
+  const { mutate: saveStamp, isPending: isSaving } = useSaveStamp();
 
-  const rally = rallies.data?.find((candidate) => candidate.id === rallyId);
+  const rally = rallies?.find((candidate) => candidate.id === rallyId);
   const isFuture = stampedAt.getTime() > Date.now();
   const hasStampOnDay =
-    stamps.data?.some(
+    rallyStamps?.some(
       (stamp) =>
-        stamp.rallyId === rallyId &&
         localDateKey(new Date(stamp.stampedAt)) === localDateKey(stampedAt),
     ) ?? false;
   const canSave =
-    rally !== undefined && !isFuture && !hasStampOnDay && !save.isPending;
+    rally !== undefined && !isFuture && !hasStampOnDay && !isSaving;
 
   const handleDateChange = (date: Date) =>
     setStampedAt((current) => {
@@ -65,7 +64,7 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   const handleSave = () => {
     if (!canSave) return;
 
-    save.mutate(
+    saveStamp(
       { rallyId, stampedAt: stampedAt.toISOString() },
       {
         onSuccess: (stamp) => {
@@ -130,10 +129,10 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
       ) : null}
 
       <Button
-        label={save.isPending ? "Saving…" : "Save"}
+        label={isSaving ? "Saving…" : "Save"}
         onPress={handleSave}
         disabled={!canSave}
-        isLoading={save.isPending}
+        isLoading={isSaving}
         className="mt-3"
       />
     </View>

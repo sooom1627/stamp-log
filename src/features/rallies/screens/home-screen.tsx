@@ -20,15 +20,22 @@ function stampDatesForRally(stamps: Stamp[], rallyId: number) {
 
 export function HomeScreen() {
   const { push } = useRouter();
-  const rallies = useRallies();
-  const stampsQuery = useStamps();
-  const stamps: Stamp[] = stampsQuery.data ?? [];
-  const { mutate: pressStamp } = useSaveStamp();
-  const isListError = rallies.isError || stampsQuery.isError;
+  const {
+    data: rallies,
+    isError: isRalliesError,
+    refetch: refetchRallies,
+  } = useRallies();
+  const {
+    data: stamps,
+    isError: isStampsError,
+    refetch: refetchStamps,
+  } = useStamps();
+  const { mutate: saveStamp } = useSaveStamp();
+  const isListError = isRalliesError || isStampsError;
 
   const retryLists = () => {
-    void rallies.refetch();
-    void stampsQuery.refetch();
+    void refetchRallies();
+    void refetchStamps();
   };
 
   return (
@@ -45,8 +52,8 @@ export function HomeScreen() {
       }
     >
       <View className="w-full">
-        {rallies.data && stampsQuery.data ? (
-          <CollectionSummary rallies={rallies.data} stamps={stampsQuery.data} />
+        {rallies && stamps ? (
+          <CollectionSummary rallies={rallies} stamps={stamps} />
         ) : null}
         {isListError ? (
           <View className="items-center gap-2 py-12">
@@ -58,12 +65,12 @@ export function HomeScreen() {
             </Pressable>
           </View>
         ) : null}
-        {rallies.data?.length === 0 ? (
+        {rallies?.length === 0 ? (
           <View className="items-center py-12">
             <Text className="text-foreground-secondary">No rallies yet</Text>
           </View>
         ) : null}
-        {rallies.data?.length ? (
+        {rallies?.length ? (
           <View className="mt-2 mb-1 flex-row items-center justify-between">
             <Text
               role="heading"
@@ -78,14 +85,14 @@ export function HomeScreen() {
             </Link>
           </View>
         ) : null}
-        {rallies.data?.map((rally) => (
+        {rallies?.map((rally) => (
           <RallyRow
             key={rally.id}
             name={rally.name}
             emoji={rally.emoji}
-            stampDates={stampDatesForRally(stamps, rally.id)}
+            stampDates={stampDatesForRally(stamps ?? [], rally.id)}
             onPressStamp={() =>
-              pressStamp(
+              saveStamp(
                 { rallyId: rally.id },
                 { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
               )
