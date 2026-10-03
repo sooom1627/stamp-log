@@ -20,10 +20,8 @@ import "../../tailwind.css";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const sheetBackgroundStyle = useResolveClassNames(
-    "bg-surface dark:bg-main-dark",
-  );
-  const sheetTitleStyle = useResolveClassNames("text-main dark:text-slate-100");
+  const sheetBackgroundStyle = useResolveClassNames("bg-background");
+  const sheetTitleStyle = useResolveClassNames("text-foreground");
   const formSheetOptions = {
     presentation: "formSheet",
     sheetGrabberVisible: true,

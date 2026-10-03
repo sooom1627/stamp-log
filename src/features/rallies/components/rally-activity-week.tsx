@@ -105,7 +105,7 @@ function ActivityDayCircle({
           className={
             day.isRecorded
               ? "bg-accent size-3 rounded-full"
-              : "bg-border size-2 rounded-full dark:bg-slate-700"
+              : "bg-border size-2 rounded-full"
           }
         />
       </View>
@@ -119,7 +119,7 @@ function WeekdayLabels({ days }: { days: ActivityDay[] }) {
       {days.map((day) => (
         <Text
           key={day.key}
-          className="text-text-muted flex-1 text-center text-xs dark:text-slate-400"
+          className="text-foreground-muted flex-1 text-center text-xs"
         >
           {weekdayFormatter.format(day.date)}
         </Text>

@@ -30,11 +30,13 @@ export function TabRootScreen({
   return (
     <>
       <ScrollView
-        className="bg-surface dark:bg-main-dark flex-1"
+        className="bg-background flex-1"
         contentContainerClassName="px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
       >
-        <Text className="mb-4 text-sm">{formatHeaderDate(new Date())}</Text>
+        <Text className="text-foreground-secondary mb-4 text-sm">
+          {formatHeaderDate(new Date())}
+        </Text>
         {children}
       </ScrollView>
       {floatingAction}

@@ -98,7 +98,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   return (
     <View
       testID="edit-stamp-form"
-      className="bg-surface dark:bg-main-dark gap-5 px-5 pb-6"
+      className="bg-background gap-5 px-5 pb-6"
       style={{ paddingTop: headerHeight + 16 }}
     >
       <View className="flex-row items-center gap-2">
@@ -106,7 +106,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
         <Text
           selectable
           numberOfLines={1}
-          className="text-main min-w-0 flex-1 text-base font-semibold dark:text-slate-100"
+          className="text-foreground min-w-0 flex-1 text-base font-semibold"
         >
           {rally.name}
         </Text>
@@ -136,9 +136,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
       </Host>
 
       <View className="gap-2">
-        <Text className="text-main text-sm font-semibold dark:text-slate-100">
-          Memo
-        </Text>
+        <Text className="text-foreground text-sm font-semibold">Memo</Text>
         <TextInput
           value={memo}
           onChangeText={setMemo}
@@ -146,7 +144,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
           accessibilityLabel="Memo"
           multiline
           textAlignVertical="top"
-          className="border-continuous border-border bg-surface-muted text-main focus:border-accent dark:bg-main-hover max-h-48 min-h-32 rounded-2xl border px-4 py-3.5 text-base dark:border-slate-700 dark:text-slate-100"
+          className="border-continuous border-border bg-surface-muted text-foreground focus:border-accent max-h-48 min-h-32 rounded-2xl border px-4 py-3.5 text-base"
           cursorColorClassName="accent-accent"
           selectionColorClassName="accent-accent"
           placeholderTextColorClassName="accent-text-muted"

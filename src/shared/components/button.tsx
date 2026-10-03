@@ -12,13 +12,13 @@ type ButtonProps = {
 };
 
 const pressableClassNames = {
-  primary: "bg-main active:bg-main-hover dark:bg-slate-100",
+  primary: "bg-primary active:bg-main-hover",
   danger: "border-danger active:bg-danger/10 border",
   disabled: "bg-surface-muted-active",
 } as const;
 
 const labelClassNames = {
-  primary: "dark:text-main-dark text-white",
+  primary: "text-primary-foreground",
   danger: "text-danger",
   disabled: "text-text-muted",
 } as const;
@@ -49,9 +49,7 @@ export function Button({
           testID="button-spinner"
           size="small"
           colorClassName={
-            variant === "danger"
-              ? "accent-danger"
-              : "accent-white dark:accent-main-dark"
+            variant === "danger" ? "accent-danger" : "accent-primary-foreground"
           }
         />
       ) : null}

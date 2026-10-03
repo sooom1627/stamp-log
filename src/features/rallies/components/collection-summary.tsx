@@ -10,7 +10,7 @@ type CollectionSummaryProps = {
   stamps: Stamp[];
 };
 
-const segmentClassName = "bg-main rounded-full dark:bg-slate-100";
+const segmentClassName = "bg-primary rounded-full";
 
 const typeDetails = [
   {
@@ -66,24 +66,24 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
     <View
       accessible
       accessibilityLabel={accessibilityLabel}
-      className="bg-surface-muted dark:bg-main-hover mb-4 gap-3.5 rounded-2xl p-4"
+      className="bg-surface-muted mb-4 gap-3.5 rounded-2xl p-4"
       style={{ borderCurve: "continuous" }}
     >
       <View className="flex-row items-center justify-between gap-4">
         <View className="flex-row items-baseline gap-1.5">
           <Text
-            className="text-main text-3xl font-semibold dark:text-slate-100"
+            className="text-foreground text-3xl font-semibold"
             style={{ fontVariant: ["tabular-nums"] }}
           >
             {stamps.length}
           </Text>
-          <Text className="text-text-muted text-[10px] font-semibold tracking-wider dark:text-slate-400">
+          <Text className="text-foreground-muted text-[10px] font-semibold tracking-wider">
             STAMPS
           </Text>
         </View>
-        <View className="bg-surface dark:bg-main-dark rounded-full px-2.5 py-1">
+        <View className="bg-background rounded-full px-2.5 py-1">
           <Text
-            className="text-text-muted text-xs font-medium dark:text-slate-300"
+            className="text-foreground-muted text-xs font-medium"
             style={{ fontVariant: ["tabular-nums"] }}
           >
             This month + {monthCount}
@@ -92,7 +92,7 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
       </View>
 
       <View
-        className="bg-border h-1.5 flex-row gap-1 overflow-hidden rounded-full dark:bg-slate-700"
+        className="bg-border h-1.5 flex-row gap-1 overflow-hidden rounded-full"
         testID={
           categorizedStampCount === 0 ? "collection-empty-track" : undefined
         }
@@ -118,7 +118,7 @@ export function CollectionSummary({ rallies, stamps }: CollectionSummaryProps) {
             <View key={detail.type} className="flex-row items-center gap-1.5">
               <Icon color={iconColor} size={15} strokeWidth={2} />
               <Text
-                className="text-main text-sm font-medium dark:text-slate-100"
+                className="text-foreground text-sm font-medium"
                 style={{ fontVariant: ["tabular-nums"] }}
               >
                 {typeCounts[detail.type]}

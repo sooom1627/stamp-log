@@ -26,8 +26,8 @@ export function RallyTypeRadios({ value, onChange }: RallyTypeRadiosProps) {
             onPress={() => onChange(type)}
             className={
               isSelected
-                ? "border-continuous bg-main active:bg-main-hover flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-3 dark:bg-slate-100"
-                : "border-continuous bg-surface-muted active:bg-surface-muted-active dark:bg-main-hover flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-3"
+                ? "border-continuous bg-primary active:bg-main-hover flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-3"
+                : "border-continuous bg-surface-muted active:bg-surface-muted-active flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-3"
             }
           >
             {isSelected ? (
@@ -36,8 +36,8 @@ export function RallyTypeRadios({ value, onChange }: RallyTypeRadiosProps) {
             <Text
               className={
                 isSelected
-                  ? "dark:text-main-dark font-medium text-white"
-                  : "text-main font-medium dark:text-slate-100"
+                  ? "text-primary-foreground font-medium"
+                  : "text-foreground font-medium"
               }
             >
               {label}

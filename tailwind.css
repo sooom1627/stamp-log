@@ -1,18 +1,40 @@
 @import "tailwindcss";
 @import "uniwind";
 
+/* Same value in light and dark: brand colors and pressed / disabled states. */
 @theme {
-  --color-main: #1e293b;
-  --color-main-hover: #334155;
-  --color-main-dark: #0f172a;
   --color-accent: #f97316;
-  --color-accent-muted: #ea580c;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f1f5f9;
-  --color-surface-muted-active: #e2e8f0;
-  --color-surface-muted-active-pressed: #cbd5e1;
-  --color-border: #e2e8f0;
   --color-danger: #ef4444;
-  --color-danger-disabled: #fca5a5;
+  --color-main-hover: #334155;
+  --color-surface-muted-active: #e2e8f0;
   --color-text-muted: #64748b;
+}
+
+/* Semantic colors: use these instead of `dark:` variants. Both variants must
+   define the same variables. */
+@layer theme {
+  :root {
+    @variant light {
+      --color-background: #ffffff;
+      --color-foreground: #1e293b;
+      --color-foreground-secondary: #334155;
+      --color-foreground-muted: #64748b;
+      --color-surface-muted: #f1f5f9;
+      --color-border: #e2e8f0;
+      --color-primary: #1e293b;
+      --color-primary-foreground: #ffffff;
+      --color-inverse: #1e293b;
+    }
+    @variant dark {
+      --color-background: #0f172a;
+      --color-foreground: #f1f5f9;
+      --color-foreground-secondary: #cbd5e1;
+      --color-foreground-muted: #94a3b8;
+      --color-surface-muted: #334155;
+      --color-border: #334155;
+      --color-primary: #f1f5f9;
+      --color-primary-foreground: #0f172a;
+      --color-inverse: #334155;
+    }
+  }
 }

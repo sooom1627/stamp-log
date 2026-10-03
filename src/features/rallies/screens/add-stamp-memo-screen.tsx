@@ -38,13 +38,11 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   return (
     <View
       testID="add-stamp-memo-form"
-      className="bg-surface dark:bg-main-dark px-5 pb-6"
+      className="bg-background px-5 pb-6"
       style={{ paddingTop: headerHeight + 16 }}
     >
       <View className="gap-2">
-        <Text className="text-main text-sm font-semibold dark:text-slate-100">
-          Memo
-        </Text>
+        <Text className="text-foreground text-sm font-semibold">Memo</Text>
         <TextInput
           value={memo}
           onChangeText={setMemo}
@@ -56,7 +54,7 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
           returnKeyType="done"
           submitBehavior="blurAndSubmit"
           textAlignVertical="top"
-          className="border-continuous border-border bg-surface-muted text-main focus:border-accent dark:bg-main-hover max-h-48 min-h-32 rounded-2xl border px-4 py-3.5 text-base dark:border-slate-700 dark:text-slate-100"
+          className="border-continuous border-border bg-surface-muted text-foreground focus:border-accent max-h-48 min-h-32 rounded-2xl border px-4 py-3.5 text-base"
           cursorColorClassName="accent-accent"
           selectionColorClassName="accent-accent"
           placeholderTextColorClassName="accent-text-muted"

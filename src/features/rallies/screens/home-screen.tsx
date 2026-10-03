@@ -37,7 +37,7 @@ export function HomeScreen() {
         <Link href="/create-rally" asChild>
           <Pressable
             accessibilityLabel="Create rally"
-            className="bg-main active:bg-main-hover dark:bg-main-hover absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
+            className="bg-inverse active:bg-main-hover absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
             style={{ boxShadow: "0 8px 24px rgba(30, 41, 59, 0.22)" }}
           >
             <SymbolView
@@ -59,28 +59,26 @@ export function HomeScreen() {
               Couldn't load
             </Text>
             <Pressable role="button" onPress={retryLists}>
-              <Text className="text-main dark:text-slate-100">Retry</Text>
+              <Text className="text-foreground">Retry</Text>
             </Pressable>
           </View>
         ) : null}
         {rallies.data?.length === 0 ? (
           <View className="items-center py-12">
-            <Text>No rallies yet</Text>
+            <Text className="text-foreground-secondary">No rallies yet</Text>
           </View>
         ) : null}
         {rallies.data?.length ? (
           <View className="mt-2 mb-1 flex-row items-center justify-between">
             <Text
               role="heading"
-              className="text-main text-lg font-semibold dark:text-slate-100"
+              className="text-foreground text-lg font-semibold"
             >
               Your Days
             </Text>
             <Link href="/rallies-list" asChild>
               <Pressable accessibilityRole="link">
-                <Text className="text-main text-sm dark:text-slate-100">
-                  View All
-                </Text>
+                <Text className="text-foreground text-sm">View All</Text>
               </Pressable>
             </Link>
           </View>

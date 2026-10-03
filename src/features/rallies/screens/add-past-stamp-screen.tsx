@@ -77,7 +77,7 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   return (
     <View
       testID="add-past-stamp-form"
-      className="bg-surface dark:bg-main-dark gap-5 px-5 pb-6"
+      className="bg-background gap-5 px-5 pb-6"
       style={{ paddingTop: headerHeight + 16 }}
     >
       {rally ? (
@@ -86,7 +86,7 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
           <Text
             selectable
             numberOfLines={1}
-            className="text-main min-w-0 flex-1 text-base font-semibold dark:text-slate-100"
+            className="text-foreground min-w-0 flex-1 text-base font-semibold"
           >
             {rally.name}
           </Text>
