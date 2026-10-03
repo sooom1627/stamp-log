@@ -9,6 +9,7 @@ import {
   screen,
   userEvent,
   waitFor,
+  within,
 } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
@@ -246,5 +247,60 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
     });
     expect(screen.getByText("2 stamps")).toBeOnTheScreen();
     expect(await stampsOf(rally.id)).toHaveLength(2);
+  });
+});
+
+describe("S-006 T-001 ST-009 empty and error states", () => {
+  async function openWithoutStamps(name: string) {
+    await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+    const [rally] = await ralliesDb.listRallies();
+
+    await renderRouter("./src/app");
+    expect(await screen.findByText(name)).toBeOnTheScreen();
+    await act(() => {
+      router.push(`/rallies/${rally.id}`);
+    });
+
+    return { rally, detail: await screen.findByLabelText("Rally detail") };
+  }
+
+  test("shows No stamps yet when the rally has no stamps", async () => {
+    const { detail } = await openWithoutStamps("Empty timeline");
+
+    expect(await within(detail).findByText("No stamps yet")).toBeOnTheScreen();
+    expect(within(detail).getByText("0 stamps")).toBeOnTheScreen();
+    expect(within(detail).queryAllByText(stampDateTimePattern)).toHaveLength(0);
+  });
+
+  test("shows a load error with Retry instead of the empty state", async () => {
+    jest
+      .spyOn(stampsDb, "listStamps")
+      .mockRejectedValue(new Error("disk full"));
+    const { detail } = await openWithoutStamps("Timeline load fails");
+
+    expect(await within(detail).findByText("Couldn't load")).toBeOnTheScreen();
+    expect(
+      within(detail).getByRole("button", { name: "Retry" }),
+    ).toBeOnTheScreen();
+    expect(within(detail).queryByText("No stamps yet")).not.toBeOnTheScreen();
+    expect(within(detail).queryByText("0 stamps")).not.toBeOnTheScreen();
+  });
+
+  test("shows the stamps after retrying a failed load", async () => {
+    const realListStamps = stampsDb.listStamps;
+    const listSpy = jest
+      .spyOn(stampsDb, "listStamps")
+      .mockRejectedValue(new Error("disk full"));
+    const { rally, detail } = await openWithoutStamps("Timeline retry");
+    await saveStamp({ rallyId: rally.id });
+    expect(await within(detail).findByText("Couldn't load")).toBeOnTheScreen();
+
+    listSpy.mockImplementation(realListStamps);
+    const user = userEvent.setup();
+    await user.press(within(detail).getByRole("button", { name: "Retry" }));
+
+    expect(await within(detail).findByText("1 stamp")).toBeOnTheScreen();
+    expect(within(detail).getAllByText(stampDateTimePattern)).toHaveLength(1);
+    expect(within(detail).queryByText("Couldn't load")).not.toBeOnTheScreen();
   });
 });

@@ -73,6 +73,34 @@ function StampPost({
   );
 }
 
+type TimelineEmptyProps = {
+  isError: boolean;
+  isLoaded: boolean;
+  onRetry: () => void;
+};
+
+function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
+  if (isError) {
+    return (
+      <View className="items-center gap-2 py-12">
+        <Text selectable className="text-danger">
+          Couldn't load
+        </Text>
+        <Pressable role="button" onPress={onRetry}>
+          <Text className="text-main dark:text-slate-100">Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
+  if (!isLoaded) return null;
+
+  return (
+    <View className="items-center py-12">
+      <Text className="text-main-hover dark:text-slate-300">No stamps yet</Text>
+    </View>
+  );
+}
+
 export function RallyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { back, push } = useRouter();
@@ -92,8 +120,6 @@ export function RallyDetailScreen() {
   if (!rally) {
     return null;
   }
-
-  const stampCount = stamps.data?.length ?? 0;
 
   const confirmDelete = () =>
     Alert.alert("Delete rally?", "This action cannot be undone.", [
@@ -144,10 +170,20 @@ export function RallyDetailScreen() {
             >
               {rally.name}
             </Text>
-            <Text className="text-main-hover text-base dark:text-slate-300">
-              {stampCount} {stampCount === 1 ? "stamp" : "stamps"}
-            </Text>
+            {stamps.data ? (
+              <Text className="text-main-hover text-base dark:text-slate-300">
+                {stamps.data.length}{" "}
+                {stamps.data.length === 1 ? "stamp" : "stamps"}
+              </Text>
+            ) : null}
           </View>
+        }
+        ListEmptyComponent={
+          <TimelineEmpty
+            isError={stamps.isError}
+            isLoaded={stamps.isSuccess}
+            onRetry={() => void stamps.refetch()}
+          />
         }
         ListFooterComponent={
           <View className="gap-6">
