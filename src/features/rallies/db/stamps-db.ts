@@ -6,9 +6,11 @@ import { localDateKey } from "@/shared/utils/local-date-key";
 import {
   parseStampRow,
   saveStampInputSchema,
+  updateStampInputSchema,
   updateStampMemoInputSchema,
   type SaveStampInput,
   type Stamp,
+  type UpdateStampInput,
   type UpdateStampMemoInput,
 } from "../schemas/stamps";
 
@@ -50,13 +52,18 @@ async function hasStampOnLocalDay(
   db: SQLiteDatabase,
   rallyId: number,
   stampedAt: string,
+  excludedId?: number,
 ) {
-  const rows = await db.getAllAsync<{ stamped_at: string }>(
-    "SELECT stamped_at FROM stamps WHERE rally_id = ?",
+  const rows = await db.getAllAsync<{ id: number; stamped_at: string }>(
+    "SELECT id, stamped_at FROM stamps WHERE rally_id = ?",
     rallyId,
   );
   const dayKey = localDateKey(new Date(stampedAt));
-  return rows.some((row) => localDateKey(new Date(row.stamped_at)) === dayKey);
+  return rows.some(
+    (row) =>
+      row.id !== excludedId &&
+      localDateKey(new Date(row.stamped_at)) === dayKey,
+  );
 }
 
 export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
@@ -101,4 +108,31 @@ export async function updateStampMemo(
     id,
   );
   return parseStampRow(row ?? {});
+}
+
+export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
+  const { id, stampedAt, memo } = updateStampInputSchema.parse(input);
+  const db = await withStampsDb();
+  const current = await db.getFirstAsync<{ rally_id: number }>(
+    "SELECT rally_id FROM stamps WHERE id = ?",
+    id,
+  );
+  if (!current) {
+    throw new Error("Stamp not found");
+  }
+  if (await hasStampOnLocalDay(db, current.rally_id, stampedAt, id)) {
+    throw new Error("This rally already has a stamp on that day");
+  }
+  await db.runAsync(
+    "UPDATE stamps SET stamped_at = ?, memo = ? WHERE id = ?",
+    stampedAt,
+    memo,
+    id,
+  );
+  return parseStampRow({ id, rallyId: current.rally_id, stampedAt, memo });
+}
+
+export async function deleteStamp(id: Stamp["id"]): Promise<void> {
+  const db = await withStampsDb();
+  await db.runAsync("DELETE FROM stamps WHERE id = ?", id);
 }
