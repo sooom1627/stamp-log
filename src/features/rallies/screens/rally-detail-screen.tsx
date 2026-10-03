@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { Alert, FlatList, Pressable, Text, View } from "react-native";
+import { Alert, FlatList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
@@ -12,7 +12,9 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 
 import { Button as AppButton } from "@/shared/components/button";
+import { LoadError } from "@/shared/components/load-error";
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
+import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
@@ -98,18 +100,7 @@ type TimelineEmptyProps = {
 };
 
 function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
-  if (isError) {
-    return (
-      <View className="items-center gap-2 py-12">
-        <Text selectable className="text-danger">
-          Couldn't load
-        </Text>
-        <Pressable role="button" onPress={onRetry}>
-          <Text className="text-foreground">Retry</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  if (isError) return <LoadError onRetry={onRetry} />;
   if (!isLoaded) return null;
 
   return (
@@ -125,17 +116,22 @@ type RallyDetailScreenProps = {
 
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
-  const rallies = useRallies();
-  const stamps = useRallyStamps(rallyId);
-  const remove = useDeleteRally();
-  const removeStamp = useDeleteStamp();
-  const rally = rallies.data?.find((candidate) => candidate.id === rallyId);
+  const { data: rallies, isSuccess: isRalliesLoaded } = useRallies();
+  const {
+    data: stamps,
+    isError: isStampsError,
+    isSuccess: isStampsLoaded,
+    refetch: refetchStamps,
+  } = useRallyStamps(rallyId);
+  const { mutate: deleteRally } = useDeleteRally();
+  const { mutate: deleteStamp } = useDeleteStamp();
+  const rally = rallies?.find((candidate) => candidate.id === rallyId);
 
   useEffect(() => {
-    if (rallies.isSuccess && !rally) {
+    if (isRalliesLoaded && !rally) {
       back();
     }
-  }, [back, rallies.isSuccess, rally]);
+  }, [back, isRalliesLoaded, rally]);
 
   if (!rally) {
     return null;
@@ -147,7 +143,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => remove.mutate(rally.id, { onSuccess: back }),
+        onPress: () => deleteRally(rally.id, { onSuccess: back }),
       },
     ]);
 
@@ -157,7 +153,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => removeStamp.mutate(stampId),
+        onPress: () => deleteStamp(stampId),
       },
     ]);
 
@@ -168,7 +164,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         className="bg-background flex-1"
         contentContainerClassName="gap-6 px-5 py-6"
         contentInsetAdjustmentBehavior="automatic"
-        data={stamps.data}
+        data={stamps}
         keyExtractor={(stamp) => String(stamp.id)}
         renderItem={({ item }) => (
           <StampPost
@@ -192,19 +188,18 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             >
               {rally.name}
             </Text>
-            {stamps.data ? (
+            {stamps ? (
               <Text className="text-foreground-secondary text-base">
-                {stamps.data.length}{" "}
-                {stamps.data.length === 1 ? "stamp" : "stamps"}
+                {formatStampCount(stamps.length)}
               </Text>
             ) : null}
           </View>
         }
         ListEmptyComponent={
           <TimelineEmpty
-            isError={stamps.isError}
-            isLoaded={stamps.isSuccess}
-            onRetry={() => void stamps.refetch()}
+            isError={isStampsError}
+            isLoaded={isStampsLoaded}
+            onRetry={() => void refetchStamps()}
           />
         }
         ListFooterComponent={

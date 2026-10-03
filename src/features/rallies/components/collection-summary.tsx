@@ -15,17 +15,14 @@ const segmentClassName = "bg-primary rounded-full";
 const typeDetails = [
   {
     type: "person",
-    label: "Person",
     Icon: UsersRound,
   },
   {
     type: "place",
-    label: "Place",
     Icon: MapPinPen,
   },
   {
     type: "action",
-    label: "Action",
     Icon: ListChecks,
   },
 ] as const;
