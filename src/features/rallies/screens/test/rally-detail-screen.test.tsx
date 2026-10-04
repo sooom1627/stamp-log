@@ -380,3 +380,33 @@ describe("S-006 T-002 ST-003 month navigation", () => {
     expect(screen.queryAllByLabelText(/, recorded$/)).toHaveLength(0);
   });
 });
+
+describe("S-028 T-001 ST-001 rally actions menu", () => {
+  test("puts a 44pt Rally actions menu with Past stamp and Delete rally in the header", async () => {
+    await openRallyDetail("Header menu");
+
+    expect(await screen.findByTestId("rally-actions-menu-icon")).toHaveProp(
+      "modifiers",
+      expect.arrayContaining([
+        expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
+        expect.objectContaining({ $type: "contentShape" }),
+        expect.objectContaining({
+          $type: "accessibilityLabel",
+          label: "Rally actions",
+        }),
+      ]),
+    );
+    expect(screen.getByTestId("rally-action-past-stamp")).toHaveProp(
+      "label",
+      "Past stamp",
+    );
+    expect(screen.getByTestId("rally-action-delete")).toHaveProp(
+      "label",
+      "Delete rally",
+    );
+    expect(screen.getByTestId("rally-action-delete")).toHaveProp(
+      "role",
+      "destructive",
+    );
+  });
+});

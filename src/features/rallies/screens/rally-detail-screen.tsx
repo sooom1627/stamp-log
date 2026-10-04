@@ -17,6 +17,7 @@ import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
+import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
@@ -227,6 +228,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         }
       />
       <Stack.Title>{rally.name}</Stack.Title>
+      <RallyActionsMenu onPastStamp={() => {}} onDelete={() => {}} />
     </>
   );
 }
