@@ -410,3 +410,26 @@ describe("S-028 T-001 ST-001 rally actions menu", () => {
     );
   });
 });
+
+describe("S-028 T-001 ST-002 past stamp from the actions menu", () => {
+  test("opens the past stamp formSheet and returns with the new stamp counted", async () => {
+    const { rally, user } = await openRallyDetail("Menu past stamp");
+    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+
+    await fireEvent(
+      screen.getByTestId("rally-action-past-stamp"),
+      "buttonPress",
+    );
+
+    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(screen.queryByTestId("add-past-stamp-form")).not.toBeOnTheScreen();
+    const stamps = (await listStamps()).filter(
+      (stamp) => stamp.rallyId === rally.id,
+    );
+    expect(stamps).toHaveLength(2);
+  });
+});

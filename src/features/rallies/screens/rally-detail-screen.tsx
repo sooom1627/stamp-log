@@ -228,7 +228,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         }
       />
       <Stack.Title>{rally.name}</Stack.Title>
-      <RallyActionsMenu onPastStamp={() => {}} onDelete={() => {}} />
+      <RallyActionsMenu
+        onPastStamp={() =>
+          push({ pathname: "/add-past-stamp", params: { rallyId: rally.id } })
+        }
+        onDelete={() => {}}
+      />
     </>
   );
 }
