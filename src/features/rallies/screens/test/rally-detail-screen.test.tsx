@@ -716,3 +716,31 @@ describe("S-028 T-003 ST-005 month picker reopen", () => {
     );
   });
 });
+
+describe("S-028 T-004 ST-006 open a day from the calendar", () => {
+  test("opens the rally day sheet for a past day and keeps future days disabled", async () => {
+    jest.setSystemTime(new Date(2026, 8, 16, 12));
+    const { user } = await openRallyDetail("Calendar day", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 14, 9).toISOString(),
+      });
+    });
+
+    const tomorrow = await screen.findByLabelText("Sep 17, 2026, not recorded");
+    expect(tomorrow).toBeDisabled();
+    await user.press(tomorrow);
+    expect(screen.queryByTestId("rally-day-sheet")).not.toBeOnTheScreen();
+
+    const recordedDay = screen.getByRole("button", {
+      name: "Sep 14, 2026, recorded",
+    });
+    await user.press(recordedDay);
+
+    expect(await screen.findByTestId("rally-day-sheet")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("heading", { name: "Sep 14, 2026" }),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("9:00 AM")).toBeOnTheScreen();
+  });
+});

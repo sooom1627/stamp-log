@@ -127,6 +127,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             {stamps ? <RallySummaryStats summary={summary} /> : null}
             <RallyMonthCalendar
               stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+              onPressDay={(date) =>
+                push({
+                  pathname: "/rally-day",
+                  params: { rallyId: rally.id, date },
+                })
+              }
             />
           </View>
         }
