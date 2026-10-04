@@ -11,7 +11,6 @@ import {
   shapes,
 } from "@expo/ui/swift-ui/modifiers";
 
-import { Button as AppButton } from "@/shared/components/button";
 import { LoadError } from "@/shared/components/load-error";
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
@@ -206,25 +205,6 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             isLoaded={isStampsLoaded}
             onRetry={() => void refetchStamps()}
           />
-        }
-        ListFooterComponent={
-          <View className="gap-6">
-            <AppButton
-              label="Past stamp"
-              onPress={() =>
-                push({
-                  pathname: "/add-past-stamp",
-                  params: { rallyId: rally.id },
-                })
-              }
-            />
-            <AppButton
-              label="Delete rally"
-              aria-label={`Delete ${rally.name}`}
-              variant="danger"
-              onPress={confirmDelete}
-            />
-          </View>
         }
       />
       <Stack.Title>{rally.name}</Stack.Title>

@@ -65,71 +65,6 @@ describe("Rally detail", () => {
     ).toBeOnTheScreen();
     expect(screen.getByText("1 stamp")).toBeOnTheScreen();
   });
-
-  test("deletes the rally after confirmation and returns home", async () => {
-    const { rally, user } = await openRallyDetail("Delete from detail");
-
-    await user.press(
-      await screen.findByRole("button", {
-        name: "Delete Delete from detail",
-      }),
-    );
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      findAlertButton("destructive").onPress?.();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
-    });
-    expect(
-      (await ralliesDb.listRallies()).some(
-        (candidate) => candidate.id === rally.id,
-      ),
-    ).toBe(false);
-  });
-
-  test("shows the global error toast when deletion fails", async () => {
-    jest
-      .spyOn(ralliesDb, "deleteRally")
-      .mockRejectedValueOnce(new Error("delete failed"));
-    const { user } = await openRallyDetail("Delete fails");
-
-    await user.press(
-      await screen.findByRole("button", { name: "Delete Delete fails" }),
-    );
-    await act(async () => {
-      findAlertButton("destructive").onPress?.();
-    });
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        "Something went wrong. Please try again.",
-      );
-    });
-    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
-  });
-});
-
-describe("S-025 T-001 ST-006 past stamp entry", () => {
-  test("opens the past stamp formSheet and returns with the new stamp counted", async () => {
-    const { rally, user } = await openRallyDetail("Past stamp entry");
-    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
-
-    await user.press(screen.getByRole("button", { name: "Past stamp" }));
-
-    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
-    await user.press(screen.getByRole("button", { name: "Save" }));
-
-    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
-    expect(screen.queryByTestId("add-past-stamp-form")).not.toBeOnTheScreen();
-    const stamps = (await listStamps()).filter(
-      (stamp) => stamp.rallyId === rally.id,
-    );
-    expect(stamps).toHaveLength(2);
-  });
 });
 
 function daysAgoAt(days: number, hours: number) {
@@ -497,5 +432,19 @@ describe("S-028 T-001 ST-003 delete rally from the actions menu", () => {
       );
     });
     expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-001 ST-004 no footer actions", () => {
+  test("leaves Past stamp and Delete rally to the header menu only", async () => {
+    await openRallyDetail("No footer");
+
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Past stamp" }),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Delete No footer" }),
+    ).not.toBeOnTheScreen();
   });
 });
