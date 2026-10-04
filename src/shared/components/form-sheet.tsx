@@ -33,6 +33,45 @@ export function FormSheetContainer({
   );
 }
 
+type FormSheetLayoutProps = {
+  testID?: string;
+  /** Small line above the title (e.g. the rally or the weekday). */
+  eyebrow?: string;
+  title: string;
+  /** Extra layout classes (e.g. `gap-5`). */
+  className?: string;
+  children: ReactNode;
+};
+
+// Sheets hide the native header, so the top padding is fixed: it only has to
+// clear the grabber. Same ScrollView caveat as FormSheetContainer.
+export function FormSheetLayout({
+  testID,
+  eyebrow,
+  title,
+  className = "",
+  children,
+}: FormSheetLayoutProps) {
+  return (
+    <View
+      testID={testID}
+      className={`bg-background gap-5 px-5 pt-8 pb-6 ${className}`}
+    >
+      <View className="gap-1">
+        {eyebrow ? (
+          <Text className="text-accent-strong text-sm font-semibold">
+            {eyebrow}
+          </Text>
+        ) : null}
+        <Text role="heading" className="text-foreground text-3xl font-bold">
+          {title}
+        </Text>
+      </View>
+      {children}
+    </View>
+  );
+}
+
 type FormFieldProps = {
   label: string;
   children: ReactNode;
