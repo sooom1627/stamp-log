@@ -1,4 +1,9 @@
-import { buildMonthWeeks, buildWeek, shiftWeek } from "../month-grid";
+import {
+  buildMonthWeeks,
+  buildWeek,
+  shiftWeek,
+  weekHeadingMonth,
+} from "../month-grid";
 
 function dayNumbers(weeks: ReturnType<typeof buildMonthWeeks>) {
   return weeks.map((week) => week.map((day) => day?.date.getDate() ?? null));
@@ -125,5 +130,28 @@ describe("S-028 ST-001 shiftWeek", () => {
     expect(shiftWeek(new Date(2026, 8, 20), 1)).toEqual(new Date(2026, 8, 27));
     expect(shiftWeek(new Date(2026, 8, 20), -1)).toEqual(new Date(2026, 8, 13));
     expect(shiftWeek(new Date(2026, 11, 28), 1)).toEqual(new Date(2027, 0, 4));
+  });
+});
+
+describe("S-028 ST-002 weekHeadingMonth", () => {
+  const september = new Date(2026, 8, 1);
+  const october = new Date(2026, 9, 1);
+  const weekOf = (month: number, day: number) =>
+    buildWeek(new Date(2026, month - 1, day), []);
+
+  test("keeps the heading month while the week still has one of its days", () => {
+    expect(weekHeadingMonth(september, weekOf(9, 28))).toEqual(september);
+    expect(weekHeadingMonth(october, weekOf(9, 28))).toEqual(october);
+  });
+
+  test("moves to the week's month once no day of the heading month is left", () => {
+    expect(weekHeadingMonth(september, weekOf(10, 5))).toEqual(october);
+    expect(weekHeadingMonth(october, weekOf(9, 21))).toEqual(september);
+  });
+
+  test("uses the first day of the month for any day passed as the heading", () => {
+    expect(weekHeadingMonth(new Date(2026, 8, 20, 15), weekOf(9, 28))).toEqual(
+      september,
+    );
   });
 });

@@ -66,3 +66,15 @@ export function shiftWeek(anchor: Date, delta: number) {
     anchor.getDate() + delta * DAYS_PER_WEEK,
   );
 }
+
+// Keep the heading month while the shown week still has one of its days, so
+// stepping across a month boundary does not flip the heading back and forth.
+export function weekHeadingMonth(currentMonth: Date, weekDays: MonthDay[]) {
+  const year = currentMonth.getFullYear();
+  const monthIndex = currentMonth.getMonth();
+  const keepsMonth = weekDays.some(
+    ({ date }) => date.getFullYear() === year && date.getMonth() === monthIndex,
+  );
+  const month = keepsMonth ? currentMonth : weekDays[0].date;
+  return new Date(month.getFullYear(), month.getMonth(), 1);
+}
