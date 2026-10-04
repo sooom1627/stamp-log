@@ -1,4 +1,4 @@
-import { buildMonthWeeks } from "../month-grid";
+import { buildMonthWeeks, buildWeek, shiftWeek } from "../month-grid";
 
 function dayNumbers(weeks: ReturnType<typeof buildMonthWeeks>) {
   return weeks.map((week) => week.map((day) => day?.date.getDate() ?? null));
@@ -64,5 +64,66 @@ describe("S-006 ST-001 buildMonthWeeks", () => {
     ]);
 
     expect(recordedKeys(weeks)).toEqual(["2026-09-02", "2026-09-20"]);
+  });
+});
+
+function weekKeys(days: ReturnType<typeof buildWeek>) {
+  return days.map((day) => day.key);
+}
+
+describe("S-028 ST-001 buildWeek", () => {
+  test("lays out the Monday-first week that holds the given day", () => {
+    expect(weekKeys(buildWeek(new Date(2026, 8, 20, 15), []))).toEqual([
+      "2026-09-14",
+      "2026-09-15",
+      "2026-09-16",
+      "2026-09-17",
+      "2026-09-18",
+      "2026-09-19",
+      "2026-09-20",
+    ]);
+  });
+
+  test("fills every day of a week that crosses a month or a year", () => {
+    expect(weekKeys(buildWeek(new Date(2026, 9, 1), []))).toEqual([
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-03",
+      "2026-10-04",
+    ]);
+    expect(weekKeys(buildWeek(new Date(2027, 0, 1), []))).toEqual([
+      "2026-12-28",
+      "2026-12-29",
+      "2026-12-30",
+      "2026-12-31",
+      "2027-01-01",
+      "2027-01-02",
+      "2027-01-03",
+    ]);
+  });
+
+  test("marks only the local days of the week that have stamps", () => {
+    const week = buildWeek(new Date(2026, 8, 20), [
+      new Date(2026, 8, 14, 0, 5).toISOString(),
+      new Date(2026, 8, 18, 23, 30).toISOString(),
+      new Date(2026, 8, 13, 23, 59).toISOString(),
+      new Date(2026, 8, 21, 0, 0).toISOString(),
+    ]);
+
+    expect(week.filter((day) => day.isRecorded).map((day) => day.key)).toEqual([
+      "2026-09-14",
+      "2026-09-18",
+    ]);
+  });
+});
+
+describe("S-028 ST-001 shiftWeek", () => {
+  test("moves the day by whole weeks", () => {
+    expect(shiftWeek(new Date(2026, 8, 20), 1)).toEqual(new Date(2026, 8, 27));
+    expect(shiftWeek(new Date(2026, 8, 20), -1)).toEqual(new Date(2026, 8, 13));
+    expect(shiftWeek(new Date(2026, 11, 28), 1)).toEqual(new Date(2027, 0, 4));
   });
 });

@@ -8,14 +8,18 @@ export type MonthDay = {
 
 const DAYS_PER_WEEK = 7;
 
+function toRecordedDateKeys(stampDates: string[]) {
+  return new Set(
+    stampDates.map((stampDate) => localDateKey(new Date(stampDate))),
+  );
+}
+
 // Weeks of the month containing `month`, Monday first. Cells outside the
 // month are null so every week has seven columns.
 export function buildMonthWeeks(month: Date, stampDates: string[]) {
   const year = month.getFullYear();
   const monthIndex = month.getMonth();
-  const recordedDateKeys = new Set(
-    stampDates.map((stampDate) => localDateKey(new Date(stampDate))),
-  );
+  const recordedDateKeys = toRecordedDateKeys(stampDates);
   const leadingBlanks = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
 
@@ -34,5 +38,31 @@ export function buildMonthWeeks(month: Date, stampDates: string[]) {
 
   return Array.from({ length: days.length / DAYS_PER_WEEK }, (_, week) =>
     days.slice(week * DAYS_PER_WEEK, (week + 1) * DAYS_PER_WEEK),
+  );
+}
+
+// The Monday-first week holding `anchor`. Unlike a month row it has no blanks:
+// days from the next or previous month fill it.
+export function buildWeek(anchor: Date, stampDates: string[]): MonthDay[] {
+  const recordedDateKeys = toRecordedDateKeys(stampDates);
+  const mondayOffset = (anchor.getDay() + 6) % 7;
+
+  return Array.from({ length: DAYS_PER_WEEK }, (_, index) => {
+    // Build from the local date parts so DST changes do not shift a day.
+    const date = new Date(
+      anchor.getFullYear(),
+      anchor.getMonth(),
+      anchor.getDate() - mondayOffset + index,
+    );
+    const key = localDateKey(date);
+    return { date, key, isRecorded: recordedDateKeys.has(key) };
+  });
+}
+
+export function shiftWeek(anchor: Date, delta: number) {
+  return new Date(
+    anchor.getFullYear(),
+    anchor.getMonth(),
+    anchor.getDate() + delta * DAYS_PER_WEEK,
   );
 }
