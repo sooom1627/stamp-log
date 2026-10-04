@@ -14,8 +14,10 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
       testID="rally-summary-tile"
       className="bg-background border-continuous flex-1 items-center gap-0.5 rounded-2xl px-2 py-3"
     >
-      <Text className="text-foreground text-base font-semibold">{value}</Text>
       <Text className="text-foreground-muted text-xs">{label}</Text>
+      <Text className="text-foreground text-center text-sm font-semibold">
+        {value}
+      </Text>
     </View>
   );
 }
