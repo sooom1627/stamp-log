@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { ChevronLeft, ChevronRight } from "@/shared/components/icons";
 
-import { buildMonthWeeks, type MonthDay } from "../utils/month-grid";
+import { buildMonthWeeks, buildWeek, type MonthDay } from "../utils/month-grid";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -38,12 +38,26 @@ type RallyMonthCalendarProps = {
   stampDates: string[];
 };
 
+function firstDayOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
 export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
-  const [month, setMonth] = useState(() => {
+  // Opens on the week holding today every time; the view is not remembered.
+  const [isMonthView, setIsMonthView] = useState(false);
+  const [weekAnchor, setWeekAnchor] = useState(() => new Date());
+  const [month, setMonth] = useState(() => firstDayOfMonth(new Date()));
+  const weeks = isMonthView
+    ? buildMonthWeeks(month, stampDates)
+    : [buildWeek(weekAnchor, stampDates)];
+
+  const showMonth = () => setIsMonthView(true);
+  const showWeek = () => {
     const today = new Date();
-    return new Date(today.getFullYear(), today.getMonth(), 1);
-  });
-  const weeks = buildMonthWeeks(month, stampDates);
+    setWeekAnchor(today);
+    setMonth(firstDayOfMonth(today));
+    setIsMonthView(false);
+  };
 
   const shiftMonth = (delta: number) =>
     setMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
@@ -88,6 +102,16 @@ export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
           ))}
         </View>
       ))}
+      <Pressable
+        role="button"
+        aria-expanded={isMonthView}
+        className="min-h-11 items-center justify-center self-center px-4"
+        onPress={isMonthView ? showWeek : showMonth}
+      >
+        <Text className="text-foreground-secondary text-sm font-semibold">
+          {isMonthView ? "Show week" : "Show month"}
+        </Text>
+      </Pressable>
     </View>
   );
 }

@@ -268,14 +268,19 @@ describe("S-006 T-002 ST-002 month calendar", () => {
       stampedAt: new Date(2026, 8, 10, 9).toISOString(),
     });
 
-    await openRallyDetail("Calendar marks", async (rallyId) => {
-      await saveStamp({
-        rallyId,
-        stampedAt: new Date(2026, 8, 2, 8).toISOString(),
-      });
-    });
+    const { user } = await openRallyDetail(
+      "Calendar marks",
+      async (rallyId) => {
+        await saveStamp({
+          rallyId,
+          stampedAt: new Date(2026, 8, 2, 8).toISOString(),
+        });
+      },
+    );
 
     expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    // S-028: the calendar opens on this week; the whole month is one tap away.
+    await user.press(screen.getByRole("button", { name: "Show month" }));
     expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
     expect(screen.getByLabelText("Sep 20, 2026, recorded")).toBeOnTheScreen();
     expect(
@@ -301,6 +306,8 @@ describe("S-006 T-002 ST-003 month navigation", () => {
       },
     );
     expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    // S-028: ‹ › step months in the month view.
+    await user.press(screen.getByRole("button", { name: "Show month" }));
 
     await user.press(screen.getByRole("button", { name: "Previous month" }));
 
@@ -529,5 +536,48 @@ describe("S-028 T-002 ST-004 rally summary without stamps", () => {
     expect(
       within(detail).queryByLabelText("Rally summary"),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-003 ST-003 week and month views", () => {
+  test("opens on this week and toggles between the week and the whole month", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail(
+      "Folded calendar",
+      async (rallyId) => {
+        for (const day of [2, 18]) {
+          await saveStamp({
+            rallyId,
+            stampedAt: new Date(2026, 8, day, 9).toISOString(),
+          });
+        }
+      },
+    );
+
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Sep 14, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText("Sep 18, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
+    expect(
+      screen.queryByLabelText("Sep 2, 2026, recorded"),
+    ).not.toBeOnTheScreen();
+
+    const showMonth = screen.getByRole("button", { name: "Show month" });
+    expect(showMonth).toBeCollapsed();
+    await user.press(showMonth);
+
+    expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(30);
+    const showWeek = screen.getByRole("button", { name: "Show week" });
+    expect(showWeek).toBeExpanded();
+
+    await user.press(showWeek);
+
+    expect(
+      screen.queryByLabelText("Sep 2, 2026, recorded"),
+    ).not.toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
   });
 });
