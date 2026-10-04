@@ -115,3 +115,23 @@ describe("S-028 T-004 ST-005 empty rally day", () => {
     ).not.toBeOnTheScreen();
   });
 });
+
+describe("S-028 RT-001 ST-006 rally day look", () => {
+  test("tints the weekday and draws the empty day on a flat accent panel", async () => {
+    await openRallyDay("Day look", "2026-09-15");
+
+    expect(await screen.findByText("Tuesday")).toHaveProp(
+      "className",
+      expect.stringContaining("text-accent-strong"),
+    );
+    const empty = screen.getByTestId("rally-day-empty");
+    expect(empty).toHaveProp(
+      "className",
+      expect.stringContaining("bg-accent-subtle"),
+    );
+    expect(screen.getByText("No stamp on this day")).toHaveProp(
+      "className",
+      expect.stringContaining("text-accent-strong"),
+    );
+  });
+});

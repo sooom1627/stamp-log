@@ -13,7 +13,10 @@ import {
 } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
-import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
+import {
+  formatStampDay,
+  formatStampTime,
+} from "@/shared/utils/format-stamp-date-time";
 
 import * as ralliesDb from "../../db/rallies-db";
 import * as stampsDb from "../../db/stamps-db";
@@ -59,7 +62,10 @@ describe("Rally detail", () => {
     await openRallyDetail("Tokyo towers");
 
     expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
-    expect(screen.getByText("🗼")).toBeOnTheScreen();
+    // S-028: the emoji also marks recorded days in the calendar.
+    expect(
+      within(screen.getByTestId("rally-top-panel")).getByText("🗼"),
+    ).toBeOnTheScreen();
     expect(
       screen.getByRole("heading", { name: "Tokyo towers" }),
     ).toBeOnTheScreen();
@@ -75,6 +81,7 @@ function daysAgoAt(days: number, hours: number) {
 }
 
 const stampDateTimePattern = / (AM|PM)$/;
+const stampDayPattern = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), /;
 
 describe("S-006 T-001 ST-003 stamp timeline", () => {
   test("shows this rally's stamps newest first with the memo in full", async () => {
@@ -89,11 +96,17 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
       .filter((stamp) => stamp.rallyId === rally.id)
       .map((stamp) => stamp.stampedAt);
 
-    const dateTimes = await screen.findAllByText(stampDateTimePattern);
-    expect(dateTimes).toHaveLength(3);
+    // S-028: each post shows its day and its time on separate lines.
+    const times = await screen.findAllByText(stampDateTimePattern);
+    const days = screen.getAllByText(stampDayPattern);
+    expect(times).toHaveLength(3);
+    expect(days).toHaveLength(3);
     [now, oneDayAgo, threeDaysAgo].forEach((stampedAt, index) => {
-      expect(dateTimes[index]).toHaveTextContent(
-        formatStampDateTime(new Date(stampedAt)),
+      expect(days[index]).toHaveTextContent(
+        formatStampDay(new Date(stampedAt)),
+      );
+      expect(times[index]).toHaveTextContent(
+        formatStampTime(new Date(stampedAt)),
       );
     });
     expect(screen.getByText("Talked in the lab")).toBeOnTheScreen();
@@ -146,7 +159,7 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
     expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
     expect(screen.getAllByText(stampDateTimePattern)).toHaveLength(1);
     expect(
-      screen.queryByText(formatStampDateTime(new Date(pastStamp.stampedAt))),
+      screen.queryByText(formatStampDay(new Date(pastStamp.stampedAt))),
     ).not.toBeOnTheScreen();
     expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
     expect(
@@ -742,5 +755,96 @@ describe("S-028 T-004 ST-006 open a day from the calendar", () => {
       screen.getByRole("heading", { name: "Sep 14, 2026" }),
     ).toBeOnTheScreen();
     expect(screen.getByText("9:00 AM")).toBeOnTheScreen();
+  });
+});
+
+describe("S-028 RT-001 ST-003 posts look", () => {
+  test("titles the timeline Stamps and splits each post into a bold day and a light time", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    await openRallyDetail("Posts look", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 18, 19, 2).toISOString(),
+      });
+    });
+
+    const heading = await screen.findByRole("heading", { name: "Stamps" });
+    expect(heading).toBeOnTheScreen();
+    expect(screen.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
+
+    const day = screen.getByText("Fri, Sep 18");
+    expect(day).toHaveProp(
+      "className",
+      expect.stringContaining("font-semibold"),
+    );
+    const time = screen.getByText("7:02 PM");
+    expect(time).toHaveProp(
+      "className",
+      expect.stringContaining("text-foreground-muted"),
+    );
+    expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 RT-001 ST-004 top panel look", () => {
+  test("puts the rally name, count and summary on a flat accent panel with tiles", async () => {
+    await openRallyDetail("Top panel");
+
+    const panel = await screen.findByTestId("rally-top-panel");
+    expect(panel).toHaveProp(
+      "className",
+      expect.stringContaining("bg-accent-subtle"),
+    );
+    expect(
+      within(panel).getByRole("heading", { name: "Top panel" }),
+    ).toBeOnTheScreen();
+    expect(within(panel).getByText("1 stamp")).toHaveProp(
+      "className",
+      expect.stringContaining("text-accent-strong"),
+    );
+    const tiles = within(panel).getAllByTestId("rally-summary-tile");
+    expect(tiles).toHaveLength(3);
+    for (const tile of tiles) {
+      expect(tile).toHaveProp(
+        "className",
+        expect.stringContaining("bg-background"),
+      );
+    }
+  });
+});
+
+describe("S-028 RT-001 ST-005 calendar look", () => {
+  test("draws a flat card with the rally emoji on recorded days and a ring on today", async () => {
+    jest.setSystemTime(new Date(2026, 8, 16, 12));
+    await openRallyDetail("Calendar look", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 14, 9).toISOString(),
+      });
+    });
+
+    expect(await screen.findByTestId("rally-calendar")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-surface-muted"),
+    );
+    const recorded = screen.getByRole("button", {
+      name: "Sep 14, 2026, recorded",
+    });
+    expect(within(recorded).getByText("🗼")).toBeOnTheScreen();
+    expect(within(recorded).queryByText("14")).not.toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-09-14")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-accent-soft"),
+    );
+    // Today (Sep 16) also has a stamp from openRallyDetail.
+    expect(screen.getByTestId("calendar-day-2026-09-16")).toHaveProp(
+      "className",
+      expect.stringContaining("border-accent"),
+    );
+    const future = screen.getByLabelText("Sep 17, 2026, not recorded");
+    expect(within(future).getByText("17")).toHaveProp(
+      "className",
+      expect.stringContaining("text-foreground-muted"),
+    );
   });
 });

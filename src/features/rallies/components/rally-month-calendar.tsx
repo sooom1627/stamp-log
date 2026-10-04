@@ -24,15 +24,31 @@ const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 type CalendarDayProps = {
   day: MonthDay | null;
+  emoji: string;
   todayKey: string;
   onPress: (key: string) => void;
 };
 
-function CalendarDay({ day, todayKey, onPress }: CalendarDayProps) {
+// Complete class strings per state (no interpolation, see AGENTS.md).
+function dayCircleClassName(isRecorded: boolean, isToday: boolean) {
+  if (isRecorded && isToday) {
+    return "bg-accent-soft border-accent size-10 items-center justify-center rounded-full border-2";
+  }
+  if (isRecorded) {
+    return "bg-accent-soft size-10 items-center justify-center rounded-full";
+  }
+  if (isToday) {
+    return "border-accent size-10 items-center justify-center rounded-full border-2";
+  }
+  return "size-10 items-center justify-center rounded-full";
+}
+
+function CalendarDay({ day, emoji, todayKey, onPress }: CalendarDayProps) {
   if (!day) return <View className="flex-1" />;
 
   // Keys are YYYY-MM-DD, so string order is date order.
   const isFuture = day.key > todayKey;
+  const isToday = day.key === todayKey;
 
   return (
     <Pressable
@@ -42,21 +58,36 @@ function CalendarDay({ day, todayKey, onPress }: CalendarDayProps) {
       }`}
       aria-disabled={isFuture}
       disabled={isFuture}
-      className="flex-1 items-center gap-1 py-1"
+      className="flex-1 items-center py-1"
       onPress={() => onPress(day.key)}
     >
-      <Text className="text-foreground text-sm">{day.date.getDate()}</Text>
       <View
-        className={
-          day.isRecorded ? "bg-accent size-1.5 rounded-full" : "size-1.5"
-        }
-      />
+        testID={`calendar-day-${day.key}`}
+        className={dayCircleClassName(day.isRecorded, isToday)}
+      >
+        {day.isRecorded ? (
+          // The cell's aria-label already reads the day and "recorded".
+          <Text className="text-xl">{emoji}</Text>
+        ) : (
+          <Text
+            className={
+              isFuture
+                ? "text-foreground-muted text-base"
+                : "text-foreground text-base"
+            }
+          >
+            {day.date.getDate()}
+          </Text>
+        )}
+      </View>
     </Pressable>
   );
 }
 
 type RallyMonthCalendarProps = {
   stampDates: string[];
+  // Shown on recorded days in place of the day number.
+  emoji: string;
   // Called with the YYYY-MM-DD key of a day up to today.
   onPressDay: (key: string) => void;
 };
@@ -79,6 +110,7 @@ function pickerYears(stampDates: string[], shownMonth: Date) {
 
 export function RallyMonthCalendar({
   stampDates,
+  emoji,
   onPressDay,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
@@ -119,7 +151,10 @@ export function RallyMonthCalendar({
   };
 
   return (
-    <View className="w-full gap-2 pt-2">
+    <View
+      testID="rally-calendar"
+      className="bg-surface-muted border-continuous w-full gap-2 rounded-3xl p-3"
+    >
       <View className="flex-row items-center justify-between">
         <Pressable
           role="button"
@@ -164,6 +199,7 @@ export function RallyMonthCalendar({
             <CalendarDay
               key={day?.key ?? `blank-${dayIndex}`}
               day={day}
+              emoji={emoji}
               todayKey={todayKey}
               onPress={onPressDay}
             />

@@ -10,7 +10,10 @@ const firstStampFormatter = new Intl.DateTimeFormat("en-US", {
 
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-1 items-center gap-1">
+    <View
+      testID="rally-summary-tile"
+      className="bg-background border-continuous flex-1 items-center gap-0.5 rounded-2xl px-2 py-3"
+    >
       <Text className="text-foreground text-base font-semibold">{value}</Text>
       <Text className="text-foreground-muted text-xs">{label}</Text>
     </View>
@@ -26,7 +29,7 @@ type RallySummaryStatsProps = {
 
 export function RallySummaryStats({ summary }: RallySummaryStatsProps) {
   return (
-    <View aria-label="Rally summary" className="w-full flex-row pt-2">
+    <View aria-label="Rally summary" className="mt-3 w-full flex-row gap-2">
       <SummaryStat
         label="First stamp"
         value={

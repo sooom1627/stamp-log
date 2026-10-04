@@ -47,10 +47,10 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
   return (
     <FormSheetContainer testID="rally-day-sheet" className="gap-5">
       <View className="gap-1">
-        <Text className="text-foreground-secondary text-sm font-semibold">
+        <Text className="text-accent-strong text-sm font-semibold">
           {weekdayFormatter.format(date)}
         </Text>
-        <Text role="heading" className="text-foreground text-2xl font-bold">
+        <Text role="heading" className="text-foreground text-3xl font-bold">
           {dateFormatter.format(date)}
         </Text>
       </View>
@@ -58,11 +58,16 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
         // A day with a stamp gets no add button: the same rally cannot hold
         // two past stamps on one local day.
         <View className="gap-5">
-          <View className="bg-surface-muted border-continuous items-center gap-2 rounded-3xl py-8">
-            <Text aria-hidden className="text-3xl opacity-60">
-              {rally.emoji}
-            </Text>
-            <Text className="text-foreground-secondary text-base">
+          <View
+            testID="rally-day-empty"
+            className="bg-accent-subtle border-continuous items-center gap-3 rounded-3xl py-8"
+          >
+            <View className="bg-background size-14 items-center justify-center rounded-full">
+              <Text aria-hidden className="text-3xl opacity-60">
+                {rally.emoji}
+              </Text>
+            </View>
+            <Text className="text-accent-strong text-base font-semibold">
               No stamp on this day
             </Text>
           </View>
@@ -83,7 +88,7 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
               key={stamp.id}
               id={stamp.id}
               emoji={rally.emoji}
-              when={formatStampTime(new Date(stamp.stampedAt))}
+              title={formatStampTime(new Date(stamp.stampedAt))}
               memo={stamp.memo}
               onEdit={(stampId) =>
                 push({ pathname: "/edit-stamp", params: { stampId } })

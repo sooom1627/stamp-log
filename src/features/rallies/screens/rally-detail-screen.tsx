@@ -6,7 +6,10 @@ import { Stack, useRouter } from "expo-router";
 
 import { LoadError } from "@/shared/components/load-error";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
+import {
+  formatStampDay,
+  formatStampTime,
+} from "@/shared/utils/format-stamp-date-time";
 
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
@@ -101,7 +104,8 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           <StampPost
             id={item.id}
             emoji={rally.emoji}
-            when={formatStampDateTime(new Date(item.stampedAt))}
+            title={formatStampDay(new Date(item.stampedAt))}
+            detail={formatStampTime(new Date(item.stampedAt))}
             memo={item.memo}
             onEdit={(stampId) =>
               push({ pathname: "/edit-stamp", params: { stampId } })
@@ -110,23 +114,31 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           />
         )}
         ListHeaderComponent={
-          <View className="items-center gap-3">
-            <Text className="text-5xl">{rally.emoji}</Text>
-            <Text
-              selectable
-              role="heading"
-              className="text-foreground text-2xl font-semibold"
+          <View className="items-center gap-4">
+            <View
+              testID="rally-top-panel"
+              className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
             >
-              {rally.name}
-            </Text>
-            {stamps ? (
-              <Text className="text-foreground-secondary text-base">
-                {formatStampCount(stamps.length)}
+              <View className="bg-background size-20 items-center justify-center rounded-full">
+                <Text className="text-5xl">{rally.emoji}</Text>
+              </View>
+              <Text
+                selectable
+                role="heading"
+                className="text-foreground mt-1 text-2xl font-bold"
+              >
+                {rally.name}
               </Text>
-            ) : null}
-            {stamps ? <RallySummaryStats summary={summary} /> : null}
+              {stamps ? (
+                <Text className="text-accent-strong text-base font-semibold">
+                  {formatStampCount(stamps.length)}
+                </Text>
+              ) : null}
+              {stamps ? <RallySummaryStats summary={summary} /> : null}
+            </View>
             <RallyMonthCalendar
               stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+              emoji={rally.emoji}
               onPressDay={(date) =>
                 push({
                   pathname: "/rally-day",
@@ -134,6 +146,22 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                 })
               }
             />
+            {stamps && stamps.length > 0 ? (
+              <View className="w-full flex-row items-baseline justify-between pt-4">
+                <Text
+                  role="heading"
+                  className="text-foreground text-xl font-bold"
+                >
+                  Stamps
+                </Text>
+                <Text
+                  aria-label={`${stamps.length} stamps in the timeline`}
+                  className="text-foreground-muted text-base"
+                >
+                  {stamps.length}
+                </Text>
+              </View>
+            ) : null}
           </View>
         }
         ListEmptyComponent={
