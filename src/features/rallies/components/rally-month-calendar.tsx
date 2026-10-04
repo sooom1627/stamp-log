@@ -4,7 +4,15 @@ import { Pressable, Text, View } from "react-native";
 
 import { ChevronLeft, ChevronRight } from "@/shared/components/icons";
 
-import { buildMonthWeeks, type MonthDay } from "../utils/month-grid";
+import {
+  buildMonthWeeks,
+  buildWeek,
+  shiftWeek,
+  weekHeadingMonth,
+  type MonthDay,
+} from "../utils/month-grid";
+
+import { MonthPickerSheet } from "./month-picker-sheet";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -38,35 +46,85 @@ type RallyMonthCalendarProps = {
   stampDates: string[];
 };
 
-export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
-  const [month, setMonth] = useState(() => {
-    const today = new Date();
-    return new Date(today.getFullYear(), today.getMonth(), 1);
-  });
-  const weeks = buildMonthWeeks(month, stampDates);
+function firstDayOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
 
-  const shiftMonth = (delta: number) =>
-    setMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
+// From the first stamp's year (or this year) to next year, always including
+// the shown month's year so the wheel can select it.
+function pickerYears(stampDates: string[], shownMonth: Date) {
+  const thisYear = new Date().getFullYear();
+  const stampYears = stampDates.map((stampDate) =>
+    new Date(stampDate).getFullYear(),
+  );
+  const from = Math.min(thisYear, shownMonth.getFullYear(), ...stampYears);
+  const to = Math.max(thisYear + 1, shownMonth.getFullYear());
+  return Array.from({ length: to - from + 1 }, (_, index) => from + index);
+}
+
+export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
+  // Opens on the week holding today every time; the view is not remembered.
+  const [isMonthView, setIsMonthView] = useState(false);
+  const [weekAnchor, setWeekAnchor] = useState(() => new Date());
+  const [month, setMonth] = useState(() => firstDayOfMonth(new Date()));
+  const weeks = isMonthView
+    ? buildMonthWeeks(month, stampDates)
+    : [buildWeek(weekAnchor, stampDates)];
+
+  const showMonth = () => setIsMonthView(true);
+  const showWeek = () => {
+    const today = new Date();
+    setWeekAnchor(today);
+    setMonth(firstDayOfMonth(today));
+    setIsMonthView(false);
+  };
+
+  // ‹ › step by the unit on screen: a week in the week view, a month otherwise.
+  const step = (delta: number) => {
+    if (isMonthView) {
+      setMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
+      return;
+    }
+    const nextAnchor = shiftWeek(weekAnchor, delta);
+    setWeekAnchor(nextAnchor);
+    setMonth(weekHeadingMonth(month, buildWeek(nextAnchor, [])));
+  };
+  const unit = isMonthView ? "month" : "week";
+  const heading = monthFormatter.format(month);
+
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const pickMonth = (picked: Date) => {
+    setMonth(picked);
+    setIsMonthView(true);
+    setIsPickerOpen(false);
+  };
 
   return (
     <View className="w-full gap-2 pt-2">
       <View className="flex-row items-center justify-between">
         <Pressable
           role="button"
-          aria-label="Previous month"
+          aria-label={`Previous ${unit}`}
           className="size-11 items-center justify-center"
-          onPress={() => shiftMonth(-1)}
+          onPress={() => step(-1)}
         >
           <ChevronLeft colorClassName="accent-accent" size={20} />
         </Pressable>
-        <Text className="text-foreground text-base font-semibold">
-          {monthFormatter.format(month)}
-        </Text>
         <Pressable
           role="button"
-          aria-label="Next month"
+          aria-label={`Choose month, ${heading}`}
+          className="min-h-11 justify-center px-2"
+          onPress={() => setIsPickerOpen(true)}
+        >
+          <Text className="text-foreground text-base font-semibold">
+            {heading}
+          </Text>
+        </Pressable>
+        <Pressable
+          role="button"
+          aria-label={`Next ${unit}`}
           className="size-11 items-center justify-center"
-          onPress={() => shiftMonth(1)}
+          onPress={() => step(1)}
         >
           <ChevronRight colorClassName="accent-accent" size={20} />
         </Pressable>
@@ -88,6 +146,23 @@ export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
           ))}
         </View>
       ))}
+      <Pressable
+        role="button"
+        aria-expanded={isMonthView}
+        className="min-h-11 items-center justify-center self-center px-4"
+        onPress={isMonthView ? showWeek : showMonth}
+      >
+        <Text className="text-foreground-secondary text-sm font-semibold">
+          {isMonthView ? "Show week" : "Show month"}
+        </Text>
+      </Pressable>
+      <MonthPickerSheet
+        isPresented={isPickerOpen}
+        month={month}
+        years={pickerYears(stampDates, month)}
+        onDone={pickMonth}
+        onClose={() => setIsPickerOpen(false)}
+      />
     </View>
   );
 }

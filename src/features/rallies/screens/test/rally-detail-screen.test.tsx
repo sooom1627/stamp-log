@@ -268,14 +268,19 @@ describe("S-006 T-002 ST-002 month calendar", () => {
       stampedAt: new Date(2026, 8, 10, 9).toISOString(),
     });
 
-    await openRallyDetail("Calendar marks", async (rallyId) => {
-      await saveStamp({
-        rallyId,
-        stampedAt: new Date(2026, 8, 2, 8).toISOString(),
-      });
-    });
+    const { user } = await openRallyDetail(
+      "Calendar marks",
+      async (rallyId) => {
+        await saveStamp({
+          rallyId,
+          stampedAt: new Date(2026, 8, 2, 8).toISOString(),
+        });
+      },
+    );
 
     expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    // S-028: the calendar opens on this week; the whole month is one tap away.
+    await user.press(screen.getByRole("button", { name: "Show month" }));
     expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
     expect(screen.getByLabelText("Sep 20, 2026, recorded")).toBeOnTheScreen();
     expect(
@@ -301,6 +306,8 @@ describe("S-006 T-002 ST-003 month navigation", () => {
       },
     );
     expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    // S-028: ‹ › step months in the month view.
+    await user.press(screen.getByRole("button", { name: "Show month" }));
 
     await user.press(screen.getByRole("button", { name: "Previous month" }));
 
@@ -529,5 +536,183 @@ describe("S-028 T-002 ST-004 rally summary without stamps", () => {
     expect(
       within(detail).queryByLabelText("Rally summary"),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-003 ST-003 week and month views", () => {
+  test("opens on this week and toggles between the week and the whole month", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail(
+      "Folded calendar",
+      async (rallyId) => {
+        for (const day of [2, 18]) {
+          await saveStamp({
+            rallyId,
+            stampedAt: new Date(2026, 8, day, 9).toISOString(),
+          });
+        }
+      },
+    );
+
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Sep 14, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText("Sep 18, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
+    expect(
+      screen.queryByLabelText("Sep 2, 2026, recorded"),
+    ).not.toBeOnTheScreen();
+
+    const showMonth = screen.getByRole("button", { name: "Show month" });
+    expect(showMonth).toBeCollapsed();
+    await user.press(showMonth);
+
+    expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(30);
+    const showWeek = screen.getByRole("button", { name: "Show week" });
+    expect(showWeek).toBeExpanded();
+
+    await user.press(showWeek);
+
+    expect(
+      screen.queryByLabelText("Sep 2, 2026, recorded"),
+    ).not.toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
+  });
+});
+
+describe("S-028 T-003 ST-004 stepping weeks and months", () => {
+  test("steps by week in the week view and keeps the heading month across the boundary", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Week steps", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 10, 9).toISOString(),
+      });
+    });
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Previous month" }),
+    ).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Previous week" }));
+    expect(
+      screen.getByLabelText("Sep 7, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText("Sep 10, 2026, recorded")).toBeOnTheScreen();
+
+    const nextWeek = screen.getByRole("button", { name: "Next week" });
+    await user.press(nextWeek);
+    await user.press(nextWeek);
+    await user.press(nextWeek);
+    // Sep 28 – Oct 4 still holds September days.
+    expect(
+      screen.getByLabelText("Oct 4, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+
+    await user.press(nextWeek);
+    expect(
+      screen.getByLabelText("Oct 5, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Previous week" }));
+    expect(
+      screen.getByLabelText("Sep 28, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+  });
+
+  test("steps by month in the month view", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Month steps");
+    await user.press(await screen.findByRole("button", { name: "Show month" }));
+
+    expect(
+      screen.queryByRole("button", { name: "Previous week" }),
+    ).not.toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Next month" }));
+
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Oct \d+, 2026, /)).toHaveLength(31);
+  });
+});
+
+describe("S-028 T-003 ST-005 month picker", () => {
+  test("picks a year and month from the wheels and shows that month", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Month picker", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2025, 2, 14, 9).toISOString(),
+      });
+    });
+
+    await user.press(
+      await screen.findByRole("button", {
+        name: "Choose month, September 2026",
+      }),
+    );
+    const monthWheel = await screen.findByTestId("month-picker-month");
+    const yearWheel = screen.getByTestId("month-picker-year");
+    expect(monthWheel).toHaveProp("selection", 8);
+    expect(yearWheel).toHaveProp("selection", 2026);
+
+    await fireEvent(monthWheel, "selectionChange", {
+      nativeEvent: { selection: 2 },
+    });
+    await fireEvent(yearWheel, "selectionChange", {
+      nativeEvent: { selection: 2025 },
+    });
+    await fireEvent(screen.getByTestId("month-picker-done"), "buttonPress");
+
+    expect(await screen.findByText("March 2025")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Mar \d+, 2025, /)).toHaveLength(31);
+    expect(screen.getByLabelText("Mar 14, 2025, recorded")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Show week" })).toBeOnTheScreen();
+    // The native sheet keeps its content until it reports the dismissal.
+    expect(screen.getByTestId("month-picker-sheet")).toHaveProp(
+      "isPresented",
+      false,
+    );
+    await fireEvent(screen.getByTestId("month-picker-sheet"), "dismiss");
+    expect(screen.queryByTestId("month-picker-month")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-003 ST-005 month picker reopen", () => {
+  test("starts from the shown month again after closing without Done", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Picker reopen");
+    const heading = await screen.findByRole("button", {
+      name: "Choose month, September 2026",
+    });
+
+    await user.press(heading);
+    await fireEvent(
+      screen.getByTestId("month-picker-month"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: 2 },
+      },
+    );
+    // Swiping the sheet down reports the closed state from the native side.
+    await fireEvent(
+      screen.getByTestId("month-picker-sheet"),
+      "isPresentedChange",
+      {
+        nativeEvent: { isPresented: false },
+      },
+    );
+    await fireEvent(screen.getByTestId("month-picker-sheet"), "dismiss");
+    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+
+    await user.press(heading);
+    expect(await screen.findByTestId("month-picker-month")).toHaveProp(
+      "selection",
+      8,
+    );
   });
 });
