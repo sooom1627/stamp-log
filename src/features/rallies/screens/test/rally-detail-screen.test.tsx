@@ -496,3 +496,38 @@ describe("S-028 T-002 ST-003 rally summary", () => {
     expect(within(summary).getByText("0.3")).toBeOnTheScreen();
   });
 });
+
+describe("S-028 T-002 ST-004 rally summary without stamps", () => {
+  async function openEmptyRally(name: string) {
+    await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+    const [rally] = await ralliesDb.listRallies();
+
+    await renderRouter("./src/app");
+    expect(await screen.findByText(name)).toBeOnTheScreen();
+    await act(() => {
+      router.push(`/rallies/${rally.id}`);
+    });
+
+    return screen.findByLabelText("Rally detail");
+  }
+
+  test("shows a dash for every value when the rally has no stamps", async () => {
+    const detail = await openEmptyRally("Empty summary");
+
+    const summary = await within(detail).findByLabelText("Rally summary");
+    expect(within(summary).getByText("First stamp")).toBeOnTheScreen();
+    expect(within(summary).getAllByText("—")).toHaveLength(3);
+  });
+
+  test("hides the summary when the stamps cannot be loaded", async () => {
+    jest
+      .spyOn(stampsDb, "listStamps")
+      .mockRejectedValue(new Error("disk full"));
+    const detail = await openEmptyRally("Summary load fails");
+
+    expect(await within(detail).findByText("Couldn't load")).toBeOnTheScreen();
+    expect(
+      within(detail).queryByLabelText("Rally summary"),
+    ).not.toBeOnTheScreen();
+  });
+});

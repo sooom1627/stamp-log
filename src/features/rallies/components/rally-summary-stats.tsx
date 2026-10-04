@@ -17,8 +17,11 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
   );
 }
 
+const NO_VALUE = "—";
+
 type RallySummaryStatsProps = {
-  summary: RallySummary;
+  // null when the rally has no stamps yet.
+  summary: RallySummary | null;
 };
 
 export function RallySummaryStats({ summary }: RallySummaryStatsProps) {
@@ -26,12 +29,19 @@ export function RallySummaryStats({ summary }: RallySummaryStatsProps) {
     <View aria-label="Rally summary" className="w-full flex-row pt-2">
       <SummaryStat
         label="First stamp"
-        value={firstStampFormatter.format(summary.firstStampedAt)}
+        value={
+          summary
+            ? firstStampFormatter.format(summary.firstStampedAt)
+            : NO_VALUE
+        }
       />
-      <SummaryStat label="Per week" value={summary.perWeek.toFixed(1)} />
+      <SummaryStat
+        label="Per week"
+        value={summary ? summary.perWeek.toFixed(1) : NO_VALUE}
+      />
       <SummaryStat
         label="Last stamp"
-        value={formatDaysAgo(summary.daysSinceLast)}
+        value={summary ? formatDaysAgo(summary.daysSinceLast) : NO_VALUE}
       />
     </View>
   );

@@ -202,7 +202,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                 {formatStampCount(stamps.length)}
               </Text>
             ) : null}
-            {summary ? <RallySummaryStats summary={summary} /> : null}
+            {stamps ? <RallySummaryStats summary={summary} /> : null}
             <RallyMonthCalendar
               stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
             />
