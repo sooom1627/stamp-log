@@ -3,7 +3,7 @@ import { Alert, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
-import { FormSheetContainer } from "@/shared/components/form-sheet";
+import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
@@ -45,15 +45,11 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
     ]);
 
   return (
-    <FormSheetContainer testID="rally-day-sheet" className="gap-5">
-      <View className="gap-1">
-        <Text className="text-accent-strong text-sm font-semibold">
-          {weekdayFormatter.format(date)}
-        </Text>
-        <Text role="heading" className="text-foreground text-3xl font-bold">
-          {dateFormatter.format(date)}
-        </Text>
-      </View>
+    <FormSheetLayout
+      testID="rally-day-sheet"
+      eyebrow={weekdayFormatter.format(date)}
+      title={dateFormatter.format(date)}
+    >
       {rally && rallyStamps && dayStamps.length === 0 ? (
         // A day with a stamp gets no add button: the same rally cannot hold
         // two past stamps on one local day.
@@ -97,6 +93,6 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
             />
           ))
         : null}
-    </FormSheetContainer>
+    </FormSheetLayout>
   );
 }

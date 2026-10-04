@@ -3,7 +3,13 @@ import { Alert, type AlertButton } from "react-native";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 
 import { listRallies, saveRally } from "../../db/rallies-db";
 import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
@@ -60,6 +66,18 @@ describe("S-028 T-004 ST-003 rally day sheet", () => {
     expect(screen.queryByText("9:00 AM")).not.toBeOnTheScreen();
     expect(screen.queryByText("8:00 AM")).not.toBeOnTheScreen();
     expect(sheet).toBeOnTheScreen();
+  });
+
+  test("S-028 RT-002 ST-002 pads the top by a fixed amount, not the header height", async () => {
+    await openRallyDay("Rally day layout", "2026-09-18");
+
+    const sheet = await screen.findByTestId("rally-day-sheet");
+    expect(sheet).toHaveProp("className", expect.stringContaining("pt-8"));
+    expect(sheet).not.toHaveProp("style", expect.anything());
+    expect(
+      within(sheet).getByRole("heading", { name: "Sep 18, 2026" }),
+    ).toBeOnTheScreen();
+    expect(within(sheet).getByText("Friday")).toBeOnTheScreen();
   });
 
   test("deletes a stamp of the day after confirmation", async () => {

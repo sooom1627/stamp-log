@@ -65,7 +65,7 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="rally-day"
-              options={{ ...formSheetOptions, title: "" }}
+              options={{ ...formSheetOptions, headerShown: false }}
             />
           </Stack>
         </ThemeProvider>
