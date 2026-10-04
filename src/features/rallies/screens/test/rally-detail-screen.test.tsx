@@ -433,3 +433,69 @@ describe("S-028 T-001 ST-002 past stamp from the actions menu", () => {
     expect(stamps).toHaveLength(2);
   });
 });
+
+describe("S-028 T-001 ST-003 delete rally from the actions menu", () => {
+  async function pressMenuDelete(name: string) {
+    const opened = await openRallyDetail(name);
+    await fireEvent(
+      await screen.findByTestId("rally-action-delete"),
+      "buttonPress",
+    );
+    return opened;
+  }
+
+  test("deletes the rally after confirmation and returns home", async () => {
+    const { rally } = await pressMenuDelete("Menu delete");
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete rally?",
+      "This action cannot be undone.",
+      expect.any(Array),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
+    });
+    expect(
+      (await ralliesDb.listRallies()).some(
+        (candidate) => candidate.id === rally.id,
+      ),
+    ).toBe(false);
+  });
+
+  test("keeps the rally when the deletion is cancelled", async () => {
+    const { rally } = await pressMenuDelete("Menu delete cancel");
+
+    await act(async () => {
+      findAlertButton("cancel").onPress?.();
+    });
+
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(
+      (await ralliesDb.listRallies()).some(
+        (candidate) => candidate.id === rally.id,
+      ),
+    ).toBe(true);
+  });
+
+  test("shows the global error toast when deletion fails", async () => {
+    jest
+      .spyOn(ralliesDb, "deleteRally")
+      .mockRejectedValueOnce(new Error("delete failed"));
+    await pressMenuDelete("Menu delete fails");
+
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Something went wrong. Please try again.",
+      );
+    });
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+  });
+});

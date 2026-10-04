@@ -232,7 +232,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         onPastStamp={() =>
           push({ pathname: "/add-past-stamp", params: { rallyId: rally.id } })
         }
-        onDelete={() => {}}
+        onDelete={confirmDelete}
       />
     </>
   );
