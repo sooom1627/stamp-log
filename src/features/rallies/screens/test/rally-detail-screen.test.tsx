@@ -457,3 +457,42 @@ describe("S-028 T-001 ST-005 rally actions icon", () => {
     expect(icon).not.toHaveProp("color");
   });
 });
+
+describe("S-028 T-002 ST-003 rally summary", () => {
+  test("shows the first stamp day, weekly average and days since the last stamp, and updates them", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { rally } = await openRallyDetail("Summary", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 7, 3, 9).toISOString(),
+      });
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 18, 19).toISOString(),
+      });
+    });
+    const summary = await screen.findByLabelText("Rally summary");
+
+    // Aug 3 – Sep 20 is 7 weeks: 3 / 7 = 0.43 per week; the last stamp is today.
+    expect(within(summary).getByText("First stamp")).toBeOnTheScreen();
+    expect(within(summary).getByText("Aug 3, 2026")).toBeOnTheScreen();
+    expect(within(summary).getByText("Per week")).toBeOnTheScreen();
+    expect(within(summary).getByText("0.4")).toBeOnTheScreen();
+    expect(within(summary).getByText("Last stamp")).toBeOnTheScreen();
+    expect(within(summary).getByText("Today")).toBeOnTheScreen();
+
+    const [todayStamp] = (await listStamps()).filter(
+      (stamp) => stamp.rallyId === rally.id,
+    );
+    await fireEvent(
+      screen.getByTestId(`stamp-delete-${todayStamp.id}`),
+      "buttonPress",
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    expect(await within(summary).findByText("2 days ago")).toBeOnTheScreen();
+    expect(within(summary).getByText("0.3")).toBeOnTheScreen();
+  });
+});
