@@ -3,10 +3,9 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
-import { FormSheetContainer } from "@/shared/components/form-sheet";
+import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
-import { RallyHeading } from "../components/rally-heading";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
 import {
   StampDateTimeErrors,
@@ -68,9 +67,11 @@ export function AddPastStampScreen({ rallyId, day }: AddPastStampScreenProps) {
   };
 
   return (
-    <FormSheetContainer testID="add-past-stamp-form" className="gap-5">
-      {rally ? <RallyHeading emoji={rally.emoji} name={rally.name} /> : null}
-
+    <FormSheetLayout
+      testID="add-past-stamp-form"
+      eyebrow={rally ? `${rally.emoji} ${rally.name}` : undefined}
+      title="Past stamp"
+    >
       <StampDateTimeFields
         value={stampedAt}
         onChange={setStampedAt}
@@ -87,6 +88,6 @@ export function AddPastStampScreen({ rallyId, day }: AddPastStampScreenProps) {
         isLoading={isSaving}
         className="mt-3"
       />
-    </FormSheetContainer>
+    </FormSheetLayout>
   );
 }

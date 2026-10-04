@@ -57,11 +57,11 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="add-past-stamp"
-              options={{ ...formSheetOptions, title: "Past stamp" }}
+              options={{ ...formSheetOptions, headerShown: false }}
             />
             <Stack.Screen
               name="edit-stamp"
-              options={{ ...formSheetOptions, title: "Edit stamp" }}
+              options={{ ...formSheetOptions, headerShown: false }}
             />
             <Stack.Screen
               name="rally-day"

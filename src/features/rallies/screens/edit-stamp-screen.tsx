@@ -5,11 +5,10 @@ import { useRouter } from "expo-router";
 import { Button } from "@/shared/components/button";
 import {
   FormField,
-  FormSheetContainer,
+  FormSheetLayout,
   FormTextInput,
 } from "@/shared/components/form-sheet";
 
-import { RallyHeading } from "../components/rally-heading";
 import {
   StampDateTimeErrors,
   StampDateTimeFields,
@@ -75,9 +74,11 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   };
 
   return (
-    <FormSheetContainer testID="edit-stamp-form" className="gap-5">
-      <RallyHeading emoji={rally.emoji} name={rally.name} />
-
+    <FormSheetLayout
+      testID="edit-stamp-form"
+      eyebrow={`${rally.emoji} ${rally.name}`}
+      title="Edit stamp"
+    >
       <StampDateTimeFields
         value={stampedAt}
         onChange={setStampedAt}
@@ -106,6 +107,6 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
         isLoading={isSaving}
         className="mt-3"
       />
-    </FormSheetContainer>
+    </FormSheetLayout>
   );
 }
