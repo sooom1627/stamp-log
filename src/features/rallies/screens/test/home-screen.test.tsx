@@ -260,9 +260,7 @@ describe("S-002 T-002 ST-005 memo formSheet", () => {
 
     expect(toast.dismiss).toHaveBeenCalled();
     expect(await screen.findByText("Memo")).toBeOnTheScreen();
-    expect(
-      screen.queryByRole("heading", { name: "Add memo" }),
-    ).not.toBeOnTheScreen();
+    expect(screen.getByRole("heading", { name: "Add memo" })).toBeOnTheScreen();
 
     await user.type(screen.getByPlaceholderText("Enter memo"), "Met them");
     await user.press(screen.getByRole("button", { name: "Save" }));

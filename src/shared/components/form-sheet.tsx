@@ -2,37 +2,6 @@ import { type ReactNode } from "react";
 
 import { Text, TextInput, View, type TextInputProps } from "react-native";
 
-import { useHeaderHeight } from "expo-router/react-navigation";
-
-type FormSheetContainerProps = {
-  testID?: string;
-  /** Extra layout classes (e.g. `gap-5`). */
-  className?: string;
-  children: ReactNode;
-};
-
-// Do not use ScrollView / KeyboardAvoidingView inside formSheet.
-// react-native-screens force-overrides the ScrollView frame to the full sheet,
-// which interferes with sibling content (footer) and stops rendering.
-// Keep the root intrinsically sized so fitToContents includes the Save button.
-export function FormSheetContainer({
-  testID,
-  className = "",
-  children,
-}: FormSheetContainerProps) {
-  const headerHeight = useHeaderHeight();
-
-  return (
-    <View
-      testID={testID}
-      className={`bg-background px-5 pb-6 ${className}`}
-      style={{ paddingTop: headerHeight + 16 }}
-    >
-      {children}
-    </View>
-  );
-}
-
 type FormSheetLayoutProps = {
   testID?: string;
   /** Small line above the title (e.g. the rally or the weekday). */
@@ -44,7 +13,11 @@ type FormSheetLayoutProps = {
 };
 
 // Sheets hide the native header, so the top padding is fixed: it only has to
-// clear the grabber. Same ScrollView caveat as FormSheetContainer.
+// clear the grabber.
+// Do not use ScrollView / KeyboardAvoidingView inside formSheet.
+// react-native-screens force-overrides the ScrollView frame to the full sheet,
+// which interferes with sibling content (footer) and stops rendering.
+// Keep the root intrinsically sized so fitToContents includes the Save button.
 export function FormSheetLayout({
   testID,
   eyebrow,

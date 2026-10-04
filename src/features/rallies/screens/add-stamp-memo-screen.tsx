@@ -5,11 +5,12 @@ import { useRouter } from "expo-router";
 import { Button } from "@/shared/components/button";
 import {
   FormField,
-  FormSheetContainer,
+  FormSheetLayout,
   FormTextInput,
 } from "@/shared/components/form-sheet";
 
-import { useUpdateStampMemo } from "../hooks/use-stamps";
+import { useRallies } from "../hooks/use-rallies";
+import { useStamps, useUpdateStampMemo } from "../hooks/use-stamps";
 import { updateStampMemoInputSchema } from "../schemas/stamps";
 
 type AddStampMemoScreenProps = {
@@ -17,11 +18,16 @@ type AddStampMemoScreenProps = {
 };
 
 // Cap memo input height and rely on the field's internal scrolling
-// (no ScrollView in a formSheet; see FormSheetContainer).
+// (no ScrollView in a formSheet; see FormSheetLayout).
 export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   const [memo, setMemo] = useState("");
   const { back } = useRouter();
+  const { data: stamps } = useStamps();
+  const { data: rallies } = useRallies();
   const { mutate: updateStampMemo, isPending: isSaving } = useUpdateStampMemo();
+
+  const stamp = stamps?.find((candidate) => candidate.id === stampId);
+  const rally = rallies?.find((candidate) => candidate.id === stamp?.rallyId);
 
   const isMemoValid = updateStampMemoInputSchema.safeParse({
     id: stampId,
@@ -36,7 +42,11 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   };
 
   return (
-    <FormSheetContainer testID="add-stamp-memo-form">
+    <FormSheetLayout
+      testID="add-stamp-memo-form"
+      eyebrow={rally ? `${rally.emoji} ${rally.name}` : undefined}
+      title="Add memo"
+    >
       <FormField label="Memo">
         <FormTextInput
           value={memo}
@@ -61,6 +71,6 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
         isLoading={isSaving}
         className="mt-8"
       />
-    </FormSheetContainer>
+    </FormSheetLayout>
   );
 }

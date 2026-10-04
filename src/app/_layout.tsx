@@ -21,15 +21,13 @@ import "../../tailwind.css";
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const sheetBackgroundStyle = useResolveClassNames("bg-background");
-  const sheetTitleStyle = useResolveClassNames("text-foreground");
   const formSheetOptions = {
     presentation: "formSheet",
     sheetGrabberVisible: true,
     sheetAllowedDetents: "fitToContents",
     contentStyle: sheetBackgroundStyle,
-    headerStyle: sheetBackgroundStyle,
-    headerTintColor: sheetTitleStyle.color,
-    headerShadowVisible: false,
+    // Each sheet draws its own heading (FormSheetLayout).
+    headerShown: false,
   } as const;
   const [queryClient] = useState(() =>
     createQueryClient({
@@ -47,26 +45,11 @@ export default function RootLayout() {
         >
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="create-rally"
-              options={{ ...formSheetOptions, headerShown: false }}
-            />
-            <Stack.Screen
-              name="add-stamp-memo"
-              options={{ ...formSheetOptions, title: "Add memo" }}
-            />
-            <Stack.Screen
-              name="add-past-stamp"
-              options={{ ...formSheetOptions, headerShown: false }}
-            />
-            <Stack.Screen
-              name="edit-stamp"
-              options={{ ...formSheetOptions, headerShown: false }}
-            />
-            <Stack.Screen
-              name="rally-day"
-              options={{ ...formSheetOptions, headerShown: false }}
-            />
+            <Stack.Screen name="create-rally" options={formSheetOptions} />
+            <Stack.Screen name="add-stamp-memo" options={formSheetOptions} />
+            <Stack.Screen name="add-past-stamp" options={formSheetOptions} />
+            <Stack.Screen name="edit-stamp" options={formSheetOptions} />
+            <Stack.Screen name="rally-day" options={formSheetOptions} />
           </Stack>
         </ThemeProvider>
         <Toaster position="bottom-center" closeButton />
