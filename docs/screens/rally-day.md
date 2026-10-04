@@ -12,7 +12,7 @@
 
 - 入り: [rally-detail.md](./rally-detail.md) のカレンダーで今日以前の日付を押す。ルート案 `/rally-day?rallyId=&date=YYYY-MM-DD`（formSheet）
 - 出:
-  - 閉じる（× またはシートを下げる）→ ラリー詳細
+  - 閉じる（シートを下げる）→ ラリー詳細
   - 投稿の「…」→「Edit」→ [edit-stamp.md](./edit-stamp.md)（formSheet）
   - 投稿の「…」→「Delete」→ 確認ダイアログ → 削除してこのシートに留まる（記録が無くなれば空の表示へ）
   - 「Stamp this day」→ [add-past-stamp.md](./add-past-stamp.md)（その日付を渡す）
@@ -21,9 +21,9 @@
 ## レイアウト
 
 ```
-            ───                     ← グラバー
-Friday                         (×)
-Sep 18, 2026
+            ───                     ← グラバー（ネイティブのヘッダーは出さない）
+Friday                              ← 補足行（小）
+Sep 18, 2026                        ← 見出し（大）
 
 🗼 7:02 PM                       …  ← … から Edit / Delete
    研究室で話した。次は共同研究の
@@ -34,7 +34,7 @@ Sep 18, 2026
 
 ```
             ───
-Thursday                       (×)
+Thursday
 Sep 17, 2026
 
 ┌──────────────────────────────────┐
