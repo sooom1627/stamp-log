@@ -263,7 +263,8 @@ describe("S-006 T-001 ST-010 menu tap target", () => {
     expect(await screen.findByTestId(`stamp-menu-icon-${stamp.id}`)).toHaveProp(
       "modifiers",
       expect.arrayContaining([
-        expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
+        expect.objectContaining({ $type: "frame", width: 36, height: 36 }),
+        expect.objectContaining({ $type: "imageScale", scale: "small" }),
         expect.objectContaining({ $type: "contentShape" }),
         expect.objectContaining({ $type: "accessibilityLabel", label: "More" }),
       ]),
