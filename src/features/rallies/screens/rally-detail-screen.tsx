@@ -6,7 +6,10 @@ import { Stack, useRouter } from "expo-router";
 
 import { LoadError } from "@/shared/components/load-error";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
+import {
+  formatStampDay,
+  formatStampTime,
+} from "@/shared/utils/format-stamp-date-time";
 
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
@@ -101,7 +104,8 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           <StampPost
             id={item.id}
             emoji={rally.emoji}
-            when={formatStampDateTime(new Date(item.stampedAt))}
+            title={formatStampDay(new Date(item.stampedAt))}
+            detail={formatStampTime(new Date(item.stampedAt))}
             memo={item.memo}
             onEdit={(stampId) =>
               push({ pathname: "/edit-stamp", params: { stampId } })
@@ -134,6 +138,22 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                 })
               }
             />
+            {stamps && stamps.length > 0 ? (
+              <View className="w-full flex-row items-baseline justify-between pt-4">
+                <Text
+                  role="heading"
+                  className="text-foreground text-xl font-bold"
+                >
+                  Stamps
+                </Text>
+                <Text
+                  aria-label={`${stamps.length} stamps in the timeline`}
+                  className="text-foreground-muted text-base"
+                >
+                  {stamps.length}
+                </Text>
+              </View>
+            ) : null}
           </View>
         }
         ListEmptyComponent={

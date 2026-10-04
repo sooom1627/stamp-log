@@ -8,16 +8,17 @@ import {
   shapes,
 } from "@expo/ui/swift-ui/modifiers";
 
-import { useAccentColor } from "@/shared/hooks/use-accent-color";
+import { useResolveClassNames } from "uniwind";
 
 import { type Stamp } from "../schemas/stamps";
 
 type StampPostProps = {
   id: Stamp["id"];
   emoji: string;
-  // Already formatted: the timeline shows the date and time, a single day
-  // shows the time only.
-  when: string;
+  // Already formatted. The timeline shows the day (title) and the time
+  // (detail); a single day shows the time only.
+  title: string;
+  detail?: string;
   memo: Stamp["memo"];
   onEdit: (id: Stamp["id"]) => void;
   onDelete: (id: Stamp["id"]) => void;
@@ -26,24 +27,37 @@ type StampPostProps = {
 export function StampPost({
   id,
   emoji,
-  when,
+  title,
+  detail,
   memo,
   onEdit,
   onDelete,
 }: StampPostProps) {
-  const accentColor = useAccentColor();
+  const { color: menuColor } = useResolveClassNames("text-foreground-muted");
 
   return (
     <View className="flex-row gap-3">
-      <Text aria-hidden className="text-2xl">
-        {emoji}
-      </Text>
-      <View className="flex-1 gap-1">
-        <Text selectable className="text-foreground-secondary text-sm">
-          {when}
+      <View className="bg-accent-soft border-continuous size-9 items-center justify-center rounded-xl">
+        <Text aria-hidden className="text-lg">
+          {emoji}
         </Text>
+      </View>
+      <View className="flex-1 gap-1">
+        <View className="min-h-9 flex-row items-baseline gap-2 pt-1.5">
+          <Text selectable className="text-foreground text-base font-semibold">
+            {title}
+          </Text>
+          {detail ? (
+            <Text selectable className="text-foreground-muted text-sm">
+              {detail}
+            </Text>
+          ) : null}
+        </View>
         {memo ? (
-          <Text selectable className="text-foreground text-base">
+          <Text
+            selectable
+            className="text-foreground-secondary text-base leading-6"
+          >
             {memo}
           </Text>
         ) : null}
@@ -57,7 +71,7 @@ export function StampPost({
             <Image
               testID={`stamp-menu-icon-${id}`}
               systemName="ellipsis"
-              color={accentColor}
+              color={menuColor}
               modifiers={[
                 frame({ width: 44, height: 44 }),
                 contentShape(shapes.rectangle()),

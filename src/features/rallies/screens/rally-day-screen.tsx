@@ -83,7 +83,7 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
               key={stamp.id}
               id={stamp.id}
               emoji={rally.emoji}
-              when={formatStampTime(new Date(stamp.stampedAt))}
+              title={formatStampTime(new Date(stamp.stampedAt))}
               memo={stamp.memo}
               onEdit={(stampId) =>
                 push({ pathname: "/edit-stamp", params: { stampId } })
