@@ -114,21 +114,28 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           />
         )}
         ListHeaderComponent={
-          <View className="items-center gap-3">
-            <Text className="text-5xl">{rally.emoji}</Text>
-            <Text
-              selectable
-              role="heading"
-              className="text-foreground text-2xl font-semibold"
+          <View className="items-center gap-4">
+            <View
+              testID="rally-top-panel"
+              className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
             >
-              {rally.name}
-            </Text>
-            {stamps ? (
-              <Text className="text-foreground-secondary text-base">
-                {formatStampCount(stamps.length)}
+              <View className="bg-background size-20 items-center justify-center rounded-full">
+                <Text className="text-5xl">{rally.emoji}</Text>
+              </View>
+              <Text
+                selectable
+                role="heading"
+                className="text-foreground mt-1 text-2xl font-bold"
+              >
+                {rally.name}
               </Text>
-            ) : null}
-            {stamps ? <RallySummaryStats summary={summary} /> : null}
+              {stamps ? (
+                <Text className="text-accent-strong text-base font-semibold">
+                  {formatStampCount(stamps.length)}
+                </Text>
+              ) : null}
+              {stamps ? <RallySummaryStats summary={summary} /> : null}
+            </View>
             <RallyMonthCalendar
               stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
               onPressDay={(date) =>

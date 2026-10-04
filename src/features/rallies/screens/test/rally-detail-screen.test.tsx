@@ -782,3 +782,30 @@ describe("S-028 RT-001 ST-003 posts look", () => {
     expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
   });
 });
+
+describe("S-028 RT-001 ST-004 top panel look", () => {
+  test("puts the rally name, count and summary on a flat accent panel with tiles", async () => {
+    await openRallyDetail("Top panel");
+
+    const panel = await screen.findByTestId("rally-top-panel");
+    expect(panel).toHaveProp(
+      "className",
+      expect.stringContaining("bg-accent-subtle"),
+    );
+    expect(
+      within(panel).getByRole("heading", { name: "Top panel" }),
+    ).toBeOnTheScreen();
+    expect(within(panel).getByText("1 stamp")).toHaveProp(
+      "className",
+      expect.stringContaining("text-accent-strong"),
+    );
+    const tiles = within(panel).getAllByTestId("rally-summary-tile");
+    expect(tiles).toHaveLength(3);
+    for (const tile of tiles) {
+      expect(tile).toHaveProp(
+        "className",
+        expect.stringContaining("bg-background"),
+      );
+    }
+  });
+});
