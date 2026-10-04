@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { ChevronLeft, ChevronRight } from "@/shared/components/icons";
+import { localDateKey } from "@/shared/utils/local-date-key";
 
 import {
   buildMonthWeeks,
@@ -21,16 +22,28 @@ const monthFormatter = new Intl.DateTimeFormat("en-US", {
 const dayFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function CalendarDay({ day }: { day: MonthDay | null }) {
+type CalendarDayProps = {
+  day: MonthDay | null;
+  todayKey: string;
+  onPress: (key: string) => void;
+};
+
+function CalendarDay({ day, todayKey, onPress }: CalendarDayProps) {
   if (!day) return <View className="flex-1" />;
 
+  // Keys are YYYY-MM-DD, so string order is date order.
+  const isFuture = day.key > todayKey;
+
   return (
-    <View
-      accessible
+    <Pressable
+      role="button"
       aria-label={`${dayFormatter.format(day.date)}, ${
         day.isRecorded ? "recorded" : "not recorded"
       }`}
+      aria-disabled={isFuture}
+      disabled={isFuture}
       className="flex-1 items-center gap-1 py-1"
+      onPress={() => onPress(day.key)}
     >
       <Text className="text-foreground text-sm">{day.date.getDate()}</Text>
       <View
@@ -38,12 +51,14 @@ function CalendarDay({ day }: { day: MonthDay | null }) {
           day.isRecorded ? "bg-accent size-1.5 rounded-full" : "size-1.5"
         }
       />
-    </View>
+    </Pressable>
   );
 }
 
 type RallyMonthCalendarProps = {
   stampDates: string[];
+  // Called with the YYYY-MM-DD key of a day up to today.
+  onPressDay: (key: string) => void;
 };
 
 function firstDayOfMonth(date: Date) {
@@ -62,7 +77,11 @@ function pickerYears(stampDates: string[], shownMonth: Date) {
   return Array.from({ length: to - from + 1 }, (_, index) => from + index);
 }
 
-export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
+export function RallyMonthCalendar({
+  stampDates,
+  onPressDay,
+}: RallyMonthCalendarProps) {
+  const todayKey = localDateKey(new Date());
   // Opens on the week holding today every time; the view is not remembered.
   const [isMonthView, setIsMonthView] = useState(false);
   const [weekAnchor, setWeekAnchor] = useState(() => new Date());
@@ -142,7 +161,12 @@ export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
       {weeks.map((week, weekIndex) => (
         <View key={weekIndex} className="flex-row">
           {week.map((day, dayIndex) => (
-            <CalendarDay key={day?.key ?? `blank-${dayIndex}`} day={day} />
+            <CalendarDay
+              key={day?.key ?? `blank-${dayIndex}`}
+              day={day}
+              todayKey={todayKey}
+              onPress={onPressDay}
+            />
           ))}
         </View>
       ))}

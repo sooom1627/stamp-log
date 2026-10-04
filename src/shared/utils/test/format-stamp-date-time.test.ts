@@ -1,4 +1,7 @@
-import { formatStampDateTime } from "../format-stamp-date-time";
+import {
+  formatStampDateTime,
+  formatStampTime,
+} from "../format-stamp-date-time";
 
 const now = new Date(2026, 9, 1);
 
@@ -28,5 +31,15 @@ describe("S-006 ST-001 formatStampDateTime", () => {
     expect(formatStampDateTime(new Date(2025, 8, 20, 11, 40), now)).toBe(
       "Sep 20, 2025, 11:40 AM",
     );
+  });
+});
+
+describe("S-028 ST-003 stamp time", () => {
+  test.each([
+    [new Date(2026, 8, 18, 19, 2), "7:02 PM"],
+    [new Date(2026, 8, 18, 0, 5), "12:05 AM"],
+    [new Date(2026, 8, 18, 12, 0), "12:00 PM"],
+  ])("%s -> %s", (date, expected) => {
+    expect(formatStampTime(date)).toBe(expected);
   });
 });

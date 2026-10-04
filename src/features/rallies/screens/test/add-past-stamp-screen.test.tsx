@@ -139,3 +139,47 @@ describe("S-025 T-001 ST-005 past stamp formSheet", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 });
+
+describe("S-028 T-004 ST-004 past stamp for a given day", () => {
+  async function openPastStampOn(name: string, date: string) {
+    await saveRally({ name, type: "person" });
+    const rally = (await listRallies()).find(
+      (candidate) => candidate.name === name,
+    );
+    if (!rally) throw new Error(`Rally ${name} not found`);
+
+    await renderRouter("./src/app");
+    expect(await screen.findByText(name)).toBeOnTheScreen();
+    await act(() => {
+      router.push(`/add-past-stamp?rallyId=${rally.id}&date=${date}`);
+    });
+    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
+
+    return { rally, user: userEvent.setup() };
+  }
+
+  test("starts at noon of a past day", async () => {
+    const { rally, user } = await openPastStampOn(
+      "Given past day",
+      "2026-09-14",
+    );
+
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await stampsOf(rally.id)).toEqual([
+      expect.objectContaining({
+        stampedAt: new Date(2026, 8, 14, 12, 0).toISOString(),
+      }),
+    ]);
+  });
+
+  test("starts at the current time for today", async () => {
+    const { rally, user } = await openPastStampOn("Given today", "2026-09-20");
+
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await stampsOf(rally.id)).toEqual([
+      expect.objectContaining({ stampedAt: now.toISOString() }),
+    ]);
+  });
+});

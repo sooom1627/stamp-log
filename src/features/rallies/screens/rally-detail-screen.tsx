@@ -3,98 +3,20 @@ import { useEffect } from "react";
 import { Alert, FlatList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
-import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
-import {
-  accessibilityLabel,
-  contentShape,
-  frame,
-  shapes,
-} from "@expo/ui/swift-ui/modifiers";
 
 import { LoadError } from "@/shared/components/load-error";
-import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
+import { StampPost } from "../components/stamp-post";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 import { buildRallySummary } from "../utils/rally-summary";
-
-type StampPostProps = {
-  id: Stamp["id"];
-  emoji: string;
-  stampedAt: Stamp["stampedAt"];
-  memo: Stamp["memo"];
-  onEdit: (id: Stamp["id"]) => void;
-  onDelete: (id: Stamp["id"]) => void;
-};
-
-function StampPost({
-  id,
-  emoji,
-  stampedAt,
-  memo,
-  onEdit,
-  onDelete,
-}: StampPostProps) {
-  const accentColor = useAccentColor();
-
-  return (
-    <View className="flex-row gap-3">
-      <Text aria-hidden className="text-2xl">
-        {emoji}
-      </Text>
-      <View className="flex-1 gap-1">
-        <Text selectable className="text-foreground-secondary text-sm">
-          {formatStampDateTime(new Date(stampedAt))}
-        </Text>
-        {memo ? (
-          <Text selectable className="text-foreground text-base">
-            {memo}
-          </Text>
-        ) : null}
-      </View>
-      <Host matchContents>
-        <Menu
-          testID={`stamp-menu-${id}`}
-          // Size the label itself: a frame outside a SwiftUI Menu does not
-          // widen its hit area. 44pt is Apple's minimum tap target.
-          label={
-            <Image
-              testID={`stamp-menu-icon-${id}`}
-              systemName="ellipsis"
-              color={accentColor}
-              modifiers={[
-                frame({ width: 44, height: 44 }),
-                contentShape(shapes.rectangle()),
-                accessibilityLabel("More"),
-              ]}
-            />
-          }
-        >
-          <Button
-            testID={`stamp-edit-${id}`}
-            label="Edit"
-            systemImage="pencil"
-            onPress={() => onEdit(id)}
-          />
-          <Button
-            testID={`stamp-delete-${id}`}
-            label="Delete"
-            systemImage="trash"
-            role="destructive"
-            onPress={() => onDelete(id)}
-          />
-        </Menu>
-      </Host>
-    </View>
-  );
-}
 
 type TimelineEmptyProps = {
   isError: boolean;
@@ -179,7 +101,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           <StampPost
             id={item.id}
             emoji={rally.emoji}
-            stampedAt={item.stampedAt}
+            when={formatStampDateTime(new Date(item.stampedAt))}
             memo={item.memo}
             onEdit={(stampId) =>
               push({ pathname: "/edit-stamp", params: { stampId } })
@@ -205,6 +127,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             {stamps ? <RallySummaryStats summary={summary} /> : null}
             <RallyMonthCalendar
               stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+              onPressDay={(date) =>
+                push({
+                  pathname: "/rally-day",
+                  params: { rallyId: rally.id, date },
+                })
+              }
             />
           </View>
         }
