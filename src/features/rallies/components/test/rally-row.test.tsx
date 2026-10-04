@@ -71,15 +71,21 @@ describe("S-020 T-005 ST-001 compact RallyRow", () => {
     );
 
     expect(screen.getByText("2 stamps")).toBeOnTheScreen();
-    expect(
-      screen.getByLabelText("Sep 19, 2026, recorded").props.accessibilityState,
-    ).toEqual({ selected: true });
-    expect(
-      screen.getByRole("button", {
-        name: "Stamp Kyoto trip for today",
-      }).props.accessibilityState,
-    ).toEqual({ disabled: false, selected: false });
+    expect(screen.getByLabelText("Sep 19, 2026, recorded")).toBeSelected();
+    const today = screen.getByRole("button", {
+      name: "Stamp Kyoto trip for today",
+    });
+    expect(today).toBeEnabled();
+    expect(today).not.toBeSelected();
     expect(screen.getAllByTestId("activity-day")).toHaveLength(7);
+  });
+
+  test("uses the singular for one stamp", async () => {
+    await render(
+      <RallyRow {...defaultProps} stampDates={["2026-09-19T02:00:00.000Z"]} />,
+    );
+
+    expect(screen.getByText("1 stamp")).toBeOnTheScreen();
   });
 
   test("cannot add from today cell when already recorded today", async () => {
