@@ -18,10 +18,12 @@ import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
+import { RallySummaryStats } from "../components/rally-summary-stats";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
+import { buildRallySummary } from "../utils/rally-summary";
 
 type StampPostProps = {
   id: Stamp["id"];
@@ -127,6 +129,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { mutate: deleteRally } = useDeleteRally();
   const { mutate: deleteStamp } = useDeleteStamp();
   const rally = rallies?.find((candidate) => candidate.id === rallyId);
+  const summary = stamps
+    ? buildRallySummary(
+        stamps.map((stamp) => stamp.stampedAt),
+        new Date(),
+      )
+    : null;
 
   useEffect(() => {
     if (isRalliesLoaded && !rally) {
@@ -194,6 +202,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                 {formatStampCount(stamps.length)}
               </Text>
             ) : null}
+            {stamps ? <RallySummaryStats summary={summary} /> : null}
             <RallyMonthCalendar
               stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
             />
