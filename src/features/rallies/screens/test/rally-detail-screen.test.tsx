@@ -581,3 +581,61 @@ describe("S-028 T-003 ST-003 week and month views", () => {
     expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
   });
 });
+
+describe("S-028 T-003 ST-004 stepping weeks and months", () => {
+  test("steps by week in the week view and keeps the heading month across the boundary", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Week steps", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 10, 9).toISOString(),
+      });
+    });
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Previous month" }),
+    ).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Previous week" }));
+    expect(
+      screen.getByLabelText("Sep 7, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText("Sep 10, 2026, recorded")).toBeOnTheScreen();
+
+    const nextWeek = screen.getByRole("button", { name: "Next week" });
+    await user.press(nextWeek);
+    await user.press(nextWeek);
+    await user.press(nextWeek);
+    // Sep 28 – Oct 4 still holds September days.
+    expect(
+      screen.getByLabelText("Oct 4, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+
+    await user.press(nextWeek);
+    expect(
+      screen.getByLabelText("Oct 5, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Previous week" }));
+    expect(
+      screen.getByLabelText("Sep 28, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+  });
+
+  test("steps by month in the month view", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Month steps");
+    await user.press(await screen.findByRole("button", { name: "Show month" }));
+
+    expect(
+      screen.queryByRole("button", { name: "Previous week" }),
+    ).not.toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Next month" }));
+
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Oct \d+, 2026, /)).toHaveLength(31);
+  });
+});

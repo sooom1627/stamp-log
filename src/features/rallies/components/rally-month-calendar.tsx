@@ -4,7 +4,13 @@ import { Pressable, Text, View } from "react-native";
 
 import { ChevronLeft, ChevronRight } from "@/shared/components/icons";
 
-import { buildMonthWeeks, buildWeek, type MonthDay } from "../utils/month-grid";
+import {
+  buildMonthWeeks,
+  buildWeek,
+  shiftWeek,
+  weekHeadingMonth,
+  type MonthDay,
+} from "../utils/month-grid";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -59,17 +65,26 @@ export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
     setIsMonthView(false);
   };
 
-  const shiftMonth = (delta: number) =>
-    setMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
+  // ‹ › step by the unit on screen: a week in the week view, a month otherwise.
+  const step = (delta: number) => {
+    if (isMonthView) {
+      setMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
+      return;
+    }
+    const nextAnchor = shiftWeek(weekAnchor, delta);
+    setWeekAnchor(nextAnchor);
+    setMonth(weekHeadingMonth(month, buildWeek(nextAnchor, [])));
+  };
+  const unit = isMonthView ? "month" : "week";
 
   return (
     <View className="w-full gap-2 pt-2">
       <View className="flex-row items-center justify-between">
         <Pressable
           role="button"
-          aria-label="Previous month"
+          aria-label={`Previous ${unit}`}
           className="size-11 items-center justify-center"
-          onPress={() => shiftMonth(-1)}
+          onPress={() => step(-1)}
         >
           <ChevronLeft colorClassName="accent-accent" size={20} />
         </Pressable>
@@ -78,9 +93,9 @@ export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
         </Text>
         <Pressable
           role="button"
-          aria-label="Next month"
+          aria-label={`Next ${unit}`}
           className="size-11 items-center justify-center"
-          onPress={() => shiftMonth(1)}
+          onPress={() => step(1)}
         >
           <ChevronRight colorClassName="accent-accent" size={20} />
         </Pressable>
