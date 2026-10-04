@@ -24,6 +24,11 @@
       --color-primary: #1e293b;
       --color-primary-foreground: #ffffff;
       --color-inverse: #1e293b;
+      /* Accent tints for flat panels (rally detail): subtle = panel, soft =
+         chips on it, strong = text on either (>= 4.5:1). */
+      --color-accent-subtle: #fff7ed;
+      --color-accent-soft: #ffedd5;
+      --color-accent-strong: #9a3412;
     }
     @variant dark {
       --color-background: #0f172a;
@@ -35,6 +40,9 @@
       --color-primary: #f1f5f9;
       --color-primary-foreground: #0f172a;
       --color-inverse: #334155;
+      --color-accent-subtle: #431407;
+      --color-accent-soft: #7c2d12;
+      --color-accent-strong: #fdba74;
     }
   }
 }

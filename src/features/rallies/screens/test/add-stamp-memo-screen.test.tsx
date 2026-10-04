@@ -6,6 +6,7 @@ import {
   fireEvent,
   screen,
   userEvent,
+  within,
 } from "@testing-library/react-native";
 
 import { listRallies, saveRally } from "../../db/rallies-db";
@@ -41,9 +42,15 @@ describe("S-002 T-002 RT-003 ST-002 save memo", () => {
 
     const user = userEvent.setup();
     expect(await screen.findByText("Memo")).toBeOnTheScreen();
+    // S-028 RT-002 ST-005: the rally sits above the heading inside the sheet.
+    const form = screen.getByTestId("add-stamp-memo-form");
     expect(
-      screen.queryByRole("heading", { name: "Add memo" }),
-    ).not.toBeOnTheScreen();
+      within(form).getByRole("heading", { name: "Add memo" }),
+    ).toBeOnTheScreen();
+    expect(
+      await within(form).findByText(`${rally.emoji} Memo save rally`),
+    ).toBeOnTheScreen();
+    expect(form).toHaveProp("className", expect.stringContaining("pt-8"));
 
     const memoInput = screen.getByPlaceholderText("Enter memo");
     await user.type(memoInput, "Met them");

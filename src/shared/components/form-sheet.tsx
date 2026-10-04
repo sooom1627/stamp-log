@@ -2,32 +2,44 @@ import { type ReactNode } from "react";
 
 import { Text, TextInput, View, type TextInputProps } from "react-native";
 
-import { useHeaderHeight } from "expo-router/react-navigation";
-
-type FormSheetContainerProps = {
+type FormSheetLayoutProps = {
   testID?: string;
+  /** Small line above the title (e.g. the rally or the weekday). */
+  eyebrow?: string;
+  title: string;
   /** Extra layout classes (e.g. `gap-5`). */
   className?: string;
   children: ReactNode;
 };
 
+// Sheets hide the native header, so the top padding is fixed: it only has to
+// clear the grabber.
 // Do not use ScrollView / KeyboardAvoidingView inside formSheet.
 // react-native-screens force-overrides the ScrollView frame to the full sheet,
 // which interferes with sibling content (footer) and stops rendering.
 // Keep the root intrinsically sized so fitToContents includes the Save button.
-export function FormSheetContainer({
+export function FormSheetLayout({
   testID,
+  eyebrow,
+  title,
   className = "",
   children,
-}: FormSheetContainerProps) {
-  const headerHeight = useHeaderHeight();
-
+}: FormSheetLayoutProps) {
   return (
     <View
       testID={testID}
-      className={`bg-background px-5 pb-6 ${className}`}
-      style={{ paddingTop: headerHeight + 16 }}
+      className={`bg-background gap-5 px-5 pt-8 pb-6 ${className}`}
     >
+      <View className="gap-1">
+        {eyebrow ? (
+          <Text className="text-accent-strong text-sm font-semibold">
+            {eyebrow}
+          </Text>
+        ) : null}
+        <Text role="heading" className="text-foreground text-3xl font-bold">
+          {title}
+        </Text>
+      </View>
       {children}
     </View>
   );

@@ -13,7 +13,10 @@ import {
 } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
-import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
+import {
+  formatStampDay,
+  formatStampTime,
+} from "@/shared/utils/format-stamp-date-time";
 
 import * as ralliesDb from "../../db/rallies-db";
 import * as stampsDb from "../../db/stamps-db";
@@ -59,76 +62,14 @@ describe("Rally detail", () => {
     await openRallyDetail("Tokyo towers");
 
     expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
-    expect(screen.getByText("🗼")).toBeOnTheScreen();
+    // S-028: the emoji also marks recorded days in the calendar.
+    expect(
+      within(screen.getByTestId("rally-top-panel")).getByText("🗼"),
+    ).toBeOnTheScreen();
     expect(
       screen.getByRole("heading", { name: "Tokyo towers" }),
     ).toBeOnTheScreen();
     expect(screen.getByText("1 stamp")).toBeOnTheScreen();
-  });
-
-  test("deletes the rally after confirmation and returns home", async () => {
-    const { rally, user } = await openRallyDetail("Delete from detail");
-
-    await user.press(
-      await screen.findByRole("button", {
-        name: "Delete Delete from detail",
-      }),
-    );
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      findAlertButton("destructive").onPress?.();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
-    });
-    expect(
-      (await ralliesDb.listRallies()).some(
-        (candidate) => candidate.id === rally.id,
-      ),
-    ).toBe(false);
-  });
-
-  test("shows the global error toast when deletion fails", async () => {
-    jest
-      .spyOn(ralliesDb, "deleteRally")
-      .mockRejectedValueOnce(new Error("delete failed"));
-    const { user } = await openRallyDetail("Delete fails");
-
-    await user.press(
-      await screen.findByRole("button", { name: "Delete Delete fails" }),
-    );
-    await act(async () => {
-      findAlertButton("destructive").onPress?.();
-    });
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        "Something went wrong. Please try again.",
-      );
-    });
-    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
-  });
-});
-
-describe("S-025 T-001 ST-006 past stamp entry", () => {
-  test("opens the past stamp formSheet and returns with the new stamp counted", async () => {
-    const { rally, user } = await openRallyDetail("Past stamp entry");
-    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
-
-    await user.press(screen.getByRole("button", { name: "Past stamp" }));
-
-    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
-    await user.press(screen.getByRole("button", { name: "Save" }));
-
-    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
-    expect(screen.queryByTestId("add-past-stamp-form")).not.toBeOnTheScreen();
-    const stamps = (await listStamps()).filter(
-      (stamp) => stamp.rallyId === rally.id,
-    );
-    expect(stamps).toHaveLength(2);
   });
 });
 
@@ -140,6 +81,7 @@ function daysAgoAt(days: number, hours: number) {
 }
 
 const stampDateTimePattern = / (AM|PM)$/;
+const stampDayPattern = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), /;
 
 describe("S-006 T-001 ST-003 stamp timeline", () => {
   test("shows this rally's stamps newest first with the memo in full", async () => {
@@ -154,11 +96,17 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
       .filter((stamp) => stamp.rallyId === rally.id)
       .map((stamp) => stamp.stampedAt);
 
-    const dateTimes = await screen.findAllByText(stampDateTimePattern);
-    expect(dateTimes).toHaveLength(3);
+    // S-028: each post shows its day and its time on separate lines.
+    const times = await screen.findAllByText(stampDateTimePattern);
+    const days = screen.getAllByText(stampDayPattern);
+    expect(times).toHaveLength(3);
+    expect(days).toHaveLength(3);
     [now, oneDayAgo, threeDaysAgo].forEach((stampedAt, index) => {
-      expect(dateTimes[index]).toHaveTextContent(
-        formatStampDateTime(new Date(stampedAt)),
+      expect(days[index]).toHaveTextContent(
+        formatStampDay(new Date(stampedAt)),
+      );
+      expect(times[index]).toHaveTextContent(
+        formatStampTime(new Date(stampedAt)),
       );
     });
     expect(screen.getByText("Talked in the lab")).toBeOnTheScreen();
@@ -211,7 +159,7 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
     expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
     expect(screen.getAllByText(stampDateTimePattern)).toHaveLength(1);
     expect(
-      screen.queryByText(formatStampDateTime(new Date(pastStamp.stampedAt))),
+      screen.queryByText(formatStampDay(new Date(pastStamp.stampedAt))),
     ).not.toBeOnTheScreen();
     expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
     expect(
@@ -315,7 +263,8 @@ describe("S-006 T-001 ST-010 menu tap target", () => {
     expect(await screen.findByTestId(`stamp-menu-icon-${stamp.id}`)).toHaveProp(
       "modifiers",
       expect.arrayContaining([
-        expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
+        expect.objectContaining({ $type: "frame", width: 36, height: 36 }),
+        expect.objectContaining({ $type: "imageScale", scale: "small" }),
         expect.objectContaining({ $type: "contentShape" }),
         expect.objectContaining({ $type: "accessibilityLabel", label: "More" }),
       ]),
@@ -333,14 +282,19 @@ describe("S-006 T-002 ST-002 month calendar", () => {
       stampedAt: new Date(2026, 8, 10, 9).toISOString(),
     });
 
-    await openRallyDetail("Calendar marks", async (rallyId) => {
-      await saveStamp({
-        rallyId,
-        stampedAt: new Date(2026, 8, 2, 8).toISOString(),
-      });
-    });
+    const { user } = await openRallyDetail(
+      "Calendar marks",
+      async (rallyId) => {
+        await saveStamp({
+          rallyId,
+          stampedAt: new Date(2026, 8, 2, 8).toISOString(),
+        });
+      },
+    );
 
     expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    // S-028: the calendar opens on this week; the whole month is one tap away.
+    await user.press(screen.getByRole("button", { name: "Show month" }));
     expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
     expect(screen.getByLabelText("Sep 20, 2026, recorded")).toBeOnTheScreen();
     expect(
@@ -366,6 +320,8 @@ describe("S-006 T-002 ST-003 month navigation", () => {
       },
     );
     expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    // S-028: ‹ › step months in the month view.
+    await user.press(screen.getByRole("button", { name: "Show month" }));
 
     await user.press(screen.getByRole("button", { name: "Previous month" }));
 
@@ -378,5 +334,518 @@ describe("S-006 T-002 ST-003 month navigation", () => {
 
     expect(await screen.findByText("October 2026")).toBeOnTheScreen();
     expect(screen.queryAllByLabelText(/, recorded$/)).toHaveLength(0);
+  });
+});
+
+describe("S-028 T-001 ST-001 rally actions menu", () => {
+  test("puts a 44pt Rally actions menu with Past stamp and Delete rally in the header", async () => {
+    await openRallyDetail("Header menu");
+
+    expect(await screen.findByTestId("rally-actions-menu-icon")).toHaveProp(
+      "modifiers",
+      expect.arrayContaining([
+        expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
+        expect.objectContaining({
+          $type: "accessibilityLabel",
+          label: "Rally actions",
+        }),
+      ]),
+    );
+    expect(screen.getByTestId("rally-action-past-stamp")).toHaveProp(
+      "label",
+      "Past stamp",
+    );
+    expect(screen.getByTestId("rally-action-delete")).toHaveProp(
+      "label",
+      "Delete rally",
+    );
+    expect(screen.getByTestId("rally-action-delete")).toHaveProp(
+      "role",
+      "destructive",
+    );
+  });
+});
+
+describe("S-028 T-001 ST-002 past stamp from the actions menu", () => {
+  test("opens the past stamp formSheet and returns with the new stamp counted", async () => {
+    const { rally, user } = await openRallyDetail("Menu past stamp");
+    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+
+    await fireEvent(
+      screen.getByTestId("rally-action-past-stamp"),
+      "buttonPress",
+    );
+
+    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(screen.queryByTestId("add-past-stamp-form")).not.toBeOnTheScreen();
+    const stamps = (await listStamps()).filter(
+      (stamp) => stamp.rallyId === rally.id,
+    );
+    expect(stamps).toHaveLength(2);
+  });
+});
+
+describe("S-028 T-001 ST-003 delete rally from the actions menu", () => {
+  async function pressMenuDelete(name: string) {
+    const opened = await openRallyDetail(name);
+    await fireEvent(
+      await screen.findByTestId("rally-action-delete"),
+      "buttonPress",
+    );
+    return opened;
+  }
+
+  test("deletes the rally after confirmation and returns home", async () => {
+    const { rally } = await pressMenuDelete("Menu delete");
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete rally?",
+      "This action cannot be undone.",
+      expect.any(Array),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
+    });
+    expect(
+      (await ralliesDb.listRallies()).some(
+        (candidate) => candidate.id === rally.id,
+      ),
+    ).toBe(false);
+  });
+
+  test("keeps the rally when the deletion is cancelled", async () => {
+    const { rally } = await pressMenuDelete("Menu delete cancel");
+
+    await act(async () => {
+      findAlertButton("cancel").onPress?.();
+    });
+
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(
+      (await ralliesDb.listRallies()).some(
+        (candidate) => candidate.id === rally.id,
+      ),
+    ).toBe(true);
+  });
+
+  test("shows the global error toast when deletion fails", async () => {
+    jest
+      .spyOn(ralliesDb, "deleteRally")
+      .mockRejectedValueOnce(new Error("delete failed"));
+    await pressMenuDelete("Menu delete fails");
+
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Something went wrong. Please try again.",
+      );
+    });
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-001 ST-004 no footer actions", () => {
+  test("leaves Past stamp and Delete rally to the header menu only", async () => {
+    await openRallyDetail("No footer");
+
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Past stamp" }),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Delete No footer" }),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-001 ST-005 rally actions icon", () => {
+  test("uses a native toolbar menu icon with no custom tint", async () => {
+    await openRallyDetail("Round menu icon");
+
+    const icon = await screen.findByTestId("rally-actions-menu-icon");
+    expect(icon).toHaveProp("systemName", "ellipsis");
+    expect(icon).not.toHaveProp("color");
+  });
+});
+
+describe("S-028 T-002 ST-003 rally summary", () => {
+  test("shows the first stamp day, weekly average and days since the last stamp, and updates them", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { rally } = await openRallyDetail("Summary", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 7, 3, 9).toISOString(),
+      });
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 18, 19).toISOString(),
+      });
+    });
+    const summary = await screen.findByLabelText("Rally summary");
+
+    // Aug 3 – Sep 20 is 7 weeks: 3 / 7 = 0.43 per week; the last stamp is today.
+    expect(within(summary).getByText("First stamp")).toBeOnTheScreen();
+    expect(within(summary).getByText("Aug 3, 2026")).toBeOnTheScreen();
+    expect(within(summary).getByText("Per week")).toBeOnTheScreen();
+    expect(within(summary).getByText("0.4")).toBeOnTheScreen();
+    expect(within(summary).getByText("Last stamp")).toBeOnTheScreen();
+    expect(within(summary).getByText("Today")).toBeOnTheScreen();
+
+    const [todayStamp] = (await listStamps()).filter(
+      (stamp) => stamp.rallyId === rally.id,
+    );
+    await fireEvent(
+      screen.getByTestId(`stamp-delete-${todayStamp.id}`),
+      "buttonPress",
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    expect(await within(summary).findByText("2 days ago")).toBeOnTheScreen();
+    expect(within(summary).getByText("0.3")).toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-002 ST-004 rally summary without stamps", () => {
+  async function openEmptyRally(name: string) {
+    await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+    const [rally] = await ralliesDb.listRallies();
+
+    await renderRouter("./src/app");
+    expect(await screen.findByText(name)).toBeOnTheScreen();
+    await act(() => {
+      router.push(`/rallies/${rally.id}`);
+    });
+
+    return screen.findByLabelText("Rally detail");
+  }
+
+  test("shows a dash for every value when the rally has no stamps", async () => {
+    const detail = await openEmptyRally("Empty summary");
+
+    const summary = await within(detail).findByLabelText("Rally summary");
+    expect(within(summary).getByText("First stamp")).toBeOnTheScreen();
+    expect(within(summary).getAllByText("—")).toHaveLength(3);
+  });
+
+  test("hides the summary when the stamps cannot be loaded", async () => {
+    jest
+      .spyOn(stampsDb, "listStamps")
+      .mockRejectedValue(new Error("disk full"));
+    const detail = await openEmptyRally("Summary load fails");
+
+    expect(await within(detail).findByText("Couldn't load")).toBeOnTheScreen();
+    expect(
+      within(detail).queryByLabelText("Rally summary"),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-003 ST-003 week and month views", () => {
+  test("opens on this week and toggles between the week and the whole month", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail(
+      "Folded calendar",
+      async (rallyId) => {
+        for (const day of [2, 18]) {
+          await saveStamp({
+            rallyId,
+            stampedAt: new Date(2026, 8, day, 9).toISOString(),
+          });
+        }
+      },
+    );
+
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Sep 14, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText("Sep 18, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
+    expect(
+      screen.queryByLabelText("Sep 2, 2026, recorded"),
+    ).not.toBeOnTheScreen();
+
+    const showMonth = screen.getByRole("button", { name: "Show month" });
+    expect(showMonth).toBeCollapsed();
+    await user.press(showMonth);
+
+    expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(30);
+    const showWeek = screen.getByRole("button", { name: "Show week" });
+    expect(showWeek).toBeExpanded();
+
+    await user.press(showWeek);
+
+    expect(
+      screen.queryByLabelText("Sep 2, 2026, recorded"),
+    ).not.toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
+  });
+});
+
+describe("S-028 T-003 ST-004 stepping weeks and months", () => {
+  test("steps by week in the week view and keeps the heading month across the boundary", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Week steps", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 10, 9).toISOString(),
+      });
+    });
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Previous month" }),
+    ).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Previous week" }));
+    expect(
+      screen.getByLabelText("Sep 7, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText("Sep 10, 2026, recorded")).toBeOnTheScreen();
+
+    const nextWeek = screen.getByRole("button", { name: "Next week" });
+    await user.press(nextWeek);
+    await user.press(nextWeek);
+    await user.press(nextWeek);
+    // Sep 28 – Oct 4 still holds September days.
+    expect(
+      screen.getByLabelText("Oct 4, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+
+    await user.press(nextWeek);
+    expect(
+      screen.getByLabelText("Oct 5, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Previous week" }));
+    expect(
+      screen.getByLabelText("Sep 28, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+  });
+
+  test("steps by month in the month view", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Month steps");
+    await user.press(await screen.findByRole("button", { name: "Show month" }));
+
+    expect(
+      screen.queryByRole("button", { name: "Previous week" }),
+    ).not.toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Next month" }));
+
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Oct \d+, 2026, /)).toHaveLength(31);
+  });
+});
+
+describe("S-028 T-003 ST-005 month picker", () => {
+  test("picks a year and month from the wheels and shows that month", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Month picker", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2025, 2, 14, 9).toISOString(),
+      });
+    });
+
+    await user.press(
+      await screen.findByRole("button", {
+        name: "Choose month, September 2026",
+      }),
+    );
+    const monthWheel = await screen.findByTestId("month-picker-month");
+    const yearWheel = screen.getByTestId("month-picker-year");
+    expect(monthWheel).toHaveProp("selection", 8);
+    expect(yearWheel).toHaveProp("selection", 2026);
+
+    await fireEvent(monthWheel, "selectionChange", {
+      nativeEvent: { selection: 2 },
+    });
+    await fireEvent(yearWheel, "selectionChange", {
+      nativeEvent: { selection: 2025 },
+    });
+    await fireEvent(screen.getByTestId("month-picker-done"), "buttonPress");
+
+    expect(await screen.findByText("March 2025")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Mar \d+, 2025, /)).toHaveLength(31);
+    expect(screen.getByLabelText("Mar 14, 2025, recorded")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Show week" })).toBeOnTheScreen();
+    // The native sheet keeps its content until it reports the dismissal.
+    expect(screen.getByTestId("month-picker-sheet")).toHaveProp(
+      "isPresented",
+      false,
+    );
+    await fireEvent(screen.getByTestId("month-picker-sheet"), "dismiss");
+    expect(screen.queryByTestId("month-picker-month")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-003 ST-005 month picker reopen", () => {
+  test("starts from the shown month again after closing without Done", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Picker reopen");
+    const heading = await screen.findByRole("button", {
+      name: "Choose month, September 2026",
+    });
+
+    await user.press(heading);
+    await fireEvent(
+      screen.getByTestId("month-picker-month"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: 2 },
+      },
+    );
+    // Swiping the sheet down reports the closed state from the native side.
+    await fireEvent(
+      screen.getByTestId("month-picker-sheet"),
+      "isPresentedChange",
+      {
+        nativeEvent: { isPresented: false },
+      },
+    );
+    await fireEvent(screen.getByTestId("month-picker-sheet"), "dismiss");
+    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+
+    await user.press(heading);
+    expect(await screen.findByTestId("month-picker-month")).toHaveProp(
+      "selection",
+      8,
+    );
+  });
+});
+
+describe("S-028 T-004 ST-006 open a day from the calendar", () => {
+  test("opens the rally day sheet for a past day and keeps future days disabled", async () => {
+    jest.setSystemTime(new Date(2026, 8, 16, 12));
+    const { user } = await openRallyDetail("Calendar day", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 14, 9).toISOString(),
+      });
+    });
+
+    const tomorrow = await screen.findByLabelText("Sep 17, 2026, not recorded");
+    expect(tomorrow).toBeDisabled();
+    await user.press(tomorrow);
+    expect(screen.queryByTestId("rally-day-sheet")).not.toBeOnTheScreen();
+
+    const recordedDay = screen.getByRole("button", {
+      name: "Sep 14, 2026, recorded",
+    });
+    await user.press(recordedDay);
+
+    expect(await screen.findByTestId("rally-day-sheet")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("heading", { name: "Sep 14, 2026" }),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("9:00 AM")).toBeOnTheScreen();
+  });
+});
+
+describe("S-028 RT-001 ST-003 posts look", () => {
+  test("titles the timeline Stamps and splits each post into a bold day and a light time", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    await openRallyDetail("Posts look", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 18, 19, 2).toISOString(),
+      });
+    });
+
+    const heading = await screen.findByRole("heading", { name: "Stamps" });
+    expect(heading).toBeOnTheScreen();
+    expect(screen.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
+
+    const day = screen.getByText("Fri, Sep 18");
+    expect(day).toHaveProp(
+      "className",
+      expect.stringContaining("font-semibold"),
+    );
+    const time = screen.getByText("7:02 PM");
+    expect(time).toHaveProp(
+      "className",
+      expect.stringContaining("text-foreground-muted"),
+    );
+    expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 RT-001 ST-004 top panel look", () => {
+  test("puts the rally name, count and summary on a flat accent panel with tiles", async () => {
+    await openRallyDetail("Top panel");
+
+    const panel = await screen.findByTestId("rally-top-panel");
+    expect(panel).toHaveProp(
+      "className",
+      expect.stringContaining("bg-accent-subtle"),
+    );
+    expect(
+      within(panel).getByRole("heading", { name: "Top panel" }),
+    ).toBeOnTheScreen();
+    expect(within(panel).getByText("1 stamp")).toHaveProp(
+      "className",
+      expect.stringContaining("text-accent-strong"),
+    );
+    const tiles = within(panel).getAllByTestId("rally-summary-tile");
+    expect(tiles).toHaveLength(3);
+    for (const tile of tiles) {
+      expect(tile).toHaveProp(
+        "className",
+        expect.stringContaining("bg-background"),
+      );
+    }
+  });
+});
+
+describe("S-028 RT-001 ST-005 calendar look", () => {
+  test("draws a flat card with the rally emoji on recorded days and a ring on today", async () => {
+    jest.setSystemTime(new Date(2026, 8, 16, 12));
+    await openRallyDetail("Calendar look", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 14, 9).toISOString(),
+      });
+    });
+
+    expect(await screen.findByTestId("rally-calendar")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-surface-muted"),
+    );
+    const recorded = screen.getByRole("button", {
+      name: "Sep 14, 2026, recorded",
+    });
+    expect(within(recorded).getByText("🗼")).toBeOnTheScreen();
+    expect(within(recorded).queryByText("14")).not.toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-09-14")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-accent-soft"),
+    );
+    // Today (Sep 16) also has a stamp from openRallyDetail.
+    expect(screen.getByTestId("calendar-day-2026-09-16")).toHaveProp(
+      "className",
+      expect.stringContaining("border-accent"),
+    );
+    const future = screen.getByLabelText("Sep 17, 2026, not recorded");
+    expect(within(future).getByText("17")).toHaveProp(
+      "className",
+      expect.stringContaining("text-foreground-muted"),
+    );
   });
 });

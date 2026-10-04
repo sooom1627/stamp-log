@@ -6,14 +6,24 @@ import {
   fireEvent,
   screen,
   userEvent,
+  within,
 } from "@testing-library/react-native";
 
-import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
+import {
+  formatStampDay,
+  formatStampTime,
+} from "@/shared/utils/format-stamp-date-time";
 
 import { listRallies, saveRally } from "../../db/rallies-db";
 import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
+
+// The rally detail timeline shows a post's day and time on separate lines.
+function expectPostAt(date: Date) {
+  expect(screen.getByText(formatStampDay(date))).toBeOnTheScreen();
+  expect(screen.getByText(formatStampTime(date))).toBeOnTheScreen();
+}
 
 const now = new Date(2026, 8, 20, 15, 0);
 
@@ -60,7 +70,7 @@ const localAt = (day: number, hours: number, minutes = 0) =>
   new Date(2026, 8, day, hours, minutes);
 
 describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
-  test("opens the sheet with the rally and the stamp's current memo", async () => {
+  test("opens the sheet with the stamp's current memo", async () => {
     await openEdit("Edit sheet rally", async (rallyId) => {
       const stamp = await saveStamp({
         rallyId,
@@ -70,11 +80,27 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
       return stamp.id;
     });
 
-    expect(screen.getAllByText("Edit sheet rally").length).toBeGreaterThan(0);
     expect(screen.getByTestId("edit-stamp-date")).toBeOnTheScreen();
     expect(screen.getByTestId("edit-stamp-time")).toBeOnTheScreen();
     expect(screen.getByDisplayValue("Talked in the lab")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  test("S-028 RT-002 ST-004 shows the rally above the Edit stamp heading", async () => {
+    await openEdit("Edit heading rally", async (rallyId) => {
+      const stamp = await saveStamp({
+        rallyId,
+        stampedAt: localAt(18, 11, 40).toISOString(),
+      });
+      return stamp.id;
+    });
+
+    const form = screen.getByTestId("edit-stamp-form");
+    expect(
+      within(form).getByRole("heading", { name: "Edit stamp" }),
+    ).toBeOnTheScreen();
+    expect(within(form).getByText("🧑‍🔬 Edit heading rally")).toBeOnTheScreen();
+    expect(form).toHaveProp("className", expect.stringContaining("pt-8"));
   });
 
   test("saves the new date, time and memo and shows them on the timeline", async () => {
@@ -100,9 +126,7 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
     expect(await screen.findByText("New memo")).toBeOnTheScreen();
     expect(screen.queryByTestId("edit-stamp-form")).not.toBeOnTheScreen();
     expect(screen.queryByText("Old memo")).not.toBeOnTheScreen();
-    expect(
-      screen.getByText(formatStampDateTime(localAt(12, 8, 15))),
-    ).toBeOnTheScreen();
+    expectPostAt(localAt(12, 8, 15));
     expect(await findStamp(stampId)).toMatchObject({
       stampedAt: localAt(12, 8, 15).toISOString(),
       memo: "New memo",
@@ -125,9 +149,8 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
     await user.clear(screen.getByLabelText("Memo"));
     await user.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(
-      await screen.findByText(formatStampDateTime(localAt(18, 11, 40))),
-    ).toBeOnTheScreen();
+    await screen.findByText(formatStampTime(localAt(18, 11, 40)));
+    expectPostAt(localAt(18, 11, 40));
     expect(screen.queryByText("Remove me")).not.toBeOnTheScreen();
     expect((await findStamp(stampId))?.memo).toBeNull();
   });
@@ -185,9 +208,8 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
     ).not.toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(
-      await screen.findByText(formatStampDateTime(localAt(18, 21, 5))),
-    ).toBeOnTheScreen();
+    await screen.findByText(formatStampTime(localAt(18, 21, 5)));
+    expectPostAt(localAt(18, 21, 5));
     expect((await findStamp(stampId))?.stampedAt).toBe(
       localAt(18, 21, 5).toISOString(),
     );

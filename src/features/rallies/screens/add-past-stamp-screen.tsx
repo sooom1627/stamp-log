@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
-import { FormSheetContainer } from "@/shared/components/form-sheet";
+import { FormSheetLayout } from "@/shared/components/form-sheet";
+import { localDateKey } from "@/shared/utils/local-date-key";
 
-import { RallyHeading } from "../components/rally-heading";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
 import {
   StampDateTimeErrors,
@@ -17,17 +17,27 @@ import { hasStampOnLocalDay } from "../schemas/stamps";
 
 type AddPastStampScreenProps = {
   rallyId: number;
+  // Local midnight of the day chosen in the rally day sheet, if any.
+  day?: Date;
 };
 
-function yesterdayNoon() {
-  const date = new Date();
-  date.setDate(date.getDate() - 1);
+// Today starts at the current minute (the pickers have no seconds); any other
+// day (yesterday by default) starts at noon.
+function initialStampedAt(day?: Date) {
+  const now = new Date();
+  if (day && localDateKey(day) === localDateKey(now)) {
+    now.setSeconds(0, 0);
+    return now;
+  }
+
+  const date = day ? new Date(day) : new Date(now);
+  if (!day) date.setDate(date.getDate() - 1);
   date.setHours(12, 0, 0, 0);
   return date;
 }
 
-export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
-  const [stampedAt, setStampedAt] = useState(yesterdayNoon);
+export function AddPastStampScreen({ rallyId, day }: AddPastStampScreenProps) {
+  const [stampedAt, setStampedAt] = useState(() => initialStampedAt(day));
   const { back } = useRouter();
   const { data: rallies } = useRallies();
   const { data: rallyStamps } = useRallyStamps(rallyId);
@@ -57,9 +67,11 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
   };
 
   return (
-    <FormSheetContainer testID="add-past-stamp-form" className="gap-5">
-      {rally ? <RallyHeading emoji={rally.emoji} name={rally.name} /> : null}
-
+    <FormSheetLayout
+      testID="add-past-stamp-form"
+      eyebrow={rally ? `${rally.emoji} ${rally.name}` : undefined}
+      title="Past stamp"
+    >
       <StampDateTimeFields
         value={stampedAt}
         onChange={setStampedAt}
@@ -76,6 +88,6 @@ export function AddPastStampScreen({ rallyId }: AddPastStampScreenProps) {
         isLoading={isSaving}
         className="mt-3"
       />
-    </FormSheetContainer>
+    </FormSheetLayout>
   );
 }

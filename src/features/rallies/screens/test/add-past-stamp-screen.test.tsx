@@ -6,6 +6,7 @@ import {
   fireEvent,
   screen,
   userEvent,
+  within,
 } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
@@ -49,15 +50,27 @@ async function stampsOf(rallyId: number) {
 }
 
 describe("S-025 T-001 ST-005 past stamp formSheet", () => {
-  test("keeps Save inside intrinsically sized content with the rally name", async () => {
+  test("keeps Save inside intrinsically sized content", async () => {
     await openPastStamp("Sheet layout rally");
 
     const form = screen.getByTestId("add-past-stamp-form");
     expect(form).not.toHaveProp("className", expect.stringContaining("flex-1"));
-    expect(screen.getAllByText("Sheet layout rally").length).toBeGreaterThan(0);
     expect(screen.getByTestId("past-stamp-date")).toBeOnTheScreen();
     expect(screen.getByTestId("past-stamp-time")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  test("S-028 RT-002 ST-004 shows the rally above the Past stamp heading", async () => {
+    const { rally } = await openPastStamp("Past heading rally");
+
+    const form = screen.getByTestId("add-past-stamp-form");
+    expect(
+      within(form).getByRole("heading", { name: "Past stamp" }),
+    ).toBeOnTheScreen();
+    expect(
+      within(form).getByText(`${rally.emoji} Past heading rally`),
+    ).toBeOnTheScreen();
+    expect(form).toHaveProp("className", expect.stringContaining("pt-8"));
   });
 
   test("saves yesterday 12:00 by default and shows the memo toast", async () => {
@@ -137,5 +150,49 @@ describe("S-025 T-001 ST-005 past stamp formSheet", () => {
       screen.queryByText("This rally already has a stamp on this day."),
     ).not.toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+});
+
+describe("S-028 T-004 ST-004 past stamp for a given day", () => {
+  async function openPastStampOn(name: string, date: string) {
+    await saveRally({ name, type: "person" });
+    const rally = (await listRallies()).find(
+      (candidate) => candidate.name === name,
+    );
+    if (!rally) throw new Error(`Rally ${name} not found`);
+
+    await renderRouter("./src/app");
+    expect(await screen.findByText(name)).toBeOnTheScreen();
+    await act(() => {
+      router.push(`/add-past-stamp?rallyId=${rally.id}&date=${date}`);
+    });
+    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
+
+    return { rally, user: userEvent.setup() };
+  }
+
+  test("starts at noon of a past day", async () => {
+    const { rally, user } = await openPastStampOn(
+      "Given past day",
+      "2026-09-14",
+    );
+
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await stampsOf(rally.id)).toEqual([
+      expect.objectContaining({
+        stampedAt: new Date(2026, 8, 14, 12, 0).toISOString(),
+      }),
+    ]);
+  });
+
+  test("starts at the current time for today", async () => {
+    const { rally, user } = await openPastStampOn("Given today", "2026-09-20");
+
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await stampsOf(rally.id)).toEqual([
+      expect.objectContaining({ stampedAt: now.toISOString() }),
+    ]);
   });
 });

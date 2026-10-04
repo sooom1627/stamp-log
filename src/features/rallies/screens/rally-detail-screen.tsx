@@ -3,96 +3,23 @@ import { useEffect } from "react";
 import { Alert, FlatList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
-import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
-import {
-  accessibilityLabel,
-  contentShape,
-  frame,
-  shapes,
-} from "@expo/ui/swift-ui/modifiers";
 
-import { Button as AppButton } from "@/shared/components/button";
 import { LoadError } from "@/shared/components/load-error";
-import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
+import {
+  formatStampDay,
+  formatStampTime,
+} from "@/shared/utils/format-stamp-date-time";
 
+import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
+import { RallySummaryStats } from "../components/rally-summary-stats";
+import { StampPost } from "../components/stamp-post";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
-
-type StampPostProps = {
-  id: Stamp["id"];
-  emoji: string;
-  stampedAt: Stamp["stampedAt"];
-  memo: Stamp["memo"];
-  onEdit: (id: Stamp["id"]) => void;
-  onDelete: (id: Stamp["id"]) => void;
-};
-
-function StampPost({
-  id,
-  emoji,
-  stampedAt,
-  memo,
-  onEdit,
-  onDelete,
-}: StampPostProps) {
-  const accentColor = useAccentColor();
-
-  return (
-    <View className="flex-row gap-3">
-      <Text aria-hidden className="text-2xl">
-        {emoji}
-      </Text>
-      <View className="flex-1 gap-1">
-        <Text selectable className="text-foreground-secondary text-sm">
-          {formatStampDateTime(new Date(stampedAt))}
-        </Text>
-        {memo ? (
-          <Text selectable className="text-foreground text-base">
-            {memo}
-          </Text>
-        ) : null}
-      </View>
-      <Host matchContents>
-        <Menu
-          testID={`stamp-menu-${id}`}
-          // Size the label itself: a frame outside a SwiftUI Menu does not
-          // widen its hit area. 44pt is Apple's minimum tap target.
-          label={
-            <Image
-              testID={`stamp-menu-icon-${id}`}
-              systemName="ellipsis"
-              color={accentColor}
-              modifiers={[
-                frame({ width: 44, height: 44 }),
-                contentShape(shapes.rectangle()),
-                accessibilityLabel("More"),
-              ]}
-            />
-          }
-        >
-          <Button
-            testID={`stamp-edit-${id}`}
-            label="Edit"
-            systemImage="pencil"
-            onPress={() => onEdit(id)}
-          />
-          <Button
-            testID={`stamp-delete-${id}`}
-            label="Delete"
-            systemImage="trash"
-            role="destructive"
-            onPress={() => onDelete(id)}
-          />
-        </Menu>
-      </Host>
-    </View>
-  );
-}
+import { buildRallySummary } from "../utils/rally-summary";
 
 type TimelineEmptyProps = {
   isError: boolean;
@@ -127,6 +54,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { mutate: deleteRally } = useDeleteRally();
   const { mutate: deleteStamp } = useDeleteStamp();
   const rally = rallies?.find((candidate) => candidate.id === rallyId);
+  const summary = stamps
+    ? buildRallySummary(
+        stamps.map((stamp) => stamp.stampedAt),
+        new Date(),
+      )
+    : null;
 
   useEffect(() => {
     if (isRalliesLoaded && !rally) {
@@ -171,7 +104,8 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           <StampPost
             id={item.id}
             emoji={rally.emoji}
-            stampedAt={item.stampedAt}
+            title={formatStampDay(new Date(item.stampedAt))}
+            detail={formatStampTime(new Date(item.stampedAt))}
             memo={item.memo}
             onEdit={(stampId) =>
               push({ pathname: "/edit-stamp", params: { stampId } })
@@ -180,23 +114,54 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           />
         )}
         ListHeaderComponent={
-          <View className="items-center gap-3">
-            <Text className="text-5xl">{rally.emoji}</Text>
-            <Text
-              selectable
-              role="heading"
-              className="text-foreground text-2xl font-semibold"
+          <View className="items-center gap-4">
+            <View
+              testID="rally-top-panel"
+              className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
             >
-              {rally.name}
-            </Text>
-            {stamps ? (
-              <Text className="text-foreground-secondary text-base">
-                {formatStampCount(stamps.length)}
+              <View className="bg-background size-20 items-center justify-center rounded-full">
+                <Text className="text-5xl">{rally.emoji}</Text>
+              </View>
+              <Text
+                selectable
+                role="heading"
+                className="text-foreground mt-1 text-2xl font-bold"
+              >
+                {rally.name}
               </Text>
-            ) : null}
+              {stamps ? (
+                <Text className="text-accent-strong text-base font-semibold">
+                  {formatStampCount(stamps.length)}
+                </Text>
+              ) : null}
+              {stamps ? <RallySummaryStats summary={summary} /> : null}
+            </View>
             <RallyMonthCalendar
               stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+              emoji={rally.emoji}
+              onPressDay={(date) =>
+                push({
+                  pathname: "/rally-day",
+                  params: { rallyId: rally.id, date },
+                })
+              }
             />
+            {stamps && stamps.length > 0 ? (
+              <View className="w-full flex-row items-baseline justify-between pt-4">
+                <Text
+                  role="heading"
+                  className="text-foreground text-xl font-bold"
+                >
+                  Stamps
+                </Text>
+                <Text
+                  aria-label={`${stamps.length} stamps in the timeline`}
+                  className="text-foreground-muted text-base"
+                >
+                  {stamps.length}
+                </Text>
+              </View>
+            ) : null}
           </View>
         }
         ListEmptyComponent={
@@ -206,27 +171,14 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             onRetry={() => void refetchStamps()}
           />
         }
-        ListFooterComponent={
-          <View className="gap-6">
-            <AppButton
-              label="Past stamp"
-              onPress={() =>
-                push({
-                  pathname: "/add-past-stamp",
-                  params: { rallyId: rally.id },
-                })
-              }
-            />
-            <AppButton
-              label="Delete rally"
-              aria-label={`Delete ${rally.name}`}
-              variant="danger"
-              onPress={confirmDelete}
-            />
-          </View>
-        }
       />
       <Stack.Title>{rally.name}</Stack.Title>
+      <RallyActionsMenu
+        onPastStamp={() =>
+          push({ pathname: "/add-past-stamp", params: { rallyId: rally.id } })
+        }
+        onDelete={confirmDelete}
+      />
     </>
   );
 }
