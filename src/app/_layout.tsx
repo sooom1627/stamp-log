@@ -63,6 +63,10 @@ export default function RootLayout() {
               name="edit-stamp"
               options={{ ...formSheetOptions, title: "Edit stamp" }}
             />
+            <Stack.Screen
+              name="rally-day"
+              options={{ ...formSheetOptions, title: "" }}
+            />
           </Stack>
         </ThemeProvider>
         <Toaster position="bottom-center" closeButton />

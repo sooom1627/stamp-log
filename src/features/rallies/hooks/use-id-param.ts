@@ -2,24 +2,38 @@ import { useEffect } from "react";
 
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { idParamSchema } from "../schemas/route-params";
+import { type z } from "zod";
 
-// Reads an id URL param in a route file. An invalid value is treated like a
+import { dateParamSchema, idParamSchema } from "../schemas/route-params";
+
+// Reads a URL param in a route file. An invalid value is treated like a
 // missing record: the screen closes and `undefined` is returned.
-export function useIdParam(name: string) {
+function useRouteParam<TSchema extends z.ZodType>(
+  name: string,
+  schema: TSchema,
+): z.output<TSchema> | undefined {
   const params = useLocalSearchParams();
   const { back, canGoBack, replace } = useRouter();
-  const result = idParamSchema.safeParse(params[name]);
-  const id = result.success ? result.data : undefined;
+  const result = schema.safeParse(params[name]);
+  const isValid = result.success;
 
   useEffect(() => {
-    if (id !== undefined) return;
+    if (isValid) return;
     if (canGoBack()) {
       back();
       return;
     }
     replace("/");
-  }, [id, back, canGoBack, replace]);
+  }, [isValid, back, canGoBack, replace]);
 
-  return id;
+  return isValid ? result.data : undefined;
+}
+
+export function useIdParam(name: string) {
+  return useRouteParam(name, idParamSchema);
+}
+
+// A local calendar day such as "2026-09-18", today or earlier.
+export function useDateParam(name: string) {
+  return useRouteParam(name, dateParamSchema);
 }
