@@ -11,12 +11,12 @@ import {
   shapes,
 } from "@expo/ui/swift-ui/modifiers";
 
-import { Button as AppButton } from "@/shared/components/button";
 import { LoadError } from "@/shared/components/load-error";
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
+import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
@@ -206,27 +206,14 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             onRetry={() => void refetchStamps()}
           />
         }
-        ListFooterComponent={
-          <View className="gap-6">
-            <AppButton
-              label="Past stamp"
-              onPress={() =>
-                push({
-                  pathname: "/add-past-stamp",
-                  params: { rallyId: rally.id },
-                })
-              }
-            />
-            <AppButton
-              label="Delete rally"
-              aria-label={`Delete ${rally.name}`}
-              variant="danger"
-              onPress={confirmDelete}
-            />
-          </View>
-        }
       />
       <Stack.Title>{rally.name}</Stack.Title>
+      <RallyActionsMenu
+        onPastStamp={() =>
+          push({ pathname: "/add-past-stamp", params: { rallyId: rally.id } })
+        }
+        onDelete={confirmDelete}
+      />
     </>
   );
 }

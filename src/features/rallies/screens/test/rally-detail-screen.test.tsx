@@ -65,71 +65,6 @@ describe("Rally detail", () => {
     ).toBeOnTheScreen();
     expect(screen.getByText("1 stamp")).toBeOnTheScreen();
   });
-
-  test("deletes the rally after confirmation and returns home", async () => {
-    const { rally, user } = await openRallyDetail("Delete from detail");
-
-    await user.press(
-      await screen.findByRole("button", {
-        name: "Delete Delete from detail",
-      }),
-    );
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      findAlertButton("destructive").onPress?.();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
-    });
-    expect(
-      (await ralliesDb.listRallies()).some(
-        (candidate) => candidate.id === rally.id,
-      ),
-    ).toBe(false);
-  });
-
-  test("shows the global error toast when deletion fails", async () => {
-    jest
-      .spyOn(ralliesDb, "deleteRally")
-      .mockRejectedValueOnce(new Error("delete failed"));
-    const { user } = await openRallyDetail("Delete fails");
-
-    await user.press(
-      await screen.findByRole("button", { name: "Delete Delete fails" }),
-    );
-    await act(async () => {
-      findAlertButton("destructive").onPress?.();
-    });
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        "Something went wrong. Please try again.",
-      );
-    });
-    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
-  });
-});
-
-describe("S-025 T-001 ST-006 past stamp entry", () => {
-  test("opens the past stamp formSheet and returns with the new stamp counted", async () => {
-    const { rally, user } = await openRallyDetail("Past stamp entry");
-    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
-
-    await user.press(screen.getByRole("button", { name: "Past stamp" }));
-
-    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
-    await user.press(screen.getByRole("button", { name: "Save" }));
-
-    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
-    expect(screen.queryByTestId("add-past-stamp-form")).not.toBeOnTheScreen();
-    const stamps = (await listStamps()).filter(
-      (stamp) => stamp.rallyId === rally.id,
-    );
-    expect(stamps).toHaveLength(2);
-  });
 });
 
 function daysAgoAt(days: number, hours: number) {
@@ -378,5 +313,147 @@ describe("S-006 T-002 ST-003 month navigation", () => {
 
     expect(await screen.findByText("October 2026")).toBeOnTheScreen();
     expect(screen.queryAllByLabelText(/, recorded$/)).toHaveLength(0);
+  });
+});
+
+describe("S-028 T-001 ST-001 rally actions menu", () => {
+  test("puts a 44pt Rally actions menu with Past stamp and Delete rally in the header", async () => {
+    await openRallyDetail("Header menu");
+
+    expect(await screen.findByTestId("rally-actions-menu-icon")).toHaveProp(
+      "modifiers",
+      expect.arrayContaining([
+        expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
+        expect.objectContaining({
+          $type: "accessibilityLabel",
+          label: "Rally actions",
+        }),
+      ]),
+    );
+    expect(screen.getByTestId("rally-action-past-stamp")).toHaveProp(
+      "label",
+      "Past stamp",
+    );
+    expect(screen.getByTestId("rally-action-delete")).toHaveProp(
+      "label",
+      "Delete rally",
+    );
+    expect(screen.getByTestId("rally-action-delete")).toHaveProp(
+      "role",
+      "destructive",
+    );
+  });
+});
+
+describe("S-028 T-001 ST-002 past stamp from the actions menu", () => {
+  test("opens the past stamp formSheet and returns with the new stamp counted", async () => {
+    const { rally, user } = await openRallyDetail("Menu past stamp");
+    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+
+    await fireEvent(
+      screen.getByTestId("rally-action-past-stamp"),
+      "buttonPress",
+    );
+
+    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(screen.queryByTestId("add-past-stamp-form")).not.toBeOnTheScreen();
+    const stamps = (await listStamps()).filter(
+      (stamp) => stamp.rallyId === rally.id,
+    );
+    expect(stamps).toHaveLength(2);
+  });
+});
+
+describe("S-028 T-001 ST-003 delete rally from the actions menu", () => {
+  async function pressMenuDelete(name: string) {
+    const opened = await openRallyDetail(name);
+    await fireEvent(
+      await screen.findByTestId("rally-action-delete"),
+      "buttonPress",
+    );
+    return opened;
+  }
+
+  test("deletes the rally after confirmation and returns home", async () => {
+    const { rally } = await pressMenuDelete("Menu delete");
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete rally?",
+      "This action cannot be undone.",
+      expect.any(Array),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
+    });
+    expect(
+      (await ralliesDb.listRallies()).some(
+        (candidate) => candidate.id === rally.id,
+      ),
+    ).toBe(false);
+  });
+
+  test("keeps the rally when the deletion is cancelled", async () => {
+    const { rally } = await pressMenuDelete("Menu delete cancel");
+
+    await act(async () => {
+      findAlertButton("cancel").onPress?.();
+    });
+
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(
+      (await ralliesDb.listRallies()).some(
+        (candidate) => candidate.id === rally.id,
+      ),
+    ).toBe(true);
+  });
+
+  test("shows the global error toast when deletion fails", async () => {
+    jest
+      .spyOn(ralliesDb, "deleteRally")
+      .mockRejectedValueOnce(new Error("delete failed"));
+    await pressMenuDelete("Menu delete fails");
+
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Something went wrong. Please try again.",
+      );
+    });
+    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-001 ST-004 no footer actions", () => {
+  test("leaves Past stamp and Delete rally to the header menu only", async () => {
+    await openRallyDetail("No footer");
+
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Past stamp" }),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Delete No footer" }),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-001 ST-005 rally actions icon", () => {
+  test("uses a native toolbar menu icon with no custom tint", async () => {
+    await openRallyDetail("Round menu icon");
+
+    const icon = await screen.findByTestId("rally-actions-menu-icon");
+    expect(icon).toHaveProp("systemName", "ellipsis");
+    expect(icon).not.toHaveProp("color");
   });
 });
