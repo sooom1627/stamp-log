@@ -12,7 +12,7 @@ import {
 import { Button } from "@/shared/components/button";
 import {
   FormField,
-  FormSheetContainer,
+  FormSheetLayout,
   FormTextInput,
 } from "@/shared/components/form-sheet";
 
@@ -65,7 +65,7 @@ export function CreateRallyScreen() {
   };
 
   return (
-    <FormSheetContainer testID="create-rally-form">
+    <FormSheetLayout testID="create-rally-form" title="Create rally">
       <View className="gap-6">
         <FormField label="Type">
           <RallyTypeRadios value={selectedType} onChange={handleTypeChange} />
@@ -119,6 +119,6 @@ export function CreateRallyScreen() {
         isLoading={isSaving}
         className="mt-8"
       />
-    </FormSheetContainer>
+    </FormSheetLayout>
   );
 }
