@@ -5,6 +5,7 @@ import {
   accessibilityLabel,
   contentShape,
   frame,
+  imageScale,
   shapes,
 } from "@expo/ui/swift-ui/modifiers";
 
@@ -73,8 +74,9 @@ export function StampPost({
               systemName="ellipsis"
               color={menuColor}
               modifiers={[
-                frame({ width: 44, height: 44 }),
-                contentShape(shapes.rectangle()),
+                imageScale("small"),
+                frame({ width: 36, height: 36 }),
+                contentShape(shapes.circle()),
                 accessibilityLabel("More"),
               ]}
             />
