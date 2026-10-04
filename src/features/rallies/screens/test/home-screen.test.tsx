@@ -2,7 +2,13 @@ import { Alert } from "react-native";
 
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
 import * as ralliesDb from "../../db/rallies-db";
@@ -50,9 +56,12 @@ describe("ST-001 create rally entry", () => {
     expect(
       await screen.findByPlaceholderText("Enter a place to track"),
     ).toBeOnTheScreen();
+    // S-028 RT-002 ST-003: the heading lives in the sheet, not a native header.
+    const sheet = screen.getByTestId("create-rally-form");
     expect(
-      screen.queryByRole("heading", { name: "Create rally" }),
-    ).not.toBeOnTheScreen();
+      within(sheet).getByRole("heading", { name: "Create rally" }),
+    ).toBeOnTheScreen();
+    expect(sheet).toHaveProp("className", expect.stringContaining("pt-8"));
   });
 });
 
@@ -251,9 +260,7 @@ describe("S-002 T-002 ST-005 memo formSheet", () => {
 
     expect(toast.dismiss).toHaveBeenCalled();
     expect(await screen.findByText("Memo")).toBeOnTheScreen();
-    expect(
-      screen.queryByRole("heading", { name: "Add memo" }),
-    ).not.toBeOnTheScreen();
+    expect(screen.getByRole("heading", { name: "Add memo" })).toBeOnTheScreen();
 
     await user.type(screen.getByPlaceholderText("Enter memo"), "Met them");
     await user.press(screen.getByRole("button", { name: "Save" }));

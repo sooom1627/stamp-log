@@ -6,6 +6,7 @@ import {
   fireEvent,
   screen,
   userEvent,
+  within,
 } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
@@ -49,15 +50,27 @@ async function stampsOf(rallyId: number) {
 }
 
 describe("S-025 T-001 ST-005 past stamp formSheet", () => {
-  test("keeps Save inside intrinsically sized content with the rally name", async () => {
+  test("keeps Save inside intrinsically sized content", async () => {
     await openPastStamp("Sheet layout rally");
 
     const form = screen.getByTestId("add-past-stamp-form");
     expect(form).not.toHaveProp("className", expect.stringContaining("flex-1"));
-    expect(screen.getAllByText("Sheet layout rally").length).toBeGreaterThan(0);
     expect(screen.getByTestId("past-stamp-date")).toBeOnTheScreen();
     expect(screen.getByTestId("past-stamp-time")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  test("S-028 RT-002 ST-004 shows the rally above the Past stamp heading", async () => {
+    const { rally } = await openPastStamp("Past heading rally");
+
+    const form = screen.getByTestId("add-past-stamp-form");
+    expect(
+      within(form).getByRole("heading", { name: "Past stamp" }),
+    ).toBeOnTheScreen();
+    expect(
+      within(form).getByText(`${rally.emoji} Past heading rally`),
+    ).toBeOnTheScreen();
+    expect(form).toHaveProp("className", expect.stringContaining("pt-8"));
   });
 
   test("saves yesterday 12:00 by default and shows the memo toast", async () => {

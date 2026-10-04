@@ -6,6 +6,7 @@ import {
   fireEvent,
   screen,
   userEvent,
+  within,
 } from "@testing-library/react-native";
 
 import {
@@ -69,7 +70,7 @@ const localAt = (day: number, hours: number, minutes = 0) =>
   new Date(2026, 8, day, hours, minutes);
 
 describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
-  test("opens the sheet with the rally and the stamp's current memo", async () => {
+  test("opens the sheet with the stamp's current memo", async () => {
     await openEdit("Edit sheet rally", async (rallyId) => {
       const stamp = await saveStamp({
         rallyId,
@@ -79,11 +80,27 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
       return stamp.id;
     });
 
-    expect(screen.getAllByText("Edit sheet rally").length).toBeGreaterThan(0);
     expect(screen.getByTestId("edit-stamp-date")).toBeOnTheScreen();
     expect(screen.getByTestId("edit-stamp-time")).toBeOnTheScreen();
     expect(screen.getByDisplayValue("Talked in the lab")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  test("S-028 RT-002 ST-004 shows the rally above the Edit stamp heading", async () => {
+    await openEdit("Edit heading rally", async (rallyId) => {
+      const stamp = await saveStamp({
+        rallyId,
+        stampedAt: localAt(18, 11, 40).toISOString(),
+      });
+      return stamp.id;
+    });
+
+    const form = screen.getByTestId("edit-stamp-form");
+    expect(
+      within(form).getByRole("heading", { name: "Edit stamp" }),
+    ).toBeOnTheScreen();
+    expect(within(form).getByText("🧑‍🔬 Edit heading rally")).toBeOnTheScreen();
+    expect(form).toHaveProp("className", expect.stringContaining("pt-8"));
   });
 
   test("saves the new date, time and memo and shows them on the timeline", async () => {
