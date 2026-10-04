@@ -12,6 +12,8 @@ import {
   type MonthDay,
 } from "../utils/month-grid";
 
+import { MonthPickerSheet } from "./month-picker-sheet";
+
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
   year: "numeric",
@@ -48,6 +50,18 @@ function firstDayOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+// From the first stamp's year (or this year) to next year, always including
+// the shown month's year so the wheel can select it.
+function pickerYears(stampDates: string[], shownMonth: Date) {
+  const thisYear = new Date().getFullYear();
+  const stampYears = stampDates.map((stampDate) =>
+    new Date(stampDate).getFullYear(),
+  );
+  const from = Math.min(thisYear, shownMonth.getFullYear(), ...stampYears);
+  const to = Math.max(thisYear + 1, shownMonth.getFullYear());
+  return Array.from({ length: to - from + 1 }, (_, index) => from + index);
+}
+
 export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
   // Opens on the week holding today every time; the view is not remembered.
   const [isMonthView, setIsMonthView] = useState(false);
@@ -76,6 +90,14 @@ export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
     setMonth(weekHeadingMonth(month, buildWeek(nextAnchor, [])));
   };
   const unit = isMonthView ? "month" : "week";
+  const heading = monthFormatter.format(month);
+
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const pickMonth = (picked: Date) => {
+    setMonth(picked);
+    setIsMonthView(true);
+    setIsPickerOpen(false);
+  };
 
   return (
     <View className="w-full gap-2 pt-2">
@@ -88,9 +110,16 @@ export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
         >
           <ChevronLeft colorClassName="accent-accent" size={20} />
         </Pressable>
-        <Text className="text-foreground text-base font-semibold">
-          {monthFormatter.format(month)}
-        </Text>
+        <Pressable
+          role="button"
+          aria-label={`Choose month, ${heading}`}
+          className="min-h-11 justify-center px-2"
+          onPress={() => setIsPickerOpen(true)}
+        >
+          <Text className="text-foreground text-base font-semibold">
+            {heading}
+          </Text>
+        </Pressable>
         <Pressable
           role="button"
           aria-label={`Next ${unit}`}
@@ -127,6 +156,13 @@ export function RallyMonthCalendar({ stampDates }: RallyMonthCalendarProps) {
           {isMonthView ? "Show week" : "Show month"}
         </Text>
       </Pressable>
+      <MonthPickerSheet
+        isPresented={isPickerOpen}
+        month={month}
+        years={pickerYears(stampDates, month)}
+        onDone={pickMonth}
+        onClose={() => setIsPickerOpen(false)}
+      />
     </View>
   );
 }

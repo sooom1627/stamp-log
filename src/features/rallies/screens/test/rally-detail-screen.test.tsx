@@ -639,3 +639,80 @@ describe("S-028 T-003 ST-004 stepping weeks and months", () => {
     expect(screen.getAllByLabelText(/^Oct \d+, 2026, /)).toHaveLength(31);
   });
 });
+
+describe("S-028 T-003 ST-005 month picker", () => {
+  test("picks a year and month from the wheels and shows that month", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Month picker", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2025, 2, 14, 9).toISOString(),
+      });
+    });
+
+    await user.press(
+      await screen.findByRole("button", {
+        name: "Choose month, September 2026",
+      }),
+    );
+    const monthWheel = await screen.findByTestId("month-picker-month");
+    const yearWheel = screen.getByTestId("month-picker-year");
+    expect(monthWheel).toHaveProp("selection", 8);
+    expect(yearWheel).toHaveProp("selection", 2026);
+
+    await fireEvent(monthWheel, "selectionChange", {
+      nativeEvent: { selection: 2 },
+    });
+    await fireEvent(yearWheel, "selectionChange", {
+      nativeEvent: { selection: 2025 },
+    });
+    await fireEvent(screen.getByTestId("month-picker-done"), "buttonPress");
+
+    expect(await screen.findByText("March 2025")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Mar \d+, 2025, /)).toHaveLength(31);
+    expect(screen.getByLabelText("Mar 14, 2025, recorded")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Show week" })).toBeOnTheScreen();
+    // The native sheet keeps its content until it reports the dismissal.
+    expect(screen.getByTestId("month-picker-sheet")).toHaveProp(
+      "isPresented",
+      false,
+    );
+    await fireEvent(screen.getByTestId("month-picker-sheet"), "dismiss");
+    expect(screen.queryByTestId("month-picker-month")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-028 T-003 ST-005 month picker reopen", () => {
+  test("starts from the shown month again after closing without Done", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    const { user } = await openRallyDetail("Picker reopen");
+    const heading = await screen.findByRole("button", {
+      name: "Choose month, September 2026",
+    });
+
+    await user.press(heading);
+    await fireEvent(
+      screen.getByTestId("month-picker-month"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: 2 },
+      },
+    );
+    // Swiping the sheet down reports the closed state from the native side.
+    await fireEvent(
+      screen.getByTestId("month-picker-sheet"),
+      "isPresentedChange",
+      {
+        nativeEvent: { isPresented: false },
+      },
+    );
+    await fireEvent(screen.getByTestId("month-picker-sheet"), "dismiss");
+    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+
+    await user.press(heading);
+    expect(await screen.findByTestId("month-picker-month")).toHaveProp(
+      "selection",
+      8,
+    );
+  });
+});
