@@ -62,7 +62,10 @@ describe("Rally detail", () => {
     await openRallyDetail("Tokyo towers");
 
     expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
-    expect(screen.getByText("🗼")).toBeOnTheScreen();
+    // S-028: the emoji also marks recorded days in the calendar.
+    expect(
+      within(screen.getByTestId("rally-top-panel")).getByText("🗼"),
+    ).toBeOnTheScreen();
     expect(
       screen.getByRole("heading", { name: "Tokyo towers" }),
     ).toBeOnTheScreen();
@@ -807,5 +810,41 @@ describe("S-028 RT-001 ST-004 top panel look", () => {
         expect.stringContaining("bg-background"),
       );
     }
+  });
+});
+
+describe("S-028 RT-001 ST-005 calendar look", () => {
+  test("draws a flat card with the rally emoji on recorded days and a ring on today", async () => {
+    jest.setSystemTime(new Date(2026, 8, 16, 12));
+    await openRallyDetail("Calendar look", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 14, 9).toISOString(),
+      });
+    });
+
+    expect(await screen.findByTestId("rally-calendar")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-surface-muted"),
+    );
+    const recorded = screen.getByRole("button", {
+      name: "Sep 14, 2026, recorded",
+    });
+    expect(within(recorded).getByText("🗼")).toBeOnTheScreen();
+    expect(within(recorded).queryByText("14")).not.toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-09-14")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-accent-soft"),
+    );
+    // Today (Sep 16) also has a stamp from openRallyDetail.
+    expect(screen.getByTestId("calendar-day-2026-09-16")).toHaveProp(
+      "className",
+      expect.stringContaining("border-accent"),
+    );
+    const future = screen.getByLabelText("Sep 17, 2026, not recorded");
+    expect(within(future).getByText("17")).toHaveProp(
+      "className",
+      expect.stringContaining("text-foreground-muted"),
+    );
   });
 });

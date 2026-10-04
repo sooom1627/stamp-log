@@ -138,6 +138,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             </View>
             <RallyMonthCalendar
               stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+              emoji={rally.emoji}
               onPressDay={(date) =>
                 push({
                   pathname: "/rally-day",
