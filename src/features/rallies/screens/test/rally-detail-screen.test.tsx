@@ -324,7 +324,6 @@ describe("S-028 T-001 ST-001 rally actions menu", () => {
       "modifiers",
       expect.arrayContaining([
         expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
-        expect.objectContaining({ $type: "contentShape" }),
         expect.objectContaining({
           $type: "accessibilityLabel",
           label: "Rally actions",
@@ -450,26 +449,11 @@ describe("S-028 T-001 ST-004 no footer actions", () => {
 });
 
 describe("S-028 T-001 ST-005 rally actions icon", () => {
-  test("draws the menu icon in the foreground color on a round flat background", async () => {
+  test("uses a native toolbar menu icon with no custom tint", async () => {
     await openRallyDetail("Round menu icon");
 
-    // The uniwind mock in jest-setup.ts resolves text-* to #1e293b and bg-* to
-    // #ffffff; @expo/ui turns Image's color into a foregroundStyle modifier.
-    expect(await screen.findByTestId("rally-actions-menu-icon")).toHaveProp(
-      "modifiers",
-      expect.arrayContaining([
-        expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
-        expect.objectContaining({
-          $type: "background",
-          shape: "circle",
-          style: { type: "color", color: "#ffffff" },
-        }),
-        expect.objectContaining({ $type: "contentShape", shape: "circle" }),
-        expect.objectContaining({
-          $type: "foregroundStyle",
-          style: { type: "color", color: "#1e293b" },
-        }),
-      ]),
-    );
+    const icon = await screen.findByTestId("rally-actions-menu-icon");
+    expect(icon).toHaveProp("systemName", "ellipsis");
+    expect(icon).not.toHaveProp("color");
   });
 });

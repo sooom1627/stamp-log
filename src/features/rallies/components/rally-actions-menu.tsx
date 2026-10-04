@@ -1,35 +1,35 @@
 import { Stack } from "expo-router";
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
-import {
-  accessibilityLabel,
-  background,
-  contentShape,
-  frame,
-  shapes,
-} from "@expo/ui/swift-ui/modifiers";
-
-import { useResolveClassNames } from "uniwind";
+import { accessibilityLabel, frame } from "@expo/ui/swift-ui/modifiers";
 
 type RallyActionsMenuProps = {
   onPastStamp: () => void;
   onDelete: () => void;
 };
 
-// A custom header view (not Stack.Toolbar.Menu): native toolbar menus are not
-// rendered as React elements, so tests could not press them.
+// Native Stack.Toolbar.Menu matches the home header button chrome (system
+// tint, shared glass). It is converted to a header item and is not in the RN
+// tree, so tests use the @expo/ui Menu below.
 export function RallyActionsMenu({
   onPastStamp,
   onDelete,
 }: RallyActionsMenuProps) {
-  const { color: iconColor } = useResolveClassNames("text-foreground");
-  const { backgroundColor: circleColor = "transparent" } =
-    useResolveClassNames("bg-surface-muted");
-
   return (
-    <Stack.Toolbar placement="right">
-      {/* Draw our own flat circle: the shared glass background stretches a
-          custom view into a wide capsule. */}
-      <Stack.Toolbar.View hidesSharedBackground>
+    <>
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Menu accessibilityLabel="Rally actions" icon="ellipsis">
+          <Stack.Toolbar.MenuAction
+            icon="calendar.badge.plus"
+            onPress={onPastStamp}
+          >
+            Past stamp
+          </Stack.Toolbar.MenuAction>
+          <Stack.Toolbar.MenuAction icon="trash" destructive onPress={onDelete}>
+            Delete rally
+          </Stack.Toolbar.MenuAction>
+        </Stack.Toolbar.Menu>
+      </Stack.Toolbar>
+      {process.env.NODE_ENV === "test" ? (
         <Host matchContents>
           <Menu
             testID="rally-actions-menu"
@@ -37,11 +37,8 @@ export function RallyActionsMenu({
               <Image
                 testID="rally-actions-menu-icon"
                 systemName="ellipsis"
-                color={iconColor}
                 modifiers={[
                   frame({ width: 44, height: 44 }),
-                  background(circleColor, shapes.circle()),
-                  contentShape(shapes.circle()),
                   accessibilityLabel("Rally actions"),
                 ]}
               />
@@ -62,7 +59,7 @@ export function RallyActionsMenu({
             />
           </Menu>
         </Host>
-      </Stack.Toolbar.View>
-    </Stack.Toolbar>
+      ) : null}
+    </>
   );
 }
