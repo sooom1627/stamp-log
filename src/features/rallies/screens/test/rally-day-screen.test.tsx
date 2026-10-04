@@ -85,3 +85,33 @@ describe("S-028 T-004 ST-003 rally day sheet", () => {
     );
   });
 });
+
+describe("S-028 T-004 ST-005 empty rally day", () => {
+  test("offers Stamp this day on an empty day and shows the new stamp after saving", async () => {
+    await openRallyDay("Empty day", "2026-09-15");
+
+    expect(await screen.findByText("No stamp on this day")).toBeOnTheScreen();
+    await fireEvent.press(
+      screen.getByRole("button", { name: "Stamp this day" }),
+    );
+
+    expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("12:00 PM")).toBeOnTheScreen();
+    expect(screen.getByTestId("rally-day-sheet")).toBeOnTheScreen();
+    expect(screen.queryByText("No stamp on this day")).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Stamp this day" }),
+    ).not.toBeOnTheScreen();
+  });
+
+  test("does not offer Stamp this day on a day that already has a stamp", async () => {
+    await openRallyDay("Recorded day", "2026-09-18");
+
+    expect(await screen.findByText("7:02 PM")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Stamp this day" }),
+    ).not.toBeOnTheScreen();
+  });
+});

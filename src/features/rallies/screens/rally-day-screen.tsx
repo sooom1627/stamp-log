@@ -2,6 +2,7 @@ import { Alert, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { Button } from "@/shared/components/button";
 import { FormSheetContainer } from "@/shared/components/form-sheet";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { localDateKey } from "@/shared/utils/local-date-key";
@@ -53,6 +54,29 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
           {dateFormatter.format(date)}
         </Text>
       </View>
+      {rally && rallyStamps && dayStamps.length === 0 ? (
+        // A day with a stamp gets no add button: the same rally cannot hold
+        // two past stamps on one local day.
+        <View className="gap-5">
+          <View className="bg-surface-muted border-continuous items-center gap-2 rounded-3xl py-8">
+            <Text aria-hidden className="text-3xl opacity-60">
+              {rally.emoji}
+            </Text>
+            <Text className="text-foreground-secondary text-base">
+              No stamp on this day
+            </Text>
+          </View>
+          <Button
+            label="Stamp this day"
+            onPress={() =>
+              push({
+                pathname: "/add-past-stamp",
+                params: { rallyId, date: dayKey },
+              })
+            }
+          />
+        </View>
+      ) : null}
       {rally
         ? dayStamps.map((stamp) => (
             <StampPost
