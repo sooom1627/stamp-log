@@ -38,7 +38,7 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 - ラベルと順はこの3つで固定。4つ目は足さない
 - **タブルート**（ホーム / 記録 / カレンダー）に出す
 - **スタック**（ラリー詳細 / スタンプ詳細 / 日詳細）でも残す。戻ると元のタブ
-- **formSheet**（ラリーを作る / メモを追加 / 過去のスタンプ / スタンプを編集）では出さない
+- **formSheet**（ラリーを作る / メモを追加 / 過去のスタンプ / スタンプを編集 / ラリーの日）では出さない
 - アイコンは実装時（iOS は SF Symbol、Android は Material）。色・選択色は Uniwind / システム
 - **ホーム:** 押す場所。ラリー一覧、作成、ワンタップ。収集数。直下は最新数件まで。全件はラリー詳細へ。
 - **記録:** 振り返り。横断タイムラインがこのタブのルート。ここからラリー詳細・スタンプ詳細。
@@ -64,29 +64,33 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 
 ### スタンプの日時
 
-スタンプの日時は英語（en-US）の 12 時間表記で出す。例: `Sep 20, 11:40 AM`。今年以外のスタンプは年を付ける。例: `Sep 20, 2025, 11:40 AM`。ラリー詳細・スタンプ詳細・記録タイムラインで共通。
+スタンプの日時は英語（en-US）の 12 時間表記で出す。例: `Sep 20, 11:40 AM`。今年以外のスタンプは年を付ける。例: `Sep 20, 2025, 11:40 AM`。スタンプ詳細・記録タイムラインはこの形。
+
+ラリー詳細のタイムラインは、曜日付きの日付（太字）と時刻（薄く）に分けて出す。例: `Fri, Sep 18` `7:02 PM`。今年以外は日付に年を付ける。例: `Fri, Sep 18, 2025`。ラリーの日（formSheet）は見出しに日付があるので、投稿には時刻だけを出す。
 
 ## 画面一覧
 
-| 画面                 | ファイル                                                     | 深さ        | Story                      |
-| -------------------- | ------------------------------------------------------------ | ----------- | -------------------------- |
-| ホーム               | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008        |
-| ラリーを作る         | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009               |
-| メモを追加           | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002                      |
-| 過去のスタンプ       | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                      |
-| スタンプを編集       | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014               |
-| ラリー詳細           | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-009, S-025 |
-| スタンプ詳細         | [screens/stamp-detail.md](./screens/stamp-detail.md)         | ワイヤー    | S-007                      |
-| 記録（タイムライン） | [screens/records-timeline.md](./screens/records-timeline.md) | 骨格        | S-010                      |
-| カレンダー           | [screens/calendar.md](./screens/calendar.md)                 | 骨格        | S-011                      |
-| 日詳細               | [screens/day-detail.md](./screens/day-detail.md)             | 骨格        | S-012                      |
+| 画面                 | ファイル                                                     | 深さ        | Story                             |
+| -------------------- | ------------------------------------------------------------ | ----------- | --------------------------------- |
+| ホーム               | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008               |
+| ラリーを作る         | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009                      |
+| メモを追加           | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002                             |
+| 過去のスタンプ       | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                             |
+| スタンプを編集       | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014                      |
+| ラリー詳細           | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-009, S-025, S-028 |
+| ラリーの日           | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028                             |
+| スタンプ詳細         | [screens/stamp-detail.md](./screens/stamp-detail.md)         | ワイヤー    | S-007                             |
+| 記録（タイムライン） | [screens/records-timeline.md](./screens/records-timeline.md) | 骨格        | S-010                             |
+| カレンダー           | [screens/calendar.md](./screens/calendar.md)                 | 骨格        | S-011                             |
+| 日詳細               | [screens/day-detail.md](./screens/day-detail.md)             | 骨格        | S-012                             |
 
 ## ルート案
 
 - `/` — ホーム（タブ）
 - `/create-rally` — ラリーを作る（formSheet）
 - `/add-stamp-memo?stampId=` — メモを追加（formSheet）
-- `/add-past-stamp?rallyId=` — 過去の日にスタンプ（formSheet）
+- `/add-past-stamp?rallyId=&date=` — 過去の日にスタンプ（formSheet。`date` は任意）
+- `/rally-day?rallyId=&date=` — ラリーの日（formSheet）
 - `/edit-stamp?stampId=` — スタンプを編集（formSheet）
 - `/rallies/[id]` — ラリー詳細（スタック）
 - `/stamps/[id]` — スタンプ詳細（スタック）
