@@ -2,12 +2,13 @@ import { Stack } from "expo-router";
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
 import {
   accessibilityLabel,
+  background,
   contentShape,
   frame,
   shapes,
 } from "@expo/ui/swift-ui/modifiers";
 
-import { useAccentColor } from "@/shared/hooks/use-accent-color";
+import { useResolveClassNames } from "uniwind";
 
 type RallyActionsMenuProps = {
   onPastStamp: () => void;
@@ -20,11 +21,15 @@ export function RallyActionsMenu({
   onPastStamp,
   onDelete,
 }: RallyActionsMenuProps) {
-  const accentColor = useAccentColor();
+  const { color: iconColor } = useResolveClassNames("text-foreground");
+  const { backgroundColor: circleColor = "transparent" } =
+    useResolveClassNames("bg-surface-muted");
 
   return (
     <Stack.Toolbar placement="right">
-      <Stack.Toolbar.View>
+      {/* Draw our own flat circle: the shared glass background stretches a
+          custom view into a wide capsule. */}
+      <Stack.Toolbar.View hidesSharedBackground>
         <Host matchContents>
           <Menu
             testID="rally-actions-menu"
@@ -32,10 +37,11 @@ export function RallyActionsMenu({
               <Image
                 testID="rally-actions-menu-icon"
                 systemName="ellipsis"
-                color={accentColor}
+                color={iconColor}
                 modifiers={[
                   frame({ width: 44, height: 44 }),
-                  contentShape(shapes.rectangle()),
+                  background(circleColor, shapes.circle()),
+                  contentShape(shapes.circle()),
                   accessibilityLabel("Rally actions"),
                 ]}
               />
