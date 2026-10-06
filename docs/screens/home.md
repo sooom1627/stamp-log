@@ -24,8 +24,8 @@
 ## レイアウト
 
 ```
-Welcome back
-20 September, 2026
+Sunday                               ← 見出しは今日の曜日
+September 20                         ← その下に月日
 
 ┌─────────────────────────────────┐
 │ Last 7 days           38 stamps │
@@ -50,6 +50,10 @@ Your Days                  View All
 
 [ ホーム ] [ 記録 ] [ カレンダー ]
 ```
+
+### 見出し
+
+- 大見出しは今日の曜日（`Sunday`）、その下に月日（`September 20`）。挨拶は出さない（[design.md](../design.md) のタブルート共通の見出し）
 
 ### 判子の帯
 
