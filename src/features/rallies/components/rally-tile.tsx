@@ -47,17 +47,19 @@ export function RallyTile({
           }
           aria-disabled={isStampedToday}
           disabled={isStampedToday}
+          // 32px visually; the hit area stays 44px.
+          hitSlop={6}
           className={
             isStampedToday
-              ? "bg-accent size-11 items-center justify-center rounded-full"
-              : "border-accent size-11 items-center justify-center rounded-full border-2 active:opacity-70"
+              ? "bg-accent size-8 items-center justify-center rounded-full"
+              : "border-accent size-8 items-center justify-center rounded-full border-[1.5px] active:opacity-70"
           }
           onPress={onPressStamp}
         >
           {isStampedToday ? (
-            <Check colorClassName="accent-white" size={20} strokeWidth={3} />
+            <Check colorClassName="accent-white" size={16} strokeWidth={3} />
           ) : (
-            <Plus colorClassName="accent-accent" size={20} strokeWidth={2.5} />
+            <Plus colorClassName="accent-accent" size={16} strokeWidth={2.5} />
           )}
         </Pressable>
       </View>
