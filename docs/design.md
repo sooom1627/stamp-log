@@ -65,9 +65,9 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 
 ### スタンプの日時
 
-スタンプの日時は英語（en-US）の 12 時間表記で出す。例: `Sep 20, 11:40 AM`。今年以外のスタンプは年を付ける。例: `Sep 20, 2025, 11:40 AM`。スタンプ詳細・記録タイムラインはこの形。
+スタンプの日時は英語（en-US）の 12 時間表記で出す。例: `Sep 20, 11:40 AM`。今年以外のスタンプは年を付ける。例: `Sep 20, 2025, 11:40 AM`。スタンプ詳細はこの形。
 
-ラリー詳細のタイムラインは、曜日付きの日付（太字）と時刻（薄く）に分けて出す。例: `Fri, Sep 18` `7:02 PM`。今年以外は日付に年を付ける。例: `Fri, Sep 18, 2025`。ラリーの日（formSheet）は見出しに日付があるので、投稿には時刻だけを出す。
+ラリー詳細と記録のタイムラインは、曜日付きの日付（太字）と時刻（薄く）に分けて出す。例: `Fri, Sep 18` `7:02 PM`。今年以外は日付に年を付ける。例: `Fri, Sep 18, 2025`。ラリーの日（formSheet）は見出しに日付があるので、投稿には時刻だけを出す。
 
 ## 画面一覧
 
@@ -81,7 +81,7 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 | ラリー詳細           | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-009, S-025, S-028 |
 | ラリーの日           | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028                             |
 | スタンプ詳細         | [screens/stamp-detail.md](./screens/stamp-detail.md)         | ワイヤー    | S-007                             |
-| 記録（タイムライン） | [screens/records-timeline.md](./screens/records-timeline.md) | 骨格        | S-010                             |
+| 記録（タイムライン） | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010                             |
 | カレンダー           | [screens/calendar.md](./screens/calendar.md)                 | 骨格        | S-011                             |
 | 日詳細               | [screens/day-detail.md](./screens/day-detail.md)             | 骨格        | S-012                             |
 
