@@ -5,7 +5,6 @@ import { ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
 
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
-import { getSessionGreeting } from "@/shared/utils/session-greeting";
 
 export const tabRootScreenOptions = {
   headerLargeTitleEnabled: true,
@@ -20,6 +19,8 @@ export function TabRootScreen({
   children,
   floatingAction,
 }: TabRootScreenProps) {
+  const { weekday, monthDay } = formatHeaderDate(new Date());
+
   return (
     <>
       <ScrollView
@@ -28,12 +29,12 @@ export function TabRootScreen({
         contentInsetAdjustmentBehavior="automatic"
       >
         <Text className="text-foreground-secondary mb-4 text-sm">
-          {formatHeaderDate(new Date())}
+          {monthDay}
         </Text>
         {children}
       </ScrollView>
       {floatingAction}
-      <Stack.Title large>{getSessionGreeting()}</Stack.Title>
+      <Stack.Title large>{weekday}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
           <View

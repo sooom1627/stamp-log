@@ -3,35 +3,46 @@ import { renderRouter } from "expo-router/testing-library";
 
 import { act, screen } from "@testing-library/react-native";
 
-import { formatHeaderDate } from "@/shared/utils/format-header-date";
-
 jest.useFakeTimers();
 
-describe("S-019 T-001 ST-002 tab root header", () => {
-  test("shows today's date at the top of all three tabs", async () => {
-    const today = formatHeaderDate(new Date());
-    const app = renderRouter("./src/app");
-    await app;
+describe("S-029 T-001 ST-003 tab root header", () => {
+  beforeEach(() => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+  });
 
-    expect(await screen.findAllByText(today)).toHaveLength(3);
-    expect(screen.getAllByText(today)[0]).toHaveProp(
+  // The large title is a native header prop, not text in the tree.
+  function largeTitles() {
+    return screen.container
+      .queryAll((instance) => instance.type === "RNSScreenStackHeaderConfig")
+      .map((instance) => instance.props.title)
+      .filter((title) => title !== "(tabs)");
+  }
+
+  function expectDateHeader() {
+    expect(largeTitles()).toEqual(["Sunday", "Sunday", "Sunday"]);
+    expect(screen.getAllByText("September 20")[0]).toHaveProp(
       "className",
       expect.stringContaining("mb-4"),
     );
-    expect(
-      screen.getByRole("link", { name: "Create rally" }),
-    ).toBeOnTheScreen();
+  }
+
+  test("shows today's weekday as the title and the month and day below it on all three tabs", async () => {
+    await renderRouter("./src/app");
+
+    expect(await screen.findAllByText("September 20")).toHaveLength(3);
+    expectDateHeader();
+    expect(screen.queryByText(/Hello|Welcome back|Good morning/)).toBeNull();
 
     await act(() => {
       router.push("/records");
     });
-    expect(screen.getAllByText(today)).toHaveLength(3);
+    expectDateHeader();
     expect(screen.getByText("No stamps yet")).toBeOnTheScreen();
 
     await act(() => {
       router.push("/calendar");
     });
-    expect(screen.getAllByText(today)).toHaveLength(3);
+    expectDateHeader();
     expect(screen.getByRole("heading", { name: "Calendar" })).toBeOnTheScreen();
   });
 });
