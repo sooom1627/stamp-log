@@ -33,7 +33,7 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
     await renderRouter("./src/app");
 
     const user = userEvent.setup();
-    await user.press(screen.getByRole("link", { name: "Create rally" }));
+    await user.press(await screen.findByRole("link", { name: "Create rally" }));
 
     await user.type(
       await screen.findByPlaceholderText("Enter a place to track"),
@@ -101,7 +101,7 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
   test("shows field labels and saves from Done", async () => {
     await renderRouter("./src/app");
     const user = userEvent.setup();
-    await user.press(screen.getByRole("link", { name: "Create rally" }));
+    await user.press(await screen.findByRole("link", { name: "Create rally" }));
 
     expect(await screen.findByText("Type")).toBeOnTheScreen();
     expect(screen.getByText("Name")).toBeOnTheScreen();

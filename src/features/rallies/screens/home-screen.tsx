@@ -47,18 +47,7 @@ export function HomeScreen() {
   };
 
   return (
-    <TabRootScreen
-      floatingAction={
-        <Link href="/create-rally" asChild>
-          <Pressable
-            aria-label="Create rally"
-            className="bg-inverse active:bg-main-hover shadow-fab absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
-          >
-            <Plus colorClassName="accent-white" size={24} strokeWidth={2.5} />
-          </Pressable>
-        </Link>
-      }
-    >
+    <TabRootScreen>
       <View className="w-full">
         {rallies && stamps ? (
           <StampedDaysStrip
@@ -67,11 +56,6 @@ export function HomeScreen() {
           />
         ) : null}
         {isListError ? <LoadError onRetry={retryLists} /> : null}
-        {rallies?.length === 0 ? (
-          <View className="items-center py-12">
-            <Text className="text-foreground-secondary">No rallies yet</Text>
-          </View>
-        ) : null}
         {rallies?.length ? (
           <View className="mt-2 mb-2.5 flex-row items-center justify-between">
             <Text role="heading" className="text-foreground text-xl font-bold">
@@ -84,7 +68,7 @@ export function HomeScreen() {
             </Link>
           </View>
         ) : null}
-        {rallies?.length ? (
+        {rallies ? (
           <View className="flex-row flex-wrap gap-2.5" testID="rally-grid">
             {rallies.map((rally) => (
               <RallyTile
@@ -104,6 +88,24 @@ export function HomeScreen() {
                 }
               />
             ))}
+            <Link href="/create-rally" asChild>
+              <Pressable
+                aria-label="Create rally"
+                className="border-border border-continuous min-h-44 items-center justify-center gap-2 rounded-3xl border-2 border-dashed active:opacity-70"
+                style={{ width: tileWidth }}
+              >
+                <View className="bg-surface-muted size-11 items-center justify-center rounded-full">
+                  <Plus
+                    colorClassName="accent-foreground"
+                    size={20}
+                    strokeWidth={2.5}
+                  />
+                </View>
+                <Text className="text-foreground text-sm font-semibold">
+                  New rally
+                </Text>
+              </Pressable>
+            </Link>
           </View>
         ) : null}
       </View>

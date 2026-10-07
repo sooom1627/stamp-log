@@ -51,7 +51,7 @@ describe("ST-001 create rally entry", () => {
     await renderRouter("./src/app");
 
     const user = userEvent.setup();
-    await user.press(screen.getByRole("link", { name: "Create rally" }));
+    await user.press(await screen.findByRole("link", { name: "Create rally" }));
 
     expect(
       await screen.findByPlaceholderText("Enter a place to track"),
@@ -381,6 +381,38 @@ describe("S-029 T-002 ST-001 rally tiles", () => {
         name: "View Tile grid check details",
       }),
     ).toBeOnTheScreen();
+  });
+});
+
+describe("S-029 T-002 ST-002 New rally tile", () => {
+  beforeEach(async () => {
+    for (const rally of await ralliesDb.listRallies()) {
+      await ralliesDb.deleteRally(rally.id);
+    }
+  });
+
+  test("puts the New rally tile last in the grid and no floating button", async () => {
+    await renderHomeWithRally("Last tile check");
+
+    const grid = screen.getByTestId("rally-grid");
+    const createLink = within(grid).getByRole("link", { name: "Create rally" });
+    expect(within(createLink).getByText("New rally")).toBeOnTheScreen();
+    expect(grid.children.at(-1)).toBe(createLink);
+    expect(screen.getAllByRole("link", { name: "Create rally" })).toHaveLength(
+      1,
+    );
+  });
+
+  test("shows only the New rally tile when there are no rallies", async () => {
+    await renderRouter("./src/app");
+
+    const createLink = await screen.findByRole("link", {
+      name: "Create rally",
+    });
+    expect(within(createLink).getByText("New rally")).toBeOnTheScreen();
+    expect(screen.queryByText("Your Days")).not.toBeOnTheScreen();
+    expect(screen.queryByText("View All")).not.toBeOnTheScreen();
+    expect(screen.queryByText("No rallies yet")).not.toBeOnTheScreen();
   });
 });
 

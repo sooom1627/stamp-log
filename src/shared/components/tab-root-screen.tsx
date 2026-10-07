@@ -12,13 +12,9 @@ export const tabRootScreenOptions = {
 
 type TabRootScreenProps = {
   children: ReactNode;
-  floatingAction?: ReactNode;
 };
 
-export function TabRootScreen({
-  children,
-  floatingAction,
-}: TabRootScreenProps) {
+export function TabRootScreen({ children }: TabRootScreenProps) {
   const { weekday, monthDay } = formatHeaderDate(new Date());
 
   return (
@@ -33,7 +29,6 @@ export function TabRootScreen({
         </Text>
         {children}
       </ScrollView>
-      {floatingAction}
       <Stack.Title large>{weekday}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
