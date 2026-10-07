@@ -115,7 +115,7 @@ export function StampedDaysStrip({
 }: StampedDaysStripProps) {
   return (
     <View
-      className="bg-surface-muted border-continuous mb-4 gap-3 rounded-3xl py-4"
+      className="bg-accent-subtle border-continuous mb-4 gap-3 rounded-3xl py-4"
       testID="stamped-days-strip"
     >
       <View className="flex-row items-center justify-between px-5">
