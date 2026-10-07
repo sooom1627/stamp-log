@@ -6,12 +6,13 @@ import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
-import { CollectionSummary } from "../components/collection-summary";
 import { RallyRow } from "../components/rally-row";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
+import { StampedDaysStrip } from "../components/stamped-days-strip";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
+import { buildStampedDays } from "../utils/stamped-days";
 
 function stampDatesForRally(stamps: Stamp[], rallyId: number) {
   return stamps
@@ -54,7 +55,10 @@ export function HomeScreen() {
     >
       <View className="w-full">
         {rallies && stamps ? (
-          <CollectionSummary rallies={rallies} stamps={stamps} />
+          <StampedDaysStrip
+            days={buildStampedDays(stamps, rallies, new Date())}
+            totalStampCount={stamps.length}
+          />
         ) : null}
         {isListError ? <LoadError onRetry={retryLists} /> : null}
         {rallies?.length === 0 ? (

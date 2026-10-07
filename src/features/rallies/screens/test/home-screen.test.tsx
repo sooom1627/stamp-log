@@ -273,6 +273,97 @@ describe("S-002 T-002 ST-005 memo formSheet", () => {
   });
 });
 
+describe("S-029 T-001 ST-002 stamped days strip", () => {
+  const at = (day: number, hours = 12) =>
+    new Date(2026, 8, day, hours).toISOString();
+
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    // Earlier tests in this file share the in-memory database.
+    for (const rally of await ralliesDb.listRallies()) {
+      await ralliesDb.deleteRally(rally.id);
+    }
+  });
+
+  async function saveRallyWithStamps(
+    name: string,
+    emoji: string,
+    stampDays: number[],
+    hours = 12,
+  ) {
+    await ralliesDb.saveRally({ name, type: "place", emoji });
+    const rally = (await ralliesDb.listRallies()).find(
+      (saved) => saved.name === name,
+    );
+    if (!rally) throw new Error(`rally ${name} not saved`);
+    for (const day of stampDays) {
+      await stampsDb.saveStamp({
+        rallyId: rally.id,
+        stampedAt: at(day, hours),
+      });
+    }
+  }
+
+  test("shows only stamped days of the last 7 days with their emojis and the total", async () => {
+    await saveRallyWithStamps("Tokyo towers", "🗼", [13, 14, 19]);
+    await saveRallyWithStamps("Morning run", "🏃", [19]);
+
+    await renderRouter("./src/app");
+    const strip = await screen.findByTestId("stamped-days-strip");
+
+    expect(within(strip).getByText("Last 7 days")).toBeOnTheScreen();
+    expect(within(strip).getByText("4 stamps")).toBeOnTheScreen();
+    expect(
+      within(strip)
+        .getAllByTestId("date-stamp")
+        .map((stamp) => stamp.props["aria-label"]),
+    ).toEqual([
+      "Today, Sep 20, no stamps yet",
+      "Sat, Sep 19, 2 stamps",
+      "Mon, Sep 14, 1 stamp",
+    ]);
+    const saturday = within(strip).getByLabelText("Sat, Sep 19, 2 stamps");
+    expect(within(saturday).getByText("🗼")).toBeOnTheScreen();
+    expect(within(saturday).getByText("🏃")).toBeOnTheScreen();
+    expect(within(saturday).getByText("Sat 19")).toBeOnTheScreen();
+    expect(within(strip).getByText("SEP")).toBeOnTheScreen();
+    expect(within(strip).queryByRole("button")).not.toBeOnTheScreen();
+    expect(screen.queryByText("STAMPS")).not.toBeOnTheScreen();
+    expect(screen.queryByText(/This month/)).not.toBeOnTheScreen();
+  });
+
+  test("inks today's stamp with the rally emoji after stamping from home", async () => {
+    await saveRallyWithStamps("Kyoto museums", "⛩️", []);
+
+    await renderRouter("./src/app");
+    const user = userEvent.setup();
+    expect(
+      await screen.findByLabelText("Today, Sep 20, no stamps yet"),
+    ).toBeOnTheScreen();
+
+    await user.press(
+      screen.getByRole("button", { name: "Stamp Kyoto museums for today" }),
+    );
+
+    const today = await screen.findByLabelText("Today, Sep 20, 1 stamp");
+    expect(within(today).getByText("⛩️")).toBeOnTheScreen();
+    expect(within(today).getByText("Today")).toBeOnTheScreen();
+  });
+
+  test("shows up to 3 emojis on a stamp and counts the rest when read aloud", async () => {
+    const emojis = ["🗼", "🏃", "⛩️", "📚"];
+    for (const [index, emoji] of emojis.entries()) {
+      await saveRallyWithStamps(`Rally ${index}`, emoji, [19], 8 + index);
+    }
+
+    await renderRouter("./src/app");
+    const saturday = await screen.findByLabelText("Sat, Sep 19, 4 stamps");
+
+    expect(within(saturday).getByText("⛩️")).toBeOnTheScreen();
+    expect(within(saturday).queryByText("📚")).not.toBeOnTheScreen();
+  });
+});
+
 describe("S-002 T-002 RT-002 error display", () => {
   test("shows load error and retry when rally list fails", async () => {
     jest
