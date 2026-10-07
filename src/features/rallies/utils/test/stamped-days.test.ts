@@ -18,94 +18,81 @@ const stamp = (rallyId: number, stampedAt: string): Stamp => ({
   memo: null,
 });
 
+const emojisByDateKey = (stamps: Stamp[], today: Date) =>
+  Object.fromEntries(
+    buildStampedDays(stamps, rallies, today).map((day) => [
+      day.dateKey,
+      day.emojis,
+    ]),
+  );
+
 describe("S-029 T-001 ST-001 buildStampedDays", () => {
   const today = new Date(2026, 8, 20, 9, 0);
 
-  test("lists only stamped days of the last 7 days, newest first", () => {
-    const stamps = [
-      stamp(1, at(9, 14)),
-      stamp(1, at(9, 18)),
-      stamp(2, at(9, 20, 8)),
-    ];
+  test("lists every day of the last 14 days, today first", () => {
+    const days = buildStampedDays([stamp(1, at(9, 18))], rallies, today);
 
-    expect(buildStampedDays(stamps, rallies, today)).toEqual([
-      {
-        dateKey: "2026-09-20",
-        date: new Date(2026, 8, 20),
-        isToday: true,
-        emojis: ["🏃"],
-      },
-      {
-        dateKey: "2026-09-18",
-        date: new Date(2026, 8, 18),
-        isToday: false,
-        emojis: ["🗼"],
-      },
-      {
-        dateKey: "2026-09-14",
-        date: new Date(2026, 8, 14),
-        isToday: false,
-        emojis: ["🗼"],
-      },
-    ]);
+    expect(days).toHaveLength(14);
+    expect(days[0]).toEqual({
+      dateKey: "2026-09-20",
+      date: new Date(2026, 8, 20),
+      isToday: true,
+      emojis: [],
+    });
+    expect(days[2]).toEqual({
+      dateKey: "2026-09-18",
+      date: new Date(2026, 8, 18),
+      isToday: false,
+      emojis: ["🗼"],
+    });
+    expect(days.at(-1)?.dateKey).toBe("2026-09-07");
+    expect(days.filter((day) => day.isToday)).toHaveLength(1);
   });
 
-  test("leaves out stamps 8 days ago or earlier", () => {
-    const days = buildStampedDays(
-      [stamp(1, at(9, 13, 23, 59))],
-      rallies,
-      today,
-    );
+  test("keeps days without stamps with no emojis", () => {
+    const days = buildStampedDays([], rallies, today);
 
-    expect(days.map((day) => day.dateKey)).toEqual(["2026-09-20"]);
+    expect(days.every((day) => day.emojis.length === 0)).toBe(true);
+  });
+
+  test("leaves out stamps 14 days ago or earlier", () => {
+    const emojis = emojisByDateKey([stamp(1, at(9, 6, 23, 59))], today);
+
+    expect(emojis["2026-09-06"]).toBeUndefined();
+    expect(Object.values(emojis).flat()).toEqual([]);
   });
 
   test("groups stamps by local calendar day at the midnight boundary", () => {
-    const stamps = [stamp(1, at(9, 18, 23, 59)), stamp(2, at(9, 19, 0, 0))];
+    const emojis = emojisByDateKey(
+      [stamp(1, at(9, 18, 23, 59)), stamp(2, at(9, 19, 0, 0))],
+      today,
+    );
 
-    const days = buildStampedDays(stamps, rallies, today);
-
-    expect(days.map((day) => [day.dateKey, day.emojis])).toEqual([
-      ["2026-09-20", []],
-      ["2026-09-19", ["🏃"]],
-      ["2026-09-18", ["🗼"]],
-    ]);
-  });
-
-  test("keeps today with no emojis when nothing is stamped today", () => {
-    expect(buildStampedDays([], rallies, today)).toEqual([
-      {
-        dateKey: "2026-09-20",
-        date: new Date(2026, 8, 20),
-        isToday: true,
-        emojis: [],
-      },
-    ]);
+    expect(emojis["2026-09-18"]).toEqual(["🗼"]);
+    expect(emojis["2026-09-19"]).toEqual(["🏃"]);
   });
 
   test("puts one emoji per rally on a day, oldest stamp first", () => {
-    const stamps = [stamp(1, at(9, 19, 18)), stamp(2, at(9, 19, 7))];
+    const emojis = emojisByDateKey(
+      [stamp(1, at(9, 19, 18)), stamp(2, at(9, 19, 7))],
+      today,
+    );
 
-    const [, saturday] = buildStampedDays(stamps, rallies, today);
-
-    expect(saturday.emojis).toEqual(["🏃", "🗼"]);
+    expect(emojis["2026-09-19"]).toEqual(["🏃", "🗼"]);
   });
 
   test("counts a rally once when it has several stamps on the same day", () => {
-    const stamps = [
-      stamp(1, at(9, 19, 7)),
-      stamp(2, at(9, 19, 9)),
-      stamp(1, at(9, 19, 21)),
-    ];
+    const emojis = emojisByDateKey(
+      [stamp(1, at(9, 19, 7)), stamp(2, at(9, 19, 9)), stamp(1, at(9, 19, 21))],
+      today,
+    );
 
-    const [, saturday] = buildStampedDays(stamps, rallies, today);
-
-    expect(saturday.emojis).toEqual(["🗼", "🏃"]);
+    expect(emojis["2026-09-19"]).toEqual(["🗼", "🏃"]);
   });
 
   test("ignores stamps of rallies that are not in the list", () => {
-    const days = buildStampedDays([stamp(99, at(9, 19))], rallies, today);
+    const emojis = emojisByDateKey([stamp(99, at(9, 19))], today);
 
-    expect(days.map((day) => day.dateKey)).toEqual(["2026-09-20"]);
+    expect(emojis["2026-09-19"]).toEqual([]);
   });
 });

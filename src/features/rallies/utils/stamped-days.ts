@@ -10,10 +10,10 @@ export type StampedDay = {
   emojis: string[];
 };
 
-const DAY_COUNT = 7;
+const DAY_COUNT = 14;
 
-// Stamped days of the last 7 days (today included), newest first. Today is
-// always included so the strip can show it without ink.
+// Every day of the last 14 days (today included), newest first, with the
+// emoji of each rally stamped that day. Days without stamps have no emojis.
 export function buildStampedDays(
   stamps: Stamp[],
   rallies: Rally[],
@@ -43,13 +43,10 @@ export function buildStampedDays(
         )
         .map((stamp) => stamp.rallyId),
     );
-    const isToday = offset === 0;
-    if (rallyIds.size === 0 && !isToday) continue;
-
     days.push({
       dateKey,
       date,
-      isToday,
+      isToday: offset === 0,
       emojis: [...rallyIds].map((rallyId) => emojiByRallyId.get(rallyId)!),
     });
   }

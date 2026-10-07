@@ -304,33 +304,38 @@ describe("S-029 T-001 ST-002 stamped days strip", () => {
     }
   }
 
-  test("shows only stamped days of the last 7 days with their emojis and the total", async () => {
-    await saveRallyWithStamps("Tokyo towers", "🗼", [13, 14, 19]);
+  test("shows every day of the last 14 days, stamped days with their emojis, and the total", async () => {
+    await saveRallyWithStamps("Tokyo towers", "🗼", [6, 13, 19]);
     await saveRallyWithStamps("Morning run", "🏃", [19]);
 
     await renderRouter("./src/app");
     const strip = await screen.findByTestId("stamped-days-strip");
 
-    expect(within(strip).getByText("Last 7 days")).toBeOnTheScreen();
+    expect(within(strip).getByText("Last 14 days")).toBeOnTheScreen();
     expect(within(strip).getByText("4 stamps")).toBeOnTheScreen();
     // Newest on the left: the list is not inverted, so today comes first.
     expect(within(strip).getByTestId("stamped-days-list")).not.toHaveStyle({
       transform: [{ scaleX: -1 }],
     });
-    expect(
-      within(strip)
-        .getAllByTestId("date-stamp")
-        .map((stamp) => stamp.props["aria-label"]),
-    ).toEqual([
+    const labels = within(strip)
+      .getAllByTestId("date-stamp")
+      .map((stamp) => stamp.props["aria-label"]);
+    expect(labels).toHaveLength(14);
+    expect(labels.slice(0, 3)).toEqual([
       "Today, Sep 20, no stamps yet",
       "Sat, Sep 19, 2 stamps",
-      "Mon, Sep 14, 1 stamp",
+      "Fri, Sep 18, no stamps",
     ]);
+    expect(labels).toContain("Sun, Sep 13, 1 stamp");
+    expect(labels.at(-1)).toBe("Mon, Sep 7, no stamps");
     const saturday = within(strip).getByLabelText("Sat, Sep 19, 2 stamps");
     expect(within(saturday).getByText("🗼")).toBeOnTheScreen();
     expect(within(saturday).getByText("🏃")).toBeOnTheScreen();
     expect(within(saturday).getByText("Sat 19")).toBeOnTheScreen();
-    expect(within(strip).getByText("SEP")).toBeOnTheScreen();
+    const friday = within(strip).getByLabelText("Fri, Sep 18, no stamps");
+    expect(within(friday).getByText("SEP")).toBeOnTheScreen();
+    expect(within(friday).getByText("18")).toBeOnTheScreen();
+    expect(within(friday).getByText("Fri 18")).toBeOnTheScreen();
     expect(within(strip).queryByRole("button")).not.toBeOnTheScreen();
     expect(screen.queryByText("STAMPS")).not.toBeOnTheScreen();
     expect(screen.queryByText(/This month/)).not.toBeOnTheScreen();
