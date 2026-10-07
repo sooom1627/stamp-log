@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
 import { Link, useRouter } from "expo-router";
 
@@ -6,13 +6,17 @@ import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
-import { RallyRow } from "../components/rally-row";
+import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
 import { StampedDaysStrip } from "../components/stamped-days-strip";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
 import { buildStampedDays } from "../utils/stamped-days";
+
+// Matches the tab root's px-5 and the grid's gap-2.5.
+const SCREEN_PADDING = 20;
+const TILE_GAP = 10;
 
 function stampDatesForRally(stamps: Stamp[], rallyId: number) {
   return stamps
@@ -22,6 +26,8 @@ function stampDatesForRally(stamps: Stamp[], rallyId: number) {
 
 export function HomeScreen() {
   const { push } = useRouter();
+  const { width: windowWidth } = useWindowDimensions();
+  const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
   const {
     data: rallies,
     isError: isRalliesError,
@@ -67,11 +73,8 @@ export function HomeScreen() {
           </View>
         ) : null}
         {rallies?.length ? (
-          <View className="mt-2 mb-1 flex-row items-center justify-between">
-            <Text
-              role="heading"
-              className="text-foreground text-lg font-semibold"
-            >
+          <View className="mt-2 mb-2.5 flex-row items-center justify-between">
+            <Text role="heading" className="text-foreground text-xl font-bold">
               Your Days
             </Text>
             <Link href="/rallies-list" asChild>
@@ -81,23 +84,28 @@ export function HomeScreen() {
             </Link>
           </View>
         ) : null}
-        {rallies?.map((rally) => (
-          <RallyRow
-            key={rally.id}
-            name={rally.name}
-            emoji={rally.emoji}
-            stampDates={stampDatesForRally(stamps ?? [], rally.id)}
-            onPressStamp={() =>
-              saveStamp(
-                { rallyId: rally.id },
-                { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
-              )
-            }
-            onPressDetail={() =>
-              push({ pathname: "/rallies/[id]", params: { id: rally.id } })
-            }
-          />
-        ))}
+        {rallies?.length ? (
+          <View className="flex-row flex-wrap gap-2.5" testID="rally-grid">
+            {rallies.map((rally) => (
+              <RallyTile
+                key={rally.id}
+                name={rally.name}
+                emoji={rally.emoji}
+                stampDates={stampDatesForRally(stamps ?? [], rally.id)}
+                width={tileWidth}
+                onPressStamp={() =>
+                  saveStamp(
+                    { rallyId: rally.id },
+                    { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
+                  )
+                }
+                onPressDetail={() =>
+                  push({ pathname: "/rallies/[id]", params: { id: rally.id } })
+                }
+              />
+            ))}
+          </View>
+        ) : null}
       </View>
     </TabRootScreen>
   );

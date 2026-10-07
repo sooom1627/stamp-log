@@ -1,10 +1,9 @@
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
-import { Plus } from "@/shared/components/icons";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
+  weekday: "narrow",
 });
 const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
@@ -14,10 +13,9 @@ type ActivityDay = {
   date: Date;
   key: string;
   isRecorded: boolean;
-  isToday: boolean;
 };
 
-function buildActivityDays(stampDates: string[], today = new Date()) {
+export function buildActivityDays(stampDates: string[], today = new Date()) {
   const recordedDateKeys = new Set(
     stampDates.map((stampDate) => localDateKey(new Date(stampDate))),
   );
@@ -31,121 +29,51 @@ function buildActivityDays(stampDates: string[], today = new Date()) {
     const date = new Date(localToday);
     date.setDate(localToday.getDate() - (6 - index));
     const key = localDateKey(date);
-    return {
-      date,
-      key,
-      isRecorded: recordedDateKeys.has(key),
-      isToday: index === 6,
-    };
+    return { date, key, isRecorded: recordedDateKeys.has(key) };
   });
 }
 
-function ActivityDayCircle({
-  day,
-  rallyName,
-  onPressToday,
-}: {
-  day: ActivityDay;
-  rallyName: string;
-  onPressToday: () => void;
-}) {
-  const formattedDate = activityDateFormatter.format(day.date);
-
-  if (day.isToday) {
-    return (
-      <Pressable
-        role="button"
-        aria-label={
-          day.isRecorded
-            ? `${rallyName} already stamped today`
-            : `Stamp ${rallyName} for today`
-        }
-        aria-disabled={day.isRecorded}
-        aria-selected={day.isRecorded}
-        aria-valuetext={formattedDate}
-        className="flex-1 items-center"
-        disabled={day.isRecorded}
-        onPress={onPressToday}
-        testID="activity-day"
-      >
-        <View
-          className="border-accent size-6 items-center justify-center rounded-full border"
-          testID="activity-today-ring"
-        >
-          {day.isRecorded ? (
-            <View className="bg-accent size-3 rounded-full" />
-          ) : (
-            <Plus colorClassName="accent-accent" size={13} strokeWidth={2.5} />
-          )}
-        </View>
-      </Pressable>
-    );
-  }
-
-  return (
-    <View
-      accessible
-      aria-label={`${formattedDate}, ${
-        day.isRecorded ? "recorded" : "not recorded"
-      }`}
-      aria-selected={day.isRecorded}
-      aria-valuetext={formattedDate}
-      className="flex-1 items-center"
-      testID="activity-day"
-    >
-      <View className="size-5 items-center justify-center">
-        <View
-          className={
-            day.isRecorded
-              ? "bg-accent size-3 rounded-full"
-              : "bg-border size-2 rounded-full"
-          }
-        />
-      </View>
-    </View>
-  );
-}
-
-function WeekdayLabels({ days }: { days: ActivityDay[] }) {
-  return (
-    <View className="flex-row">
-      {days.map((day) => (
-        <Text
-          key={day.key}
-          className="text-foreground-muted flex-1 text-center text-xs"
-        >
-          {weekdayFormatter.format(day.date)}
-        </Text>
-      ))}
-    </View>
-  );
-}
-
-type RallyActivityWeekProps = {
-  rallyName: string;
-  stampDates: string[];
-  onPressToday: () => void;
-};
-
-export function RallyActivityWeek({
-  rallyName,
-  stampDates,
-  onPressToday,
-}: RallyActivityWeekProps) {
+// The last 7 days, oldest to today, as one-letter weekdays over dots.
+export function RallyActivityWeek({ stampDates }: { stampDates: string[] }) {
   const activityDays = buildActivityDays(stampDates);
 
   return (
-    <View className="w-full gap-3 pt-1" testID="activity-week">
-      <WeekdayLabels days={activityDays} />
+    <View className="w-full gap-1.5" testID="activity-week">
       <View className="flex-row">
         {activityDays.map((day) => (
-          <ActivityDayCircle
+          <Text
             key={day.key}
-            day={day}
-            rallyName={rallyName}
-            onPressToday={onPressToday}
-          />
+            className="text-foreground-muted flex-1 text-center text-[10px] font-medium"
+            testID="activity-weekday"
+          >
+            {weekdayFormatter.format(day.date)}
+          </Text>
         ))}
+      </View>
+      <View className="flex-row">
+        {activityDays.map((day) => {
+          const formattedDate = activityDateFormatter.format(day.date);
+          return (
+            <View
+              key={day.key}
+              accessible
+              aria-label={`${formattedDate}, ${
+                day.isRecorded ? "recorded" : "not recorded"
+              }`}
+              aria-selected={day.isRecorded}
+              className="h-3 flex-1 items-center justify-center"
+              testID="activity-day"
+            >
+              <View
+                className={
+                  day.isRecorded
+                    ? "bg-accent size-2.5 rounded-full"
+                    : "bg-foreground-muted size-1.5 rounded-full opacity-40"
+                }
+              />
+            </View>
+          );
+        })}
       </View>
     </View>
   );

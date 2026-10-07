@@ -364,6 +364,26 @@ describe("S-029 T-001 ST-002 stamped days strip", () => {
   });
 });
 
+describe("S-029 T-002 ST-001 rally tiles", () => {
+  test("lays out rallies as tiles in 2 columns", async () => {
+    await renderHomeWithRally("Tile grid check");
+
+    const grid = screen.getByTestId("rally-grid");
+    expect(grid).toHaveProp(
+      "className",
+      expect.stringContaining("flex-row flex-wrap"),
+    );
+    // The jest window is 750 wide: (750 - 2 * 20 padding - 10 gap) / 2.
+    const [tile] = within(grid).getAllByTestId("rally-tile");
+    expect(tile).toHaveStyle({ width: 350 });
+    expect(
+      within(tile).getByRole("button", {
+        name: "View Tile grid check details",
+      }),
+    ).toBeOnTheScreen();
+  });
+});
+
 describe("S-002 T-002 RT-002 error display", () => {
   test("shows load error and retry when rally list fails", async () => {
     jest
