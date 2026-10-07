@@ -27,13 +27,14 @@ export function buildActivityDays(stampDates: string[], today = new Date()) {
 
   return Array.from({ length: 7 }, (_, index): ActivityDay => {
     const date = new Date(localToday);
-    date.setDate(localToday.getDate() - (6 - index));
+    date.setDate(localToday.getDate() - index);
     const key = localDateKey(date);
     return { date, key, isRecorded: recordedDateKeys.has(key) };
   });
 }
 
-// The last 7 days, oldest to today, as one-letter weekdays over dots.
+// The last 7 days, today first (like the stamp strip), as one-letter
+// weekdays over dots.
 export function RallyActivityWeek({ stampDates }: { stampDates: string[] }) {
   const activityDays = buildActivityDays(stampDates);
 
