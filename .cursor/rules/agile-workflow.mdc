@@ -25,7 +25,8 @@ Read and write Issues with the GitHub MCP tools or `gh issue view` / `gh issue e
 - IDs: next Story ID = the largest `S-` in issue titles + 1. `T-###` / `RT-###` restart at 001 per Story; `ST-###` restarts at 001 per Task.
 - Deferred Stories keep the `deferred` label. Withdrawn Stories are closed as "not planned".
 - Issue forms: `.github/ISSUE_TEMPLATE/story.yml`, `task.yml`.
-- Milestones and GitHub Projects are not used. To list an Epic's Stories, search issues for `"Epic: E-###"`.
+- **Release**: a GitHub milestone (e.g. `ストア公開`) groups the Stories and Tasks that must ship in that release. Add the Story and each of its Tasks to the milestone. Close the milestone when the release is out. A milestone never stands for an Epic.
+- GitHub Projects are not used. To list an Epic's Stories, search issues for `"Epic: E-###"`.
 - Epic status (the 状態 column in `docs/product.md` §3):
   - **未着手**: no Story is done and no Story branch exists
   - **進行中**: a Story is done or has a Story branch, and open Stories (excluding `deferred`) remain
