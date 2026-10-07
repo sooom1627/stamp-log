@@ -119,10 +119,10 @@ export function StampedDaysStrip({
           {formatStampCount(totalStampCount)}
         </Text>
       </View>
-      {/* Newest first + inverted: today sits on the right and is visible on open. */}
+      {/* Newest first: today sits on the left and is visible on open. */}
       <FlatList
         horizontal
-        inverted
+        testID="stamped-days-list"
         data={days}
         keyExtractor={(day) => day.dateKey}
         renderItem={({ item }) => <DateStamp day={item} />}

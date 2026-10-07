@@ -313,6 +313,10 @@ describe("S-029 T-001 ST-002 stamped days strip", () => {
 
     expect(within(strip).getByText("Last 7 days")).toBeOnTheScreen();
     expect(within(strip).getByText("4 stamps")).toBeOnTheScreen();
+    // Newest on the left: the list is not inverted, so today comes first.
+    expect(within(strip).getByTestId("stamped-days-list")).not.toHaveStyle({
+      transform: [{ scaleX: -1 }],
+    });
     expect(
       within(strip)
         .getAllByTestId("date-stamp")
