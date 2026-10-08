@@ -855,3 +855,69 @@ describe("S-028 RT-001 ST-005 calendar look", () => {
     );
   });
 });
+
+describe("S-013 T-001 ST-005 edit rally from the actions menu", () => {
+  test("lists Past stamp, Edit rally and Delete rally in that order", async () => {
+    await openRallyDetail("Menu order");
+
+    const actions = await screen.findAllByTestId(/^rally-action-/);
+
+    expect(actions.map((action) => action.props.label)).toEqual([
+      "Past stamp",
+      "Edit rally",
+      "Delete rally",
+    ]);
+  });
+
+  test("opens the edit sheet and shows the new name and emoji on detail and home", async () => {
+    const { rally, user } = await openRallyDetail("Menu edit before");
+
+    await fireEvent(
+      await screen.findByTestId("rally-action-edit"),
+      "buttonPress",
+    );
+
+    expect(await screen.findByTestId("edit-rally-form")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Name")).toHaveDisplayValue(
+      "Menu edit before",
+    );
+    await user.clear(screen.getByLabelText("Name"));
+    await user.type(screen.getByLabelText("Name"), "Menu edit after");
+    await user.press(
+      screen.getByRole("button", { name: "Select emoji (currently 🗼)" }),
+    );
+    await user.press(screen.getByRole("button", { name: "Select 🔬" }));
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Menu edit after" }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId("edit-rally-form")).not.toBeOnTheScreen();
+    const detail = screen.getByLabelText("Rally detail");
+    // Top panel, the recorded day in the calendar and the post icon.
+    expect(
+      within(detail).getAllByText("🔬", { includeHiddenElements: true }),
+    ).toHaveLength(3);
+    expect(
+      within(detail).queryAllByText("🗼", { includeHiddenElements: true }),
+    ).toHaveLength(0);
+    expect(
+      within(screen.getByTestId("rally-calendar")).getByText("🔬"),
+    ).toBeOnTheScreen();
+    expect(await stampsOfRally(rally.id)).toHaveLength(1);
+
+    await act(() => {
+      router.back();
+    });
+
+    expect(
+      await screen.findByRole("button", {
+        name: "View Menu edit after details",
+      }),
+    ).toBeOnTheScreen();
+  });
+});
+
+async function stampsOfRally(rallyId: number) {
+  return (await listStamps()).filter((stamp) => stamp.rallyId === rallyId);
+}
