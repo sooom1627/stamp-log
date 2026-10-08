@@ -25,11 +25,11 @@ export function TabRootScreen({ children }: TabRootScreenProps) {
         contentInsetAdjustmentBehavior="automatic"
       >
         <Text className="text-foreground-secondary mb-4 text-sm">
-          {monthDay}
+          {weekday}
         </Text>
         {children}
       </ScrollView>
-      <Stack.Title large>{weekday}</Stack.Title>
+      <Stack.Title large>{monthDay}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
           <View

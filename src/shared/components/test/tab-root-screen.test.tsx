@@ -5,7 +5,7 @@ import { act, screen } from "@testing-library/react-native";
 
 jest.useFakeTimers();
 
-describe("S-029 T-001 ST-003 tab root header", () => {
+describe("S-029 T-001 ST-006 tab root header", () => {
   beforeEach(() => {
     jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
   });
@@ -19,17 +19,21 @@ describe("S-029 T-001 ST-003 tab root header", () => {
   }
 
   function expectDateHeader() {
-    expect(largeTitles()).toEqual(["Sunday", "Sunday", "Sunday"]);
-    expect(screen.getAllByText("September 20")[0]).toHaveProp(
+    expect(largeTitles()).toEqual([
+      "September 20",
+      "September 20",
+      "September 20",
+    ]);
+    expect(screen.getAllByText("Sunday")[0]).toHaveProp(
       "className",
       expect.stringContaining("mb-4"),
     );
   }
 
-  test("shows today's weekday as the title and the month and day below it on all three tabs", async () => {
+  test("shows the month and day as the title and today's weekday below it on all three tabs", async () => {
     await renderRouter("./src/app");
 
-    expect(await screen.findAllByText("September 20")).toHaveLength(3);
+    expect(await screen.findAllByText("Sunday")).toHaveLength(3);
     expectDateHeader();
     expect(screen.queryByText(/Hello|Welcome back|Good morning/)).toBeNull();
 

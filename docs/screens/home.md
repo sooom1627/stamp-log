@@ -24,8 +24,8 @@
 ## レイアウト
 
 ```
-Sunday                               ← 見出しは今日の曜日
-September 20                         ← その下に月日
+September 20                         ← 見出しは今日の月日
+Sunday                               ← その下に曜日
 
 ┌─────────────────────────────────┐
 │  ╭────╮  2 stamps today          │  ← 今日のカード
@@ -53,7 +53,7 @@ Your Days                  View All
 
 ### 見出し
 
-- 大見出しは今日の曜日（`Sunday`）、その下に月日（`September 20`）。挨拶は出さない（[design.md](../design.md) のタブルート共通の見出し）
+- 大見出しは今日の月日（`September 20`）、その下に曜日（`Sunday`）。挨拶は出さない（[design.md](../design.md) のタブルート共通の見出し）
 
 ### 今日のカード
 
