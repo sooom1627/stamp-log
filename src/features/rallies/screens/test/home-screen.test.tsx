@@ -4,6 +4,7 @@ import { renderRouter } from "expo-router/testing-library";
 
 import {
   act,
+  fireEvent,
   screen,
   userEvent,
   waitFor,
@@ -302,7 +303,7 @@ describe("S-029 T-001 ST-004 today card", () => {
     }
   }
 
-  test("shows today's date stamp and the rallies stamped today, first stamped first", async () => {
+  test("inks today's stamp with the emojis of rallies stamped today and lists them, first stamped first", async () => {
     await saveRallyWithStamps("Tokyo towers", "🗼", [at(20, 8)]);
     await saveRallyWithStamps("Morning run", "🏃", [at(20, 7)]);
     await saveRallyWithStamps("Kyoto museums", "⛩️", [at(19)]);
@@ -313,8 +314,13 @@ describe("S-029 T-001 ST-004 today card", () => {
     expect(card).toHaveAccessibleName(
       "Today, Sep 20, 2 stamps: Morning run, Tokyo towers",
     );
-    expect(within(card).getByText("SEP")).toBeOnTheScreen();
-    expect(within(card).getByText("20")).toBeOnTheScreen();
+    // The stamp is inked with today's emojis instead of the date.
+    expect(
+      within(within(card).getByTestId("today-stamp"))
+        .getAllByText(/./)
+        .map((t) => t.children),
+    ).toEqual([["🏃"], ["🗼"]]);
+    expect(within(card).queryByText("SEP")).not.toBeOnTheScreen();
     expect(within(card).getByText("2 stamps today")).toBeOnTheScreen();
     expect(
       within(card)
@@ -342,6 +348,9 @@ describe("S-029 T-001 ST-004 today card", () => {
     const user = userEvent.setup();
     const card = await screen.findByTestId("today-card");
     expect(card).toHaveAccessibleName("Today, Sep 20, no stamps yet");
+    const emptyStamp = within(card).getByTestId("today-stamp");
+    expect(within(emptyStamp).getByText("SEP")).toBeOnTheScreen();
+    expect(within(emptyStamp).getByText("20")).toBeOnTheScreen();
     expect(within(card).getByText("No stamps yet today")).toBeOnTheScreen();
     expect(
       within(card).getByText("What you stamp today shows up here."),
@@ -356,10 +365,50 @@ describe("S-029 T-001 ST-004 today card", () => {
     ).toBeOnTheScreen();
     const stampedCard = screen.getByTestId("today-card");
     expect(within(stampedCard).getByText("1 stamp today")).toBeOnTheScreen();
-    expect(within(stampedCard).getByText("⛩️")).toBeOnTheScreen();
+    expect(
+      within(within(stampedCard).getByTestId("today-stamp")).getByText("⛩️"),
+    ).toBeOnTheScreen();
     expect(
       within(stampedCard).queryByText("No stamps yet today"),
     ).not.toBeOnTheScreen();
+  });
+
+  test("shows the chips that fit in one row and counts the rest as +N", async () => {
+    const names = ["Tokyo towers", "Morning run", "Reading", "Kyoto museums"];
+    for (const [index, name] of names.entries()) {
+      await saveRallyWithStamps(name, "🗼", [at(20, 5 + index)]);
+    }
+
+    await renderRouter("./src/app");
+    const card = await screen.findByTestId("today-card");
+    expect(within(card).getAllByTestId("today-rally")).toHaveLength(4);
+
+    await fireEvent(within(card).getByTestId("today-rallies"), "layout", {
+      nativeEvent: { layout: { width: 200 } },
+    });
+    for (const chip of within(card).getAllByTestId("today-rally-measure", {
+      includeHiddenElements: true,
+    })) {
+      await fireEvent(chip, "layout", {
+        nativeEvent: { layout: { width: 80 } },
+      });
+    }
+    await fireEvent(
+      within(card).getByTestId("today-more-measure", {
+        includeHiddenElements: true,
+      }),
+      "layout",
+      { nativeEvent: { layout: { width: 30 } } },
+    );
+
+    // 80 + 6 + 30 fits in 200; a second chip (80 + 6 + 80 + 6 + 30) does not.
+    const chips = within(card).getAllByTestId("today-rally");
+    expect(chips).toHaveLength(1);
+    expect(within(chips[0]).getByText("Tokyo towers")).toBeOnTheScreen();
+    expect(within(card).getByText("+3")).toBeOnTheScreen();
+    expect(card).toHaveAccessibleName(
+      "Today, Sep 20, 4 stamps: Tokyo towers, Morning run, Reading, Kyoto museums",
+    );
   });
 });
 
