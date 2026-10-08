@@ -111,7 +111,10 @@ export function HomeScreen() {
                 className="border-border border-continuous min-h-44 items-center justify-center gap-2 rounded-3xl border-2 border-dashed active:opacity-70"
                 style={{ width: tileWidth }}
               >
-                <View className="bg-surface-muted size-11 items-center justify-center rounded-full">
+                <View
+                  className="bg-surface size-11 items-center justify-center rounded-full"
+                  testID="new-rally-icon"
+                >
                   <Plus
                     colorClassName="accent-foreground"
                     size={20}
