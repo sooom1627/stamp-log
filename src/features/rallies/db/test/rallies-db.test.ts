@@ -65,3 +65,39 @@ describe("deleteRally", () => {
     expect(remaining[0].rallyId).toBe(2);
   });
 });
+
+describe("S-013 T-001 ST-002 updateRally", () => {
+  test("updates name, type and emoji of the rally and keeps others and its stamps", async () => {
+    const { ralliesDb, stampsDb } = loadFreshDb();
+    await ralliesDb.saveRally({ name: "Walk", type: "action", emoji: "🚶" });
+    await ralliesDb.saveRally({ name: "Cafe", type: "place", emoji: "☕" });
+    const [cafe, walk] = await ralliesDb.listRallies();
+    await stampsDb.saveStamp({ rallyId: walk.id });
+    const stampsBefore = await stampsDb.listStamps();
+
+    await ralliesDb.updateRally({
+      id: walk.id,
+      name: "  Long walk ",
+      type: "person",
+      emoji: "🥾",
+    });
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      cafe,
+      { id: walk.id, name: "Long walk", type: "person", emoji: "🥾" },
+    ]);
+    await expect(stampsDb.listStamps()).resolves.toEqual(stampsBefore);
+  });
+
+  test("rejects invalid input without changing the rally", async () => {
+    const { ralliesDb } = loadFreshDb();
+    await ralliesDb.saveRally({ name: "Walk", type: "action", emoji: "🚶" });
+    const [walk] = await ralliesDb.listRallies();
+
+    await expect(
+      ralliesDb.updateRally({ ...walk, name: "   " }),
+    ).rejects.toThrow();
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([walk]);
+  });
+});
