@@ -7,6 +7,7 @@
 - S-006 ラリーの内容を見る
 - S-008 ラリーの収集数を見る
 - S-009 目標数に対する進捗を見る
+- S-013 ラリーを編集する
 - S-025 過去の日付にスタンプを押す
 - S-028 ラリー詳細を見やすく、操作しやすくする
 
@@ -16,6 +17,7 @@
 - 出:
   - 戻る → 元のタブ
   - 右上の「…」→「Past stamp」→ [add-past-stamp.md](./add-past-stamp.md)（formSheet）
+  - 右上の「…」→「Edit rally」→ [edit-rally.md](./edit-rally.md)（formSheet）
   - 右上の「…」→「Delete rally」→ 確認ダイアログ → 削除して元のタブへ戻る
   - カレンダーの今日以前の日付 → [rally-day.md](./rally-day.md)（formSheet）
   - カレンダーの月見出し → 年月 Picker
@@ -31,7 +33,7 @@
 目標:
 
 ```
-‹ Home                          (…)  ← Past stamp / Delete rally
+‹ Home                          (…)  ← Past stamp / Edit rally / Delete rally
 
 ┌──────────────────────────────────┐
 │               🗼                 │  ← 淡いアクセントの面
@@ -60,7 +62,7 @@ Stamps                          12
 ```
 
 - 上から Top（サマリ）、カレンダー、タイムライン。切替は置かず、同じスクロールに並べる
-- 画面下のボタンは置かない。「Past stamp」と「Delete rally」は右上の「…」のネイティブメニューに置く。Delete rally は destructive 表示
+- 画面下のボタンは置かない。ラリーへの操作はすべて右上の「…」のネイティブメニューに置き、`Past stamp / Edit rally / Delete rally` の順に並べる。Delete rally は destructive 表示
 - Top: 絵文字、名称、収集数（目標ありなら `現在 / 目標`）、サマリ 3 項目
   - 最初のスタンプ日
   - 1 週あたりの平均数 = 収集数 ÷ 最初のスタンプの日から今日までの週数（週数は最低 1、小数第 1 位まで）
@@ -79,7 +81,6 @@ Stamps                          12
   - Edit: [edit-stamp.md](./edit-stamp.md) を formSheet で開き、日時とメモを直す
   - Delete: 確認ダイアログの後に削除する。タイムライン、カレンダー、サマリ、収集数から消える
 - 「いまスタンプを押す」は置かない
-- ラリーの編集は置かない
 - 影は使わない。面の色は淡いアクセントとニュートラルのテーマトークンで分ける（値は `tailwind.css`）
 - タブバーは残す（[design.md](../design.md) IA）
 
