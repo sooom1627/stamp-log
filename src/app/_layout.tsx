@@ -46,6 +46,7 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="create-rally" options={formSheetOptions} />
+            <Stack.Screen name="edit-rally" options={formSheetOptions} />
             <Stack.Screen name="add-stamp-memo" options={formSheetOptions} />
             <Stack.Screen name="add-past-stamp" options={formSheetOptions} />
             <Stack.Screen name="edit-stamp" options={formSheetOptions} />
