@@ -27,6 +27,13 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
+// Tests in this file share one in-memory database.
+async function deleteAllRallies() {
+  for (const rally of await ralliesDb.listRallies()) {
+    await ralliesDb.deleteRally(rally.id);
+  }
+}
+
 function findToastAction(): { label: string; onClick: () => void } {
   const options = jest.mocked(toast).mock.calls.at(-1)?.[1];
   const action = options?.action;
@@ -283,10 +290,7 @@ describe("S-029 T-001 ST-004 today card", () => {
 
   beforeEach(async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
-    // Earlier tests in this file share the in-memory database.
-    for (const rally of await ralliesDb.listRallies()) {
-      await ralliesDb.deleteRally(rally.id);
-    }
+    await deleteAllRallies();
   });
 
   async function saveRallyWithStamps(
@@ -420,10 +424,7 @@ describe("S-029 T-003 ST-002 rally order", () => {
 
   beforeEach(async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
-    // Earlier tests in this file share the in-memory database.
-    for (const rally of await ralliesDb.listRallies()) {
-      await ralliesDb.deleteRally(rally.id);
-    }
+    await deleteAllRallies();
   });
 
   async function saveRallyWithStamps(name: string, stampCount: number) {
@@ -517,9 +518,7 @@ describe("S-029 T-002 ST-001 rally tiles", () => {
 
 describe("S-029 T-002 ST-002 New rally tile", () => {
   beforeEach(async () => {
-    for (const rally of await ralliesDb.listRallies()) {
-      await ralliesDb.deleteRally(rally.id);
-    }
+    await deleteAllRallies();
   });
 
   test("puts the New rally tile last in the grid and no floating button", async () => {

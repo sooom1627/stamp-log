@@ -5,7 +5,10 @@ import { useRouter } from "expo-router";
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
-import { localDateKey } from "@/shared/utils/local-date-key";
+import {
+  localDateKey,
+  localDateKeyFromIso,
+} from "@/shared/utils/local-date-key";
 
 import { StampPost } from "../components/stamp-post";
 import { useRallies } from "../hooks/use-rallies";
@@ -31,7 +34,7 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
   const rally = rallies?.find((candidate) => candidate.id === rallyId);
   const dayKey = localDateKey(date);
   const dayStamps = (rallyStamps ?? []).filter(
-    (stamp) => localDateKey(new Date(stamp.stampedAt)) === dayKey,
+    (stamp) => localDateKeyFromIso(stamp.stampedAt) === dayKey,
   );
 
   const confirmDeleteStamp = (stampId: Stamp["id"]) =>

@@ -2,9 +2,8 @@ import { Pressable, Text, View } from "react-native";
 
 import { Check, Plus } from "@/shared/components/icons";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-import { localDateKey } from "@/shared/utils/local-date-key";
 
-import { RallyActivityWeek } from "./rally-activity-week";
+import { buildActivityDays, RallyActivityWeek } from "./rally-activity-week";
 
 type RallyTileProps = {
   name: string;
@@ -23,10 +22,9 @@ export function RallyTile({
   onPressStamp,
   onPressDetail,
 }: RallyTileProps) {
-  const todayKey = localDateKey(new Date());
-  const isStampedToday = stampDates.some(
-    (stampDate) => localDateKey(new Date(stampDate)) === todayKey,
-  );
+  const activityDays = buildActivityDays(stampDates);
+  // The last of the 7 days is today.
+  const isStampedToday = activityDays[activityDays.length - 1].isRecorded;
 
   return (
     <View
@@ -79,7 +77,7 @@ export function RallyTile({
           {formatStampCount(stampDates.length)}
         </Text>
       </Pressable>
-      <RallyActivityWeek stampDates={stampDates} />
+      <RallyActivityWeek activityDays={activityDays} />
     </View>
   );
 }

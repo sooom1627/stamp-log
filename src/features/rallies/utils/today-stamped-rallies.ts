@@ -1,4 +1,7 @@
-import { localDateKey } from "@/shared/utils/local-date-key";
+import {
+  localDateKey,
+  localDateKeyFromIso,
+} from "@/shared/utils/local-date-key";
 
 import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
@@ -14,7 +17,7 @@ export function buildTodayStampedRallies(
   const ralliesById = new Map(rallies.map((rally) => [rally.id, rally]));
   const todayRallyIds = new Set(
     stamps
-      .filter((stamp) => localDateKey(new Date(stamp.stampedAt)) === todayKey)
+      .filter((stamp) => localDateKeyFromIso(stamp.stampedAt) === todayKey)
       .sort((a, b) => Date.parse(a.stampedAt) - Date.parse(b.stampedAt))
       .map((stamp) => stamp.rallyId),
   );

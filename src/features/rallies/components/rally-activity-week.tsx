@@ -1,6 +1,9 @@
 import { Text, View } from "react-native";
 
-import { localDateKey } from "@/shared/utils/local-date-key";
+import {
+  localDateKey,
+  localDateKeyFromIso,
+} from "@/shared/utils/local-date-key";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -22,7 +25,7 @@ type ActivityDay = {
 
 export function buildActivityDays(stampDates: string[], today = new Date()) {
   const recordedDateKeys = new Set(
-    stampDates.map((stampDate) => localDateKey(new Date(stampDate))),
+    stampDates.map((stampDate) => localDateKeyFromIso(stampDate)),
   );
   const localToday = new Date(
     today.getFullYear(),
@@ -39,9 +42,11 @@ export function buildActivityDays(stampDates: string[], today = new Date()) {
 }
 
 // The last 7 days, oldest to today, as two-letter weekdays over dots.
-export function RallyActivityWeek({ stampDates }: { stampDates: string[] }) {
-  const activityDays = buildActivityDays(stampDates);
-
+export function RallyActivityWeek({
+  activityDays,
+}: {
+  activityDays: ActivityDay[];
+}) {
   return (
     <View className="w-full gap-1.5" testID="activity-week">
       <View className="flex-row">

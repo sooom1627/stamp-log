@@ -1,4 +1,7 @@
-import { localDateKey } from "@/shared/utils/local-date-key";
+import {
+  localDateKey,
+  localDateKeyFromIso,
+} from "@/shared/utils/local-date-key";
 
 export type MonthDay = {
   date: Date;
@@ -9,9 +12,7 @@ export type MonthDay = {
 const DAYS_PER_WEEK = 7;
 
 function toRecordedDateKeys(stampDates: string[]) {
-  return new Set(
-    stampDates.map((stampDate) => localDateKey(new Date(stampDate))),
-  );
+  return new Set(stampDates.map((stampDate) => localDateKeyFromIso(stampDate)));
 }
 
 // Weeks of the month containing `month`, Monday first. Cells outside the
