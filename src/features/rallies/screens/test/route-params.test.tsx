@@ -9,6 +9,7 @@ describe("S-006 RT-003 ST-002 invalid id URL params close the screen", () => {
   test.each([
     ["/add-stamp-memo?stampId=abc"],
     ["/edit-stamp?stampId=0"],
+    ["/edit-rally?rallyId=abc"],
     ["/add-past-stamp?rallyId=-1"],
     ["/add-past-stamp"],
     ["/add-past-stamp?rallyId=1&date=2026-02-30"],

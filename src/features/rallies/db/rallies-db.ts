@@ -6,8 +6,10 @@ import {
   rallySchema,
   rallyTypeEmojis,
   saveRallyInputSchema,
+  updateRallyInputSchema,
   type Rally,
   type SaveRallyInput,
+  type UpdateRallyInput,
 } from "../schemas/rallies";
 
 import { withStampsDb } from "./stamps-db";
@@ -61,6 +63,18 @@ export async function saveRally(input: SaveRallyInput): Promise<void> {
     name,
     type,
     emoji ?? rallyTypeEmojis[type],
+  );
+}
+
+export async function updateRally(input: UpdateRallyInput): Promise<void> {
+  const { id, name, type, emoji } = updateRallyInputSchema.parse(input);
+  const db = await withRalliesDb();
+  await db.runAsync(
+    "UPDATE rallies SET name = ?, type = ?, emoji = ? WHERE id = ?",
+    name,
+    type,
+    emoji,
+    id,
   );
 }
 
