@@ -35,17 +35,17 @@ describe("S-029 T-002 ST-001 RallyTile", () => {
     ).toBeOnTheScreen();
   });
 
-  test("shows one-letter weekdays and 7 dots starting today, today as a dot too", async () => {
+  test("shows two-letter weekdays and 7 dots ending today, today as a dot too", async () => {
     await render(<RallyTile {...defaultProps} />);
 
-    // Today is Sunday Sep 20, 2026; the week goes back to Monday Sep 14.
+    // Sep 14, 2026 is a Monday; the week ends on Sunday Sep 20 (today).
     expect(
       screen.getAllByTestId("activity-weekday").map((label) => label.children),
-    ).toEqual([["S"], ["S"], ["F"], ["T"], ["W"], ["T"], ["M"]]);
+    ).toEqual([["Mo"], ["Tu"], ["We"], ["Th"], ["Fr"], ["Sa"], ["Su"]]);
     const activityDays = screen.getAllByTestId("activity-day");
     expect(activityDays).toHaveLength(7);
-    expect(activityDays[0]).toHaveAccessibleName("Sep 20, 2026, not recorded");
-    expect(activityDays[6]).toHaveAccessibleName("Sep 14, 2026, not recorded");
+    expect(activityDays[0]).toHaveAccessibleName("Sep 14, 2026, not recorded");
+    expect(activityDays[6]).toHaveAccessibleName("Sep 20, 2026, not recorded");
     expect(screen.queryByTestId("activity-today-ring")).toBeNull();
   });
 

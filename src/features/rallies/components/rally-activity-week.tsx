@@ -3,8 +3,13 @@ import { Text, View } from "react-native";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "narrow",
+  weekday: "short",
 });
+
+// "Mon" → "Mo": one letter repeats T and S, three do not fit a tile.
+function twoLetterWeekday(date: Date) {
+  return weekdayFormatter.format(date).slice(0, 2);
+}
 const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
 });
@@ -27,27 +32,30 @@ export function buildActivityDays(stampDates: string[], today = new Date()) {
 
   return Array.from({ length: 7 }, (_, index): ActivityDay => {
     const date = new Date(localToday);
-    date.setDate(localToday.getDate() - index);
+    date.setDate(localToday.getDate() - (6 - index));
     const key = localDateKey(date);
     return { date, key, isRecorded: recordedDateKeys.has(key) };
   });
 }
 
-// The last 7 days, today first (like the stamp strip), as one-letter
-// weekdays over dots.
+// The last 7 days, oldest to today, as two-letter weekdays over dots.
 export function RallyActivityWeek({ stampDates }: { stampDates: string[] }) {
   const activityDays = buildActivityDays(stampDates);
 
   return (
     <View className="w-full gap-1.5" testID="activity-week">
       <View className="flex-row">
-        {activityDays.map((day) => (
+        {activityDays.map((day, index) => (
           <Text
             key={day.key}
-            className="text-foreground-muted flex-1 text-center text-[10px] font-medium"
+            className={
+              index === activityDays.length - 1
+                ? "text-foreground flex-1 text-center text-[10px] font-bold"
+                : "text-foreground-muted flex-1 text-center text-[10px] font-medium"
+            }
             testID="activity-weekday"
           >
-            {weekdayFormatter.format(day.date)}
+            {twoLetterWeekday(day.date)}
           </Text>
         ))}
       </View>
