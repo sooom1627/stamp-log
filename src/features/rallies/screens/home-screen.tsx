@@ -1,6 +1,8 @@
+import { useCallback, useState } from "react";
+
 import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
-import { Link, useRouter } from "expo-router";
+import { Link, useFocusEffect, useRouter } from "expo-router";
 
 import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
@@ -12,6 +14,7 @@ import { TodayCard } from "../components/today-card";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
+import { sortRalliesByStampCount } from "../utils/sort-rallies-by-stamp-count";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 
 // Matches the tab root's px-5 and the grid's gap-2.5.
@@ -42,6 +45,19 @@ export function HomeScreen() {
   const isListError = isRalliesError || isStampsError;
   const today = new Date();
 
+  // Tiles are ordered by the stamps seen when home came into focus, so a
+  // tile does not jump away while it is being stamped.
+  const [orderStamps, setOrderStamps] = useState<Stamp[] | null>(null);
+  const [shouldResort, setShouldResort] = useState(true);
+  useFocusEffect(useCallback(() => setShouldResort(true), []));
+  if (shouldResort && stamps) {
+    setShouldResort(false);
+    setOrderStamps(stamps);
+  }
+  const orderedRallies = rallies
+    ? sortRalliesByStampCount(rallies, orderStamps ?? stamps ?? [])
+    : undefined;
+
   const retryLists = () => {
     void refetchRallies();
     void refetchStamps();
@@ -69,9 +85,9 @@ export function HomeScreen() {
             </Link>
           </View>
         ) : null}
-        {rallies ? (
+        {orderedRallies ? (
           <View className="flex-row flex-wrap gap-2.5" testID="rally-grid">
-            {rallies.map((rally) => (
+            {orderedRallies.map((rally) => (
               <RallyTile
                 key={rally.id}
                 name={rally.name}

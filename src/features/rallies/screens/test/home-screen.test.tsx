@@ -1,5 +1,6 @@
 import { Alert } from "react-native";
 
+import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
 import {
@@ -412,6 +413,91 @@ describe("S-029 T-001 ST-004 today card", () => {
   });
 });
 
+describe("S-029 T-003 ST-002 rally order", () => {
+  // One stamp a day, going back from yesterday.
+  const daysAgo = (days: number) =>
+    new Date(2026, 8, 20 - days, 12).toISOString();
+
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    // Earlier tests in this file share the in-memory database.
+    for (const rally of await ralliesDb.listRallies()) {
+      await ralliesDb.deleteRally(rally.id);
+    }
+  });
+
+  async function saveRallyWithStamps(name: string, stampCount: number) {
+    await ralliesDb.saveRally({ name, type: "place" });
+    const rally = (await ralliesDb.listRallies()).find(
+      (saved) => saved.name === name,
+    );
+    if (!rally) throw new Error(`rally ${name} not saved`);
+    for (let index = 0; index < stampCount; index += 1) {
+      await stampsDb.saveStamp({
+        rallyId: rally.id,
+        stampedAt: daysAgo(index + 1),
+      });
+    }
+    return rally;
+  }
+
+  function tileNames() {
+    return within(screen.getByTestId("rally-grid"))
+      .getAllByRole("button", { name: /^View .* details$/ })
+      .map((tile) => tile.props.accessibilityLabel);
+  }
+
+  test("puts the most stamped rally first, the newer one first on a tie", async () => {
+    await saveRallyWithStamps("Few", 1);
+    await saveRallyWithStamps("Many", 3);
+    await saveRallyWithStamps("None", 0);
+    await saveRallyWithStamps("Few too", 1);
+
+    await renderRouter("./src/app");
+    await screen.findByRole("button", { name: "View Many details" });
+
+    expect(tileNames()).toEqual([
+      "View Many details",
+      "View Few too details",
+      "View Few details",
+      "View None details",
+    ]);
+  });
+
+  test("keeps the order while home is open and sorts again on return", async () => {
+    const older = await saveRallyWithStamps("Older", 1);
+    await saveRallyWithStamps("Newer", 1);
+
+    await renderRouter("./src/app");
+    const user = userEvent.setup();
+    await screen.findByRole("button", { name: "View Newer details" });
+    expect(tileNames()).toEqual(["View Newer details", "View Older details"]);
+
+    // Older now has 2 stamps, but the tiles stay put while home is shown.
+    await user.press(
+      screen.getByRole("button", { name: "Stamp Older for today" }),
+    );
+    expect(
+      await screen.findByRole("button", {
+        name: "Older already stamped today",
+      }),
+    ).toBeOnTheScreen();
+    expect(tileNames()).toEqual(["View Newer details", "View Older details"]);
+
+    await act(() => {
+      router.push(`/rallies/${older.id}`);
+    });
+    await screen.findByLabelText("Rally detail");
+    await act(() => {
+      router.back();
+    });
+
+    await waitFor(() =>
+      expect(tileNames()).toEqual(["View Older details", "View Newer details"]),
+    );
+  });
+});
+
 describe("S-029 T-002 ST-001 rally tiles", () => {
   test("lays out rallies as tiles in 2 columns", async () => {
     await renderHomeWithRally("Tile grid check");
@@ -422,13 +508,10 @@ describe("S-029 T-002 ST-001 rally tiles", () => {
       expect.stringContaining("flex-row flex-wrap"),
     );
     // The jest window is 750 wide: (750 - 2 * 20 padding - 10 gap) / 2.
-    const [tile] = within(grid).getAllByTestId("rally-tile");
+    const tile = within(grid)
+      .getAllByTestId("rally-tile")
+      .find((candidate) => within(candidate).queryByText("Tile grid check"));
     expect(tile).toHaveStyle({ width: 350 });
-    expect(
-      within(tile).getByRole("button", {
-        name: "View Tile grid check details",
-      }),
-    ).toBeOnTheScreen();
   });
 });
 
