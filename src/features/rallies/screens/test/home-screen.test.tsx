@@ -42,7 +42,9 @@ function findToastAction(): { label: string; onClick: () => void } {
 async function renderHomeWithRally(name: string, type: RallyType = "place") {
   await ralliesDb.saveRally({ name, type });
   await renderRouter("./src/app");
-  expect(await screen.findByText(name)).toBeOnTheScreen();
+  expect(
+    await screen.findByRole("button", { name: `View ${name} details` }),
+  ).toBeOnTheScreen();
   return userEvent.setup();
 }
 
@@ -273,7 +275,7 @@ describe("S-002 T-002 ST-005 memo formSheet", () => {
   });
 });
 
-describe("S-029 T-001 ST-002 stamped days strip", () => {
+describe("S-029 T-001 ST-004 today card", () => {
   const at = (day: number, hours = 12) =>
     new Date(2026, 8, day, hours).toISOString();
 
@@ -288,88 +290,76 @@ describe("S-029 T-001 ST-002 stamped days strip", () => {
   async function saveRallyWithStamps(
     name: string,
     emoji: string,
-    stampDays: number[],
-    hours = 12,
+    stampedAts: string[],
   ) {
     await ralliesDb.saveRally({ name, type: "place", emoji });
     const rally = (await ralliesDb.listRallies()).find(
       (saved) => saved.name === name,
     );
     if (!rally) throw new Error(`rally ${name} not saved`);
-    for (const day of stampDays) {
-      await stampsDb.saveStamp({
-        rallyId: rally.id,
-        stampedAt: at(day, hours),
-      });
+    for (const stampedAt of stampedAts) {
+      await stampsDb.saveStamp({ rallyId: rally.id, stampedAt });
     }
   }
 
-  test("shows every day of the last 14 days, stamped days with their emojis, and the total", async () => {
-    await saveRallyWithStamps("Tokyo towers", "🗼", [6, 13, 19]);
-    await saveRallyWithStamps("Morning run", "🏃", [19]);
+  test("shows today's date stamp and the rallies stamped today, first stamped first", async () => {
+    await saveRallyWithStamps("Tokyo towers", "🗼", [at(20, 8)]);
+    await saveRallyWithStamps("Morning run", "🏃", [at(20, 7)]);
+    await saveRallyWithStamps("Kyoto museums", "⛩️", [at(19)]);
 
     await renderRouter("./src/app");
-    const strip = await screen.findByTestId("stamped-days-strip");
+    const card = await screen.findByTestId("today-card");
 
-    expect(within(strip).getByText("Last 14 days")).toBeOnTheScreen();
-    expect(within(strip).getByText("4 stamps")).toBeOnTheScreen();
-    // Newest on the left: the list is not inverted, so today comes first.
-    expect(within(strip).getByTestId("stamped-days-list")).not.toHaveStyle({
-      transform: [{ scaleX: -1 }],
-    });
-    const labels = within(strip)
-      .getAllByTestId("date-stamp")
-      .map((stamp) => stamp.props["aria-label"]);
-    expect(labels).toHaveLength(14);
-    expect(labels.slice(0, 3)).toEqual([
-      "Today, Sep 20, no stamps yet",
-      "Sat, Sep 19, 2 stamps",
-      "Fri, Sep 18, no stamps",
+    expect(card).toHaveAccessibleName(
+      "Today, Sep 20, 2 stamps: Morning run, Tokyo towers",
+    );
+    expect(within(card).getByText("SEP")).toBeOnTheScreen();
+    expect(within(card).getByText("20")).toBeOnTheScreen();
+    expect(within(card).getByText("2 stamps today")).toBeOnTheScreen();
+    expect(
+      within(card)
+        .getAllByTestId("today-rally")
+        .map((chip) =>
+          within(chip)
+            .getAllByText(/./)
+            .map((t) => t.children),
+        ),
+    ).toEqual([
+      [["🏃"], ["Morning run"]],
+      [["🗼"], ["Tokyo towers"]],
     ]);
-    expect(labels).toContain("Sun, Sep 13, 1 stamp");
-    expect(labels.at(-1)).toBe("Mon, Sep 7, no stamps");
-    const saturday = within(strip).getByLabelText("Sat, Sep 19, 2 stamps");
-    expect(within(saturday).getByText("🗼")).toBeOnTheScreen();
-    expect(within(saturday).getByText("🏃")).toBeOnTheScreen();
-    expect(within(saturday).getByText("Sat 19")).toBeOnTheScreen();
-    const friday = within(strip).getByLabelText("Fri, Sep 18, no stamps");
-    expect(within(friday).getByText("SEP")).toBeOnTheScreen();
-    expect(within(friday).getByText("18")).toBeOnTheScreen();
-    expect(within(friday).getByText("Fri 18")).toBeOnTheScreen();
-    expect(within(strip).queryByRole("button")).not.toBeOnTheScreen();
+    expect(within(card).queryByText("Kyoto museums")).not.toBeOnTheScreen();
+    expect(within(card).queryByRole("button")).not.toBeOnTheScreen();
+    expect(screen.queryByText("Last 14 days")).not.toBeOnTheScreen();
     expect(screen.queryByText("STAMPS")).not.toBeOnTheScreen();
     expect(screen.queryByText(/This month/)).not.toBeOnTheScreen();
   });
 
-  test("inks today's stamp with the rally emoji after stamping from home", async () => {
-    await saveRallyWithStamps("Kyoto museums", "⛩️", []);
+  test("shows an empty date stamp until a rally is stamped from home", async () => {
+    await saveRallyWithStamps("Kyoto museums", "⛩️", [at(19)]);
 
     await renderRouter("./src/app");
     const user = userEvent.setup();
+    const card = await screen.findByTestId("today-card");
+    expect(card).toHaveAccessibleName("Today, Sep 20, no stamps yet");
+    expect(within(card).getByText("No stamps yet today")).toBeOnTheScreen();
     expect(
-      await screen.findByLabelText("Today, Sep 20, no stamps yet"),
+      within(card).getByText("What you stamp today shows up here."),
     ).toBeOnTheScreen();
 
     await user.press(
       screen.getByRole("button", { name: "Stamp Kyoto museums for today" }),
     );
 
-    const today = await screen.findByLabelText("Today, Sep 20, 1 stamp");
-    expect(within(today).getByText("⛩️")).toBeOnTheScreen();
-    expect(within(today).getByText("Today")).toBeOnTheScreen();
-  });
-
-  test("shows up to 3 emojis on a stamp and counts the rest when read aloud", async () => {
-    const emojis = ["🗼", "🏃", "⛩️", "📚"];
-    for (const [index, emoji] of emojis.entries()) {
-      await saveRallyWithStamps(`Rally ${index}`, emoji, [19], 8 + index);
-    }
-
-    await renderRouter("./src/app");
-    const saturday = await screen.findByLabelText("Sat, Sep 19, 4 stamps");
-
-    expect(within(saturday).getByText("⛩️")).toBeOnTheScreen();
-    expect(within(saturday).queryByText("📚")).not.toBeOnTheScreen();
+    expect(
+      await screen.findByLabelText("Today, Sep 20, 1 stamp: Kyoto museums"),
+    ).toBeOnTheScreen();
+    const stampedCard = screen.getByTestId("today-card");
+    expect(within(stampedCard).getByText("1 stamp today")).toBeOnTheScreen();
+    expect(within(stampedCard).getByText("⛩️")).toBeOnTheScreen();
+    expect(
+      within(stampedCard).queryByText("No stamps yet today"),
+    ).not.toBeOnTheScreen();
   });
 });
 

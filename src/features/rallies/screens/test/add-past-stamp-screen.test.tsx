@@ -30,7 +30,9 @@ async function openPastStamp(name: string) {
   if (!rally) throw new Error(`Rally ${name} not found`);
 
   await renderRouter("./src/app");
-  expect(await screen.findByText(name)).toBeOnTheScreen();
+  expect(
+    await screen.findByRole("button", { name: `View ${name} details` }),
+  ).toBeOnTheScreen();
   await act(() => {
     router.push(`/add-past-stamp?rallyId=${rally.id}`);
   });
@@ -162,7 +164,9 @@ describe("S-028 T-004 ST-004 past stamp for a given day", () => {
     if (!rally) throw new Error(`Rally ${name} not found`);
 
     await renderRouter("./src/app");
-    expect(await screen.findByText(name)).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("button", { name: `View ${name} details` }),
+    ).toBeOnTheScreen();
     await act(() => {
       router.push(`/add-past-stamp?rallyId=${rally.id}&date=${date}`);
     });

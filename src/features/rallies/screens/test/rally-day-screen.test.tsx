@@ -43,7 +43,9 @@ async function openRallyDay(name: string, date: string) {
   await saveStamp({ rallyId: other.id, stampedAt: at(18, 8) });
 
   await renderRouter("./src/app");
-  expect(await screen.findByText(name)).toBeOnTheScreen();
+  expect(
+    await screen.findByRole("button", { name: `View ${name} details` }),
+  ).toBeOnTheScreen();
   await act(() => {
     router.push(`/rally-day?rallyId=${rally.id}&date=${date}`);
   });

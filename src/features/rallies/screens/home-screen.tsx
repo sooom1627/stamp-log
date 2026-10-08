@@ -8,11 +8,11 @@ import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
-import { StampedDaysStrip } from "../components/stamped-days-strip";
+import { TodayCard } from "../components/today-card";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
-import { buildStampedDays } from "../utils/stamped-days";
+import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 
 // Matches the tab root's px-5 and the grid's gap-2.5.
 const SCREEN_PADDING = 20;
@@ -40,6 +40,7 @@ export function HomeScreen() {
   } = useStamps();
   const { mutate: saveStamp } = useSaveStamp();
   const isListError = isRalliesError || isStampsError;
+  const today = new Date();
 
   const retryLists = () => {
     void refetchRallies();
@@ -50,9 +51,9 @@ export function HomeScreen() {
     <TabRootScreen>
       <View className="w-full">
         {rallies && stamps ? (
-          <StampedDaysStrip
-            days={buildStampedDays(stamps, rallies, new Date())}
-            totalStampCount={stamps.length}
+          <TodayCard
+            rallies={buildTodayStampedRallies(stamps, rallies, today)}
+            today={today}
           />
         ) : null}
         {isListError ? <LoadError onRetry={retryLists} /> : null}
