@@ -15,10 +15,12 @@ export const saveRallyInputSchema = rallySchema
     type: true,
   })
   .extend({ emoji: rallyEmojiSchema.optional() });
+export const updateRallyInputSchema = rallySchema;
 
 export type RallyType = z.infer<typeof rallyTypeSchema>;
 export type Rally = z.infer<typeof rallySchema>;
 export type SaveRallyInput = z.infer<typeof saveRallyInputSchema>;
+export type UpdateRallyInput = z.infer<typeof updateRallyInputSchema>;
 
 export const rallyTypeLabels: Record<RallyType, string> = {
   place: "Place",
