@@ -5,7 +5,6 @@ import { renderRouter } from "expo-router/testing-library";
 
 import {
   act,
-  fireEvent,
   screen,
   userEvent,
   waitFor,
@@ -327,18 +326,10 @@ describe("S-029 T-001 ST-004 today card", () => {
     ).toEqual([["🏃"], ["🗼"]]);
     expect(within(card).queryByText("SEP")).not.toBeOnTheScreen();
     expect(within(card).getByText("2 stamps today")).toBeOnTheScreen();
-    expect(
-      within(card)
-        .getAllByTestId("today-rally")
-        .map((chip) =>
-          within(chip)
-            .getAllByText(/./)
-            .map((t) => t.children),
-        ),
-    ).toEqual([
-      [["🏃"], ["Morning run"]],
-      [["🗼"], ["Tokyo towers"]],
-    ]);
+    expect(within(card).getByText("Morning run · Tokyo towers")).toHaveProp(
+      "numberOfLines",
+      2,
+    );
     expect(within(card).queryByText("Kyoto museums")).not.toBeOnTheScreen();
     expect(within(card).queryByRole("button")).not.toBeOnTheScreen();
     expect(screen.queryByText("Last 14 days")).not.toBeOnTheScreen();
@@ -378,41 +369,44 @@ describe("S-029 T-001 ST-004 today card", () => {
     ).not.toBeOnTheScreen();
   });
 
-  test("shows the chips that fit in one row and counts the rest as +N", async () => {
-    const names = ["Tokyo towers", "Morning run", "Reading", "Kyoto museums"];
-    for (const [index, name] of names.entries()) {
-      await saveRallyWithStamps(name, "🗼", [at(20, 5 + index)]);
+  test("overlaps up to five emojis in the stamp, then four and +N, and lists every name", async () => {
+    const rallies: [string, string][] = [
+      ["Morning run", "🏃"],
+      ["Reading", "📚"],
+      ["Kyoto museums", "⛩️"],
+      ["Cafe hopping", "☕"],
+      ["Tokyo towers", "🗼"],
+      ["Yoga", "🧘"],
+      ["Sketching", "🎨"],
+    ];
+    for (const [index, [name, emoji]] of rallies.entries()) {
+      await saveRallyWithStamps(name, emoji, [at(20, 1 + index)]);
     }
 
     await renderRouter("./src/app");
     const card = await screen.findByTestId("today-card");
-    expect(within(card).getAllByTestId("today-rally")).toHaveLength(4);
 
-    await fireEvent(within(card).getByTestId("today-rallies"), "layout", {
-      nativeEvent: { layout: { width: 200 } },
-    });
-    for (const chip of within(card).getAllByTestId("today-rally-measure", {
-      includeHiddenElements: true,
-    })) {
-      await fireEvent(chip, "layout", {
-        nativeEvent: { layout: { width: 80 } },
-      });
-    }
-    await fireEvent(
-      within(card).getByTestId("today-more-measure", {
-        includeHiddenElements: true,
-      }),
-      "layout",
-      { nativeEvent: { layout: { width: 30 } } },
-    );
-
-    // 80 + 6 + 30 fits in 200; a second chip (80 + 6 + 80 + 6 + 30) does not.
-    const chips = within(card).getAllByTestId("today-rally");
-    expect(chips).toHaveLength(1);
-    expect(within(chips[0]).getByText("Tokyo towers")).toBeOnTheScreen();
-    expect(within(card).getByText("+3")).toBeOnTheScreen();
+    const stamp = within(card).getByTestId("today-stamp");
+    expect(
+      within(stamp)
+        .getAllByTestId("today-stamp-row")
+        .map((row) =>
+          within(row)
+            .getAllByText(/./)
+            .map((t) => t.children[0]),
+        ),
+    ).toEqual([
+      ["🏃", "📚", "⛩️"],
+      ["☕", "+3"],
+    ]);
+    expect(within(card).getByText("7 stamps today")).toBeOnTheScreen();
+    expect(
+      within(card).getByText(
+        "Morning run · Reading · Kyoto museums · Cafe hopping · Tokyo towers · Yoga · Sketching",
+      ),
+    ).toHaveProp("numberOfLines", 2);
     expect(card).toHaveAccessibleName(
-      "Today, Sep 20, 4 stamps: Tokyo towers, Morning run, Reading, Kyoto museums",
+      "Today, Sep 20, 7 stamps: Morning run, Reading, Kyoto museums, Cafe hopping, Tokyo towers, Yoga, Sketching",
     );
   });
 });
