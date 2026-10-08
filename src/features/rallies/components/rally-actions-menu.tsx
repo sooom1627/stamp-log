@@ -4,6 +4,7 @@ import { accessibilityLabel, frame } from "@expo/ui/swift-ui/modifiers";
 
 type RallyActionsMenuProps = {
   onPastStamp: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 };
 
@@ -12,6 +13,7 @@ type RallyActionsMenuProps = {
 // tree, so tests use the @expo/ui Menu below.
 export function RallyActionsMenu({
   onPastStamp,
+  onEdit,
   onDelete,
 }: RallyActionsMenuProps) {
   return (
@@ -23,6 +25,9 @@ export function RallyActionsMenu({
             onPress={onPastStamp}
           >
             Past stamp
+          </Stack.Toolbar.MenuAction>
+          <Stack.Toolbar.MenuAction icon="pencil" onPress={onEdit}>
+            Edit rally
           </Stack.Toolbar.MenuAction>
           <Stack.Toolbar.MenuAction icon="trash" destructive onPress={onDelete}>
             Delete rally
@@ -49,6 +54,12 @@ export function RallyActionsMenu({
               label="Past stamp"
               systemImage="calendar.badge.plus"
               onPress={onPastStamp}
+            />
+            <Button
+              testID="rally-action-edit"
+              label="Edit rally"
+              systemImage="pencil"
+              onPress={onEdit}
             />
             <Button
               testID="rally-action-delete"
