@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { localDateKey } from "@/shared/utils/local-date-key";
+import {
+  localDateKey,
+  localDateKeyFromIso,
+} from "@/shared/utils/local-date-key";
 
 export const stampSchema = z.object({
   id: z.number(),
@@ -43,6 +46,6 @@ export function hasStampOnLocalDay(
     (stamp) =>
       stamp.id !== target.excludedId &&
       stamp.rallyId === target.rallyId &&
-      localDateKey(new Date(stamp.stampedAt)) === dayKey,
+      localDateKeyFromIso(stamp.stampedAt) === dayKey,
   );
 }

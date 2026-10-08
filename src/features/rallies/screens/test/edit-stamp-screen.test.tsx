@@ -43,7 +43,9 @@ async function openEdit(
   const stampId = await seed(rally.id);
 
   await renderRouter("./src/app");
-  expect(await screen.findByText(name)).toBeOnTheScreen();
+  expect(
+    await screen.findByRole("button", { name: `View ${name} details` }),
+  ).toBeOnTheScreen();
   await act(() => {
     router.push(`/rallies/${rally.id}`);
   });

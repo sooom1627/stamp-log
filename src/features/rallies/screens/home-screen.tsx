@@ -1,17 +1,25 @@
-import { Pressable, Text, View } from "react-native";
+import { useCallback, useState } from "react";
 
-import { Link, useRouter } from "expo-router";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
+
+import { Link, useFocusEffect, useRouter } from "expo-router";
 
 import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 
-import { CollectionSummary } from "../components/collection-summary";
-import { RallyRow } from "../components/rally-row";
+import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
+import { TodayCard } from "../components/today-card";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
+import { sortRalliesByStampCount } from "../utils/sort-rallies-by-stamp-count";
+import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
+
+// Matches the tab root's px-5 and the grid's gap-2.5.
+const SCREEN_PADDING = 20;
+const TILE_GAP = 10;
 
 function stampDatesForRally(stamps: Stamp[], rallyId: number) {
   return stamps
@@ -21,6 +29,8 @@ function stampDatesForRally(stamps: Stamp[], rallyId: number) {
 
 export function HomeScreen() {
   const { push } = useRouter();
+  const { width: windowWidth } = useWindowDimensions();
+  const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
   const {
     data: rallies,
     isError: isRalliesError,
@@ -33,6 +43,20 @@ export function HomeScreen() {
   } = useStamps();
   const { mutate: saveStamp } = useSaveStamp();
   const isListError = isRalliesError || isStampsError;
+  const today = new Date();
+
+  // Tiles are ordered by the stamps seen when home came into focus, so a
+  // tile does not jump away while it is being stamped.
+  const [orderStamps, setOrderStamps] = useState<Stamp[] | null>(null);
+  const [shouldResort, setShouldResort] = useState(true);
+  useFocusEffect(useCallback(() => setShouldResort(true), []));
+  if (shouldResort && stamps) {
+    setShouldResort(false);
+    setOrderStamps(stamps);
+  }
+  const orderedRallies = rallies
+    ? sortRalliesByStampCount(rallies, orderStamps ?? stamps ?? [])
+    : undefined;
 
   const retryLists = () => {
     void refetchRallies();
@@ -40,34 +64,18 @@ export function HomeScreen() {
   };
 
   return (
-    <TabRootScreen
-      floatingAction={
-        <Link href="/create-rally" asChild>
-          <Pressable
-            aria-label="Create rally"
-            className="bg-inverse active:bg-main-hover shadow-fab absolute right-5 bottom-24 size-14 items-center justify-center rounded-full"
-          >
-            <Plus colorClassName="accent-white" size={24} strokeWidth={2.5} />
-          </Pressable>
-        </Link>
-      }
-    >
+    <TabRootScreen>
       <View className="w-full">
         {rallies && stamps ? (
-          <CollectionSummary rallies={rallies} stamps={stamps} />
+          <TodayCard
+            rallies={buildTodayStampedRallies(stamps, rallies, today)}
+            today={today}
+          />
         ) : null}
         {isListError ? <LoadError onRetry={retryLists} /> : null}
-        {rallies?.length === 0 ? (
-          <View className="items-center py-12">
-            <Text className="text-foreground-secondary">No rallies yet</Text>
-          </View>
-        ) : null}
         {rallies?.length ? (
-          <View className="mt-2 mb-1 flex-row items-center justify-between">
-            <Text
-              role="heading"
-              className="text-foreground text-lg font-semibold"
-            >
+          <View className="mt-2 mb-2.5 flex-row items-center justify-between">
+            <Text role="heading" className="text-foreground text-xl font-bold">
               Your Days
             </Text>
             <Link href="/rallies-list" asChild>
@@ -77,23 +85,46 @@ export function HomeScreen() {
             </Link>
           </View>
         ) : null}
-        {rallies?.map((rally) => (
-          <RallyRow
-            key={rally.id}
-            name={rally.name}
-            emoji={rally.emoji}
-            stampDates={stampDatesForRally(stamps ?? [], rally.id)}
-            onPressStamp={() =>
-              saveStamp(
-                { rallyId: rally.id },
-                { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
-              )
-            }
-            onPressDetail={() =>
-              push({ pathname: "/rallies/[id]", params: { id: rally.id } })
-            }
-          />
-        ))}
+        {orderedRallies ? (
+          <View className="flex-row flex-wrap gap-2.5" testID="rally-grid">
+            {orderedRallies.map((rally) => (
+              <RallyTile
+                key={rally.id}
+                name={rally.name}
+                emoji={rally.emoji}
+                stampDates={stampDatesForRally(stamps ?? [], rally.id)}
+                width={tileWidth}
+                onPressStamp={() =>
+                  saveStamp(
+                    { rallyId: rally.id },
+                    { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
+                  )
+                }
+                onPressDetail={() =>
+                  push({ pathname: "/rallies/[id]", params: { id: rally.id } })
+                }
+              />
+            ))}
+            <Link href="/create-rally" asChild>
+              <Pressable
+                aria-label="Create rally"
+                className="border-border border-continuous min-h-44 items-center justify-center gap-2 rounded-3xl border-2 border-dashed active:opacity-70"
+                style={{ width: tileWidth }}
+              >
+                <View className="bg-surface-muted size-11 items-center justify-center rounded-full">
+                  <Plus
+                    colorClassName="accent-foreground"
+                    size={20}
+                    strokeWidth={2.5}
+                  />
+                </View>
+                <Text className="text-foreground text-sm font-semibold">
+                  New rally
+                </Text>
+              </Pressable>
+            </Link>
+          </View>
+        ) : null}
       </View>
     </TabRootScreen>
   );

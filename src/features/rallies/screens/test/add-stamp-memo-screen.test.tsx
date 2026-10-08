@@ -34,7 +34,11 @@ describe("S-002 T-002 RT-003 ST-002 save memo", () => {
     const stamp = await saveStamp({ rallyId: rally.id });
 
     await renderRouter("./src/app");
-    expect(await screen.findByText("Memo save rally")).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("button", {
+        name: "View Memo save rally details",
+      }),
+    ).toBeOnTheScreen();
 
     await act(() => {
       router.push(`/add-stamp-memo?stampId=${stamp.id}`);
