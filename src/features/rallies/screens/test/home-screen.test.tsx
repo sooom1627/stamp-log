@@ -540,6 +540,28 @@ describe("S-029 T-002 ST-002 New rally tile", () => {
   });
 });
 
+describe("S-033 T-001 ST-002 tiles on the canvas", () => {
+  beforeEach(async () => {
+    await deleteAllRallies();
+  });
+
+  test("draws rally tiles and the New rally icon with the surface color", async () => {
+    await renderHomeWithRally("Surface check");
+
+    const grid = screen.getByTestId("rally-grid");
+    for (const tile of within(grid).getAllByTestId("rally-tile")) {
+      expect(tile).toHaveProp(
+        "className",
+        expect.stringContaining("bg-surface "),
+      );
+    }
+    expect(within(grid).getByTestId("new-rally-icon")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-surface "),
+    );
+  });
+});
+
 describe("S-002 T-002 RT-002 error display", () => {
   test("shows load error and retry when rally list fails", async () => {
     jest

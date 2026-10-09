@@ -18,7 +18,7 @@
       --color-background: #ffffff;
       --color-foreground: #1e293b;
       --color-foreground-secondary: #334155;
-      --color-foreground-muted: #64748b;
+      --color-foreground-muted: #5b6b80;
       --color-surface-muted: #f1f5f9;
       --color-border: #e2e8f0;
       --color-primary: #1e293b;
@@ -29,6 +29,10 @@
       --color-accent-subtle: #fff7ed;
       --color-accent-soft: #ffedd5;
       --color-accent-strong: #9a3412;
+      /* Tab screens sit on canvas; tiles on it use surface, lighter than
+         canvas so they lift off it. */
+      --color-canvas: #f4f4f5;
+      --color-surface: #ffffff;
     }
     @variant dark {
       --color-background: #0f172a;
@@ -43,6 +47,8 @@
       --color-accent-subtle: #431407;
       --color-accent-soft: #7c2d12;
       --color-accent-strong: #fdba74;
+      --color-canvas: #0f172a;
+      --color-surface: #334155;
     }
   }
 }

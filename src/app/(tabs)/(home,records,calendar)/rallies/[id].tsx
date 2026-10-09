@@ -13,6 +13,7 @@ export default function RallyDetailPage() {
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
           headerShadowVisible: false,
+          headerTransparent: true,
         }}
       />
       {rallyId === undefined ? null : <RallyDetailScreen rallyId={rallyId} />}

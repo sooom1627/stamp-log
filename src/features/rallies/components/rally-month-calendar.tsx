@@ -153,7 +153,7 @@ export function RallyMonthCalendar({
   return (
     <View
       testID="rally-calendar"
-      className="bg-surface-muted border-continuous w-full gap-2 rounded-3xl p-3"
+      className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
     >
       <View className="flex-row items-center justify-between">
         <Pressable

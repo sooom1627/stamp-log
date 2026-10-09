@@ -50,3 +50,24 @@ describe("S-029 T-001 ST-006 tab root header", () => {
     expect(screen.getByRole("heading", { name: "Calendar" })).toBeOnTheScreen();
   });
 });
+
+describe("S-033 T-001 ST-001 tab root background", () => {
+  // The scroll view is the tab's whole background.
+  function tabBackgrounds() {
+    return screen.container
+      .queryAll((instance) => instance.type === "RCTScrollView")
+      .map((instance) => instance.props.className);
+  }
+
+  test("paints all three tabs with the canvas color, not the plain background", async () => {
+    await renderRouter("./src/app");
+
+    await screen.findAllByText("Sunday");
+    const backgrounds = tabBackgrounds();
+    expect(backgrounds).toHaveLength(3);
+    for (const className of backgrounds) {
+      expect(className).toEqual(expect.stringContaining("bg-canvas"));
+      expect(className).not.toEqual(expect.stringContaining("bg-background"));
+    }
+  });
+});

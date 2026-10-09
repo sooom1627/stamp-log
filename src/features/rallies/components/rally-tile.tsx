@@ -28,7 +28,7 @@ export function RallyTile({
 
   return (
     <View
-      className="bg-surface-muted border-continuous gap-3 rounded-3xl p-3.5"
+      className="bg-surface border-continuous gap-3 rounded-3xl p-3.5"
       style={{ width }}
       testID="rally-tile"
     >

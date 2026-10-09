@@ -832,7 +832,7 @@ describe("S-028 RT-001 ST-005 calendar look", () => {
 
     expect(await screen.findByTestId("rally-calendar")).toHaveProp(
       "className",
-      expect.stringContaining("bg-surface-muted"),
+      expect.stringContaining("bg-surface "),
     );
     const recorded = screen.getByRole("button", {
       name: "Sep 14, 2026, recorded",
@@ -921,3 +921,63 @@ describe("S-013 T-001 ST-005 edit rally from the actions menu", () => {
 async function stampsOfRally(rallyId: number) {
   return (await listStamps()).filter((stamp) => stamp.rallyId === rallyId);
 }
+
+describe("S-033 T-002 ST-002 rally detail on the canvas", () => {
+  test("paints rally detail with the canvas color and its calendar with the surface color", async () => {
+    await openRallyDetail("Canvas detail");
+
+    expect(await screen.findByLabelText("Rally detail")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-canvas"),
+    );
+    expect(screen.getByTestId("rally-calendar")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-surface "),
+    );
+  });
+
+  test("paints the rallies list with the canvas color", async () => {
+    await renderRouter("./src/app");
+    await act(() => {
+      router.push("/rallies-list");
+    });
+
+    expect(await screen.findByLabelText("Rallies list")).toHaveProp(
+      "className",
+      expect.stringContaining("bg-canvas"),
+    );
+  });
+});
+
+describe("S-033 T-003 ST-001 transparent stack header", () => {
+  // The native header's settings, found by the title it shows.
+  function headerConfig(title: string) {
+    const [config] = screen.container.queryAll(
+      (instance) =>
+        instance.type === "RNSScreenStackHeaderConfig" &&
+        instance.props.title === title,
+    );
+    return config.props;
+  }
+
+  test("shows the canvas behind the rally detail header instead of a white bar", async () => {
+    await openRallyDetail("Clear header");
+    await screen.findByLabelText("Rally detail");
+
+    const config = headerConfig("Clear header");
+    expect(config.backgroundColor).toBe("transparent");
+    expect(config.translucent).toBe(true);
+  });
+
+  test("shows the canvas behind the rallies list header", async () => {
+    await renderRouter("./src/app");
+    await act(() => {
+      router.push("/rallies-list");
+    });
+    await screen.findByLabelText("Rallies list");
+
+    const config = headerConfig("");
+    expect(config.backgroundColor).toBe("transparent");
+    expect(config.translucent).toBe(true);
+  });
+});
