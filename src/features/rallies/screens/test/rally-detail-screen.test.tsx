@@ -948,3 +948,36 @@ describe("S-033 T-002 ST-002 rally detail on the canvas", () => {
     );
   });
 });
+
+describe("S-033 T-003 ST-001 transparent stack header", () => {
+  // The native header's settings, found by the title it shows.
+  function headerConfig(title: string) {
+    const [config] = screen.container.queryAll(
+      (instance) =>
+        instance.type === "RNSScreenStackHeaderConfig" &&
+        instance.props.title === title,
+    );
+    return config.props;
+  }
+
+  test("shows the canvas behind the rally detail header instead of a white bar", async () => {
+    await openRallyDetail("Clear header");
+    await screen.findByLabelText("Rally detail");
+
+    const config = headerConfig("Clear header");
+    expect(config.backgroundColor).toBe("transparent");
+    expect(config.translucent).toBe(true);
+  });
+
+  test("shows the canvas behind the rallies list header", async () => {
+    await renderRouter("./src/app");
+    await act(() => {
+      router.push("/rallies-list");
+    });
+    await screen.findByLabelText("Rallies list");
+
+    const config = headerConfig("");
+    expect(config.backgroundColor).toBe("transparent");
+    expect(config.translucent).toBe(true);
+  });
+});

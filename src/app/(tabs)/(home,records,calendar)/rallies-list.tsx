@@ -11,6 +11,7 @@ export default function RalliesListPage() {
           title: "",
           headerBackButtonDisplayMode: "minimal",
           headerShadowVisible: false,
+          headerTransparent: true,
         }}
       />
       <RalliesListScreen />
