@@ -276,7 +276,7 @@ describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
 });
 
 describe("S-018 T-001 ST-001 bottom tabs", () => {
-  test("switches between home, logs, and calendar tabs", async () => {
+  test("switches between the home and logs tabs", async () => {
     const app = renderRouter("./src/app");
     await app;
 
@@ -292,17 +292,22 @@ describe("S-018 T-001 ST-001 bottom tabs", () => {
     expect(screen.getByLabelText("Logs timeline")).toBeOnTheScreen();
 
     await act(() => {
-      router.push("/calendar");
-    });
-    expect(app.getPathname()).toBe("/calendar");
-    expect(screen.getByRole("heading", { name: "Calendar" })).toBeOnTheScreen();
-
-    await act(() => {
       router.push("/");
     });
     expect(app.getPathname()).toBe("/");
     expect(
       screen.getByRole("link", { name: "Create rally" }),
     ).toBeOnTheScreen();
+  });
+
+  // S-010 ST-007: the calendar lives on Logs, so there is no Calendar tab.
+  test("has only the Home and Logs tabs", async () => {
+    await renderRouter("./src/app");
+    await screen.findByRole("link", { name: "Create rally" });
+
+    const tabs = screen.container
+      .queryAll((instance) => instance.type === "RNSTabsScreenIOS")
+      .map((instance) => instance.props.title);
+    expect(tabs).toEqual(["Home", "Logs"]);
   });
 });

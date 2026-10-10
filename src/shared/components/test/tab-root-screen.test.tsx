@@ -19,21 +19,17 @@ describe("S-029 T-001 ST-006 tab root header", () => {
   }
 
   function expectDateHeader() {
-    expect(largeTitles()).toEqual([
-      "September 20",
-      "September 20",
-      "September 20",
-    ]);
+    expect(largeTitles()).toEqual(["September 20", "September 20"]);
     expect(screen.getAllByText("Sunday")[0]).toHaveProp(
       "className",
       expect.stringContaining("mb-4"),
     );
   }
 
-  test("shows the month and day as the title and today's weekday below it on all three tabs", async () => {
+  test("shows the month and day as the title and today's weekday below it on both tabs", async () => {
     await renderRouter("./src/app");
 
-    expect(await screen.findAllByText("Sunday")).toHaveLength(3);
+    expect(await screen.findAllByText("Sunday")).toHaveLength(2);
     expectDateHeader();
     expect(screen.queryByText(/Hello|Welcome back|Good morning/)).toBeNull();
 
@@ -41,30 +37,24 @@ describe("S-029 T-001 ST-006 tab root header", () => {
       router.push("/records");
     });
     expectDateHeader();
-    expect(screen.getByText("No stamps yet")).toBeOnTheScreen();
-
-    await act(() => {
-      router.push("/calendar");
-    });
-    expectDateHeader();
-    expect(screen.getByRole("heading", { name: "Calendar" })).toBeOnTheScreen();
+    expect(screen.getByLabelText("Logs timeline")).toBeOnTheScreen();
   });
 });
 
 describe("S-033 T-001 ST-001 tab root background", () => {
-  // The scroll view is the tab's whole background.
+  // The scroll view (a FlatList on Logs) is the tab's whole background.
   function tabBackgrounds() {
     return screen.container
       .queryAll((instance) => instance.type === "RCTScrollView")
       .map((instance) => instance.props.className);
   }
 
-  test("paints all three tabs with the canvas color, not the plain background", async () => {
+  test("paints both tabs with the canvas color, not the plain background", async () => {
     await renderRouter("./src/app");
 
     await screen.findAllByText("Sunday");
     const backgrounds = tabBackgrounds();
-    expect(backgrounds).toHaveLength(3);
+    expect(backgrounds).toHaveLength(2);
     for (const className of backgrounds) {
       expect(className).toEqual(expect.stringContaining("bg-canvas"));
       expect(className).not.toEqual(expect.stringContaining("bg-background"));
