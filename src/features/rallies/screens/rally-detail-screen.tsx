@@ -1,16 +1,15 @@
 import { useEffect } from "react";
 
-import { Alert, FlatList, Text, View } from "react-native";
+import { Alert, SectionList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 
 import { LoadError } from "@/shared/components/load-error";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-import {
-  formatStampDay,
-  formatStampTime,
-} from "@/shared/utils/format-stamp-date-time";
+import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
+import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
+import { DaySectionHeading } from "../components/day-section-heading";
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
@@ -38,6 +37,10 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
   );
 }
 
+function PostSeparator() {
+  return <View className="h-5" />;
+}
+
 type RallyDetailScreenProps = {
   rallyId: Rally["id"];
 };
@@ -60,6 +63,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         new Date(),
       )
     : null;
+  const sections = groupByLocalDay(stamps ?? [], (stamp) => stamp.stampedAt);
 
   useEffect(() => {
     if (isRalliesLoaded && !rally) {
@@ -83,19 +87,26 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
 
   return (
     <>
-      <FlatList
+      <SectionList
         aria-label="Rally detail"
         className="bg-canvas flex-1"
-        contentContainerClassName="gap-6 px-5 py-6"
+        contentContainerClassName="px-5 py-6"
         contentInsetAdjustmentBehavior="automatic"
-        data={stamps}
+        sections={sections}
+        stickySectionHeadersEnabled
         keyExtractor={(stamp) => String(stamp.id)}
+        renderSectionHeader={({ section: { dateKey, data } }) => (
+          <DaySectionHeading
+            dateKey={dateKey}
+            date={new Date(data[0].stampedAt)}
+          />
+        )}
+        ItemSeparatorComponent={PostSeparator}
         renderItem={({ item }) => (
           <StampPost
             id={item.id}
             emoji={rally.emoji}
-            title={formatStampDay(new Date(item.stampedAt))}
-            detail={formatStampTime(new Date(item.stampedAt))}
+            title={formatStampTime(new Date(item.stampedAt))}
             memo={item.memo}
             onEdit={(stampId) =>
               push({ pathname: "/edit-stamp", params: { stampId } })
@@ -106,7 +117,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           />
         )}
         ListHeaderComponent={
-          <View className="items-center gap-4">
+          <View className="mb-2 items-center gap-4">
             <View
               testID="rally-top-panel"
               className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"

@@ -70,7 +70,7 @@ export function StampPost({
   );
 
   return (
-    <View className="flex-row items-start gap-3">
+    <View testID={`stamp-row-${id}`} className="flex-row items-start gap-3">
       {onPress ? (
         <Pressable
           testID={`stamp-post-${id}`}

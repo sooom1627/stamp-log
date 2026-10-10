@@ -19,7 +19,8 @@ import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
 
-// The rally detail timeline shows a post's day and time on separate lines.
+// The rally detail timeline shows the day as a section heading and the time
+// on the post.
 // Logs also lists every stamp, so posts are read inside rally detail.
 const rallyDetail = () => within(screen.getByLabelText("Rally detail"));
 
