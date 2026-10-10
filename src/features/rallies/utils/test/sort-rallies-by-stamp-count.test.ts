@@ -6,6 +6,7 @@ const rally = (id: number): Rally => ({
   id,
   name: `Rally ${id}`,
   emoji: "🗼",
+  isFavorite: false,
 });
 
 let nextStampId = 1;

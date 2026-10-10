@@ -73,6 +73,7 @@ describe("S-013 T-001 ST-004 edit rally sheet", () => {
       id: rally.id,
       name: "After rename",
       emoji: "🔬",
+      isFavorite: false,
     });
   });
 

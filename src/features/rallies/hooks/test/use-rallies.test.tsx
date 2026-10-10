@@ -49,6 +49,7 @@ describe("S-013 T-001 ST-003 useUpdateRally", () => {
       id: walk.id,
       name: "Hike",
       emoji: "⛰️",
+      isFavorite: false,
     };
 
     let seen: Rally[] | undefined;

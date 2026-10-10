@@ -38,9 +38,9 @@ describe("S-023 T-001 ST-002 rally emoji", () => {
     `);
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 3, name: "Friends", emoji: "✨" },
-      { id: 2, name: "Cafe", emoji: "✨" },
-      { id: 1, name: "Walk", emoji: "✨" },
+      { id: 3, name: "Friends", emoji: "✨", isFavorite: false },
+      { id: 2, name: "Cafe", emoji: "✨", isFavorite: false },
+      { id: 1, name: "Walk", emoji: "✨", isFavorite: false },
     ]);
   });
 });
@@ -106,7 +106,7 @@ describe("S-013 T-001 ST-002 updateRally", () => {
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
       cafe,
-      { id: walk.id, name: "Long walk", emoji: "🥾" },
+      { id: walk.id, name: "Long walk", emoji: "🥾", isFavorite: false },
     ]);
     await expect(stampsDb.listStamps()).resolves.toEqual(stampsBefore);
   });
@@ -144,7 +144,7 @@ describe("S-040 T-001 ST-003 rallies without type", () => {
       "emoji",
     ]);
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 1, name: "Walk", emoji: "✨" },
+      { id: 1, name: "Walk", emoji: "✨", isFavorite: false },
     ]);
   });
 
@@ -164,8 +164,8 @@ describe("S-040 T-001 ST-003 rallies without type", () => {
     await stampsDb.saveStamp({ rallyId: 1 });
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 2, name: "Cafe", emoji: "☕" },
-      { id: 1, name: "Walk", emoji: "🚶" },
+      { id: 2, name: "Cafe", emoji: "☕", isFavorite: false },
+      { id: 1, name: "Walk", emoji: "🚶", isFavorite: false },
     ]);
     await expect(ralliesColumns(getDb)).resolves.toEqual([
       "id",
