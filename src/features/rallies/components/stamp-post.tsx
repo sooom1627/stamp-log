@@ -16,13 +16,10 @@ import { type Stamp } from "../schemas/stamps";
 type StampPostProps = {
   id: Stamp["id"];
   emoji: string;
-  // Already formatted. The timeline shows the day (title) and the time
-  // (detail); a single day shows the time only.
+  // Already formatted. Logs shows the rally name (title) and the time
+  // (detail); rally screens show the time only.
   title: string;
   detail?: string;
-  // Logs shows posts from every rally, so it names the rally; rally screens
-  // leave it out.
-  rallyName?: string;
   memo: Stamp["memo"];
   // Logs opens the stamp's rally. The … menu sits outside the pressable area
   // so its taps never reach this.
@@ -36,7 +33,6 @@ export function StampPost({
   emoji,
   title,
   detail,
-  rallyName,
   memo,
   onPress,
   onEdit,
@@ -62,11 +58,6 @@ export function StampPost({
             </Text>
           ) : null}
         </View>
-        {rallyName ? (
-          <Text selectable className="text-accent-strong text-sm">
-            {rallyName}
-          </Text>
-        ) : null}
         {memo ? (
           <Text selectable className="text-foreground-secondary text-base">
             {memo}
@@ -79,7 +70,7 @@ export function StampPost({
   );
 
   return (
-    <View className="flex-row items-start gap-3">
+    <View testID={`stamp-row-${id}`} className="flex-row items-start gap-3">
       {onPress ? (
         <Pressable
           testID={`stamp-post-${id}`}

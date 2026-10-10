@@ -83,7 +83,6 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
         formatStampTime(new Date(stampedAt)),
       );
     });
-    expect(logs.getByText(formatStampDay(new Date(newest)))).toBeOnTheScreen();
     expect(
       logs
         .getAllByText(/^(Researchers|Weekend runs)$/)
@@ -103,6 +102,75 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
     expect(logs.getByLabelText("3 stamps in the timeline")).toHaveTextContent(
       "3",
     );
+  });
+});
+
+describe("S-011 RT-001 ST-003 Logs post shape", () => {
+  test("titles each post with the rally name in bold and the time beside it, without the day", async () => {
+    const lab = await saveRallyNamed("Post shape", "🔬");
+    const stampedAt = daysAgoAt(2, 19);
+    const stamp = await saveStamp({ rallyId: lab.id, stampedAt });
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const post = within(logs.getByTestId(`stamp-post-${stamp.id}`));
+    expect(post.getByText("Post shape")).toHaveProp(
+      "className",
+      expect.stringContaining("font-semibold"),
+    );
+    expect(post.getByText(formatStampTime(new Date(stampedAt)))).toHaveProp(
+      "className",
+      expect.stringContaining("text-foreground-muted"),
+    );
+    expect(
+      post.queryByText(formatStampDay(new Date(stampedAt))),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-011 RT-001 ST-007 Logs day cards", () => {
+  test("puts each day's posts on one card under its heading, newest day first", async () => {
+    jest.setSystemTime(new Date(2026, 9, 10, 21));
+    const rally = await saveRallyNamed("Day sections", "📚");
+    const at = (day: number, hour: number) =>
+      new Date(2026, 9, day, hour).toISOString();
+    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([
+      { id: 904, rallyId: rally.id, stampedAt: at(10, 20), memo: null },
+      { id: 903, rallyId: rally.id, stampedAt: at(10, 8), memo: null },
+      { id: 902, rallyId: rally.id, stampedAt: at(9, 19), memo: null },
+      { id: 901, rallyId: rally.id, stampedAt: at(8, 6), memo: null },
+    ]);
+
+    await openLogs();
+
+    const list = await screen.findByLabelText("Logs timeline");
+    // Headings scroll with their cards instead of sticking over the posts.
+    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
+    const logs = within(list);
+    const todayCard = within(logs.getByTestId("day-card-2026-10-10"));
+    expect(todayCard.getByTestId("stamp-post-904")).toBeOnTheScreen();
+    expect(todayCard.getByTestId("stamp-post-903")).toBeOnTheScreen();
+    expect(todayCard.queryByTestId("stamp-post-902")).not.toBeOnTheScreen();
+    expect(
+      within(logs.getByTestId("day-card-2026-10-08")).getByTestId(
+        "stamp-post-901",
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      logs
+        .getAllByRole("heading")
+        .map((heading) => heading.props.children)
+        .filter((title) => title !== "Stamps"),
+    ).toEqual(["Today", "Yesterday", "Thu, Oct 8"]);
+    expect(logs.getByText("Sat, Oct 10")).toBeOnTheScreen();
+    expect(logs.getByText("Fri, Oct 9")).toBeOnTheScreen();
+    expect(
+      within(logs.getByTestId("day-section-2026-10-10")).getByRole("heading"),
+    ).toHaveTextContent("Today");
+    expect(
+      logs.getAllByText(stampTimePattern).map((time) => time.props.children),
+    ).toEqual(["8:00 PM", "8:00 AM", "7:00 PM", "6:00 AM"]);
   });
 });
 

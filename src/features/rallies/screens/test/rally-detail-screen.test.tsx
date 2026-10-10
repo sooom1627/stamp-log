@@ -104,7 +104,8 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
       .filter((stamp) => stamp.rallyId === rally.id)
       .map((stamp) => stamp.stampedAt);
 
-    // S-028: each post shows its day and its time on separate lines.
+    // S-011: the day is a section heading (Today and Yesterday carry it
+    // beside), and each post shows its time.
     // Logs also lists every stamp, so read the posts inside rally detail.
     const detail = within(await screen.findByLabelText("Rally detail"));
     const times = detail.getAllByText(stampDateTimePattern);
@@ -556,8 +557,11 @@ describe("S-028 T-002 ST-003 rally summary", () => {
     const [todayStamp] = (await listStamps()).filter(
       (stamp) => stamp.rallyId === rally.id,
     );
+    // Logs also lists every stamp, so press Delete inside rally detail.
     await fireEvent(
-      screen.getByTestId(`stamp-delete-${todayStamp.id}`),
+      within(screen.getByLabelText("Rally detail")).getByTestId(
+        `stamp-delete-${todayStamp.id}`,
+      ),
       "buttonPress",
     );
     await act(async () => {
@@ -869,7 +873,7 @@ describe("S-028 T-004 ST-006 open a day from the calendar", () => {
 });
 
 describe("S-028 RT-001 ST-003 posts look", () => {
-  test("titles the timeline Stamps and splits each post into a bold day and a light time", async () => {
+  test("titles the timeline Stamps with the count", async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 12));
     await openRallyDetail("Posts look", async (rallyId) => {
       await saveStamp({
@@ -882,18 +886,56 @@ describe("S-028 RT-001 ST-003 posts look", () => {
     const detail = within(await screen.findByLabelText("Rally detail"));
     expect(detail.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
     expect(detail.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
+    expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
+  });
+});
 
-    const day = detail.getByText("Fri, Sep 18");
-    expect(day).toHaveProp(
+describe("S-011 RT-001 ST-007 rally detail day cards", () => {
+  test("puts each day's posts on one card under its heading and titles each post with its time", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    let pastStampId = 0;
+    await openRallyDetail("Day sections", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 19, 8).toISOString(),
+      });
+      const past = await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 18, 19, 2).toISOString(),
+      });
+      pastStampId = past.id;
+    });
+
+    const list = await screen.findByLabelText("Rally detail");
+    // Headings scroll with their cards instead of sticking over the posts.
+    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
+    const detail = within(list);
+    expect(
+      within(detail.getByTestId("day-card-2026-09-18")).getByTestId(
+        `stamp-row-${pastStampId}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(detail.getByTestId("day-card-2026-09-20")).queryByTestId(
+        `stamp-row-${pastStampId}`,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(detail.getByTestId("day-section-2026-09-20")).getByRole("heading"),
+    ).toHaveTextContent("Today");
+    expect(
+      within(detail.getByTestId("day-section-2026-09-19")).getByRole("heading"),
+    ).toHaveTextContent("Yesterday");
+    expect(
+      within(detail.getByTestId("day-section-2026-09-18")).getByRole("heading"),
+    ).toHaveTextContent("Fri, Sep 18");
+
+    const post = within(detail.getByTestId(`stamp-row-${pastStampId}`));
+    expect(post.getByText("7:02 PM")).toHaveProp(
       "className",
       expect.stringContaining("font-semibold"),
     );
-    const time = detail.getByText("7:02 PM");
-    expect(time).toHaveProp(
-      "className",
-      expect.stringContaining("text-foreground-muted"),
-    );
-    expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
+    expect(post.queryByText("Fri, Sep 18")).not.toBeOnTheScreen();
   });
 });
 

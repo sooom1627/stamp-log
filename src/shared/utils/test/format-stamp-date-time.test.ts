@@ -1,4 +1,5 @@
 import {
+  formatDayHeading,
   formatStampDateTime,
   formatStampDay,
   formatStampTime,
@@ -54,5 +55,41 @@ describe("S-028 ST-002 stamp day", () => {
     [new Date(2025, 8, 18, 9, 0), "Thu, Sep 18, 2025"],
   ])("%s -> %s", (date, expected) => {
     expect(formatStampDay(date, now)).toBe(expected);
+  });
+});
+
+describe("S-011 RT-001 ST-002 day heading", () => {
+  const today = new Date(2026, 9, 10, 9);
+
+  test("calls today Today with the date beside it", () => {
+    expect(formatDayHeading(new Date(2026, 9, 10, 23), today)).toEqual({
+      title: "Today",
+      detail: "Sat, Oct 10",
+    });
+  });
+
+  test("calls yesterday Yesterday with the date beside it", () => {
+    expect(formatDayHeading(new Date(2026, 9, 9, 0, 5), today)).toEqual({
+      title: "Yesterday",
+      detail: "Fri, Oct 9",
+    });
+  });
+
+  test("shows an older day as its date only", () => {
+    expect(formatDayHeading(new Date(2026, 9, 8, 12), today)).toEqual({
+      title: "Thu, Oct 8",
+    });
+  });
+
+  test("adds the year for a day from another year", () => {
+    expect(formatDayHeading(new Date(2025, 9, 8, 12), today)).toEqual({
+      title: "Wed, Oct 8, 2025",
+    });
+  });
+
+  test("counts yesterday across a month boundary", () => {
+    expect(
+      formatDayHeading(new Date(2026, 8, 30, 22), new Date(2026, 9, 1, 1)),
+    ).toEqual({ title: "Yesterday", detail: "Wed, Sep 30" });
   });
 });
