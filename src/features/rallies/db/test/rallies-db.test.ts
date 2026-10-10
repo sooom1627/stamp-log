@@ -142,6 +142,7 @@ describe("S-040 T-001 ST-003 rallies without type", () => {
       "id",
       "name",
       "emoji",
+      "is_favorite",
     ]);
     await expect(ralliesDb.listRallies()).resolves.toEqual([
       { id: 1, name: "Walk", emoji: "✨", isFavorite: false },
@@ -171,6 +172,7 @@ describe("S-040 T-001 ST-003 rallies without type", () => {
       "id",
       "name",
       "emoji",
+      "is_favorite",
     ]);
     await expect(stampsDb.listStamps()).resolves.toEqual([
       expect.objectContaining({ rallyId: 1 }),
@@ -178,5 +180,75 @@ describe("S-040 T-001 ST-003 rallies without type", () => {
 
     await ralliesDb.saveRally({ name: "Friends" });
     await expect(ralliesDb.listRallies()).resolves.toHaveLength(3);
+  });
+});
+
+describe("S-032 T-001 ST-003 favorite rallies", () => {
+  test("saves a new rally as not a favorite", async () => {
+    const { ralliesDb } = loadFreshDb();
+
+    await ralliesDb.saveRally({ name: "Walk", emoji: "🚶" });
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 1, name: "Walk", emoji: "🚶", isFavorite: false },
+    ]);
+  });
+
+  test("sets and clears the favorite of one rally", async () => {
+    const { ralliesDb } = loadFreshDb();
+    await ralliesDb.saveRally({ name: "Walk", emoji: "🚶" });
+    await ralliesDb.saveRally({ name: "Cafe", emoji: "☕" });
+
+    await ralliesDb.setRallyFavorite({ id: 1, isFavorite: true });
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 2, name: "Cafe", emoji: "☕", isFavorite: false },
+      { id: 1, name: "Walk", emoji: "🚶", isFavorite: true },
+    ]);
+
+    await ralliesDb.setRallyFavorite({ id: 1, isFavorite: false });
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 2, name: "Cafe", emoji: "☕", isFavorite: false },
+      { id: 1, name: "Walk", emoji: "🚶", isFavorite: false },
+    ]);
+  });
+
+  test("keeps the favorite when the rally is edited", async () => {
+    const { ralliesDb } = loadFreshDb();
+    await ralliesDb.saveRally({ name: "Walk", emoji: "🚶" });
+    await ralliesDb.setRallyFavorite({ id: 1, isFavorite: true });
+
+    await ralliesDb.updateRally({ id: 1, name: "Long walk", emoji: "🥾" });
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 1, name: "Long walk", emoji: "🥾", isFavorite: true },
+    ]);
+  });
+
+  test("adds the favorite column to an older table and reads its rallies as not favorites", async () => {
+    const { getDb, ralliesDb } = loadFreshDb();
+    const db = await getDb();
+    await db.execAsync(`
+      CREATE TABLE rallies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        emoji TEXT NOT NULL
+      );
+      INSERT INTO rallies (name, emoji) VALUES ('Walk', '🚶');
+    `);
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 1, name: "Walk", emoji: "🚶", isFavorite: false },
+    ]);
+    const columns = await db.getAllAsync<{ name: string }>(
+      "PRAGMA table_info(rallies)",
+    );
+    expect(columns.map((column) => column.name)).toContain("is_favorite");
+
+    await ralliesDb.setRallyFavorite({ id: 1, isFavorite: true });
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 1, name: "Walk", emoji: "🚶", isFavorite: true },
+    ]);
   });
 });
