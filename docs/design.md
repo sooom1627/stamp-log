@@ -72,19 +72,20 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 
 ## 画面一覧
 
-| 画面           | ファイル                                                     | 深さ        | Story                                           |
-| -------------- | ------------------------------------------------------------ | ----------- | ----------------------------------------------- |
-| ホーム         | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008, S-029, S-032               |
-| ラリーを作る   | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009, S-040                             |
-| ラリーを編集   | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013, S-040                                    |
-| メモを追加     | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002                                           |
-| 過去のスタンプ | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                                           |
-| スタンプを編集 | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014                                    |
-| ラリー詳細     | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-009, S-013, S-025, S-028, S-032 |
-| ラリーの日     | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028                                           |
-| スタンプ詳細   | [screens/stamp-detail.md](./screens/stamp-detail.md)         | ワイヤー    | S-007                                           |
-| 記録（Logs）   | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010, S-011, S-012                             |
-| Logs の日      | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012                                           |
+| 画面           | ファイル                                                     | 深さ        | Story                                                  |
+| -------------- | ------------------------------------------------------------ | ----------- | ------------------------------------------------------ |
+| ホーム         | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008, S-029, S-032, S-039               |
+| ラリーを作る   | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009, S-040, S-039                             |
+| ラリーを編集   | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013, S-040                                           |
+| メモを追加     | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002                                                  |
+| 過去のスタンプ | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                                                  |
+| スタンプを編集 | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014                                           |
+| ラリー一覧     | [screens/rallies-list.md](./screens/rallies-list.md)         | ワイヤー    | S-039                                                  |
+| ラリー詳細     | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-009, S-013, S-025, S-028, S-032, S-039 |
+| ラリーの日     | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028                                                  |
+| スタンプ詳細   | [screens/stamp-detail.md](./screens/stamp-detail.md)         | ワイヤー    | S-007                                                  |
+| 記録（Logs）   | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010, S-011, S-012                                    |
+| Logs の日      | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012                                                  |
 
 ## ルート案
 
@@ -95,6 +96,7 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 - `/add-past-stamp?rallyId=&date=` — 過去の日にスタンプ（formSheet。`date` は任意）
 - `/rally-day?rallyId=&date=` — ラリーの日（formSheet）
 - `/edit-stamp?stampId=` — スタンプを編集（formSheet）
+- `/rallies-list` — ラリー一覧（ホームのスタック。`View All` から）
 - `/rallies/[id]` — ラリー詳細（ホームのスタック）
 - `/records/rallies/[id]` — ラリー詳細（Logs のスタック。戻ると Logs）
 - `/stamps/[id]` — スタンプ詳細（スタック）
