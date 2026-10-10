@@ -64,7 +64,7 @@ describe("ST-001 create rally entry", () => {
     await user.press(await screen.findByRole("link", { name: "Create rally" }));
 
     expect(
-      await screen.findByPlaceholderText("Enter a place to track"),
+      await screen.findByPlaceholderText("Enter a rally name"),
     ).toBeOnTheScreen();
     // S-028 RT-002 ST-003: the heading lives in the sheet, not a native header.
     const sheet = screen.getByTestId("create-rally-form");

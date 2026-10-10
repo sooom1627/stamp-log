@@ -5,6 +5,7 @@ import {
   fireEvent,
   screen,
   userEvent,
+  within,
 } from "@testing-library/react-native";
 
 import * as ralliesDb from "../../db/rallies-db";
@@ -29,24 +30,20 @@ describe("S-024 T-001 ST-001 fit form sheet", () => {
 });
 
 describe("S-002 T-002 RT-003 ST-002 save rally", () => {
-  test("saves name, type, and chosen emoji and shows emoji on home", async () => {
+  test("saves name and chosen emoji and shows emoji on home", async () => {
     await renderRouter("./src/app");
 
     const user = userEvent.setup();
     await user.press(await screen.findByRole("link", { name: "Create rally" }));
 
     await user.type(
-      await screen.findByPlaceholderText("Enter a place to track"),
+      await screen.findByPlaceholderText("Enter a rally name"),
       "Kyoto trip",
     );
-    await user.press(screen.getByRole("radio", { name: "Person" }));
 
     expect(screen.getByDisplayValue("Kyoto trip")).toBeOnTheScreen();
-    expect(
-      screen.getByPlaceholderText("Enter a person to track"),
-    ).toBeOnTheScreen();
     await user.press(
-      screen.getByRole("button", { name: "Select emoji (currently 😀)" }),
+      screen.getByRole("button", { name: "Select emoji (currently ✨)" }),
     );
     expect(screen.getByTestId("emoji-picker")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Select 🔬" }));
@@ -55,29 +52,6 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
 
     expect(await screen.findByText("Kyoto trip")).toBeOnTheScreen();
     expect(screen.getByText("🔬")).toBeOnTheScreen();
-    expect(screen.queryByText("Person")).toBeNull();
-    expect(screen.queryByLabelText("Person")).toBeNull();
-  });
-
-  test("follows type default emoji until customized, then keeps custom emoji", async () => {
-    await renderRouter("./src/app", { initialUrl: "/create-rally" });
-    const user = userEvent.setup();
-
-    expect(
-      await screen.findByRole("button", {
-        name: "Select emoji (currently 🏠)",
-      }),
-    ).toBeOnTheScreen();
-
-    await user.press(screen.getByRole("radio", { name: "Person" }));
-    await user.press(
-      screen.getByRole("button", { name: "Select emoji (currently 😀)" }),
-    );
-    await user.press(screen.getByRole("button", { name: "Select 🎯" }));
-    await user.press(screen.getByRole("radio", { name: "Action" }));
-    expect(
-      screen.getByRole("button", { name: "Select emoji (currently 🎯)" }),
-    ).toBeOnTheScreen();
   });
 
   test("hides color selector and closes picker when name field is focused", async () => {
@@ -86,7 +60,7 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
 
     await user.press(
       await screen.findByRole("button", {
-        name: "Select emoji (currently 🏠)",
+        name: "Select emoji (currently ✨)",
       }),
     );
     expect(screen.getByTestId("emoji-picker")).toBeOnTheScreen();
@@ -103,10 +77,10 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
     const user = userEvent.setup();
     await user.press(await screen.findByRole("link", { name: "Create rally" }));
 
-    expect(await screen.findByText("Type")).toBeOnTheScreen();
+    expect(await screen.findByText("Emoji")).toBeOnTheScreen();
     expect(screen.getByText("Name")).toBeOnTheScreen();
 
-    const nameInput = screen.getByPlaceholderText("Enter a place to track");
+    const nameInput = screen.getByPlaceholderText("Enter a rally name");
     await user.type(nameInput, "Kamakura temples");
     await act(async () => {
       fireEvent(nameInput, "submitEditing");
@@ -123,13 +97,45 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
 
     const user = userEvent.setup();
     await user.type(
-      await screen.findByPlaceholderText("Enter a place to track"),
+      await screen.findByPlaceholderText("Enter a rally name"),
       "Saving rally",
     );
     await user.press(screen.getByRole("button", { name: "Save" }));
 
     expect(await screen.findByText("Saving…")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+  });
+});
+
+describe("S-040 T-001 ST-002 create rally without type", () => {
+  test("shows no type choice and starts with the default emoji", async () => {
+    await renderRouter("./src/app", { initialUrl: "/create-rally" });
+
+    expect(
+      await screen.findByRole("button", {
+        name: "Select emoji (currently ✨)",
+      }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText("Type")).toBeNull();
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+  });
+
+  test("saves a rally with only a name and shows it with the default emoji on home", async () => {
+    await renderRouter("./src/app");
+    const user = userEvent.setup();
+    await user.press(await screen.findByRole("link", { name: "Create rally" }));
+
+    await user.type(
+      await screen.findByPlaceholderText("Enter a rally name"),
+      "Morning walks",
+    );
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    const tile = (await screen.findAllByTestId("rally-tile")).find(
+      (candidate) => within(candidate).queryByText("Morning walks"),
+    );
+    if (!tile) throw new Error("Morning walks tile not found");
+    expect(within(tile).getByText("✨")).toBeOnTheScreen();
   });
 });
 
@@ -144,7 +150,7 @@ describe("S-002 T-002 RT-003 ST-002 name required", () => {
     await renderRouter("./src/app", { initialUrl: "/create-rally" });
     const user = userEvent.setup();
     await user.type(
-      await screen.findByPlaceholderText("Enter a place to track"),
+      await screen.findByPlaceholderText("Enter a rally name"),
       "   ",
     );
 

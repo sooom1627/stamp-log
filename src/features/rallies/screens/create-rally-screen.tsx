@@ -16,28 +16,15 @@ import {
   FormTextInput,
 } from "@/shared/components/form-sheet";
 
-import { RallyTypeRadios } from "../components/rally-type-radios";
 import { useSaveRally } from "../hooks/use-rallies";
 import {
+  defaultRallyEmoji,
   rallyEmojiSchema,
   rallyNameSchema,
-  rallyTypeEmojis,
-  rallyTypeSchema,
-  type RallyType,
 } from "../schemas/rallies";
 
-const rallyNamePlaceholders: Record<RallyType, string> = {
-  place: "Enter a place to track",
-  action: "Enter an action to track",
-  person: "Enter a person to track",
-};
-
 export function CreateRallyScreen() {
-  const [selectedType, setSelectedType] = useState<RallyType>(
-    rallyTypeSchema.options[0],
-  );
-  const [emoji, setEmoji] = useState(rallyTypeEmojis[selectedType]);
-  const [isEmojiCustomized, setIsEmojiCustomized] = useState(false);
+  const [emoji, setEmoji] = useState(defaultRallyEmoji);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [name, setName] = useState("");
   const { back } = useRouter();
@@ -47,30 +34,20 @@ export function CreateRallyScreen() {
   const isEmojiValid = rallyEmojiSchema.safeParse(emoji).success;
   const canSave = isNameValid && isEmojiValid && !isSaving;
 
-  const handleTypeChange = (type: RallyType) => {
-    setSelectedType(type);
-    if (!isEmojiCustomized) setEmoji(rallyTypeEmojis[type]);
-  };
-
   const handleEmojiSelect = (selectedEmoji: EmojiType) => {
     setEmoji(selectedEmoji.emoji);
-    setIsEmojiCustomized(true);
     setIsEmojiPickerOpen(false);
   };
 
   const handleSave = () => {
     if (!canSave) return;
 
-    saveRally({ name, type: selectedType, emoji }, { onSuccess: back });
+    saveRally({ name, type: "place", emoji }, { onSuccess: back });
   };
 
   return (
     <FormSheetLayout testID="create-rally-form" title="Create rally">
       <View className="gap-6">
-        <FormField label="Type">
-          <RallyTypeRadios value={selectedType} onChange={handleTypeChange} />
-        </FormField>
-
         <FormField label="Emoji">
           <Pressable
             role="button"
@@ -103,7 +80,7 @@ export function CreateRallyScreen() {
             onChangeText={setName}
             onFocus={() => setIsEmojiPickerOpen(false)}
             onSubmitEditing={handleSave}
-            placeholder={rallyNamePlaceholders[selectedType]}
+            placeholder="Enter a rally name"
             aria-label="Name"
             returnKeyType="done"
             submitBehavior="blurAndSubmit"

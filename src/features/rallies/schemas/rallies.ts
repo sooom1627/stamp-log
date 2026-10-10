@@ -28,6 +28,8 @@ export const rallyTypeLabels: Record<RallyType, string> = {
   person: "Person",
 };
 
+export const defaultRallyEmoji = "✨";
+
 export const rallyTypeEmojis: Record<RallyType, string> = {
   place: "🏠",
   action: "👏",
