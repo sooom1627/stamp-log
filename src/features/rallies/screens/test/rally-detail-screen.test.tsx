@@ -456,7 +456,7 @@ describe("S-028 T-001 ST-003 delete rally from the actions menu", () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       "Delete rally?",
-      "This action cannot be undone.",
+      expect.stringContaining("This action cannot be undone."),
       expect.any(Array),
     );
     await act(async () => {
@@ -504,6 +504,110 @@ describe("S-028 T-001 ST-003 delete rally from the actions menu", () => {
       );
     });
     expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
+  });
+});
+
+describe("S-017 T-001 ST-003 confirm names the stamps deleted with the rally", () => {
+  async function pressDelete() {
+    await fireEvent(
+      await screen.findByTestId("rally-action-delete"),
+      "buttonPress",
+    );
+  }
+
+  async function openEmptyRally(name: string) {
+    await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+    const [rally] = await ralliesDb.listRallies();
+    await renderRouter("./src/app");
+    expect(
+      await screen.findByRole("button", { name: `View ${name} details` }),
+    ).toBeOnTheScreen();
+    await act(() => {
+      router.push(`/rallies/${rally.id}`);
+    });
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+    return rally;
+  }
+
+  test("only warns that it cannot be undone when the rally has no stamps", async () => {
+    const rally = await openEmptyRally("Delete empty");
+    expect(await screen.findByText("No stamps yet")).toBeOnTheScreen();
+
+    await pressDelete();
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete rally?",
+      "This action cannot be undone.",
+      expect.any(Array),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
+    });
+    expect(
+      (await ralliesDb.listRallies()).some(
+        (candidate) => candidate.id === rally.id,
+      ),
+    ).toBe(false);
+  });
+
+  test("says its one stamp will also be deleted", async () => {
+    await openRallyDetail("Delete one stamp");
+    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+
+    await pressDelete();
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete rally?",
+      "Its 1 stamp will also be deleted. This action cannot be undone.",
+      expect.any(Array),
+    );
+  });
+
+  test("says how many stamps will also be deleted and deletes them with the rally", async () => {
+    const { rally } = await openRallyDetail(
+      "Delete three stamps",
+      async (id) => {
+        await saveStamp({ rallyId: id });
+        await saveStamp({ rallyId: id });
+      },
+    );
+    expect(await screen.findByText("3 stamps")).toBeOnTheScreen();
+
+    await pressDelete();
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete rally?",
+      "Its 3 stamps will also be deleted. This action cannot be undone.",
+      expect.any(Array),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
+    });
+    expect(
+      (await listStamps()).filter((stamp) => stamp.rallyId === rally.id),
+    ).toHaveLength(0);
+  });
+
+  test("still says its stamps will be deleted when they could not be loaded", async () => {
+    jest
+      .spyOn(stampsDb, "listStamps")
+      .mockRejectedValue(new Error("disk full"));
+    await openEmptyRally("Delete unknown stamps");
+    expect(await screen.findByText("Couldn't load")).toBeOnTheScreen();
+
+    await pressDelete();
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete rally?",
+      "Its stamps will also be deleted. This action cannot be undone.",
+      expect.any(Array),
+    );
   });
 });
 
