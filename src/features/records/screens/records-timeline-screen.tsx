@@ -1,8 +1,11 @@
 import { FlatList, Text, View } from "react-native";
 
+import { useRouter } from "expo-router";
+
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
-import { useStamps } from "@/features/rallies/hooks/use-stamps";
+import { useDeleteStamp, useStamps } from "@/features/rallies/hooks/use-stamps";
+import { confirmDeleteStamp } from "@/features/rallies/utils/confirm-delete-stamp";
 import { LoadError } from "@/shared/components/load-error";
 import {
   TabRootHeader,
@@ -32,6 +35,7 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
 }
 
 export function RecordsTimelineScreen() {
+  const { push } = useRouter();
   const {
     data: stamps,
     isError: isStampsError,
@@ -42,6 +46,7 @@ export function RecordsTimelineScreen() {
     isError: isRalliesError,
     refetch: refetchRallies,
   } = useRallies();
+  const { mutate: deleteStamp } = useDeleteStamp();
   const isLoaded = stamps !== undefined && rallies !== undefined;
   const isError = isStampsError || isRalliesError;
   // A stamp is shown once its rally is loaded, so every post has its name.
@@ -71,9 +76,12 @@ export function RecordsTimelineScreen() {
             detail={formatStampTime(new Date(stamp.stampedAt))}
             rallyName={rally.name}
             memo={stamp.memo}
-            // ST-005 wires Edit / Delete.
-            onEdit={() => {}}
-            onDelete={() => {}}
+            onEdit={(stampId) =>
+              push({ pathname: "/edit-stamp", params: { stampId } })
+            }
+            onDelete={(stampId) =>
+              confirmDeleteStamp(() => deleteStamp(stampId))
+            }
           />
         )}
         ListHeaderComponent={

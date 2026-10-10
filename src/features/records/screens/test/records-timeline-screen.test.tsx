@@ -1,12 +1,25 @@
+import { Alert, type AlertButton } from "react-native";
+
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, screen, userEvent, within } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 
 import * as ralliesDb from "@/features/rallies/db/rallies-db";
 import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
 import * as stampsDb from "@/features/rallies/db/stamps-db";
-import { saveStamp, updateStampMemo } from "@/features/rallies/db/stamps-db";
+import {
+  listStamps,
+  saveStamp,
+  updateStampMemo,
+} from "@/features/rallies/db/stamps-db";
 import {
   formatStampDay,
   formatStampTime,
@@ -154,6 +167,77 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
 
     expect(await logs.findByText("Retry rally")).toBeOnTheScreen();
     expect(logs.queryByText("Couldn't load")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-010 T-001 ST-005 Logs edit and delete", () => {
+  function findAlertButton(style: AlertButton["style"]): AlertButton {
+    const buttons = jest.mocked(Alert.alert).mock.calls.at(-1)?.[2] ?? [];
+    const button = buttons.find((candidate) => candidate.style === style);
+    if (!button) throw new Error(`Alert button with style ${style} not found`);
+    return button;
+  }
+
+  async function openLogsWithStamp(name: string) {
+    const rally = await saveRallyNamed(name, "🧭");
+    const stamp = await saveStamp({ rallyId: rally.id });
+    await updateStampMemo({ id: stamp.id, memo: `${name} memo` });
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(await logs.findByText(`${name} memo`)).toBeOnTheScreen();
+    return { stamp, logs };
+  }
+
+  test("opens Edit stamp from the post menu", async () => {
+    const { stamp, logs } = await openLogsWithStamp("Edit from Logs");
+
+    await fireEvent(logs.getByTestId(`stamp-edit-${stamp.id}`), "buttonPress");
+
+    expect(await screen.findByTestId("edit-stamp-form")).toBeOnTheScreen();
+    expect(screen.getByDisplayValue("Edit from Logs memo")).toBeOnTheScreen();
+  });
+
+  test("deletes the stamp after confirmation and removes the post", async () => {
+    jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const { stamp, logs } = await openLogsWithStamp("Delete from Logs");
+
+    await fireEvent(
+      logs.getByTestId(`stamp-delete-${stamp.id}`),
+      "buttonPress",
+    );
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Delete stamp?",
+      "This action cannot be undone.",
+      expect.any(Array),
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+
+    await waitFor(() => {
+      expect(logs.queryByText("Delete from Logs memo")).not.toBeOnTheScreen();
+    });
+    expect(
+      (await listStamps()).some((candidate) => candidate.id === stamp.id),
+    ).toBe(false);
+  });
+
+  test("keeps the stamp when the deletion is cancelled", async () => {
+    jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const { stamp, logs } = await openLogsWithStamp("Cancel from Logs");
+
+    await fireEvent(
+      logs.getByTestId(`stamp-delete-${stamp.id}`),
+      "buttonPress",
+    );
+    await act(async () => {
+      findAlertButton("cancel").onPress?.();
+    });
+
+    expect(logs.getByText("Cancel from Logs memo")).toBeOnTheScreen();
+    expect(
+      (await listStamps()).some((candidate) => candidate.id === stamp.id),
+    ).toBe(true);
   });
 });
 
