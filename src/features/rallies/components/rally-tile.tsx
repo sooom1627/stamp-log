@@ -11,7 +11,8 @@ type RallyTileProps = {
   isFavorite?: boolean;
   stampDates: string[];
   width?: number;
-  onPressStamp: () => void;
+  // Without it, the tile has no stamp button.
+  onPressStamp?: () => void;
   onPressDetail: () => void;
 };
 
@@ -53,30 +54,36 @@ export function RallyTile({
             </View>
           ) : null}
         </View>
-        <Pressable
-          role="button"
-          aria-label={
-            isStampedToday
-              ? `${name} already stamped today`
-              : `Stamp ${name} for today`
-          }
-          aria-disabled={isStampedToday}
-          disabled={isStampedToday}
-          // 32px visually; the hit area stays 44px.
-          hitSlop={6}
-          className={
-            isStampedToday
-              ? "bg-accent size-8 items-center justify-center rounded-full"
-              : "border-accent size-8 items-center justify-center rounded-full border-[1.5px] active:opacity-70"
-          }
-          onPress={onPressStamp}
-        >
-          {isStampedToday ? (
-            <Check colorClassName="accent-white" size={16} strokeWidth={3} />
-          ) : (
-            <Plus colorClassName="accent-accent" size={16} strokeWidth={2.5} />
-          )}
-        </Pressable>
+        {onPressStamp ? (
+          <Pressable
+            role="button"
+            aria-label={
+              isStampedToday
+                ? `${name} already stamped today`
+                : `Stamp ${name} for today`
+            }
+            aria-disabled={isStampedToday}
+            disabled={isStampedToday}
+            // 32px visually; the hit area stays 44px.
+            hitSlop={6}
+            className={
+              isStampedToday
+                ? "bg-accent size-8 items-center justify-center rounded-full"
+                : "border-accent size-8 items-center justify-center rounded-full border-[1.5px] active:opacity-70"
+            }
+            onPress={onPressStamp}
+          >
+            {isStampedToday ? (
+              <Check colorClassName="accent-white" size={16} strokeWidth={3} />
+            ) : (
+              <Plus
+                colorClassName="accent-accent"
+                size={16}
+                strokeWidth={2.5}
+              />
+            )}
+          </Pressable>
+        ) : null}
       </View>
       <Pressable
         role="button"
