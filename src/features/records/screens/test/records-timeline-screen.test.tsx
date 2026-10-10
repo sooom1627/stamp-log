@@ -24,6 +24,7 @@ import {
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
+import { localDateKey } from "@/shared/utils/local-date-key";
 
 jest.useFakeTimers();
 
@@ -89,9 +90,13 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
         .map((name) => name.props.children),
     ).toEqual(["Researchers", "Weekend runs", "Researchers"]);
     // The emoji icon is decorative (aria-hidden); the rally name is read out.
+    // Read it per post, since the calendar shows emojis too.
     const hidden = { includeHiddenElements: true };
-    expect(logs.getAllByText("🔬", hidden)).toHaveLength(2);
-    expect(logs.getAllByText("🏃", hidden)).toHaveLength(1);
+    expect(
+      logs
+        .getAllByTestId(/^stamp-post-/)
+        .map((post) => within(post).getByText(/🔬|🏃/, hidden).props.children),
+    ).toEqual(["🔬", "🏃", "🔬"]);
     expect(logs.getByText("Talked at the lab")).toBeOnTheScreen();
     expect(logs.getAllByText("no memo")).toHaveLength(2);
     expect(logs.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
@@ -281,6 +286,63 @@ describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
 
     expect(await screen.findByTestId("edit-stamp-form")).toBeOnTheScreen();
     expect(app.getPathname()).toBe("/edit-stamp");
+  });
+});
+
+describe("S-011 T-001 ST-003 Logs calendar", () => {
+  async function openLogsCalendar() {
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    return { logs, calendar: within(logs.getByTestId("logs-calendar")) };
+  }
+
+  test("opens on this week and marks stamped days with the last rally's emoji and +N", async () => {
+    const cafes = await saveRallyNamed("Calendar cafes", "🧋");
+    const runs = await saveRallyNamed("Calendar runs", "🛼");
+    // Stamped now, so today (always in the week shown first) ends on cafes.
+    await saveStamp({ rallyId: runs.id });
+    await saveStamp({ rallyId: cafes.id });
+
+    const { calendar } = await openLogsCalendar();
+
+    const todayKey = localDateKey(new Date());
+    const today = calendar.getByTestId(`calendar-day-${todayKey}`);
+    const hidden = { includeHiddenElements: true };
+    expect(within(today).getByText("🧋")).toBeOnTheScreen();
+    expect(within(today).getByText(/^\+\d+$/, hidden)).toBeOnTheScreen();
+    expect(
+      calendar.getAllByRole("button", { name: /, 20\d\d, / }),
+    ).toHaveLength(7);
+    expect(
+      calendar.getByRole("button", { name: "Show month" }),
+    ).toBeOnTheScreen();
+  });
+
+  test("does not change the list when the calendar moves", async () => {
+    const rally = await saveRallyNamed("Calendar list", "🪁");
+    await saveStamp({ rallyId: rally.id });
+    const { logs, calendar } = await openLogsCalendar();
+    const firstPost = () => logs.getAllByText(stampTimePattern)[0];
+    const before = firstPost().props.children;
+    const user = userEvent.setup();
+
+    await user.press(calendar.getByRole("button", { name: "Previous week" }));
+    await user.press(calendar.getByRole("button", { name: "Show month" }));
+    await user.press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(firstPost().props.children).toEqual(before);
+    expect(logs.getByText("Calendar list")).toBeOnTheScreen();
+  });
+
+  test("cannot press a day yet", async () => {
+    const rally = await saveRallyNamed("Calendar press", "🪀");
+    await saveStamp({ rallyId: rally.id });
+    const { calendar } = await openLogsCalendar();
+
+    const days = calendar.getAllByRole("button", { name: /, 20\d\d, / });
+    for (const day of days) {
+      expect(day).toBeDisabled();
+    }
   });
 });
 
