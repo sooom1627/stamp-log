@@ -12,15 +12,17 @@
 - S-025 過去の日付にスタンプを押す
 - S-028 ラリー詳細を見やすく、操作しやすくする
 - S-032 よく押すラリーをお気に入りにして、ホームの先頭に置く
+- S-039 ラリーを一覧で見渡し、使わないラリーをアーカイブして Home から外す
 
 ## 入りと出
 
-- 入り: ホームのラリー行タップ（`/rallies/[id]`）。Logs の投稿タップ（`/records/rallies/[id]`。Logs のスタックに積む）
+- 入り: ホームのラリー行タップ、[rallies-list.md](./rallies-list.md) のタイルの名称タップ（`/rallies/[id]`）。Logs の投稿タップ（`/records/rallies/[id]`。Logs のスタックに積む）
 - 出:
   - 戻る → 元のタブ
   - 右上の星 → その場でお気に入りを付け外しし、この画面に留まる（[お気に入り](#お気に入り)）
   - 右上の「…」→「Past stamp」→ [add-past-stamp.md](./add-past-stamp.md)（formSheet）
   - 右上の「…」→「Edit rally」→ [edit-rally.md](./edit-rally.md)（formSheet）
+  - 右上の「…」→「Archive rally」（アーカイブ中は「Unarchive rally」）→ その場で切り替え、この画面に留まる（[Archive rally](#archive-rally)）
   - 右上の「…」→「Delete rally」→ 確認ダイアログ → 削除して元のタブへ戻る（[Delete rally](#delete-rally)）
   - カレンダーの今日以前の日付 → [rally-day.md](./rally-day.md)（formSheet）
   - カレンダーの月見出し → 年月 Picker
@@ -36,7 +38,7 @@
 目標:
 
 ```
-‹ Home                        (☆ …)  ← 星でお気に入り。… は Past stamp / Edit rally / Delete rally
+‹ Home                        (☆ …)  ← 星でお気に入り。… は Past stamp / Edit rally / Archive rally / Delete rally
 
 ┌──────────────────────────────────┐
 │               🗼                 │  ← 淡いアクセントの面
@@ -72,7 +74,7 @@ Sun, Sep 13
 ```
 
 - 上から Top（サマリ）、カレンダー、タイムライン。切替は置かず、同じスクロールに並べる
-- 画面下のボタンは置かない。ラリーへの操作は右上に置く。お気に入りは「…」の左の星ボタン、それ以外は「…」のネイティブメニューに `Past stamp / Edit rally / Delete rally` の順に並べる。Delete rally は destructive 表示
+- 画面下のボタンは置かない。ラリーへの操作は右上に置く。お気に入りは「…」の左の星ボタン、それ以外は「…」のネイティブメニューに `Past stamp / Edit rally / Archive rally（アーカイブ中は Unarchive rally）/ Delete rally` の順に並べる。Delete rally は destructive 表示
 - Top: 絵文字、名称、収集数（目標ありなら `現在 / 目標`）、サマリ 3 項目
   - 最初のスタンプ日
   - 1 週あたりの平均数 = 収集数 ÷ 最初のスタンプの日から今日までの週数（週数は最低 1、小数第 1 位まで）
@@ -100,6 +102,14 @@ Sun, Sep 13
 - お気に入りでないときは線の星（`star`）、お気に入りのときは塗りの星（`star.fill`）をアクセント色で出す。読み上げは `Add to favorites` / `Remove from favorites`
 - 押すとその場で保存し、確認は出さない。画面に留まる。ホームのタイルの並びと印は、ホームに戻ったときに変わる（[home.md](./home.md)）
 - お気に入りの数に上限は無い
+
+### Archive rally
+
+- アーカイブしたラリーはホームのタイルと [rallies-list.md](./rallies-list.md) の `All` / `Favorites` から外れ、`Archived` に出る。削除ではなく、スタンプ・お気に入りの印はそのまま残る
+- 「…」の `Archive rally` を押すとその場で保存し、確認は出さない（戻せる操作のため）。画面に留まる。destructive 表示にしない
+- アーカイブ中は名称の下に小さく `Archived` を出し、「…」の項目は `Unarchive rally` になる。押すとその場で解除する
+- アーカイブ中でも、この画面の操作（お気に入り、Past stamp、Edit rally、Delete rally、カレンダー、投稿の編集・削除）はそのまま使える
+- アーカイブしたラリーのスタンプは Logs（[records-timeline.md](./records-timeline.md)）とホームの今日のカードにそのまま出る
 
 ### Delete rally
 

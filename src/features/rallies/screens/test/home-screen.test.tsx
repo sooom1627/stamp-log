@@ -89,8 +89,8 @@ describe("S-022 section heading", () => {
 
     await user.press(screen.getByRole("link", { name: "View All" }));
 
-    expect(await screen.findByLabelText("Rallies list")).toBeOnTheScreen();
-    expect(screen.queryByText("View All check")).not.toBeOnTheScreen();
+    const list = await screen.findByLabelText("Rallies list");
+    expect(within(list).getByText("View All check")).toBeOnTheScreen();
   });
 });
 

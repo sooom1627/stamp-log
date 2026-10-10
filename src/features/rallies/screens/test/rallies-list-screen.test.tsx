@@ -1,0 +1,181 @@
+import { renderRouter } from "expo-router/testing-library";
+
+import {
+  fireEvent,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
+
+import * as ralliesDb from "../../db/rallies-db";
+import * as stampsDb from "../../db/stamps-db";
+
+jest.useFakeTimers();
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
+const daysAgo = (days: number) =>
+  new Date(2026, 8, 20 - days, 12).toISOString();
+
+// Tests in this file share one in-memory database.
+async function deleteAllRallies() {
+  for (const rally of await ralliesDb.listRallies()) {
+    await ralliesDb.deleteRally(rally.id);
+  }
+}
+
+async function saveRallyWithStamps(
+  name: string,
+  stampCount: number,
+  isFavorite = false,
+) {
+  await ralliesDb.saveRally({ name });
+  const rally = (await ralliesDb.listRallies()).find(
+    (saved) => saved.name === name,
+  );
+  if (!rally) throw new Error(`rally ${name} not saved`);
+  for (let index = 0; index < stampCount; index += 1) {
+    await stampsDb.saveStamp({
+      rallyId: rally.id,
+      stampedAt: daysAgo(index + 1),
+    });
+  }
+  if (isFavorite) {
+    await ralliesDb.setRallyFavorite({ id: rally.id, isFavorite: true });
+  }
+  return rally;
+}
+
+function ralliesList() {
+  return within(screen.getByLabelText("Rallies list"));
+}
+
+function tileNames() {
+  return ralliesList()
+    .queryAllByRole("button", { name: /^View .* details$/ })
+    .map((tile) => tile.props.accessibilityLabel);
+}
+
+async function openRalliesList() {
+  await renderRouter("./src/app", { initialUrl: "/rallies-list" });
+  expect(await screen.findByLabelText("Rallies list")).toBeOnTheScreen();
+  return userEvent.setup();
+}
+
+describe("S-039 T-001 ST-002 rallies list", () => {
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    await deleteAllRallies();
+  });
+
+  test("shows every rally under All in the home order", async () => {
+    await saveRallyWithStamps("Few favorite", 1, true);
+    await saveRallyWithStamps("Many stamps", 3);
+    await saveRallyWithStamps("No stamps", 0);
+
+    await openRalliesList();
+
+    await waitFor(() => {
+      expect(tileNames()).toEqual([
+        "View Few favorite details",
+        "View Many stamps details",
+        "View No stamps details",
+      ]);
+    });
+    expect(
+      ralliesList().getByRole("heading", { name: "Your Days" }),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId("rallies-list-filter")).toHaveProp(
+      "selection",
+      "all",
+    );
+  });
+
+  test("shows only favorites under Favorites", async () => {
+    await saveRallyWithStamps("Loved", 1, true);
+    await saveRallyWithStamps("Plain", 3);
+
+    await openRalliesList();
+    await waitFor(() => {
+      expect(tileNames()).toHaveLength(2);
+    });
+
+    await fireEvent(
+      screen.getByTestId("rallies-list-filter"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: "favorites" },
+      },
+    );
+
+    await waitFor(() => {
+      expect(tileNames()).toEqual(["View Loved details"]);
+    });
+  });
+
+  test("says there are no favorites yet when none are set", async () => {
+    await saveRallyWithStamps("Plain", 1);
+
+    await openRalliesList();
+    await waitFor(() => {
+      expect(tileNames()).toHaveLength(1);
+    });
+
+    await fireEvent(
+      screen.getByTestId("rallies-list-filter"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: "favorites" },
+      },
+    );
+
+    expect(
+      await ralliesList().findByText("No favorites yet"),
+    ).toBeOnTheScreen();
+    expect(tileNames()).toEqual([]);
+  });
+
+  test("stamps today from a tile", async () => {
+    await saveRallyWithStamps("Morning run", 0);
+
+    const user = await openRalliesList();
+    await user.press(
+      await ralliesList().findByRole("button", {
+        name: "Stamp Morning run for today",
+      }),
+    );
+
+    expect(
+      await ralliesList().findByRole("button", {
+        name: "Morning run already stamped today",
+      }),
+    ).toBeOnTheScreen();
+    expect(ralliesList().getByText("1 stamp")).toBeOnTheScreen();
+  });
+
+  test("opens rally detail from a tile name", async () => {
+    await saveRallyWithStamps("Tokyo towers", 0);
+
+    const user = await openRalliesList();
+    await user.press(
+      await ralliesList().findByRole("button", {
+        name: "View Tokyo towers details",
+      }),
+    );
+
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+  });
+
+  test("opens rally creation from the header plus", async () => {
+    await openRalliesList();
+
+    await fireEvent(screen.getByTestId("rallies-list-create"), "buttonPress");
+
+    expect(
+      await screen.findByPlaceholderText("Enter a rally name"),
+    ).toBeOnTheScreen();
+  });
+});
