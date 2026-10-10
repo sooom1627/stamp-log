@@ -6,10 +6,12 @@ import {
   defaultRallyEmoji,
   rallySchema,
   saveRallyInputSchema,
+  setRallyArchivedInputSchema,
   setRallyFavoriteInputSchema,
   updateRallyInputSchema,
   type Rally,
   type SaveRallyInput,
+  type SetRallyArchivedInput,
   type SetRallyFavoriteInput,
   type UpdateRallyInput,
 } from "../schemas/rallies";
@@ -24,7 +26,8 @@ async function ensureRallies(db: SQLiteDatabase) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       emoji TEXT NOT NULL,
-      is_favorite INTEGER NOT NULL DEFAULT 0
+      is_favorite INTEGER NOT NULL DEFAULT 0,
+      is_archived INTEGER NOT NULL DEFAULT 0
     );
   `);
 
@@ -35,6 +38,12 @@ async function ensureRallies(db: SQLiteDatabase) {
   if (columns.length > 0 && !columns.includes("is_favorite")) {
     await db.execAsync(
       "ALTER TABLE rallies ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0",
+    );
+  }
+
+  if (columns.length > 0 && !columns.includes("is_archived")) {
+    await db.execAsync(
+      "ALTER TABLE rallies ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0",
     );
   }
 
@@ -98,6 +107,18 @@ export async function setRallyFavorite(
   );
 }
 
+export async function setRallyArchived(
+  input: SetRallyArchivedInput,
+): Promise<void> {
+  const { id, isArchived } = setRallyArchivedInputSchema.parse(input);
+  const db = await withRalliesDb();
+  await db.runAsync(
+    "UPDATE rallies SET is_archived = ? WHERE id = ?",
+    isArchived ? 1 : 0,
+    id,
+  );
+}
+
 export async function deleteRally(id: Rally["id"]): Promise<void> {
   const db = await withRalliesDb();
   await withStampsDb();
@@ -115,10 +136,15 @@ export async function listRallies(): Promise<Rally[]> {
     name: string;
     emoji: string;
     isFavorite: number;
+    isArchived: number;
   }>(
-    "SELECT id, name, emoji, is_favorite AS isFavorite FROM rallies ORDER BY id DESC",
+    "SELECT id, name, emoji, is_favorite AS isFavorite, is_archived AS isArchived FROM rallies ORDER BY id DESC",
   );
   return rows.map((row) =>
-    rallySchema.parse({ ...row, isFavorite: row.isFavorite === 1 }),
+    rallySchema.parse({
+      ...row,
+      isFavorite: row.isFavorite === 1,
+      isArchived: row.isArchived === 1,
+    }),
   );
 }
