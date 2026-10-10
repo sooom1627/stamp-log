@@ -14,7 +14,7 @@ import { TodayCard } from "../components/today-card";
 import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
-import { sortRalliesByStampCount } from "../utils/sort-rallies-by-stamp-count";
+import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 
 // Matches the tab root's px-5 and the grid's gap-2.5.
@@ -55,7 +55,7 @@ export function HomeScreen() {
     setOrderStamps(stamps);
   }
   const orderedRallies = rallies
-    ? sortRalliesByStampCount(rallies, orderStamps ?? stamps ?? [])
+    ? sortRalliesForHome(rallies, orderStamps ?? stamps ?? [])
     : undefined;
 
   const retryLists = () => {
