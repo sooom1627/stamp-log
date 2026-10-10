@@ -76,6 +76,9 @@ export function RecordsTimelineScreen() {
             detail={formatStampTime(new Date(stamp.stampedAt))}
             rallyName={rally.name}
             memo={stamp.memo}
+            onPress={() =>
+              push({ pathname: "/rallies/[id]", params: { id: rally.id } })
+            }
             onEdit={(stampId) =>
               push({ pathname: "/edit-stamp", params: { stampId } })
             }

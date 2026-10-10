@@ -241,6 +241,40 @@ describe("S-010 T-001 ST-005 Logs edit and delete", () => {
   });
 });
 
+describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
+  test("opens the rally detail of the pressed post", async () => {
+    const rally = await saveRallyNamed("Open from Logs", "🚪");
+    const stamp = await saveStamp({ rallyId: rally.id });
+    const app = renderRouter("./src/app");
+    await app;
+    await act(() => {
+      router.push("/records");
+    });
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+
+    await userEvent.setup().press(logs.getByTestId(`stamp-post-${stamp.id}`));
+
+    expect(app.getPathname()).toBe(`/rallies/${rally.id}`);
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+  });
+
+  test("opens Edit stamp, not the rally, from the post menu", async () => {
+    const rally = await saveRallyNamed("Menu stays in Logs", "🧷");
+    const stamp = await saveStamp({ rallyId: rally.id });
+    const app = renderRouter("./src/app");
+    await app;
+    await act(() => {
+      router.push("/records");
+    });
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+
+    await fireEvent(logs.getByTestId(`stamp-edit-${stamp.id}`), "buttonPress");
+
+    expect(await screen.findByTestId("edit-stamp-form")).toBeOnTheScreen();
+    expect(app.getPathname()).toBe("/edit-stamp");
+  });
+});
+
 describe("S-018 T-001 ST-001 bottom tabs", () => {
   test("switches between home, logs, and calendar tabs", async () => {
     const app = renderRouter("./src/app");
