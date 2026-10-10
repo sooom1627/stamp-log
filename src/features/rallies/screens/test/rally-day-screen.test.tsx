@@ -29,13 +29,13 @@ const at = (day: number, hours: number, minutes = 0) =>
   new Date(2026, 8, day, hours, minutes).toISOString();
 
 async function openRallyDay(name: string, date: string) {
-  await saveRally({ name, type: "place", emoji: "🗼" });
+  await saveRally({ name, emoji: "🗼" });
   const [rally] = await listRallies();
   const lab = await saveStamp({ rallyId: rally.id, stampedAt: at(18, 19, 2) });
   await updateStampMemo({ id: lab.id, memo: "Talked in the lab" });
   await saveStamp({ rallyId: rally.id, stampedAt: at(17, 9) });
 
-  await saveRally({ name: "Other", type: "place", emoji: "🎨" });
+  await saveRally({ name: "Other", emoji: "🎨" });
   const other = (await listRallies()).find(
     (candidate) => candidate.name === "Other",
   );

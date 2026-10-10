@@ -16,13 +16,11 @@ import {
   FormTextInput,
 } from "@/shared/components/form-sheet";
 
-import { RallyTypeRadios } from "../components/rally-type-radios";
 import { useRallies, useUpdateRally } from "../hooks/use-rallies";
 import {
   rallyEmojiSchema,
   rallyNameSchema,
   type Rally,
-  type RallyType,
 } from "../schemas/rallies";
 
 type EditRallyScreenProps = {
@@ -51,7 +49,6 @@ type EditRallyFormProps = {
 };
 
 function EditRallyForm({ rally }: EditRallyFormProps) {
-  const [selectedType, setSelectedType] = useState<RallyType>(rally.type);
   const [emoji, setEmoji] = useState(rally.emoji);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [name, setName] = useState(rally.name);
@@ -70,19 +67,12 @@ function EditRallyForm({ rally }: EditRallyFormProps) {
   const handleSave = () => {
     if (!canSave) return;
 
-    updateRally(
-      { id: rally.id, name, type: selectedType, emoji },
-      { onSuccess: back },
-    );
+    updateRally({ id: rally.id, name, emoji }, { onSuccess: back });
   };
 
   return (
     <FormSheetLayout testID="edit-rally-form" title="Edit rally">
       <View className="gap-6">
-        <FormField label="Type">
-          <RallyTypeRadios value={selectedType} onChange={setSelectedType} />
-        </FormField>
-
         <FormField label="Emoji">
           <Pressable
             role="button"

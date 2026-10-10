@@ -3,8 +3,8 @@ import { type SQLiteDatabase } from "expo-sqlite";
 import { getDb } from "@/shared/db/get-db";
 
 import {
+  defaultRallyEmoji,
   rallySchema,
-  rallyTypeEmojis,
   saveRallyInputSchema,
   updateRallyInputSchema,
   type Rally,
@@ -21,7 +21,6 @@ async function ensureRallies(db: SQLiteDatabase) {
     CREATE TABLE IF NOT EXISTS rallies (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      type TEXT NOT NULL,
       emoji TEXT NOT NULL
     );
   `);
@@ -30,12 +29,14 @@ async function ensureRallies(db: SQLiteDatabase) {
     await db.execAsync("ALTER TABLE rallies ADD COLUMN emoji TEXT");
   }
 
-  for (const [type, emoji] of Object.entries(rallyTypeEmojis)) {
-    await db.runAsync(
-      "UPDATE rallies SET emoji = ? WHERE type = ? AND (emoji IS NULL OR TRIM(emoji) = '')",
-      emoji,
-      type,
-    );
+  await db.runAsync(
+    "UPDATE rallies SET emoji = ? WHERE emoji IS NULL OR TRIM(emoji) = ''",
+    defaultRallyEmoji,
+  );
+
+  // Rallies no longer have a type (S-040); its NOT NULL column would block inserts.
+  if (columns.includes("type")) {
+    await db.execAsync("ALTER TABLE rallies DROP COLUMN type");
   }
 }
 
@@ -56,23 +57,21 @@ function withRalliesDb() {
 }
 
 export async function saveRally(input: SaveRallyInput): Promise<void> {
-  const { name, type, emoji } = saveRallyInputSchema.parse(input);
+  const { name, emoji } = saveRallyInputSchema.parse(input);
   const db = await withRalliesDb();
   await db.runAsync(
-    "INSERT INTO rallies (name, type, emoji) VALUES (?, ?, ?)",
+    "INSERT INTO rallies (name, emoji) VALUES (?, ?)",
     name,
-    type,
-    emoji ?? rallyTypeEmojis[type],
+    emoji ?? defaultRallyEmoji,
   );
 }
 
 export async function updateRally(input: UpdateRallyInput): Promise<void> {
-  const { id, name, type, emoji } = updateRallyInputSchema.parse(input);
+  const { id, name, emoji } = updateRallyInputSchema.parse(input);
   const db = await withRalliesDb();
   await db.runAsync(
-    "UPDATE rallies SET name = ?, type = ?, emoji = ? WHERE id = ?",
+    "UPDATE rallies SET name = ?, emoji = ? WHERE id = ?",
     name,
-    type,
     emoji,
     id,
   );
@@ -93,8 +92,7 @@ export async function listRallies(): Promise<Rally[]> {
   const rows = await db.getAllAsync<{
     id: number;
     name: string;
-    type: string;
     emoji: string;
-  }>("SELECT id, name, type, emoji FROM rallies ORDER BY id DESC");
+  }>("SELECT id, name, emoji FROM rallies ORDER BY id DESC");
   return rows.map((row) => rallySchema.parse(row));
 }

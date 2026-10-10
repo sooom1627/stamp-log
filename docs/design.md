@@ -62,7 +62,7 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 
 ### ラリーの絵文字
 
-作成シートに絵文字項目を置く。タイプに応じた初期値を持ち、絵文字Pickerから1つ選べる。ホームのラリーのタイルではタイプアイコンを絵文字に置き換える。
+作成シートに絵文字項目を置く。初期値は ✨ で、絵文字Pickerから1つ選べる。ホームのラリーのタイルには絵文字を出す。
 
 ### スタンプの日時
 
@@ -75,8 +75,8 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 | 画面           | ファイル                                                     | 深さ        | Story                                    |
 | -------------- | ------------------------------------------------------------ | ----------- | ---------------------------------------- |
 | ホーム         | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008, S-029               |
-| ラリーを作る   | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009                             |
-| ラリーを編集   | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013                                    |
+| ラリーを作る   | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-009, S-040                      |
+| ラリーを編集   | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013, S-040                             |
 | メモを追加     | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002                                    |
 | 過去のスタンプ | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                                    |
 | スタンプを編集 | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014                             |

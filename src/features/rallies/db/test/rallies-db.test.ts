@@ -1,3 +1,5 @@
+import { type SQLiteDatabase } from "expo-sqlite";
+
 import { deleteRally, listRallies, saveRally } from "../rallies-db";
 import { listStamps, saveStamp } from "../stamps-db";
 
@@ -5,19 +7,19 @@ import { loadFreshDb } from "./load-fresh-db";
 
 describe("S-023 T-001 ST-002 rally emoji", () => {
   test("saves chosen emoji and returns it from list", async () => {
-    await saveRally({ name: "Kyoto trip", type: "place", emoji: "⛩️" });
+    await saveRally({ name: "Kyoto trip", emoji: "⛩️" });
 
     await expect(listRallies()).resolves.toEqual([
       expect.objectContaining({ name: "Kyoto trip", emoji: "⛩️" }),
     ]);
   });
 
-  test("uses type default emoji when emoji is omitted", async () => {
-    await saveRally({ name: "People met", type: "person" });
+  test("uses the default emoji when emoji is omitted", async () => {
+    await saveRally({ name: "People met" });
 
     const [latest] = await listRallies();
     expect(latest).toEqual(
-      expect.objectContaining({ name: "People met", emoji: "😀" }),
+      expect.objectContaining({ name: "People met", emoji: "✨" }),
     );
   });
 
@@ -36,9 +38,9 @@ describe("S-023 T-001 ST-002 rally emoji", () => {
     `);
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 3, name: "Friends", type: "person", emoji: "😀" },
-      { id: 2, name: "Cafe", type: "place", emoji: "🏠" },
-      { id: 1, name: "Walk", type: "action", emoji: "👏" },
+      { id: 3, name: "Friends", emoji: "✨" },
+      { id: 2, name: "Cafe", emoji: "✨" },
+      { id: 1, name: "Walk", emoji: "✨" },
     ]);
   });
 });
@@ -46,7 +48,7 @@ describe("S-023 T-001 ST-002 rally emoji", () => {
 describe("deleteRally", () => {
   test("deletes a rally before any stamp table exists", async () => {
     const { ralliesDb } = loadFreshDb();
-    await ralliesDb.saveRally({ name: "Walk", type: "action" });
+    await ralliesDb.saveRally({ name: "Walk" });
     const [rally] = await ralliesDb.listRallies();
 
     await ralliesDb.deleteRally(rally.id);
@@ -69,7 +71,7 @@ describe("deleteRally", () => {
 describe("S-017 T-001 ST-002 deleteRally in one transaction", () => {
   test("keeps the rally's stamps when deleting the rally fails", async () => {
     const { getDb, ralliesDb, stampsDb } = loadFreshDb();
-    await ralliesDb.saveRally({ name: "Walk", type: "action" });
+    await ralliesDb.saveRally({ name: "Walk" });
     const [rally] = await ralliesDb.listRallies();
     await stampsDb.saveStamp({ rallyId: rally.id });
     const db = await getDb();
@@ -88,10 +90,10 @@ describe("S-017 T-001 ST-002 deleteRally in one transaction", () => {
 });
 
 describe("S-013 T-001 ST-002 updateRally", () => {
-  test("updates name, type and emoji of the rally and keeps others and its stamps", async () => {
+  test("updates name and emoji of the rally and keeps others and its stamps", async () => {
     const { ralliesDb, stampsDb } = loadFreshDb();
-    await ralliesDb.saveRally({ name: "Walk", type: "action", emoji: "🚶" });
-    await ralliesDb.saveRally({ name: "Cafe", type: "place", emoji: "☕" });
+    await ralliesDb.saveRally({ name: "Walk", emoji: "🚶" });
+    await ralliesDb.saveRally({ name: "Cafe", emoji: "☕" });
     const [cafe, walk] = await ralliesDb.listRallies();
     await stampsDb.saveStamp({ rallyId: walk.id });
     const stampsBefore = await stampsDb.listStamps();
@@ -99,20 +101,19 @@ describe("S-013 T-001 ST-002 updateRally", () => {
     await ralliesDb.updateRally({
       id: walk.id,
       name: "  Long walk ",
-      type: "person",
       emoji: "🥾",
     });
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
       cafe,
-      { id: walk.id, name: "Long walk", type: "person", emoji: "🥾" },
+      { id: walk.id, name: "Long walk", emoji: "🥾" },
     ]);
     await expect(stampsDb.listStamps()).resolves.toEqual(stampsBefore);
   });
 
   test("rejects invalid input without changing the rally", async () => {
     const { ralliesDb } = loadFreshDb();
-    await ralliesDb.saveRally({ name: "Walk", type: "action", emoji: "🚶" });
+    await ralliesDb.saveRally({ name: "Walk", emoji: "🚶" });
     const [walk] = await ralliesDb.listRallies();
 
     await expect(
@@ -120,5 +121,62 @@ describe("S-013 T-001 ST-002 updateRally", () => {
     ).rejects.toThrow();
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([walk]);
+  });
+});
+
+describe("S-040 T-001 ST-003 rallies without type", () => {
+  async function ralliesColumns(getDb: () => Promise<SQLiteDatabase>) {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{ name: string }>(
+      "PRAGMA table_info(rallies)",
+    );
+    return rows.map((row) => row.name);
+  }
+
+  test("creates the rallies table without a type column", async () => {
+    const { getDb, ralliesDb } = loadFreshDb();
+
+    await ralliesDb.saveRally({ name: "Walk" });
+
+    await expect(ralliesColumns(getDb)).resolves.toEqual([
+      "id",
+      "name",
+      "emoji",
+    ]);
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 1, name: "Walk", emoji: "✨" },
+    ]);
+  });
+
+  test("drops the type column of an existing table and keeps rallies and stamps", async () => {
+    const { getDb, ralliesDb, stampsDb } = loadFreshDb();
+    const db = await getDb();
+    await db.execAsync(`
+      CREATE TABLE rallies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        emoji TEXT NOT NULL
+      );
+      INSERT INTO rallies (name, type, emoji) VALUES ('Walk', 'action', '🚶');
+      INSERT INTO rallies (name, type, emoji) VALUES ('Cafe', 'place', '☕');
+    `);
+    await stampsDb.saveStamp({ rallyId: 1 });
+
+    await expect(ralliesDb.listRallies()).resolves.toEqual([
+      { id: 2, name: "Cafe", emoji: "☕" },
+      { id: 1, name: "Walk", emoji: "🚶" },
+    ]);
+    await expect(ralliesColumns(getDb)).resolves.toEqual([
+      "id",
+      "name",
+      "emoji",
+    ]);
+    await expect(stampsDb.listStamps()).resolves.toEqual([
+      expect.objectContaining({ rallyId: 1 }),
+    ]);
+
+    await ralliesDb.saveRally({ name: "Friends" });
+    await expect(ralliesDb.listRallies()).resolves.toHaveLength(3);
   });
 });

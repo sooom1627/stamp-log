@@ -5,7 +5,6 @@ import { sortRalliesByStampCount } from "../sort-rallies-by-stamp-count";
 const rally = (id: number): Rally => ({
   id,
   name: `Rally ${id}`,
-  type: "place",
   emoji: "🗼",
 });
 

@@ -33,7 +33,7 @@ const at = (day: number, hours: number, minutes = 0) =>
   new Date(2026, 8, day, hours, minutes).toISOString();
 
 async function saveRallyNamed(name: string, emoji: string) {
-  await saveRally({ name, type: "place", emoji });
+  await saveRally({ name, emoji });
   const rally = (await listRallies()).find(
     (candidate) => candidate.name === name,
   );
