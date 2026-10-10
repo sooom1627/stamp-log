@@ -37,6 +37,19 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
   );
 }
 
+// Stamps that could not be loaded are still deleted with the rally, so the
+// message says so without a count.
+function deleteRallyMessage(stampCount: number | undefined) {
+  const undoNote = "This action cannot be undone.";
+  if (stampCount === 0) {
+    return undoNote;
+  }
+  if (stampCount === undefined) {
+    return `Its stamps will also be deleted. ${undoNote}`;
+  }
+  return `Its ${formatStampCount(stampCount)} will also be deleted. ${undoNote}`;
+}
+
 type RallyDetailScreenProps = {
   rallyId: Rally["id"];
 };
@@ -72,7 +85,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   }
 
   const confirmDelete = () =>
-    Alert.alert("Delete rally?", "This action cannot be undone.", [
+    Alert.alert("Delete rally?", deleteRallyMessage(stamps?.length), [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",

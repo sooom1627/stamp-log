@@ -8,6 +8,7 @@
 - S-008 ラリーの収集数を見る
 - S-009 目標数に対する進捗を見る
 - S-013 ラリーを編集する
+- S-017 ラリーを削除する
 - S-025 過去の日付にスタンプを押す
 - S-028 ラリー詳細を見やすく、操作しやすくする
 
@@ -18,7 +19,7 @@
   - 戻る → 元のタブ
   - 右上の「…」→「Past stamp」→ [add-past-stamp.md](./add-past-stamp.md)（formSheet）
   - 右上の「…」→「Edit rally」→ [edit-rally.md](./edit-rally.md)（formSheet）
-  - 右上の「…」→「Delete rally」→ 確認ダイアログ → 削除して元のタブへ戻る
+  - 右上の「…」→「Delete rally」→ 確認ダイアログ → 削除して元のタブへ戻る（[Delete rally](#delete-rally)）
   - カレンダーの今日以前の日付 → [rally-day.md](./rally-day.md)（formSheet）
   - カレンダーの月見出し → 年月 Picker
   - タイムラインの投稿タップ → [stamp-detail.md](./stamp-detail.md)
@@ -90,6 +91,16 @@ Sun, Sep 13
 - 「いまスタンプを押す」は置かない
 - 影は使わない。面の色は淡いアクセントとニュートラルのテーマトークンで分ける（値は `tailwind.css`）
 - タブバーは残す（[design.md](../design.md) IA）
+
+### Delete rally
+
+- 確認ダイアログの見出しは `Delete rally?`、ボタンは `Cancel` と destructive の `Delete`
+- 本文はこのラリーのスタンプ数で変える。スタンプも一緒に消えることを先に示す
+  - 0 件: `This action cannot be undone.`
+  - 1 件以上: `Its 3 stamps will also be deleted. This action cannot be undone.`（件数は `1 stamp` / `N stamps`）
+  - スタンプが読めていないとき: `Its stamps will also be deleted. This action cannot be undone.`
+- `Delete` でラリーとそのスタンプをまとめて消す。途中で失敗したときは何も消さず、ラリー詳細に留まってエラーを出す
+- 消したスタンプはタイムライン、Logs、カレンダーからも消える
 
 ## 出すデータ
 

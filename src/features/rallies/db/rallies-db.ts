@@ -81,8 +81,11 @@ export async function updateRally(input: UpdateRallyInput): Promise<void> {
 export async function deleteRally(id: Rally["id"]): Promise<void> {
   const db = await withRalliesDb();
   await withStampsDb();
-  await db.runAsync("DELETE FROM stamps WHERE rally_id = ?", id);
-  await db.runAsync("DELETE FROM rallies WHERE id = ?", id);
+  // One transaction, so a failed rally delete never leaves its stamps gone.
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    await txn.runAsync("DELETE FROM stamps WHERE rally_id = ?", id);
+    await txn.runAsync("DELETE FROM rallies WHERE id = ?", id);
+  });
 }
 
 export async function listRallies(): Promise<Rally[]> {
