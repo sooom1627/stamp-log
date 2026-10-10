@@ -1,8 +1,8 @@
-import { SectionList, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
-import { DaySectionHeading } from "@/features/rallies/components/day-section-heading";
+import { DayCard } from "@/features/rallies/components/day-card";
 import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
@@ -36,10 +36,6 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
   );
 }
 
-function PostSeparator() {
-  return <View className="h-5" />;
-}
-
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
   const {
@@ -68,41 +64,38 @@ export function RecordsTimelineScreen() {
 
   return (
     <>
-      <SectionList
+      <FlatList
         aria-label="Logs timeline"
         className="bg-canvas flex-1"
-        contentContainerClassName="px-5 pb-32"
+        contentContainerClassName="gap-6 px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
-        sections={sections}
-        stickySectionHeadersEnabled
-        keyExtractor={({ stamp }) => String(stamp.id)}
-        renderSectionHeader={({ section: { dateKey, data } }) => (
-          <DaySectionHeading
-            dateKey={dateKey}
-            date={new Date(data[0].stamp.stampedAt)}
-          />
-        )}
-        ItemSeparatorComponent={PostSeparator}
-        renderItem={({ item: { stamp, rally } }) => (
-          <StampPost
-            id={stamp.id}
-            emoji={rally.emoji}
-            title={rally.name}
-            detail={formatStampTime(new Date(stamp.stampedAt))}
-            memo={stamp.memo}
-            onPress={() =>
-              push({
-                pathname: "/records/rallies/[id]",
-                params: { id: rally.id },
-              })
-            }
-            onEdit={(stampId) =>
-              push({ pathname: "/edit-stamp", params: { stampId } })
-            }
-            onDelete={(stampId) =>
-              confirmDeleteStamp(() => deleteStamp(stampId))
-            }
-          />
+        data={sections}
+        keyExtractor={({ dateKey }) => dateKey}
+        renderItem={({ item: { dateKey, data } }) => (
+          <DayCard dateKey={dateKey} date={new Date(data[0].stamp.stampedAt)}>
+            {data.map(({ stamp, rally }) => (
+              <StampPost
+                key={stamp.id}
+                id={stamp.id}
+                emoji={rally.emoji}
+                title={rally.name}
+                detail={formatStampTime(new Date(stamp.stampedAt))}
+                memo={stamp.memo}
+                onPress={() =>
+                  push({
+                    pathname: "/records/rallies/[id]",
+                    params: { id: rally.id },
+                  })
+                }
+                onEdit={(stampId) =>
+                  push({ pathname: "/edit-stamp", params: { stampId } })
+                }
+                onDelete={(stampId) =>
+                  confirmDeleteStamp(() => deleteStamp(stampId))
+                }
+              />
+            ))}
+          </DayCard>
         )}
         ListHeaderComponent={
           <View>
@@ -114,7 +107,7 @@ export function RecordsTimelineScreen() {
               dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
             />
             {posts.length > 0 ? (
-              <View className="mt-6 mb-2 flex-row items-baseline justify-between">
+              <View className="mt-6 flex-row items-baseline justify-between">
                 <Text
                   role="heading"
                   className="text-foreground text-xl font-bold"

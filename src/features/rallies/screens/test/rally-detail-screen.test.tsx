@@ -557,8 +557,11 @@ describe("S-028 T-002 ST-003 rally summary", () => {
     const [todayStamp] = (await listStamps()).filter(
       (stamp) => stamp.rallyId === rally.id,
     );
+    // Logs also lists every stamp, so press Delete inside rally detail.
     await fireEvent(
-      screen.getByTestId(`stamp-delete-${todayStamp.id}`),
+      within(screen.getByLabelText("Rally detail")).getByTestId(
+        `stamp-delete-${todayStamp.id}`,
+      ),
       "buttonPress",
     );
     await act(async () => {
@@ -887,8 +890,8 @@ describe("S-028 RT-001 ST-003 posts look", () => {
   });
 });
 
-describe("S-011 RT-001 ST-005 rally detail day sections", () => {
-  test("groups posts under sticky day headings and titles each post with its time", async () => {
+describe("S-011 RT-001 ST-007 rally detail day cards", () => {
+  test("puts each day's posts on one card under its heading and titles each post with its time", async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 12));
     let pastStampId = 0;
     await openRallyDetail("Day sections", async (rallyId) => {
@@ -904,9 +907,19 @@ describe("S-011 RT-001 ST-005 rally detail day sections", () => {
     });
 
     const list = await screen.findByLabelText("Rally detail");
-    // One sticky header per day.
-    expect(list.props.stickyHeaderIndices).toHaveLength(3);
+    // Headings scroll with their cards instead of sticking over the posts.
+    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
     const detail = within(list);
+    expect(
+      within(detail.getByTestId("day-card-2026-09-18")).getByTestId(
+        `stamp-row-${pastStampId}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(detail.getByTestId("day-card-2026-09-20")).queryByTestId(
+        `stamp-row-${pastStampId}`,
+      ),
+    ).not.toBeOnTheScreen();
     expect(
       within(detail.getByTestId("day-section-2026-09-20")).getByRole("heading"),
     ).toHaveTextContent("Today");

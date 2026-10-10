@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { Alert, SectionList, Text, View } from "react-native";
+import { Alert, FlatList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 
@@ -9,7 +9,7 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
-import { DaySectionHeading } from "../components/day-section-heading";
+import { DayCard } from "../components/day-card";
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
@@ -35,10 +35,6 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
       <Text className="text-foreground-secondary">No stamps yet</Text>
     </View>
   );
-}
-
-function PostSeparator() {
-  return <View className="h-5" />;
 }
 
 type RallyDetailScreenProps = {
@@ -87,37 +83,34 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
 
   return (
     <>
-      <SectionList
+      <FlatList
         aria-label="Rally detail"
         className="bg-canvas flex-1"
-        contentContainerClassName="px-5 py-6"
+        contentContainerClassName="gap-6 px-5 py-6"
         contentInsetAdjustmentBehavior="automatic"
-        sections={sections}
-        stickySectionHeadersEnabled
-        keyExtractor={(stamp) => String(stamp.id)}
-        renderSectionHeader={({ section: { dateKey, data } }) => (
-          <DaySectionHeading
-            dateKey={dateKey}
-            date={new Date(data[0].stampedAt)}
-          />
-        )}
-        ItemSeparatorComponent={PostSeparator}
-        renderItem={({ item }) => (
-          <StampPost
-            id={item.id}
-            emoji={rally.emoji}
-            title={formatStampTime(new Date(item.stampedAt))}
-            memo={item.memo}
-            onEdit={(stampId) =>
-              push({ pathname: "/edit-stamp", params: { stampId } })
-            }
-            onDelete={(stampId) =>
-              confirmDeleteStamp(() => deleteStamp(stampId))
-            }
-          />
+        data={sections}
+        keyExtractor={({ dateKey }) => dateKey}
+        renderItem={({ item: { dateKey, data } }) => (
+          <DayCard dateKey={dateKey} date={new Date(data[0].stampedAt)}>
+            {data.map((stamp) => (
+              <StampPost
+                key={stamp.id}
+                id={stamp.id}
+                emoji={rally.emoji}
+                title={formatStampTime(new Date(stamp.stampedAt))}
+                memo={stamp.memo}
+                onEdit={(stampId) =>
+                  push({ pathname: "/edit-stamp", params: { stampId } })
+                }
+                onDelete={(stampId) =>
+                  confirmDeleteStamp(() => deleteStamp(stampId))
+                }
+              />
+            ))}
+          </DayCard>
         )}
         ListHeaderComponent={
-          <View className="mb-2 items-center gap-4">
+          <View className="items-center gap-4">
             <View
               testID="rally-top-panel"
               className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"

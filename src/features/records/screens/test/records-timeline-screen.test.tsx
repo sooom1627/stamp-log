@@ -129,8 +129,8 @@ describe("S-011 RT-001 ST-003 Logs post shape", () => {
   });
 });
 
-describe("S-011 RT-001 ST-004 Logs day sections", () => {
-  test("groups posts under sticky day headings, newest day first", async () => {
+describe("S-011 RT-001 ST-007 Logs day cards", () => {
+  test("puts each day's posts on one card under its heading, newest day first", async () => {
     jest.setSystemTime(new Date(2026, 9, 10, 21));
     const rally = await saveRallyNamed("Day sections", "📚");
     const at = (day: number, hour: number) =>
@@ -145,9 +145,18 @@ describe("S-011 RT-001 ST-004 Logs day sections", () => {
     await openLogs();
 
     const list = await screen.findByLabelText("Logs timeline");
-    // One sticky header per day.
-    expect(list.props.stickyHeaderIndices).toHaveLength(3);
+    // Headings scroll with their cards instead of sticking over the posts.
+    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
     const logs = within(list);
+    const todayCard = within(logs.getByTestId("day-card-2026-10-10"));
+    expect(todayCard.getByTestId("stamp-post-904")).toBeOnTheScreen();
+    expect(todayCard.getByTestId("stamp-post-903")).toBeOnTheScreen();
+    expect(todayCard.queryByTestId("stamp-post-902")).not.toBeOnTheScreen();
+    expect(
+      within(logs.getByTestId("day-card-2026-10-08")).getByTestId(
+        "stamp-post-901",
+      ),
+    ).toBeOnTheScreen();
     expect(
       logs
         .getAllByRole("heading")
