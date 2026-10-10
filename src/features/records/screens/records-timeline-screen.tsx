@@ -2,6 +2,7 @@ import { FlatList, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useDeleteStamp, useStamps } from "@/features/rallies/hooks/use-stamps";
@@ -15,6 +16,8 @@ import {
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
+
+import { buildDayMarks } from "../utils/day-marks";
 
 type TimelineEmptyProps = {
   isError: boolean;
@@ -93,8 +96,14 @@ export function RecordsTimelineScreen() {
         ListHeaderComponent={
           <View>
             <TabRootWeekday />
+            {/* Not linked to the list: moving it leaves the posts as they are. */}
+            <RallyMonthCalendar
+              testID="logs-calendar"
+              stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
+              dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
+            />
             {posts.length > 0 ? (
-              <View className="flex-row items-baseline justify-between">
+              <View className="mt-6 flex-row items-baseline justify-between">
                 <Text
                   role="heading"
                   className="text-foreground text-xl font-bold"
