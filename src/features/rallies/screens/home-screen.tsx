@@ -92,6 +92,7 @@ export function HomeScreen() {
                 key={rally.id}
                 name={rally.name}
                 emoji={rally.emoji}
+                isFavorite={rally.isFavorite}
                 stampDates={stampDatesForRally(stamps ?? [], rally.id)}
                 width={tileWidth}
                 onPressStamp={() =>

@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 
-import { Check, Plus } from "@/shared/components/icons";
+import { Check, Plus, Star } from "@/shared/components/icons";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
 import { buildActivityDays, RallyActivityWeek } from "./rally-activity-week";
@@ -8,6 +8,7 @@ import { buildActivityDays, RallyActivityWeek } from "./rally-activity-week";
 type RallyTileProps = {
   name: string;
   emoji: string;
+  isFavorite?: boolean;
   stampDates: string[];
   width?: number;
   onPressStamp: () => void;
@@ -17,6 +18,7 @@ type RallyTileProps = {
 export function RallyTile({
   name,
   emoji,
+  isFavorite = false,
   stampDates,
   width,
   onPressStamp,
@@ -35,6 +37,21 @@ export function RallyTile({
       <View className="flex-row items-start justify-between">
         <View className="bg-accent-soft border-continuous size-11 items-center justify-center rounded-2xl">
           <Text className="text-2xl">{emoji}</Text>
+          {isFavorite ? (
+            // Quiet on purpose: people know their favorites; the mark only
+            // explains why the tile sits first.
+            <View
+              role="img"
+              aria-label="Favorite"
+              className="bg-surface absolute -right-1 -bottom-1 size-[18px] items-center justify-center rounded-full"
+            >
+              <Star
+                colorClassName="accent-foreground-muted"
+                fillClassName="accent-foreground-muted"
+                size={11}
+              />
+            </View>
+          ) : null}
         </View>
         <Pressable
           role="button"
