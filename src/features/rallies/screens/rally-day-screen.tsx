@@ -40,6 +40,7 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
   return (
     <FormSheetLayout
       testID="rally-day-sheet"
+      scrollable
       eyebrow={weekdayFormatter.format(date)}
       title={dateFormatter.format(date)}
     >

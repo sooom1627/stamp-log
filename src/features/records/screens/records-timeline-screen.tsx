@@ -105,6 +105,10 @@ export function RecordsTimelineScreen() {
               testID="logs-calendar"
               stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
               dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
+              isRecordedOnly
+              onPressDay={(date) =>
+                push({ pathname: "/logs-day", params: { date } })
+              }
             />
             {posts.length > 0 ? (
               <View className="mt-6 flex-row items-baseline justify-between">
