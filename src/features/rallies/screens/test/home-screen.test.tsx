@@ -89,8 +89,8 @@ describe("S-022 section heading", () => {
 
     await user.press(screen.getByRole("link", { name: "View All" }));
 
-    expect(await screen.findByLabelText("Rallies list")).toBeOnTheScreen();
-    expect(screen.queryByText("View All check")).not.toBeOnTheScreen();
+    const list = await screen.findByLabelText("Rallies list");
+    expect(within(list).getByText("View All check")).toBeOnTheScreen();
   });
 });
 
@@ -734,5 +734,142 @@ describe("S-032 T-001 ST-007 favorites on home", () => {
     expect(
       within(unmarkedTile).queryByLabelText("Favorite"),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-039 T-002 ST-005 archived rallies leave home", () => {
+  const daysAgo = (days: number) =>
+    new Date(2026, 8, 20 - days, 12).toISOString();
+
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    await deleteAllRallies();
+  });
+
+  async function saveRallyWithStamps(name: string, stampCount: number) {
+    await ralliesDb.saveRally({ name });
+    const rally = (await ralliesDb.listRallies()).find(
+      (saved) => saved.name === name,
+    );
+    if (!rally) throw new Error(`rally ${name} not saved`);
+    for (let index = 0; index < stampCount; index += 1) {
+      await stampsDb.saveStamp({
+        rallyId: rally.id,
+        stampedAt: daysAgo(index + 1),
+      });
+    }
+    return rally;
+  }
+
+  function gridTileNames() {
+    return within(screen.getByTestId("rally-grid"))
+      .queryAllByRole("button", { name: /^View .* details$/ })
+      .map((tile) => tile.props.accessibilityLabel);
+  }
+
+  async function pressArchiveOnDetailAndReturn(rallyId: number, label: string) {
+    await act(() => {
+      router.push(`/rallies/${rallyId}`);
+    });
+    await fireEvent(
+      await screen.findByTestId("rally-action-archive"),
+      "buttonPress",
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("rally-action-archive")).toHaveProp(
+        "label",
+        label,
+      );
+    });
+    await act(() => {
+      router.back();
+    });
+  }
+
+  test("drops a rally from home once it is archived and brings it back to its place when unarchived", async () => {
+    const middle = await saveRallyWithStamps("Middle", 2);
+    await saveRallyWithStamps("Most", 3);
+    await saveRallyWithStamps("Least", 1);
+
+    await renderRouter("./src/app");
+    await screen.findByRole("button", { name: "View Most details" });
+    expect(gridTileNames()).toEqual([
+      "View Most details",
+      "View Middle details",
+      "View Least details",
+    ]);
+
+    await pressArchiveOnDetailAndReturn(middle.id, "Unarchive rally");
+
+    await waitFor(() =>
+      expect(gridTileNames()).toEqual([
+        "View Most details",
+        "View Least details",
+      ]),
+    );
+
+    await pressArchiveOnDetailAndReturn(middle.id, "Archive rally");
+
+    await waitFor(() =>
+      expect(gridTileNames()).toEqual([
+        "View Most details",
+        "View Middle details",
+        "View Least details",
+      ]),
+    );
+  });
+
+  test("keeps Your Days and View All when every rally is archived", async () => {
+    const only = await saveRallyWithStamps("Only one", 0);
+    await ralliesDb.setRallyArchived({ id: only.id, isArchived: true });
+
+    await renderRouter("./src/app");
+
+    expect(
+      await screen.findByRole("link", { name: "View All" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("heading", { name: "Your Days" }),
+    ).toBeOnTheScreen();
+    expect(gridTileNames()).toEqual([]);
+    expect(
+      within(screen.getByTestId("rally-grid")).getByRole("link", {
+        name: "Create rally",
+      }),
+    ).toBeOnTheScreen();
+  });
+
+  test("still shows an archived rally stamped today on the today card", async () => {
+    const archived = await saveRallyWithStamps("Stamped then archived", 0);
+    await stampsDb.saveStamp({
+      rallyId: archived.id,
+      stampedAt: new Date(2026, 8, 20, 8, 0).toISOString(),
+    });
+    await ralliesDb.setRallyArchived({ id: archived.id, isArchived: true });
+
+    await renderRouter("./src/app");
+
+    expect(
+      await screen.findByLabelText(
+        "Today, Sep 20, 1 stamp: Stamped then archived",
+      ),
+    ).toBeOnTheScreen();
+    expect(gridTileNames()).toEqual([]);
+  });
+});
+
+describe("S-039 T-003 ST-003 View All tap target", () => {
+  test("gives View All a tap target at least 44pt tall with body-size text", async () => {
+    await renderHomeWithRally("View All size");
+
+    const viewAll = screen.getByRole("link", { name: "View All" });
+    expect(viewAll).toHaveProp(
+      "className",
+      expect.stringContaining("min-h-11"),
+    );
+    expect(within(viewAll).getByText("View All")).toHaveProp(
+      "className",
+      expect.stringContaining("text-base"),
+    );
   });
 });

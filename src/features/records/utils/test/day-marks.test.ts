@@ -7,9 +7,21 @@ const at = (day: number, hours = 12, minutes = 0) =>
   new Date(2026, 9, day, hours, minutes).toISOString();
 
 const rallies: Rally[] = [
-  { id: 1, name: "Researchers", emoji: "🔬", isFavorite: false },
-  { id: 2, name: "Weekend runs", emoji: "🏃", isFavorite: false },
-  { id: 3, name: "Cafes", emoji: "☕", isFavorite: false },
+  {
+    id: 1,
+    name: "Researchers",
+    emoji: "🔬",
+    isFavorite: false,
+    isArchived: false,
+  },
+  {
+    id: 2,
+    name: "Weekend runs",
+    emoji: "🏃",
+    isFavorite: false,
+    isArchived: false,
+  },
+  { id: 3, name: "Cafes", emoji: "☕", isFavorite: false, isArchived: false },
 ];
 
 let nextStampId = 1;

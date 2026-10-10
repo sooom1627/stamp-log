@@ -1212,7 +1212,7 @@ describe("S-028 RT-001 ST-005 calendar look", () => {
 });
 
 describe("S-013 T-001 ST-005 edit rally from the actions menu", () => {
-  test("lists Past stamp, Edit rally and Delete rally in that order", async () => {
+  test("lists Past stamp, Edit rally, Archive rally and Delete rally in that order", async () => {
     await openRallyDetail("Menu order");
 
     const actions = await screen.findAllByTestId(/^rally-action-/);
@@ -1220,6 +1220,7 @@ describe("S-013 T-001 ST-005 edit rally from the actions menu", () => {
     expect(actions.map((action) => action.props.label)).toEqual([
       "Past stamp",
       "Edit rally",
+      "Archive rally",
       "Delete rally",
     ]);
   });
@@ -1397,7 +1398,65 @@ describe("S-032 T-001 ST-006 favorite star in the header", () => {
     expect(actions.map((action) => action.props.label)).toEqual([
       "Past stamp",
       "Edit rally",
+      "Archive rally",
       "Delete rally",
     ]);
+  });
+});
+
+describe("S-039 T-002 ST-004 archive from the actions menu", () => {
+  async function isArchivedSaved(rallyId: number) {
+    const rallies = await ralliesDb.listRallies();
+    return rallies.find((rally) => rally.id === rallyId)?.isArchived;
+  }
+
+  async function pressArchiveAction() {
+    await fireEvent(screen.getByTestId("rally-action-archive"), "buttonPress");
+  }
+
+  test("archives without a confirmation and stays on the rally", async () => {
+    const { rally } = await openRallyDetail("Archive me");
+    const archiveAction = await screen.findByTestId("rally-action-archive");
+    expect(archiveAction).toHaveProp("label", "Archive rally");
+    expect(archiveAction).toHaveProp("systemImage", "archivebox");
+    expect(screen.queryByText("Archived")).not.toBeOnTheScreen();
+
+    await pressArchiveAction();
+
+    await waitFor(async () => {
+      await expect(isArchivedSaved(rally.id)).resolves.toBe(true);
+    });
+    expect(Alert.alert).not.toHaveBeenCalled();
+    expect(await screen.findByText("Archived")).toBeOnTheScreen();
+    expect(screen.getByTestId("rally-action-archive")).toHaveProp(
+      "label",
+      "Unarchive rally",
+    );
+    expect(
+      screen.getByRole("heading", { name: "Archive me" }),
+    ).toBeOnTheScreen();
+  });
+
+  test("unarchives an archived rally", async () => {
+    const { rally } = await openRallyDetail("Bring me back");
+    await screen.findByTestId("rally-action-archive");
+    await pressArchiveAction();
+    await waitFor(() => {
+      expect(screen.getByTestId("rally-action-archive")).toHaveProp(
+        "label",
+        "Unarchive rally",
+      );
+    });
+
+    await pressArchiveAction();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("rally-action-archive")).toHaveProp(
+        "label",
+        "Archive rally",
+      );
+    });
+    expect(screen.queryByText("Archived")).not.toBeOnTheScreen();
+    await expect(isArchivedSaved(rally.id)).resolves.toBe(false);
   });
 });
