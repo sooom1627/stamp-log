@@ -1,6 +1,12 @@
 import { type ReactNode } from "react";
 
-import { Text, TextInput, View, type TextInputProps } from "react-native";
+import {
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+  type TextInputProps,
+} from "react-native";
 
 type FormSheetLayoutProps = {
   testID?: string;
@@ -9,6 +15,8 @@ type FormSheetLayoutProps = {
   title: string;
   /** Extra layout classes (e.g. `gap-5`). */
   className?: string;
+  /** Wraps the whole sheet in a ScrollView. Only for sheets without a footer. */
+  scrollable?: boolean;
   children: ReactNode;
 };
 
@@ -18,14 +26,17 @@ type FormSheetLayoutProps = {
 // react-native-screens force-overrides the ScrollView frame to the full sheet,
 // which interferes with sibling content (footer) and stops rendering.
 // Keep the root intrinsically sized so fitToContents includes the Save button.
+// `scrollable` sheets (a day's posts, no footer) instead put everything in one
+// ScrollView, so that full-sheet frame becomes the scroll area.
 export function FormSheetLayout({
   testID,
   eyebrow,
   title,
   className = "",
+  scrollable = false,
   children,
 }: FormSheetLayoutProps) {
-  return (
+  const sheet = (
     <View
       testID={testID}
       className={`bg-background gap-5 px-5 pt-8 pb-6 ${className}`}
@@ -43,6 +54,9 @@ export function FormSheetLayout({
       {children}
     </View>
   );
+
+  if (!scrollable) return sheet;
+  return <ScrollView className="bg-background">{sheet}</ScrollView>;
 }
 
 type FormFieldProps = {

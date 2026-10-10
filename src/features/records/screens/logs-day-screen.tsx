@@ -50,6 +50,7 @@ export function LogsDayScreen({ date }: LogsDayScreenProps) {
   return (
     <FormSheetLayout
       testID="logs-day-sheet"
+      scrollable
       eyebrow={weekdayFormatter.format(date)}
       title={dateFormatter.format(date)}
     >
