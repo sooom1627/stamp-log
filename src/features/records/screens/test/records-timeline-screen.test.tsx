@@ -242,7 +242,9 @@ describe("S-010 T-001 ST-005 Logs edit and delete", () => {
 });
 
 describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
-  test("opens the rally detail of the pressed post", async () => {
+  // Rally detail opens on the Logs stack, so the header's back returns to
+  // Logs instead of switching to Home.
+  test("opens the rally detail of the pressed post on the Logs tab", async () => {
     const rally = await saveRallyNamed("Open from Logs", "🚪");
     const stamp = await saveStamp({ rallyId: rally.id });
     const app = renderRouter("./src/app");
@@ -254,8 +256,15 @@ describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
 
     await userEvent.setup().press(logs.getByTestId(`stamp-post-${stamp.id}`));
 
-    expect(app.getPathname()).toBe(`/rallies/${rally.id}`);
+    expect(app.getPathname()).toBe(`/records/rallies/${rally.id}`);
+    expect(app.getSegments()).toEqual(["(tabs)", "records", "rallies", "[id]"]);
     expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+
+    await act(() => {
+      router.back();
+    });
+    expect(app.getPathname()).toBe("/records");
+    expect(screen.getByLabelText("Logs timeline")).toBeOnTheScreen();
   });
 
   test("opens Edit stamp, not the rally, from the post menu", async () => {

@@ -95,7 +95,8 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 - `/add-past-stamp?rallyId=&date=` — 過去の日にスタンプ（formSheet。`date` は任意）
 - `/rally-day?rallyId=&date=` — ラリーの日（formSheet）
 - `/edit-stamp?stampId=` — スタンプを編集（formSheet）
-- `/rallies/[id]` — ラリー詳細（スタック）
+- `/rallies/[id]` — ラリー詳細（ホームのスタック）
+- `/records/rallies/[id]` — ラリー詳細（Logs のスタック。戻ると Logs）
 - `/stamps/[id]` — スタンプ詳細（スタック）
 - `/records` — 記録（タブ。カレンダーとタイムライン）
 - `/logs-day?date=` — Logs の日（formSheet）
