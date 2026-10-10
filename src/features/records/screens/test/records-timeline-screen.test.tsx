@@ -83,7 +83,6 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
         formatStampTime(new Date(stampedAt)),
       );
     });
-    expect(logs.getByText(formatStampDay(new Date(newest)))).toBeOnTheScreen();
     expect(
       logs
         .getAllByText(/^(Researchers|Weekend runs)$/)
@@ -103,6 +102,30 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
     expect(logs.getByLabelText("3 stamps in the timeline")).toHaveTextContent(
       "3",
     );
+  });
+});
+
+describe("S-011 RT-001 ST-003 Logs post shape", () => {
+  test("titles each post with the rally name in bold and the time beside it, without the day", async () => {
+    const lab = await saveRallyNamed("Post shape", "🔬");
+    const stampedAt = daysAgoAt(2, 19);
+    const stamp = await saveStamp({ rallyId: lab.id, stampedAt });
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const post = within(logs.getByTestId(`stamp-post-${stamp.id}`));
+    expect(post.getByText("Post shape")).toHaveProp(
+      "className",
+      expect.stringContaining("font-semibold"),
+    );
+    expect(post.getByText(formatStampTime(new Date(stampedAt)))).toHaveProp(
+      "className",
+      expect.stringContaining("text-foreground-muted"),
+    );
+    expect(
+      post.queryByText(formatStampDay(new Date(stampedAt))),
+    ).not.toBeOnTheScreen();
   });
 });
 

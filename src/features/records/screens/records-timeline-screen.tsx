@@ -12,10 +12,7 @@ import {
   TabRootHeader,
   TabRootWeekday,
 } from "@/shared/components/tab-root-screen";
-import {
-  formatStampDay,
-  formatStampTime,
-} from "@/shared/utils/format-stamp-date-time";
+import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 
 import { buildDayMarks } from "../utils/day-marks";
 
@@ -75,9 +72,8 @@ export function RecordsTimelineScreen() {
           <StampPost
             id={stamp.id}
             emoji={rally.emoji}
-            title={formatStampDay(new Date(stamp.stampedAt))}
+            title={rally.name}
             detail={formatStampTime(new Date(stamp.stampedAt))}
-            rallyName={rally.name}
             memo={stamp.memo}
             onPress={() =>
               push({
