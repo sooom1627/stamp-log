@@ -475,3 +475,16 @@ describe("S-018 T-001 ST-001 bottom tabs", () => {
     expect(tabs).toEqual(["Home", "Logs"]);
   });
 });
+
+describe("S-039 T-002 ST-005 archived rallies in Logs", () => {
+  test("keeps the stamps of an archived rally in the Logs timeline", async () => {
+    const archived = await saveRallyNamed("Archived trips", "🧳");
+    await saveStamp({ rallyId: archived.id, stampedAt: daysAgoAt(1, 10) });
+    await ralliesDb.setRallyArchived({ id: archived.id, isArchived: true });
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(await logs.findByText("Archived trips")).toBeOnTheScreen();
+  });
+});

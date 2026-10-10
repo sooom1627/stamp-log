@@ -20,14 +20,17 @@ import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 const SCREEN_PADDING = 20;
 const TILE_GAP = 10;
 
-type RalliesFilter = "all" | "favorites";
+type RalliesFilter = "all" | "favorites" | "archived";
 
 const filters: { value: RalliesFilter; label: string; empty: string }[] = [
   { value: "all", label: "All", empty: "No rallies" },
   { value: "favorites", label: "Favorites", empty: "No favorites yet" },
+  { value: "archived", label: "Archived", empty: "No archived rallies" },
 ];
 
 function isInFilter(rally: Rally, filter: RalliesFilter) {
+  if (filter === "archived") return rally.isArchived;
+  if (rally.isArchived) return false;
   return filter === "favorites" ? rally.isFavorite : true;
 }
 
@@ -138,11 +141,15 @@ export function RalliesListScreen() {
                 isFavorite={rally.isFavorite}
                 stampDates={stampDatesForRally(stamps ?? [], rally.id)}
                 width={tileWidth}
-                onPressStamp={() =>
-                  saveStamp(
-                    { rallyId: rally.id },
-                    { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
-                  )
+                // Archived rallies are looked back on, not stamped.
+                onPressStamp={
+                  rally.isArchived
+                    ? undefined
+                    : () =>
+                        saveStamp(
+                          { rallyId: rally.id },
+                          { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
+                        )
                 }
                 onPressDetail={() =>
                   push({ pathname: "/rallies/[id]", params: { id: rally.id } })

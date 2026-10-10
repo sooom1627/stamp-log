@@ -3,6 +3,7 @@ import {
   rallyEmojiSchema,
   rallySchema,
   saveRallyInputSchema,
+  setRallyArchivedInputSchema,
   setRallyFavoriteInputSchema,
   updateRallyInputSchema,
 } from "../rallies";
@@ -75,7 +76,10 @@ describe("S-032 T-001 ST-002 favorite rally", () => {
   const rally = { id: 1, name: "Kyoto trip", emoji: "⛩️" };
 
   test("reads a rally without isFavorite as not a favorite", () => {
-    expect(rallySchema.parse(rally)).toEqual({ ...rally, isFavorite: false });
+    expect(rallySchema.parse(rally)).toMatchObject({
+      ...rally,
+      isFavorite: false,
+    });
   });
 
   test("rejects a non-boolean isFavorite", () => {
@@ -85,7 +89,7 @@ describe("S-032 T-001 ST-002 favorite rally", () => {
   });
 
   test("parses a rally with isFavorite", () => {
-    expect(rallySchema.parse({ ...rally, isFavorite: true })).toEqual({
+    expect(rallySchema.parse({ ...rally, isFavorite: true })).toMatchObject({
       ...rally,
       isFavorite: true,
     });
@@ -106,6 +110,48 @@ describe("S-032 T-001 ST-002 favorite rally", () => {
     );
     expect(
       setRallyFavoriteInputSchema.safeParse({ isFavorite: false }).success,
+    ).toBe(false);
+  });
+});
+
+describe("S-039 T-002 ST-001 archived rally", () => {
+  const rally = { id: 1, name: "Kyoto trip", emoji: "⛩️" };
+
+  test("reads a rally without isArchived as not archived", () => {
+    expect(rallySchema.parse(rally)).toEqual({
+      ...rally,
+      isFavorite: false,
+      isArchived: false,
+    });
+  });
+
+  test("rejects a non-boolean isArchived", () => {
+    expect(rallySchema.safeParse({ ...rally, isArchived: 1 }).success).toBe(
+      false,
+    );
+  });
+
+  test("parses an archived rally", () => {
+    expect(rallySchema.parse({ ...rally, isArchived: true })).toMatchObject({
+      isArchived: true,
+    });
+  });
+
+  test("leaves isArchived out of the edit input", () => {
+    expect(
+      updateRallyInputSchema.parse({ ...rally, isArchived: true }),
+    ).toEqual(rally);
+  });
+
+  test("needs an id and a boolean to archive", () => {
+    expect(
+      setRallyArchivedInputSchema.parse({ id: 1, isArchived: true }),
+    ).toEqual({ id: 1, isArchived: true });
+    expect(setRallyArchivedInputSchema.safeParse({ id: 1 }).success).toBe(
+      false,
+    );
+    expect(
+      setRallyArchivedInputSchema.safeParse({ isArchived: false }).success,
     ).toBe(false);
   });
 });

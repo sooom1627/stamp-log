@@ -54,8 +54,12 @@ export function HomeScreen() {
     setShouldResort(false);
     setOrderStamps(stamps);
   }
+  // Archived rallies leave the tiles but stay in the today card: it is a record.
   const orderedRallies = rallies
-    ? sortRalliesForHome(rallies, orderStamps ?? stamps ?? [])
+    ? sortRalliesForHome(
+        rallies.filter((rally) => !rally.isArchived),
+        orderStamps ?? stamps ?? [],
+      )
     : undefined;
 
   const retryLists = () => {

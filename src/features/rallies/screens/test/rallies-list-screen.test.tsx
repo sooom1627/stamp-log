@@ -179,3 +179,77 @@ describe("S-039 T-001 ST-002 rallies list", () => {
     ).toBeOnTheScreen();
   });
 });
+
+describe("S-039 T-002 ST-005 Archived in the rallies list", () => {
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    await deleteAllRallies();
+  });
+
+  async function archive(rallyId: number) {
+    await ralliesDb.setRallyArchived({ id: rallyId, isArchived: true });
+  }
+
+  async function chooseFilter(selection: string) {
+    await fireEvent(
+      screen.getByTestId("rallies-list-filter"),
+      "selectionChange",
+      { nativeEvent: { selection } },
+    );
+  }
+
+  test("keeps archived rallies out of All and Favorites and lists them under Archived", async () => {
+    await saveRallyWithStamps("Active", 1);
+    await archive((await saveRallyWithStamps("Old plain", 3)).id);
+    await archive((await saveRallyWithStamps("Old favorite", 1, true)).id);
+    await saveRallyWithStamps("Active favorite", 0, true);
+
+    await openRalliesList();
+    await waitFor(() => {
+      expect(tileNames()).toEqual([
+        "View Active favorite details",
+        "View Active details",
+      ]);
+    });
+
+    await chooseFilter("favorites");
+    await waitFor(() => {
+      expect(tileNames()).toEqual(["View Active favorite details"]);
+    });
+
+    await chooseFilter("archived");
+    await waitFor(() => {
+      expect(tileNames()).toEqual([
+        "View Old favorite details",
+        "View Old plain details",
+      ]);
+    });
+  });
+
+  test("shows archived tiles without the stamp button", async () => {
+    await saveRallyWithStamps("Active", 0);
+    await archive((await saveRallyWithStamps("Old", 0)).id);
+
+    await openRalliesList();
+    await chooseFilter("archived");
+
+    await waitFor(() => {
+      expect(tileNames()).toEqual(["View Old details"]);
+    });
+    expect(
+      ralliesList().queryByRole("button", { name: /^Stamp .* for today$/ }),
+    ).not.toBeOnTheScreen();
+    expect(ralliesList().getByText("0 stamps")).toBeOnTheScreen();
+  });
+
+  test("says there are no archived rallies when none are archived", async () => {
+    await saveRallyWithStamps("Active", 0);
+
+    await openRalliesList();
+    await chooseFilter("archived");
+
+    expect(
+      await ralliesList().findByText("No archived rallies"),
+    ).toBeOnTheScreen();
+  });
+});
