@@ -17,6 +17,9 @@ describe("S-006 RT-003 ST-002 invalid id URL params close the screen", () => {
     ["/rally-day?rallyId=1&date=2026-02-30"],
     ["/rally-day?rallyId=1"],
     ["/rally-day?date=2026-09-18"],
+    ["/logs-day?date=2026-02-30"],
+    ["/logs-day?date=2999-01-01"],
+    ["/logs-day"],
   ] as const)("%s goes back home", async (href) => {
     // renderRouter attaches getPathname to the returned promise itself.
     const app = renderRouter("./src/app");
