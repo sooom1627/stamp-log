@@ -38,9 +38,27 @@ describe("S-023 T-001 ST-002 rally emoji", () => {
     `);
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 3, name: "Friends", emoji: "✨", isFavorite: false },
-      { id: 2, name: "Cafe", emoji: "✨", isFavorite: false },
-      { id: 1, name: "Walk", emoji: "✨", isFavorite: false },
+      {
+        id: 3,
+        name: "Friends",
+        emoji: "✨",
+        isFavorite: false,
+        isArchived: false,
+      },
+      {
+        id: 2,
+        name: "Cafe",
+        emoji: "✨",
+        isFavorite: false,
+        isArchived: false,
+      },
+      {
+        id: 1,
+        name: "Walk",
+        emoji: "✨",
+        isFavorite: false,
+        isArchived: false,
+      },
     ]);
   });
 });
@@ -106,7 +124,13 @@ describe("S-013 T-001 ST-002 updateRally", () => {
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
       cafe,
-      { id: walk.id, name: "Long walk", emoji: "🥾", isFavorite: false },
+      {
+        id: walk.id,
+        name: "Long walk",
+        emoji: "🥾",
+        isFavorite: false,
+        isArchived: false,
+      },
     ]);
     await expect(stampsDb.listStamps()).resolves.toEqual(stampsBefore);
   });
@@ -145,7 +169,13 @@ describe("S-040 T-001 ST-003 rallies without type", () => {
       "is_favorite",
     ]);
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 1, name: "Walk", emoji: "✨", isFavorite: false },
+      {
+        id: 1,
+        name: "Walk",
+        emoji: "✨",
+        isFavorite: false,
+        isArchived: false,
+      },
     ]);
   });
 
@@ -165,8 +195,20 @@ describe("S-040 T-001 ST-003 rallies without type", () => {
     await stampsDb.saveStamp({ rallyId: 1 });
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 2, name: "Cafe", emoji: "☕", isFavorite: false },
-      { id: 1, name: "Walk", emoji: "🚶", isFavorite: false },
+      {
+        id: 2,
+        name: "Cafe",
+        emoji: "☕",
+        isFavorite: false,
+        isArchived: false,
+      },
+      {
+        id: 1,
+        name: "Walk",
+        emoji: "🚶",
+        isFavorite: false,
+        isArchived: false,
+      },
     ]);
     await expect(ralliesColumns(getDb)).resolves.toEqual([
       "id",
@@ -190,7 +232,13 @@ describe("S-032 T-001 ST-003 favorite rallies", () => {
     await ralliesDb.saveRally({ name: "Walk", emoji: "🚶" });
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 1, name: "Walk", emoji: "🚶", isFavorite: false },
+      {
+        id: 1,
+        name: "Walk",
+        emoji: "🚶",
+        isFavorite: false,
+        isArchived: false,
+      },
     ]);
   });
 
@@ -202,15 +250,33 @@ describe("S-032 T-001 ST-003 favorite rallies", () => {
     await ralliesDb.setRallyFavorite({ id: 1, isFavorite: true });
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 2, name: "Cafe", emoji: "☕", isFavorite: false },
-      { id: 1, name: "Walk", emoji: "🚶", isFavorite: true },
+      {
+        id: 2,
+        name: "Cafe",
+        emoji: "☕",
+        isFavorite: false,
+        isArchived: false,
+      },
+      { id: 1, name: "Walk", emoji: "🚶", isFavorite: true, isArchived: false },
     ]);
 
     await ralliesDb.setRallyFavorite({ id: 1, isFavorite: false });
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 2, name: "Cafe", emoji: "☕", isFavorite: false },
-      { id: 1, name: "Walk", emoji: "🚶", isFavorite: false },
+      {
+        id: 2,
+        name: "Cafe",
+        emoji: "☕",
+        isFavorite: false,
+        isArchived: false,
+      },
+      {
+        id: 1,
+        name: "Walk",
+        emoji: "🚶",
+        isFavorite: false,
+        isArchived: false,
+      },
     ]);
   });
 
@@ -222,7 +288,13 @@ describe("S-032 T-001 ST-003 favorite rallies", () => {
     await ralliesDb.updateRally({ id: 1, name: "Long walk", emoji: "🥾" });
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 1, name: "Long walk", emoji: "🥾", isFavorite: true },
+      {
+        id: 1,
+        name: "Long walk",
+        emoji: "🥾",
+        isFavorite: true,
+        isArchived: false,
+      },
     ]);
   });
 
@@ -239,7 +311,13 @@ describe("S-032 T-001 ST-003 favorite rallies", () => {
     `);
 
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 1, name: "Walk", emoji: "🚶", isFavorite: false },
+      {
+        id: 1,
+        name: "Walk",
+        emoji: "🚶",
+        isFavorite: false,
+        isArchived: false,
+      },
     ]);
     const columns = await db.getAllAsync<{ name: string }>(
       "PRAGMA table_info(rallies)",
@@ -248,7 +326,7 @@ describe("S-032 T-001 ST-003 favorite rallies", () => {
 
     await ralliesDb.setRallyFavorite({ id: 1, isFavorite: true });
     await expect(ralliesDb.listRallies()).resolves.toEqual([
-      { id: 1, name: "Walk", emoji: "🚶", isFavorite: true },
+      { id: 1, name: "Walk", emoji: "🚶", isFavorite: true, isArchived: false },
     ]);
   });
 });

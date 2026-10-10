@@ -7,6 +7,7 @@ const rally = (id: number, isFavorite = false): Rally => ({
   name: `Rally ${id}`,
   emoji: "🗼",
   isFavorite,
+  isArchived: false,
 });
 
 let nextStampId = 1;

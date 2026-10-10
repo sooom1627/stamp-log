@@ -55,6 +55,7 @@ describe("S-013 T-001 ST-003 useUpdateRally", () => {
       name: "Hike",
       emoji: "⛰️",
       isFavorite: false,
+      isArchived: false,
     };
 
     let seen: Rally[] | undefined;
