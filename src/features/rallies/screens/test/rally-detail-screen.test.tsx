@@ -611,6 +611,111 @@ describe("S-017 T-001 ST-003 confirm names the stamps deleted with the rally", (
   });
 });
 
+describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () => {
+  async function saveRallyWithStamps(name: string, count: number) {
+    await ralliesDb.saveRally({ name, type: "place", emoji: "🧭" });
+    const [rally] = await ralliesDb.listRallies();
+    for (let index = 0; index < count; index += 1) {
+      await saveStamp({ rallyId: rally.id });
+    }
+    return rally;
+  }
+
+  async function confirmDelete() {
+    await fireEvent(
+      await screen.findByTestId("rally-action-delete"),
+      "buttonPress",
+    );
+    await act(async () => {
+      findAlertButton("destructive").onPress?.();
+    });
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Rally detail")).not.toBeOnTheScreen();
+    });
+  }
+
+  function homeTile(name: string) {
+    const tile = screen
+      .getAllByTestId("rally-tile")
+      .find((candidate) => within(candidate).queryByText(name));
+    if (!tile) throw new Error(`Tile for ${name} not found`);
+    return within(tile);
+  }
+
+  function todayStampCount() {
+    const label = screen.getByTestId("today-card").props["aria-label"];
+    const match = /, (\d+) stamps?:/.exec(label);
+    if (!match) throw new Error(`No count in ${label}`);
+    return Number(match[1]);
+  }
+
+  test("Home drops the rally and today's count, and keeps other rallies' counts", async () => {
+    await saveRallyWithStamps("Home kept", 1);
+    const rally = await saveRallyWithStamps("Home deleted", 3);
+    await renderRouter("./src/app");
+    expect(
+      await screen.findByRole("button", { name: "View Home deleted details" }),
+    ).toBeOnTheScreen();
+    expect(homeTile("Home deleted").getByText("3 stamps")).toBeOnTheScreen();
+    expect(homeTile("Home kept").getByText("1 stamp")).toBeOnTheScreen();
+    const todayBefore = todayStampCount();
+    await act(() => {
+      router.push(`/rallies/${rally.id}`);
+    });
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+
+    await confirmDelete();
+
+    expect(
+      await screen.findByRole("button", { name: "View Home kept details" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "View Home deleted details" }),
+    ).not.toBeOnTheScreen();
+    expect(homeTile("Home kept").getByText("1 stamp")).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(todayStampCount()).toBe(todayBefore - 1);
+    });
+    expect(screen.getByTestId("today-card").props["aria-label"]).not.toContain(
+      "Home deleted",
+    );
+  });
+
+  test("Logs drops the rally's posts when it is deleted from a Logs post", async () => {
+    await saveRallyWithStamps("Logs kept", 1);
+    const rally = await saveRallyWithStamps("Logs deleted", 3);
+    await renderRouter("./src/app");
+    expect(
+      await screen.findByRole("link", { name: "Create rally" }),
+    ).toBeOnTheScreen();
+    await act(() => {
+      router.push("/records");
+    });
+    const logs = await screen.findByLabelText("Logs timeline");
+    const countBefore = Number(
+      within(logs)
+        .getByLabelText(/stamps in the timeline$/)
+        .props["aria-label"].split(" ")[0],
+    );
+    expect(within(logs).getAllByText("Logs deleted")).toHaveLength(3);
+    await act(() => {
+      router.push(`/records/rallies/${rally.id}`);
+    });
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+
+    await confirmDelete();
+
+    const logsAfter = within(screen.getByLabelText("Logs timeline"));
+    expect(
+      await logsAfter.findByLabelText(
+        `${countBefore - 3} stamps in the timeline`,
+      ),
+    ).toBeOnTheScreen();
+    expect(logsAfter.queryByText("Logs deleted")).not.toBeOnTheScreen();
+    expect(logsAfter.getByText("Logs kept")).toBeOnTheScreen();
+  });
+});
+
 describe("S-028 T-001 ST-004 no footer actions", () => {
   test("leaves Past stamp and Delete rally to the header menu only", async () => {
     await openRallyDetail("No footer");
