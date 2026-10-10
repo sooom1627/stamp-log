@@ -5,7 +5,7 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 export async function openDatabaseAsync(_databaseName: string) {
   const db = new DatabaseSync(":memory:");
 
-  return {
+  const database = {
     execAsync: async (source: string) => {
       db.exec(source);
     },
@@ -31,6 +31,24 @@ export async function openDatabaseAsync(_databaseName: string) {
     },
     closeAsync: async () => {
       db.close();
+    },
+  };
+
+  return {
+    ...database,
+    // The native API runs the task on its own connection; the in-memory
+    // database has one, so the task gets the same queries.
+    withExclusiveTransactionAsync: async (
+      task: (txn: typeof database) => Promise<void>,
+    ) => {
+      db.exec("BEGIN");
+      try {
+        await task(database);
+        db.exec("COMMIT");
+      } catch (error) {
+        db.exec("ROLLBACK");
+        throw error;
+      }
     },
   };
 }

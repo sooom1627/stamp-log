@@ -66,6 +66,27 @@ describe("deleteRally", () => {
   });
 });
 
+describe("S-017 T-001 ST-002 deleteRally in one transaction", () => {
+  test("keeps the rally's stamps when deleting the rally fails", async () => {
+    const { getDb, ralliesDb, stampsDb } = loadFreshDb();
+    await ralliesDb.saveRally({ name: "Walk", type: "action" });
+    const [rally] = await ralliesDb.listRallies();
+    await stampsDb.saveStamp({ rallyId: rally.id });
+    const db = await getDb();
+    await db.execAsync(`
+      CREATE TRIGGER fail_rally_delete BEFORE DELETE ON rallies
+      BEGIN SELECT RAISE(ABORT, 'delete failed'); END;
+    `);
+
+    await expect(ralliesDb.deleteRally(rally.id)).rejects.toThrow(
+      "delete failed",
+    );
+
+    await expect(ralliesDb.listRallies()).resolves.toHaveLength(1);
+    await expect(stampsDb.listStamps()).resolves.toHaveLength(1);
+  });
+});
+
 describe("S-013 T-001 ST-002 updateRally", () => {
   test("updates name, type and emoji of the rally and keeps others and its stamps", async () => {
     const { ralliesDb, stampsDb } = loadFreshDb();
