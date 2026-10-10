@@ -21,7 +21,7 @@ Read and write Issues with the GitHub MCP tools or `gh issue view` / `gh issue e
 - **Story**: One user-visible value. As a / I want / so that + Given/When/Then. **Always the unit of delivery.**
 - **Task**: A coherent user-visible behavior chunk within the story. Groups related Subs. Done when all child Subs are Done and the task branch is merged.
 - **Refactor Task (`RT-###`)**: A Task that changes structure without changing behavior. Label `task` + `refactor`.
-- **Sub**: **The implementation unit.** May be a **horizontal layer** (schema / db / hooks / UI). One TDD cycle, one `pnpm run check`, one commit.
+- **Sub**: **The implementation unit.** May be a **horizontal layer** (docs / schema / db / hooks / UI). One TDD cycle (docs Subs excepted), one `pnpm run check`, one commit.
 - IDs: next Story ID = the largest `S-` in issue titles + 1. `T-###` / `RT-###` restart at 001 per Story; `ST-###` restarts at 001 per Task.
 - Deferred Stories keep the `deferred` label. Withdrawn Stories are closed as "not planned".
 - Issue forms: `.github/ISSUE_TEMPLATE/story.yml`, `task.yml`.
@@ -46,9 +46,10 @@ master
 1. **Story ブランチを1回切る**（例: `feat/s-001-record-person`）。以降その Story の作業の親にする。Epic が未着手なら `docs/product.md` §3 の状態を進行中にする
 2. **計画を作る**（Task Issue を作り、Story の sub-issue にする。Sub は Task Issue 本文のチェックリストに書く。未分割なら実装しない）
 3. **Task ブランチを切る**（Story ブランチから。例: `feat/s-001-t-001-save-person`）
-4. **Sub ごとに** テスト → 確認（Red→Green + `pnpm run check`）。完了したら止めて報告する
-5. **Task 完了で** Task ブランチを Story ブランチへマージする。次の Task も同様
-6. **Story 完了で** Story ブランチを `master` へ PR / マージする。PR 本文に Story と全 Task を `Closes #…` で並べる（自動クローズは `master` への PR でだけ効く）。この Story でその Epic の未完了 Story（`deferred` を除く）が無くなるなら、同じ PR で Epic の状態を完了にする
+4. **Story の最初の Task では** 仕様や画面が変わるなら ST-001 で `docs/` を更新する（その Story の docs 更新はここにまとめる）
+5. **Sub ごとに** テスト → 確認（Red→Green + `pnpm run check`。docs の Sub はテストなし）。完了したら止めて報告する
+6. **Task 完了で** Task ブランチを Story ブランチへマージする。次の Task も同様
+7. **Story 完了で** Story ブランチを `master` へ PR / マージする。PR 本文に Story と全 Task を `Closes #…` で並べる（自動クローズは `master` への PR でだけ効く）。この Story でその Epic の未完了 Story（`deferred` を除く）が無くなるなら、同じ PR で Epic の状態を完了にする
 
 - 同時に進める Story は1つ。同時に進める Task ブランチも原則1つ
 - Sub のコミットメッセージに Story ID・Sub ID と Task Issue 番号を含める（例: `feat: S-001 ST-003 … (#12)`）
@@ -62,9 +63,9 @@ master
 ## Before coding
 
 1. Find the target Story issue. If missing, create it first (Story form, `Epic: E-###` line). A new Epic is added to the table in `docs/product.md` first.
-2. If the Story adds or changes screens, the matching `docs/screens/*.md` must already be on `master` (see [docs/design.md](docs/design.md)).
+2. If the Story changes the spec or adds or changes screens, plan ST-001 of its first Task as the docs Sub: update `docs/product.md`, [docs/design.md](docs/design.md) and the matching `docs/screens/*.md` there for the whole Story. Do not put Story docs on a separate branch or PR.
 3. Ensure the Story branch exists; cut a Task branch only after the Task issues and their Sub checklists are written.
-4. Split the Task into Subs (typically schema → db → hooks → UI). Do not implement an unsplit Task as one blob.
+4. Split the Task into Subs (typically docs → schema → db → hooks → UI; docs only in the Story's first Task). Do not implement an unsplit Task as one blob.
 5. Split the Story itself if it has more than 5 acceptance criteria or cannot ship in one PR after Task/Sub split.
 
 ## Where to write what
@@ -75,9 +76,10 @@ master
 ## Subs may be horizontal
 
 - **Task** stays a user-visible behavior chunk.
-- **Sub** may be one layer: schema (Zod), db (SQLite), hooks (Query), UI (screen).
+- **Sub** may be one layer: docs (`docs/`), schema (Zod), db (SQLite), hooks (Query), UI (screen).
 - Do not start a later layer ST until the earlier one is Done. Do not introduce schema / db / hooks for the first time inside the UI ST.
-- **Non-UI Subs**: write tests at that layer (parse, persist, invalidate).
+- **Docs Subs**: no tests. Change only `docs/`. Commit as `docs: S-### ST-001 … (#Task)`.
+- **schema / db / hooks Subs**: write tests at that layer (parse, persist, invalidate).
 - **UI Subs**: layer unit tests are not required. Cover Task acceptance with RNTL (screen Given/When/Then).
 - Within one Sub, keep the change to that layer.
 
@@ -85,8 +87,8 @@ master
 
 ### Sub
 
-- Non-UI: that layer’s contract is covered by tests. UI: Task acceptance is covered by RNTL
-- Red → Green per `tdd-cycle` rule
+- Docs: `docs/` describes the Story's target state. schema / db / hooks: that layer’s contract is covered by tests. UI: Task acceptance is covered by RNTL
+- Red → Green per `tdd-cycle` rule (not for docs Subs)
 - `pnpm run check` passed
 - Ready to commit on the **Task** branch (message includes Story ID, Sub ID and Task issue, e.g. `S-001 ST-003 (#12)`) — **do not commit until asked**
 - After the user-requested commit, tick the Sub checkbox in the Task issue
@@ -107,5 +109,5 @@ master
 ## Exceptions (no story required)
 
 - `chore`: dependencies, tooling, config（専用ブランチ可。Story フロー不要）
-- `docs`: プロダクト / IA / 画面 Markdown（専用ブランチ可。Story 不要。本番コードを入れない）
+- `docs`: Story に紐付かない docs（Epic 表、リリース、規約など）（専用ブランチ可。Story 不要。本番コードを入れない）。Story の仕様・画面の docs はその Story の最初の Task の ST-001 で更新する
 - Time-boxed spikes: leave no production code

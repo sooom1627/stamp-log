@@ -6,7 +6,7 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 
 ## 書き方
 
-画面ごとに `docs/screens/<kebab>.md` を置く。画面を足す・変える Story は、この文書を先に `master` へ入れる（[agile-workflow](../.cursor/rules/agile-workflow.mdc)）。
+画面ごとに `docs/screens/<kebab>.md` を置く。画面を足す・変える Story は、最初の Task の ST-001 でこの文書を更新する（[agile-workflow](../.cursor/rules/agile-workflow.mdc)）。
 
 画面 Markdown の型:
 

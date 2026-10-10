@@ -26,9 +26,9 @@ body:
     id: subs
     attributes:
       label: Subs
-      description: 1 Sub = 1 TDD サイクル = 1 コミット。層で分けてよい（schema → db → hooks → UI）。コミット後にチェックする
+      description: 1 Sub = 1 コミット。層で分けてよい（docs → schema → db → hooks → UI）。docs 以外は 1 TDD サイクル。Story の最初の Task で仕様や画面が変わるなら ST-001 を docs にし、それ以外は消す。コミット後にチェックする
       value: |
-        - [ ] ST-001:
+        - [ ] ST-001: docs を更新する（docs）
         - [ ] ST-002:
     validations:
       required: true
