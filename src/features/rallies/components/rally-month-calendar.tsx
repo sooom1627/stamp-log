@@ -30,6 +30,7 @@ type CalendarDayProps = {
   mark: DayMark | undefined;
   todayKey: string;
   onPress: ((key: string) => void) | undefined;
+  isRecordedOnly: boolean;
 };
 
 function dayLabel(day: MonthDay, mark: DayMark | undefined) {
@@ -59,13 +60,15 @@ function CalendarDay({
   mark,
   todayKey,
   onPress,
+  isRecordedOnly,
 }: CalendarDayProps) {
   if (!day) return <View className="flex-1" />;
 
   // Keys are YYYY-MM-DD, so string order is date order.
   const isFuture = day.key > todayKey;
   const isToday = day.key === todayKey;
-  const isDisabled = isFuture || !onPress;
+  const isDisabled =
+    isFuture || !onPress || (isRecordedOnly && !day.isRecorded);
   const extraCount = mark?.extraCount ?? 0;
 
   return (
@@ -122,6 +125,8 @@ type RallyMonthCalendarProps = {
   // Called with the YYYY-MM-DD key of a day up to today. Without it no day
   // can be pressed.
   onPressDay?: (key: string) => void;
+  // Logs opens only days with stamps; rally detail opens empty days too.
+  isRecordedOnly?: boolean;
 };
 
 function firstDayOfMonth(date: Date) {
@@ -146,6 +151,7 @@ export function RallyMonthCalendar({
   emoji,
   dayMarks,
   onPressDay,
+  isRecordedOnly = false,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
   // Opens on the week holding today every time; the view is not remembered.
@@ -237,6 +243,7 @@ export function RallyMonthCalendar({
               mark={day ? dayMarks?.get(day.key) : undefined}
               todayKey={todayKey}
               onPress={onPressDay}
+              isRecordedOnly={isRecordedOnly}
             />
           ))}
         </View>

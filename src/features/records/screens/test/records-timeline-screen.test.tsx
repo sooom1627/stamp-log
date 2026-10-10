@@ -402,15 +402,40 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     expect(logs.getByText("Calendar list")).toBeOnTheScreen();
   });
 
-  test("cannot press a day yet", async () => {
+  test("S-012 T-001 ST-003 opens the Logs day sheet from a recorded day only", async () => {
     const rally = await saveRallyNamed("Calendar press", "🪀");
-    await saveStamp({ rallyId: rally.id });
+    const stamp = await saveStamp({ rallyId: rally.id });
+    // Only today is recorded, so every other day of the week has no stamp.
+    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([stamp]);
     const { calendar } = await openLogsCalendar();
+    const todayKey = localDateKey(new Date());
 
     const days = calendar.getAllByRole("button", { name: /, 20\d\d, / });
     for (const day of days) {
+      if (within(day).queryByTestId(`calendar-day-${todayKey}`)) {
+        expect(day).toBeEnabled();
+        continue;
+      }
       expect(day).toBeDisabled();
     }
+
+    await userEvent
+      .setup()
+      .press(
+        within(calendar.getByTestId(`calendar-day-${todayKey}`)).getByText(
+          "🪀",
+        ),
+      );
+
+    const sheet = within(await screen.findByTestId("logs-day-sheet"));
+    expect(
+      sheet.getByRole("heading", {
+        name: new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(
+          new Date(),
+        ),
+      }),
+    ).toBeOnTheScreen();
+    expect(await sheet.findByText("Calendar press")).toBeOnTheScreen();
   });
 });
 
