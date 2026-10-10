@@ -3,6 +3,7 @@ import { FlatList, Text, View } from "react-native";
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useStamps } from "@/features/rallies/hooks/use-stamps";
+import { LoadError } from "@/shared/components/load-error";
 import {
   TabRootHeader,
   TabRootWeekday,
@@ -12,9 +13,37 @@ import {
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
 
+type TimelineEmptyProps = {
+  isError: boolean;
+  isLoaded: boolean;
+  onRetry: () => void;
+};
+
+// Nothing while loading, so No stamps yet never flashes before the posts.
+function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
+  if (isError) return <LoadError onRetry={onRetry} />;
+  if (!isLoaded) return null;
+
+  return (
+    <View className="items-center py-12">
+      <Text className="text-foreground-secondary">No stamps yet</Text>
+    </View>
+  );
+}
+
 export function RecordsTimelineScreen() {
-  const { data: stamps } = useStamps();
-  const { data: rallies } = useRallies();
+  const {
+    data: stamps,
+    isError: isStampsError,
+    refetch: refetchStamps,
+  } = useStamps();
+  const {
+    data: rallies,
+    isError: isRalliesError,
+    refetch: refetchRallies,
+  } = useRallies();
+  const isLoaded = stamps !== undefined && rallies !== undefined;
+  const isError = isStampsError || isRalliesError;
   // A stamp is shown once its rally is loaded, so every post has its name.
   const posts = rallies
     ? (stamps ?? []).flatMap((stamp) => {
@@ -69,9 +98,14 @@ export function RecordsTimelineScreen() {
           </View>
         }
         ListEmptyComponent={
-          <View className="items-center py-12">
-            <Text className="text-foreground-secondary">No stamps yet</Text>
-          </View>
+          <TimelineEmpty
+            isError={isError}
+            isLoaded={isLoaded}
+            onRetry={() => {
+              void refetchStamps();
+              void refetchRallies();
+            }}
+          />
         }
       />
       <TabRootHeader />

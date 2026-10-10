@@ -1,9 +1,11 @@
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, screen, within } from "@testing-library/react-native";
+import { act, screen, userEvent, within } from "@testing-library/react-native";
 
+import * as ralliesDb from "@/features/rallies/db/rallies-db";
 import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
+import * as stampsDb from "@/features/rallies/db/stamps-db";
 import { saveStamp, updateStampMemo } from "@/features/rallies/db/stamps-db";
 import {
   formatStampDay,
@@ -11,6 +13,10 @@ import {
 } from "@/shared/utils/format-stamp-date-time";
 
 jest.useFakeTimers();
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 function daysAgoAt(days: number, hours: number) {
   const date = new Date();
@@ -79,6 +85,75 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
     expect(logs.getByLabelText("3 stamps in the timeline")).toHaveTextContent(
       "3",
     );
+  });
+});
+
+describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
+  const logsTimeline = async () =>
+    within(await screen.findByLabelText("Logs timeline"));
+
+  test("shows No stamps yet without the Stamps heading when there are no stamps", async () => {
+    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    await openLogs();
+    const logs = await logsTimeline();
+
+    expect(await logs.findByText("No stamps yet")).toBeOnTheScreen();
+    expect(logs.queryByRole("heading", { name: "Stamps" })).toBeNull();
+  });
+
+  test("shows nothing while the stamps are loading", async () => {
+    jest
+      .spyOn(stampsDb, "listStamps")
+      .mockImplementation(() => new Promise(() => {}));
+    await openLogs();
+    const logs = await logsTimeline();
+
+    expect(logs.queryByText("No stamps yet")).not.toBeOnTheScreen();
+    expect(logs.queryByText("Couldn't load")).not.toBeOnTheScreen();
+  });
+
+  test("shows a load error with Retry instead of the empty state", async () => {
+    jest
+      .spyOn(stampsDb, "listStamps")
+      .mockRejectedValue(new Error("disk full"));
+    await openLogs();
+    const logs = await logsTimeline();
+
+    expect(await logs.findByText("Couldn't load")).toBeOnTheScreen();
+    expect(logs.getByRole("button", { name: "Retry" })).toBeOnTheScreen();
+    expect(logs.queryByText("No stamps yet")).not.toBeOnTheScreen();
+  });
+
+  test("shows a load error when the rallies cannot be read", async () => {
+    jest
+      .spyOn(ralliesDb, "listRallies")
+      .mockRejectedValue(new Error("disk full"));
+    await renderRouter("./src/app");
+    await act(() => {
+      router.push("/records");
+    });
+    const logs = await logsTimeline();
+
+    expect(await logs.findByText("Couldn't load")).toBeOnTheScreen();
+    expect(logs.queryByText("No stamps yet")).not.toBeOnTheScreen();
+  });
+
+  test("shows the stamps after retrying a failed load", async () => {
+    const rally = await saveRallyNamed("Retry rally", "🎯");
+    await saveStamp({ rallyId: rally.id });
+    const realListStamps = stampsDb.listStamps;
+    const listSpy = jest
+      .spyOn(stampsDb, "listStamps")
+      .mockRejectedValue(new Error("disk full"));
+    await openLogs();
+    const logs = await logsTimeline();
+    expect(await logs.findByText("Couldn't load")).toBeOnTheScreen();
+
+    listSpy.mockImplementation(realListStamps);
+    await userEvent.setup().press(logs.getByRole("button", { name: "Retry" }));
+
+    expect(await logs.findByText("Retry rally")).toBeOnTheScreen();
+    expect(logs.queryByText("Couldn't load")).not.toBeOnTheScreen();
   });
 });
 

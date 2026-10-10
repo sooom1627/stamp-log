@@ -47,13 +47,17 @@ export function TabRootHeader() {
 }
 
 type TabRootScreenProps = {
+  // Names the screen's content. Native tabs keep every tab mounted, so this
+  // also tells tab roots apart.
+  label?: string;
   children: ReactNode;
 };
 
-export function TabRootScreen({ children }: TabRootScreenProps) {
+export function TabRootScreen({ label, children }: TabRootScreenProps) {
   return (
     <>
       <ScrollView
+        aria-label={label}
         className="bg-canvas flex-1"
         contentContainerClassName="px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
