@@ -9,6 +9,13 @@ export type MonthDay = {
   isRecorded: boolean;
 };
 
+// What a recorded day shows when stamps come from several rallies (Logs):
+// the emoji of the day's last stamp, and how many other stamps the day has.
+export type DayMark = {
+  emoji: string;
+  extraCount: number;
+};
+
 const DAYS_PER_WEEK = 7;
 
 function toRecordedDateKeys(stampDates: string[]) {
