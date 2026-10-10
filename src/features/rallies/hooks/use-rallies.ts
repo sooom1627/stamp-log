@@ -4,6 +4,7 @@ import {
   deleteRally,
   listRallies,
   saveRally,
+  setRallyArchived,
   setRallyFavorite,
   updateRally,
 } from "../db/rallies-db";
@@ -44,6 +45,16 @@ export function useSetRallyFavorite() {
 
   return useMutation({
     mutationFn: setRallyFavorite,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ralliesQueryKey }),
+  });
+}
+
+export function useSetRallyArchived() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: setRallyArchived,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ralliesQueryKey }),
   });

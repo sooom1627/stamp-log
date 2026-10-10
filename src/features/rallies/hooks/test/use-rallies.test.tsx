@@ -12,6 +12,7 @@ import { type Rally } from "../../schemas/rallies";
 import {
   ralliesQueryKey,
   useRallies,
+  useSetRallyArchived,
   useSetRallyFavorite,
   useUpdateRally,
 } from "../use-rallies";
@@ -106,6 +107,40 @@ describe("S-032 T-001 ST-004 useSetRallyFavorite", () => {
       expect(
         result.current.rallies.data?.find((rally) => rally.id === walk.id),
       ).toEqual({ ...walk, isFavorite: true });
+    });
+  });
+});
+
+describe("S-039 T-002 ST-003 useSetRallyArchived", () => {
+  test("rallies show the archive after it is set", async () => {
+    await saveRally({ name: "Archived walk", emoji: "🚶" });
+    const { result } = await renderHook(
+      () => ({
+        rallies: useRallies(),
+        setRallyArchived: useSetRallyArchived(),
+      }),
+      { wrapper: createWrapper() },
+    );
+    await waitFor(() => {
+      expect(result.current.rallies.isSuccess).toBe(true);
+    });
+    const walk = result.current.rallies.data?.find(
+      (rally) => rally.name === "Archived walk",
+    );
+    if (!walk) throw new Error("rally not saved");
+    expect(walk.isArchived).toBe(false);
+
+    await act(async () => {
+      await result.current.setRallyArchived.mutateAsync({
+        id: walk.id,
+        isArchived: true,
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        result.current.rallies.data?.find((rally) => rally.id === walk.id),
+      ).toEqual({ ...walk, isArchived: true });
     });
   });
 });
