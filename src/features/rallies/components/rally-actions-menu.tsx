@@ -6,7 +6,9 @@ import { useAccentColor } from "@/shared/hooks/use-accent-color";
 
 type RallyActionsMenuProps = {
   isFavorite: boolean;
+  isArchived: boolean;
   onToggleFavorite: () => void;
+  onToggleArchive: () => void;
   onPastStamp: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -18,7 +20,9 @@ type RallyActionsMenuProps = {
 // same toolbar group, so it shares the menu's glass.
 export function RallyActionsMenu({
   isFavorite,
+  isArchived,
   onToggleFavorite,
+  onToggleArchive,
   onPastStamp,
   onEdit,
   onDelete,
@@ -28,6 +32,8 @@ export function RallyActionsMenu({
     ? "Remove from favorites"
     : "Add to favorites";
   const favoriteIcon = isFavorite ? "star.fill" : "star";
+  const archiveLabel = isArchived ? "Unarchive rally" : "Archive rally";
+  const archiveIcon = isArchived ? "arrow.uturn.backward" : "archivebox";
 
   return (
     <>
@@ -47,6 +53,12 @@ export function RallyActionsMenu({
           </Stack.Toolbar.MenuAction>
           <Stack.Toolbar.MenuAction icon="pencil" onPress={onEdit}>
             Edit rally
+          </Stack.Toolbar.MenuAction>
+          <Stack.Toolbar.MenuAction
+            icon={archiveIcon}
+            onPress={onToggleArchive}
+          >
+            {archiveLabel}
           </Stack.Toolbar.MenuAction>
           <Stack.Toolbar.MenuAction icon="trash" destructive onPress={onDelete}>
             Delete rally
@@ -85,6 +97,12 @@ export function RallyActionsMenu({
               label="Edit rally"
               systemImage="pencil"
               onPress={onEdit}
+            />
+            <Button
+              testID="rally-action-archive"
+              label={archiveLabel}
+              systemImage={archiveIcon}
+              onPress={onToggleArchive}
             />
             <Button
               testID="rally-action-delete"

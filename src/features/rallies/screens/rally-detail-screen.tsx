@@ -17,6 +17,7 @@ import { StampPost } from "../components/stamp-post";
 import {
   useDeleteRally,
   useRallies,
+  useSetRallyArchived,
   useSetRallyFavorite,
 } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
@@ -69,6 +70,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   } = useRallyStamps(rallyId);
   const { mutate: deleteRally } = useDeleteRally();
   const { mutate: setRallyFavorite } = useSetRallyFavorite();
+  const { mutate: setRallyArchived } = useSetRallyArchived();
   const { mutate: deleteStamp } = useDeleteStamp();
   const rally = rallies?.find((candidate) => candidate.id === rallyId);
   const summary = stamps
@@ -143,6 +145,11 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               >
                 {rally.name}
               </Text>
+              {rally.isArchived ? (
+                <Text className="text-foreground-muted text-sm font-medium">
+                  Archived
+                </Text>
+              ) : null}
               {stamps ? (
                 <Text className="text-accent-strong text-base font-semibold">
                   {formatStampCount(stamps.length)}
@@ -189,8 +196,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       <Stack.Title>{rally.name}</Stack.Title>
       <RallyActionsMenu
         isFavorite={rally.isFavorite}
+        isArchived={rally.isArchived}
         onToggleFavorite={() =>
           setRallyFavorite({ id: rally.id, isFavorite: !rally.isFavorite })
+        }
+        onToggleArchive={() =>
+          setRallyArchived({ id: rally.id, isArchived: !rally.isArchived })
         }
         onPastStamp={() =>
           push({ pathname: "/add-past-stamp", params: { rallyId: rally.id } })
