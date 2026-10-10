@@ -857,3 +857,19 @@ describe("S-039 T-002 ST-005 archived rallies leave home", () => {
     expect(gridTileNames()).toEqual([]);
   });
 });
+
+describe("S-039 T-003 ST-003 View All tap target", () => {
+  test("gives View All a tap target at least 44pt tall with body-size text", async () => {
+    await renderHomeWithRally("View All size");
+
+    const viewAll = screen.getByRole("link", { name: "View All" });
+    expect(viewAll).toHaveProp(
+      "className",
+      expect.stringContaining("min-h-11"),
+    );
+    expect(within(viewAll).getByText("View All")).toHaveProp(
+      "className",
+      expect.stringContaining("text-base"),
+    );
+  });
+});
