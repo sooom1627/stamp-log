@@ -1,12 +1,18 @@
 import { renderRouter } from "expo-router/testing-library";
 
 import {
+  act,
   fireEvent,
   screen,
   userEvent,
   waitFor,
   within,
 } from "@testing-library/react-native";
+import { State } from "react-native-gesture-handler";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 
 import * as ralliesDb from "../../db/rallies-db";
 import * as stampsDb from "../../db/stamps-db";
@@ -251,5 +257,73 @@ describe("S-039 T-002 ST-005 Archived in the rallies list", () => {
     expect(
       await ralliesList().findByText("No archived rallies"),
     ).toBeOnTheScreen();
+  });
+});
+
+describe("S-039 T-003 ST-002 swipe between list tabs", () => {
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    await deleteAllRallies();
+  });
+
+  async function swipe(translationX: number) {
+    await act(() => {
+      fireGestureHandler(getByGestureTestId("rallies-list-swipe"), [
+        { state: State.BEGAN, translationX: 0 },
+        { state: State.ACTIVE, translationX },
+        { state: State.END, translationX },
+      ]);
+    });
+  }
+
+  function selectedFilter() {
+    return screen.getByTestId("rallies-list-filter").props.selection;
+  }
+
+  test("moves to the next tab on a left swipe and back on a right swipe", async () => {
+    await saveRallyWithStamps("Active", 0);
+    await saveRallyWithStamps("Loved", 0, true);
+    const old = await saveRallyWithStamps("Old", 0);
+    await ralliesDb.setRallyArchived({ id: old.id, isArchived: true });
+
+    await openRalliesList();
+    await waitFor(() => {
+      expect(tileNames()).toHaveLength(2);
+    });
+
+    await swipe(-120);
+    await waitFor(() => {
+      expect(tileNames()).toEqual(["View Loved details"]);
+    });
+    expect(selectedFilter()).toBe("favorites");
+
+    await swipe(-120);
+    await waitFor(() => {
+      expect(tileNames()).toEqual(["View Old details"]);
+    });
+    expect(selectedFilter()).toBe("archived");
+
+    await swipe(120);
+    expect(selectedFilter()).toBe("favorites");
+  });
+
+  test("stays on the first and last tab at the ends", async () => {
+    await openRalliesList();
+
+    await swipe(120);
+    expect(selectedFilter()).toBe("all");
+
+    await swipe(-120);
+    await swipe(-120);
+    await swipe(-120);
+    expect(selectedFilter()).toBe("archived");
+  });
+
+  test("ignores a short horizontal move", async () => {
+    await openRalliesList();
+
+    await swipe(-20);
+
+    expect(selectedFilter()).toBe("all");
   });
 });
