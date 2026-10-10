@@ -5,6 +5,7 @@ import { renderRouter } from "expo-router/testing-library";
 
 import {
   act,
+  fireEvent,
   screen,
   userEvent,
   waitFor,
@@ -609,5 +610,129 @@ describe("S-002 T-002 RT-002 error display", () => {
     await waitFor(() => {
       expect(screen.queryAllByText("Couldn't load")).toHaveLength(0);
     });
+  });
+});
+
+describe("S-032 T-001 ST-007 favorites on home", () => {
+  const daysAgo = (days: number) =>
+    new Date(2026, 8, 20 - days, 12).toISOString();
+
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    await deleteAllRallies();
+  });
+
+  async function saveRallyWithStamps(
+    name: string,
+    stampCount: number,
+    isFavorite = false,
+  ) {
+    await ralliesDb.saveRally({ name });
+    const rally = (await ralliesDb.listRallies()).find(
+      (saved) => saved.name === name,
+    );
+    if (!rally) throw new Error(`rally ${name} not saved`);
+    for (let index = 0; index < stampCount; index += 1) {
+      await stampsDb.saveStamp({
+        rallyId: rally.id,
+        stampedAt: daysAgo(index + 1),
+      });
+    }
+    if (isFavorite) {
+      await ralliesDb.setRallyFavorite({ id: rally.id, isFavorite: true });
+    }
+    return rally;
+  }
+
+  function tileNames() {
+    return within(screen.getByTestId("rally-grid"))
+      .getAllByRole("button", { name: /^View .* details$/ })
+      .map((tile) => tile.props.accessibilityLabel);
+  }
+
+  async function pressStarOnDetailAndReturn(rallyId: number, label: string) {
+    await act(() => {
+      router.push(`/rallies/${rallyId}`);
+    });
+    const star = await screen.findByTestId("rally-favorite");
+    await fireEvent(star, "buttonPress");
+    await waitFor(() => {
+      expect(screen.getByTestId("rally-favorite")).toHaveProp("label", label);
+    });
+    await act(() => {
+      router.back();
+    });
+  }
+
+  test("puts a rally first on home once it is made a favorite", async () => {
+    const few = await saveRallyWithStamps("Few", 1);
+    await saveRallyWithStamps("Many", 3);
+
+    await renderRouter("./src/app");
+    await screen.findByRole("button", { name: "View Many details" });
+    expect(tileNames()).toEqual(["View Many details", "View Few details"]);
+
+    await pressStarOnDetailAndReturn(few.id, "Remove from favorites");
+
+    await waitFor(() =>
+      expect(tileNames()).toEqual(["View Few details", "View Many details"]),
+    );
+  });
+
+  test("returns a rally to its stamp-count place once the favorite is cleared", async () => {
+    const few = await saveRallyWithStamps("Few", 1, true);
+    await saveRallyWithStamps("Many", 3);
+    await saveRallyWithStamps("None", 0);
+
+    await renderRouter("./src/app");
+    await screen.findByRole("button", { name: "View Few details" });
+    expect(tileNames()).toEqual([
+      "View Few details",
+      "View Many details",
+      "View None details",
+    ]);
+
+    await pressStarOnDetailAndReturn(few.id, "Add to favorites");
+
+    await waitFor(() =>
+      expect(tileNames()).toEqual([
+        "View Many details",
+        "View Few details",
+        "View None details",
+      ]),
+    );
+  });
+
+  test("orders favorites by stamp count first, then the other rallies by stamp count", async () => {
+    await saveRallyWithStamps("Plain many", 5);
+    await saveRallyWithStamps("Favorite few", 1, true);
+    await saveRallyWithStamps("Plain few", 2);
+    await saveRallyWithStamps("Favorite many", 3, true);
+
+    await renderRouter("./src/app");
+    await screen.findByRole("button", { name: "View Plain many details" });
+
+    expect(tileNames()).toEqual([
+      "View Favorite many details",
+      "View Favorite few details",
+      "View Plain many details",
+      "View Plain few details",
+    ]);
+  });
+
+  test("marks only the favorite tiles", async () => {
+    await saveRallyWithStamps("Marked", 1, true);
+    await saveRallyWithStamps("Unmarked", 2);
+
+    await renderRouter("./src/app");
+    await screen.findByRole("button", { name: "View Marked details" });
+
+    const [markedTile, unmarkedTile] = within(
+      screen.getByTestId("rally-grid"),
+    ).getAllByTestId("rally-tile");
+    expect(within(markedTile).getByLabelText("Favorite")).toBeOnTheScreen();
+    expect(
+      within(unmarkedTile).queryByLabelText("Favorite"),
+    ).not.toBeOnTheScreen();
   });
 });

@@ -1336,3 +1336,68 @@ describe("S-033 T-003 ST-001 transparent stack header", () => {
     expect(config.translucent).toBe(true);
   });
 });
+
+describe("S-032 T-001 ST-006 favorite star in the header", () => {
+  async function isFavoriteSaved(rallyId: number) {
+    const rallies = await ralliesDb.listRallies();
+    return rallies.find((rally) => rally.id === rallyId)?.isFavorite;
+  }
+
+  test("sets the favorite from the star and stays on the rally", async () => {
+    const { rally } = await openRallyDetail("Star on");
+
+    const star = await screen.findByTestId("rally-favorite");
+    expect(star).toHaveProp("label", "Add to favorites");
+    expect(star).toHaveProp("systemImage", "star");
+
+    await fireEvent(star, "buttonPress");
+
+    await waitFor(async () => {
+      await expect(isFavoriteSaved(rally.id)).resolves.toBe(true);
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("rally-favorite")).toHaveProp(
+        "label",
+        "Remove from favorites",
+      );
+    });
+    expect(screen.getByTestId("rally-favorite")).toHaveProp(
+      "systemImage",
+      "star.fill",
+    );
+    expect(screen.getByRole("heading", { name: "Star on" })).toBeOnTheScreen();
+  });
+
+  test("clears the favorite when the star is pressed again", async () => {
+    const { rally } = await openRallyDetail("Star off", (rallyId) =>
+      ralliesDb.setRallyFavorite({ id: rallyId, isFavorite: true }),
+    );
+
+    const star = await screen.findByTestId("rally-favorite");
+    expect(star).toHaveProp("label", "Remove from favorites");
+
+    await fireEvent(star, "buttonPress");
+
+    await waitFor(async () => {
+      await expect(isFavoriteSaved(rally.id)).resolves.toBe(false);
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("rally-favorite")).toHaveProp(
+        "label",
+        "Add to favorites",
+      );
+    });
+  });
+
+  test("keeps the star out of the actions menu", async () => {
+    await openRallyDetail("Star apart");
+
+    const actions = await screen.findAllByTestId(/^rally-action-/);
+
+    expect(actions.map((action) => action.props.label)).toEqual([
+      "Past stamp",
+      "Edit rally",
+      "Delete rally",
+    ]);
+  });
+});

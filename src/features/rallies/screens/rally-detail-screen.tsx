@@ -14,7 +14,11 @@ import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
 import { StampPost } from "../components/stamp-post";
-import { useDeleteRally, useRallies } from "../hooks/use-rallies";
+import {
+  useDeleteRally,
+  useRallies,
+  useSetRallyFavorite,
+} from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { confirmDeleteStamp } from "../utils/confirm-delete-stamp";
@@ -64,6 +68,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
     refetch: refetchStamps,
   } = useRallyStamps(rallyId);
   const { mutate: deleteRally } = useDeleteRally();
+  const { mutate: setRallyFavorite } = useSetRallyFavorite();
   const { mutate: deleteStamp } = useDeleteStamp();
   const rally = rallies?.find((candidate) => candidate.id === rallyId);
   const summary = stamps
@@ -183,6 +188,10 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       />
       <Stack.Title>{rally.name}</Stack.Title>
       <RallyActionsMenu
+        isFavorite={rally.isFavorite}
+        onToggleFavorite={() =>
+          setRallyFavorite({ id: rally.id, isFavorite: !rally.isFavorite })
+        }
         onPastStamp={() =>
           push({ pathname: "/add-past-stamp", params: { rallyId: rally.id } })
         }

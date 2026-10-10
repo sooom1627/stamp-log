@@ -6,9 +6,11 @@ import {
   defaultRallyEmoji,
   rallySchema,
   saveRallyInputSchema,
+  setRallyFavoriteInputSchema,
   updateRallyInputSchema,
   type Rally,
   type SaveRallyInput,
+  type SetRallyFavoriteInput,
   type UpdateRallyInput,
 } from "../schemas/rallies";
 
@@ -21,12 +23,19 @@ async function ensureRallies(db: SQLiteDatabase) {
     CREATE TABLE IF NOT EXISTS rallies (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      emoji TEXT NOT NULL
+      emoji TEXT NOT NULL,
+      is_favorite INTEGER NOT NULL DEFAULT 0
     );
   `);
 
   if (columns.length > 0 && !columns.includes("emoji")) {
     await db.execAsync("ALTER TABLE rallies ADD COLUMN emoji TEXT");
+  }
+
+  if (columns.length > 0 && !columns.includes("is_favorite")) {
+    await db.execAsync(
+      "ALTER TABLE rallies ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0",
+    );
   }
 
   await db.runAsync(
@@ -77,6 +86,18 @@ export async function updateRally(input: UpdateRallyInput): Promise<void> {
   );
 }
 
+export async function setRallyFavorite(
+  input: SetRallyFavoriteInput,
+): Promise<void> {
+  const { id, isFavorite } = setRallyFavoriteInputSchema.parse(input);
+  const db = await withRalliesDb();
+  await db.runAsync(
+    "UPDATE rallies SET is_favorite = ? WHERE id = ?",
+    isFavorite ? 1 : 0,
+    id,
+  );
+}
+
 export async function deleteRally(id: Rally["id"]): Promise<void> {
   const db = await withRalliesDb();
   await withStampsDb();
@@ -93,6 +114,11 @@ export async function listRallies(): Promise<Rally[]> {
     id: number;
     name: string;
     emoji: string;
-  }>("SELECT id, name, emoji FROM rallies ORDER BY id DESC");
-  return rows.map((row) => rallySchema.parse(row));
+    isFavorite: number;
+  }>(
+    "SELECT id, name, emoji, is_favorite AS isFavorite FROM rallies ORDER BY id DESC",
+  );
+  return rows.map((row) =>
+    rallySchema.parse({ ...row, isFavorite: row.isFavorite === 1 }),
+  );
 }
