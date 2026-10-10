@@ -83,8 +83,14 @@ export function HomeScreen() {
               Your Days
             </Text>
             <Link href="/rallies-list" asChild>
-              <Pressable role="link">
-                <Text className="text-foreground text-sm">View All</Text>
+              {/* 44pt tall; the negative margins keep the row and the text where they were. */}
+              <Pressable
+                role="link"
+                className="-my-2 -mr-2 min-h-11 justify-center px-2 active:opacity-70"
+              >
+                <Text className="text-foreground text-base font-medium">
+                  View All
+                </Text>
               </Pressable>
             </Link>
           </View>
