@@ -10,23 +10,22 @@ export const tabRootScreenOptions = {
   headerLargeTitleEnabled: true,
 } as const;
 
-// The weekday line under the large title. Screens that scroll a FlatList put
-// it in their list header.
-export function TabRootWeekday() {
-  const { weekday } = formatHeaderDate(new Date());
-
+// The line under the large title. Screens that scroll a FlatList put it in
+// their list header.
+export function TabRootSubtitle({ children }: { children: string }) {
   return (
-    <Text className="text-foreground-secondary mb-4 text-sm">{weekday}</Text>
+    <Text className="text-foreground-secondary mb-4 text-sm">{children}</Text>
   );
 }
 
-// The large title (today's month and day) and the toolbar shared by tab roots.
-export function TabRootHeader() {
+// The large title (today's month and day unless given) and the toolbar shared
+// by tab roots.
+export function TabRootHeader({ title }: { title?: string }) {
   const { monthDay } = formatHeaderDate(new Date());
 
   return (
     <>
-      <Stack.Title large>{monthDay}</Stack.Title>
+      <Stack.Title large>{title ?? monthDay}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
           <View
@@ -62,7 +61,9 @@ export function TabRootScreen({ label, children }: TabRootScreenProps) {
         contentContainerClassName="px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
       >
-        <TabRootWeekday />
+        <TabRootSubtitle>
+          {formatHeaderDate(new Date()).weekday}
+        </TabRootSubtitle>
         {children}
       </ScrollView>
       <TabRootHeader />

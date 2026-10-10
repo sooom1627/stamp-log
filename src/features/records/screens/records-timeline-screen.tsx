@@ -11,7 +11,7 @@ import { confirmDeleteStamp } from "@/features/rallies/utils/confirm-delete-stam
 import { LoadError } from "@/shared/components/load-error";
 import {
   TabRootHeader,
-  TabRootWeekday,
+  TabRootSubtitle,
 } from "@/shared/components/tab-root-screen";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
@@ -99,7 +99,7 @@ export function RecordsTimelineScreen() {
         )}
         ListHeaderComponent={
           <View>
-            <TabRootWeekday />
+            <TabRootSubtitle>Your days, one stamp at a time</TabRootSubtitle>
             {/* Not linked to the list: moving it leaves the posts as they are. */}
             <RallyMonthCalendar
               testID="logs-calendar"
@@ -135,7 +135,7 @@ export function RecordsTimelineScreen() {
           />
         }
       />
-      <TabRootHeader />
+      <TabRootHeader title="Logs" />
     </>
   );
 }
