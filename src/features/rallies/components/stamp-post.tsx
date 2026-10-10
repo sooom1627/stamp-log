@@ -20,6 +20,9 @@ type StampPostProps = {
   // (detail); a single day shows the time only.
   title: string;
   detail?: string;
+  // Logs shows posts from every rally, so it names the rally; rally screens
+  // leave it out.
+  rallyName?: string;
   memo: Stamp["memo"];
   onEdit: (id: Stamp["id"]) => void;
   onDelete: (id: Stamp["id"]) => void;
@@ -30,6 +33,7 @@ export function StampPost({
   emoji,
   title,
   detail,
+  rallyName,
   memo,
   onEdit,
   onDelete,
@@ -54,6 +58,11 @@ export function StampPost({
             </Text>
           ) : null}
         </View>
+        {rallyName ? (
+          <Text selectable className="text-accent-strong text-sm">
+            {rallyName}
+          </Text>
+        ) : null}
         {memo ? (
           <Text selectable className="text-foreground-secondary text-base">
             {memo}
