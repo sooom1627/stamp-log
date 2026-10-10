@@ -2,7 +2,11 @@ import { Stack } from "expo-router";
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
 import { accessibilityLabel, frame } from "@expo/ui/swift-ui/modifiers";
 
+import { useAccentColor } from "@/shared/hooks/use-accent-color";
+
 type RallyActionsMenuProps = {
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
   onPastStamp: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -10,15 +14,30 @@ type RallyActionsMenuProps = {
 
 // Native Stack.Toolbar.Menu matches the home header button chrome (system
 // tint, shared glass). It is converted to a header item and is not in the RN
-// tree, so tests use the @expo/ui Menu below.
+// tree, so tests use the @expo/ui Menu below. The favorite star sits in the
+// same toolbar group, so it shares the menu's glass.
 export function RallyActionsMenu({
+  isFavorite,
+  onToggleFavorite,
   onPastStamp,
   onEdit,
   onDelete,
 }: RallyActionsMenuProps) {
+  const accentColor = useAccentColor();
+  const favoriteLabel = isFavorite
+    ? "Remove from favorites"
+    : "Add to favorites";
+  const favoriteIcon = isFavorite ? "star.fill" : "star";
+
   return (
     <>
       <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button
+          accessibilityLabel={favoriteLabel}
+          icon={favoriteIcon}
+          tintColor={isFavorite ? accentColor : undefined}
+          onPress={onToggleFavorite}
+        />
         <Stack.Toolbar.Menu accessibilityLabel="Rally actions" icon="ellipsis">
           <Stack.Toolbar.MenuAction
             icon="calendar.badge.plus"
@@ -36,6 +55,12 @@ export function RallyActionsMenu({
       </Stack.Toolbar>
       {process.env.NODE_ENV === "test" ? (
         <Host matchContents>
+          <Button
+            testID="rally-favorite"
+            label={favoriteLabel}
+            systemImage={favoriteIcon}
+            onPress={onToggleFavorite}
+          />
           <Menu
             testID="rally-actions-menu"
             label={
