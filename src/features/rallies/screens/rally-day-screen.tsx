@@ -1,4 +1,4 @@
-import { Alert, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
@@ -14,7 +14,7 @@ import { StampPost } from "../components/stamp-post";
 import { useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
-import { type Stamp } from "../schemas/stamps";
+import { confirmDeleteStamp } from "../utils/confirm-delete-stamp";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "long" });
 const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
@@ -36,16 +36,6 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
   const dayStamps = (rallyStamps ?? []).filter(
     (stamp) => localDateKeyFromIso(stamp.stampedAt) === dayKey,
   );
-
-  const confirmDeleteStamp = (stampId: Stamp["id"]) =>
-    Alert.alert("Delete stamp?", "This action cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => deleteStamp(stampId),
-      },
-    ]);
 
   return (
     <FormSheetLayout
@@ -92,7 +82,9 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
               onEdit={(stampId) =>
                 push({ pathname: "/edit-stamp", params: { stampId } })
               }
-              onDelete={confirmDeleteStamp}
+              onDelete={(stampId) =>
+                confirmDeleteStamp(() => deleteStamp(stampId))
+              }
             />
           ))
         : null}

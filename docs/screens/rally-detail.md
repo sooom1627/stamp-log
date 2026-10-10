@@ -13,7 +13,7 @@
 
 ## 入りと出
 
-- 入り: ホームのラリー行タップ。ルート案 `/rallies/[id]`
+- 入り: ホームのラリー行タップ（`/rallies/[id]`）。Logs の投稿タップ（`/records/rallies/[id]`。Logs のスタックに積む）
 - 出:
   - 戻る → 元のタブ
   - 右上の「…」→「Past stamp」→ [add-past-stamp.md](./add-past-stamp.md)（formSheet）

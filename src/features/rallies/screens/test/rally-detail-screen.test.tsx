@@ -99,8 +99,10 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
       .map((stamp) => stamp.stampedAt);
 
     // S-028: each post shows its day and its time on separate lines.
-    const times = await screen.findAllByText(stampDateTimePattern);
-    const days = screen.getAllByText(stampDayPattern);
+    // Logs also lists every stamp, so read the posts inside rally detail.
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    const times = detail.getAllByText(stampDateTimePattern);
+    const days = detail.getAllByText(stampDayPattern);
     expect(times).toHaveLength(3);
     expect(days).toHaveLength(3);
     [now, oneDayAgo, threeDaysAgo].forEach((stampedAt, index) => {
@@ -111,8 +113,8 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
         formatStampTime(new Date(stampedAt)),
       );
     });
-    expect(screen.getByText("Talked in the lab")).toBeOnTheScreen();
-    expect(screen.getAllByText(/Talked/)).toHaveLength(1);
+    expect(detail.getByText("Talked in the lab")).toBeOnTheScreen();
+    expect(detail.getAllByText(/Talked/)).toHaveLength(1);
   });
 
   test("does not show stamps of other rallies", async () => {
@@ -122,7 +124,11 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
 
     await openRallyDetail("Own stamps only");
 
-    expect(await screen.findAllByText(stampDateTimePattern)).toHaveLength(1);
+    expect(
+      within(await screen.findByLabelText("Rally detail")).getAllByText(
+        stampDateTimePattern,
+      ),
+    ).toHaveLength(1);
   });
 });
 
@@ -136,7 +142,9 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
     const pastStamp = (await stampsOf(rally.id)).at(-1);
     if (!pastStamp) throw new Error("Past stamp not found");
     await fireEvent(
-      screen.getByTestId(`stamp-delete-${pastStamp.id}`),
+      within(screen.getByLabelText("Rally detail")).getByTestId(
+        `stamp-delete-${pastStamp.id}`,
+      ),
       "buttonPress",
     );
     return { rally, pastStamp };
@@ -159,11 +167,16 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
     });
 
     expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
-    expect(screen.getAllByText(stampDateTimePattern)).toHaveLength(1);
     expect(
-      screen.queryByText(formatStampDay(new Date(pastStamp.stampedAt))),
+      within(screen.getByLabelText("Rally detail")).getAllByText(
+        stampDateTimePattern,
+      ),
+    ).toHaveLength(1);
+    expect(
+      within(screen.getByLabelText("Rally detail")).queryByText(
+        formatStampDay(new Date(pastStamp.stampedAt)),
+      ),
     ).not.toBeOnTheScreen();
-    expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
     expect(
       (await stampsOf(rally.id)).some((stamp) => stamp.id === pastStamp.id),
     ).toBe(false);
@@ -264,7 +277,11 @@ describe("S-006 T-001 ST-010 menu tap target", () => {
       (candidate) => candidate.rallyId === rally.id,
     );
 
-    expect(await screen.findByTestId(`stamp-menu-icon-${stamp.id}`)).toHaveProp(
+    expect(
+      within(await screen.findByLabelText("Rally detail")).getByTestId(
+        `stamp-menu-icon-${stamp.id}`,
+      ),
+    ).toHaveProp(
       "modifiers",
       expect.arrayContaining([
         expect.objectContaining({ $type: "frame", width: 36, height: 36 }),
@@ -775,16 +792,17 @@ describe("S-028 RT-001 ST-003 posts look", () => {
       });
     });
 
-    const heading = await screen.findByRole("heading", { name: "Stamps" });
-    expect(heading).toBeOnTheScreen();
-    expect(screen.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
+    // Logs also has a Stamps heading, so look inside rally detail.
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    expect(detail.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
+    expect(detail.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
 
-    const day = screen.getByText("Fri, Sep 18");
+    const day = detail.getByText("Fri, Sep 18");
     expect(day).toHaveProp(
       "className",
       expect.stringContaining("font-semibold"),
     );
-    const time = screen.getByText("7:02 PM");
+    const time = detail.getByText("7:02 PM");
     expect(time).toHaveProp(
       "className",
       expect.stringContaining("text-foreground-muted"),

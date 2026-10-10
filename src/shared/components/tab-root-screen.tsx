@@ -10,25 +10,22 @@ export const tabRootScreenOptions = {
   headerLargeTitleEnabled: true,
 } as const;
 
-type TabRootScreenProps = {
-  children: ReactNode;
-};
+// The weekday line under the large title. Screens that scroll a FlatList put
+// it in their list header.
+export function TabRootWeekday() {
+  const { weekday } = formatHeaderDate(new Date());
 
-export function TabRootScreen({ children }: TabRootScreenProps) {
-  const { weekday, monthDay } = formatHeaderDate(new Date());
+  return (
+    <Text className="text-foreground-secondary mb-4 text-sm">{weekday}</Text>
+  );
+}
+
+// The large title (today's month and day) and the toolbar shared by tab roots.
+export function TabRootHeader() {
+  const { monthDay } = formatHeaderDate(new Date());
 
   return (
     <>
-      <ScrollView
-        className="bg-canvas flex-1"
-        contentContainerClassName="px-5 pb-32"
-        contentInsetAdjustmentBehavior="automatic"
-      >
-        <Text className="text-foreground-secondary mb-4 text-sm">
-          {weekday}
-        </Text>
-        {children}
-      </ScrollView>
       <Stack.Title large>{monthDay}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
@@ -45,6 +42,30 @@ export function TabRootScreen({ children }: TabRootScreenProps) {
           onPress={() => {}}
         />
       </Stack.Toolbar>
+    </>
+  );
+}
+
+type TabRootScreenProps = {
+  // Names the screen's content. Native tabs keep every tab mounted, so this
+  // also tells tab roots apart.
+  label?: string;
+  children: ReactNode;
+};
+
+export function TabRootScreen({ label, children }: TabRootScreenProps) {
+  return (
+    <>
+      <ScrollView
+        aria-label={label}
+        className="bg-canvas flex-1"
+        contentContainerClassName="px-5 pb-32"
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        <TabRootWeekday />
+        {children}
+      </ScrollView>
+      <TabRootHeader />
     </>
   );
 }

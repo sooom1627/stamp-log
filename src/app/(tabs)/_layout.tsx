@@ -25,13 +25,6 @@ export default function TabsLayout() {
         />
         <NativeTabs.Trigger.Label>Logs</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="calendar">
-        <NativeTabs.Trigger.Icon
-          sf={{ default: "calendar", selected: "calendar" }}
-          md="calendar_month"
-        />
-        <NativeTabs.Trigger.Label>Calendar</NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

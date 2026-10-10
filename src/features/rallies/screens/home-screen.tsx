@@ -64,7 +64,7 @@ export function HomeScreen() {
   };
 
   return (
-    <TabRootScreen>
+    <TabRootScreen label="Home">
       <View className="w-full">
         {rallies && stamps ? (
           <TodayCard
