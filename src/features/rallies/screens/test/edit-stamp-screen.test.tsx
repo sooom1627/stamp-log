@@ -20,9 +20,12 @@ import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 jest.useFakeTimers();
 
 // The rally detail timeline shows a post's day and time on separate lines.
+// Logs also lists every stamp, so posts are read inside rally detail.
+const rallyDetail = () => within(screen.getByLabelText("Rally detail"));
+
 function expectPostAt(date: Date) {
-  expect(screen.getByText(formatStampDay(date))).toBeOnTheScreen();
-  expect(screen.getByText(formatStampTime(date))).toBeOnTheScreen();
+  expect(rallyDetail().getByText(formatStampDay(date))).toBeOnTheScreen();
+  expect(rallyDetail().getByText(formatStampTime(date))).toBeOnTheScreen();
 }
 
 const now = new Date(2026, 8, 20, 15, 0);
@@ -49,8 +52,11 @@ async function openEdit(
   await act(() => {
     router.push(`/rallies/${rally.id}`);
   });
+  // Logs also lists every stamp, so press Edit inside rally detail.
   await fireEvent(
-    await screen.findByTestId(`stamp-edit-${stampId}`),
+    within(await screen.findByLabelText("Rally detail")).getByTestId(
+      `stamp-edit-${stampId}`,
+    ),
     "buttonPress",
   );
   expect(await screen.findByTestId("edit-stamp-form")).toBeOnTheScreen();
@@ -125,7 +131,7 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
     await user.type(memoInput, "New memo");
     await user.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(await screen.findByText("New memo")).toBeOnTheScreen();
+    expect(await rallyDetail().findByText("New memo")).toBeOnTheScreen();
     expect(screen.queryByTestId("edit-stamp-form")).not.toBeOnTheScreen();
     expect(screen.queryByText("Old memo")).not.toBeOnTheScreen();
     expectPostAt(localAt(12, 8, 15));
@@ -151,7 +157,7 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
     await user.clear(screen.getByLabelText("Memo"));
     await user.press(screen.getByRole("button", { name: "Save" }));
 
-    await screen.findByText(formatStampTime(localAt(18, 11, 40)));
+    await rallyDetail().findByText(formatStampTime(localAt(18, 11, 40)));
     expectPostAt(localAt(18, 11, 40));
     expect(screen.queryByText("Remove me")).not.toBeOnTheScreen();
     expect((await findStamp(stampId))?.memo).toBeNull();
@@ -210,7 +216,7 @@ describe("S-006 T-001 ST-007 edit stamp from the timeline", () => {
     ).not.toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Save" }));
 
-    await screen.findByText(formatStampTime(localAt(18, 21, 5)));
+    await rallyDetail().findByText(formatStampTime(localAt(18, 21, 5)));
     expectPostAt(localAt(18, 21, 5));
     expect((await findStamp(stampId))?.stampedAt).toBe(
       localAt(18, 21, 5).toISOString(),
