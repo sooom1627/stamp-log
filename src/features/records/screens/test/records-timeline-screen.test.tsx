@@ -24,6 +24,7 @@ import {
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
+import { localDateKey } from "@/shared/utils/local-date-key";
 
 jest.useFakeTimers();
 
@@ -82,22 +83,94 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
         formatStampTime(new Date(stampedAt)),
       );
     });
-    expect(logs.getByText(formatStampDay(new Date(newest)))).toBeOnTheScreen();
     expect(
       logs
         .getAllByText(/^(Researchers|Weekend runs)$/)
         .map((name) => name.props.children),
     ).toEqual(["Researchers", "Weekend runs", "Researchers"]);
     // The emoji icon is decorative (aria-hidden); the rally name is read out.
+    // Read it per post, since the calendar shows emojis too.
     const hidden = { includeHiddenElements: true };
-    expect(logs.getAllByText("🔬", hidden)).toHaveLength(2);
-    expect(logs.getAllByText("🏃", hidden)).toHaveLength(1);
+    expect(
+      logs
+        .getAllByTestId(/^stamp-post-/)
+        .map((post) => within(post).getByText(/🔬|🏃/, hidden).props.children),
+    ).toEqual(["🔬", "🏃", "🔬"]);
     expect(logs.getByText("Talked at the lab")).toBeOnTheScreen();
     expect(logs.getAllByText("no memo")).toHaveLength(2);
     expect(logs.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
     expect(logs.getByLabelText("3 stamps in the timeline")).toHaveTextContent(
       "3",
     );
+  });
+});
+
+describe("S-011 RT-001 ST-003 Logs post shape", () => {
+  test("titles each post with the rally name in bold and the time beside it, without the day", async () => {
+    const lab = await saveRallyNamed("Post shape", "🔬");
+    const stampedAt = daysAgoAt(2, 19);
+    const stamp = await saveStamp({ rallyId: lab.id, stampedAt });
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const post = within(logs.getByTestId(`stamp-post-${stamp.id}`));
+    expect(post.getByText("Post shape")).toHaveProp(
+      "className",
+      expect.stringContaining("font-semibold"),
+    );
+    expect(post.getByText(formatStampTime(new Date(stampedAt)))).toHaveProp(
+      "className",
+      expect.stringContaining("text-foreground-muted"),
+    );
+    expect(
+      post.queryByText(formatStampDay(new Date(stampedAt))),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-011 RT-001 ST-007 Logs day cards", () => {
+  test("puts each day's posts on one card under its heading, newest day first", async () => {
+    jest.setSystemTime(new Date(2026, 9, 10, 21));
+    const rally = await saveRallyNamed("Day sections", "📚");
+    const at = (day: number, hour: number) =>
+      new Date(2026, 9, day, hour).toISOString();
+    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([
+      { id: 904, rallyId: rally.id, stampedAt: at(10, 20), memo: null },
+      { id: 903, rallyId: rally.id, stampedAt: at(10, 8), memo: null },
+      { id: 902, rallyId: rally.id, stampedAt: at(9, 19), memo: null },
+      { id: 901, rallyId: rally.id, stampedAt: at(8, 6), memo: null },
+    ]);
+
+    await openLogs();
+
+    const list = await screen.findByLabelText("Logs timeline");
+    // Headings scroll with their cards instead of sticking over the posts.
+    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
+    const logs = within(list);
+    const todayCard = within(logs.getByTestId("day-card-2026-10-10"));
+    expect(todayCard.getByTestId("stamp-post-904")).toBeOnTheScreen();
+    expect(todayCard.getByTestId("stamp-post-903")).toBeOnTheScreen();
+    expect(todayCard.queryByTestId("stamp-post-902")).not.toBeOnTheScreen();
+    expect(
+      within(logs.getByTestId("day-card-2026-10-08")).getByTestId(
+        "stamp-post-901",
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      logs
+        .getAllByRole("heading")
+        .map((heading) => heading.props.children)
+        .filter((title) => title !== "Stamps"),
+    ).toEqual(["Today", "Yesterday", "Thu, Oct 8"]);
+    expect(logs.getByText("Sat, Oct 10")).toBeOnTheScreen();
+    expect(logs.getByText("Fri, Oct 9")).toBeOnTheScreen();
+    expect(
+      within(logs.getByTestId("day-section-2026-10-10")).getByRole("heading"),
+    ).toHaveTextContent("Today");
+    expect(
+      logs.getAllByText(stampTimePattern).map((time) => time.props.children),
+    ).toEqual(["8:00 PM", "8:00 AM", "7:00 PM", "6:00 AM"]);
   });
 });
 
@@ -281,6 +354,63 @@ describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
 
     expect(await screen.findByTestId("edit-stamp-form")).toBeOnTheScreen();
     expect(app.getPathname()).toBe("/edit-stamp");
+  });
+});
+
+describe("S-011 T-001 ST-003 Logs calendar", () => {
+  async function openLogsCalendar() {
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    return { logs, calendar: within(logs.getByTestId("logs-calendar")) };
+  }
+
+  test("opens on this week and marks stamped days with the last rally's emoji and +N", async () => {
+    const cafes = await saveRallyNamed("Calendar cafes", "🧋");
+    const runs = await saveRallyNamed("Calendar runs", "🛼");
+    // Stamped now, so today (always in the week shown first) ends on cafes.
+    await saveStamp({ rallyId: runs.id });
+    await saveStamp({ rallyId: cafes.id });
+
+    const { calendar } = await openLogsCalendar();
+
+    const todayKey = localDateKey(new Date());
+    const today = calendar.getByTestId(`calendar-day-${todayKey}`);
+    const hidden = { includeHiddenElements: true };
+    expect(within(today).getByText("🧋")).toBeOnTheScreen();
+    expect(within(today).getByText(/^\+\d+$/, hidden)).toBeOnTheScreen();
+    expect(
+      calendar.getAllByRole("button", { name: /, 20\d\d, / }),
+    ).toHaveLength(7);
+    expect(
+      calendar.getByRole("button", { name: "Show month" }),
+    ).toBeOnTheScreen();
+  });
+
+  test("does not change the list when the calendar moves", async () => {
+    const rally = await saveRallyNamed("Calendar list", "🪁");
+    await saveStamp({ rallyId: rally.id });
+    const { logs, calendar } = await openLogsCalendar();
+    const firstPost = () => logs.getAllByText(stampTimePattern)[0];
+    const before = firstPost().props.children;
+    const user = userEvent.setup();
+
+    await user.press(calendar.getByRole("button", { name: "Previous week" }));
+    await user.press(calendar.getByRole("button", { name: "Show month" }));
+    await user.press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(firstPost().props.children).toEqual(before);
+    expect(logs.getByText("Calendar list")).toBeOnTheScreen();
+  });
+
+  test("cannot press a day yet", async () => {
+    const rally = await saveRallyNamed("Calendar press", "🪀");
+    await saveStamp({ rallyId: rally.id });
+    const { calendar } = await openLogsCalendar();
+
+    const days = calendar.getAllByRole("button", { name: /, 20\d\d, / });
+    for (const day of days) {
+      expect(day).toBeDisabled();
+    }
   });
 });
 

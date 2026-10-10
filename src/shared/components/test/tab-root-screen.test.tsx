@@ -18,26 +18,45 @@ describe("S-029 T-001 ST-006 tab root header", () => {
       .filter((title) => title !== "(tabs)");
   }
 
-  function expectDateHeader() {
-    expect(largeTitles()).toEqual(["September 20", "September 20"]);
-    expect(screen.getAllByText("Sunday")[0]).toHaveProp(
+  test("shows the month and day as the title and today's weekday below it on Home", async () => {
+    await renderRouter("./src/app");
+
+    expect(await screen.findByText("Sunday")).toHaveProp(
       "className",
       expect.stringContaining("mb-4"),
     );
+    expect(largeTitles()).toContain("September 20");
+    expect(screen.queryByText(/Hello|Welcome back|Good morning/)).toBeNull();
+  });
+});
+
+describe("S-011 Logs title", () => {
+  beforeEach(() => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+  });
+
+  function largeTitles() {
+    return screen.container
+      .queryAll((instance) => instance.type === "RNSScreenStackHeaderConfig")
+      .map((instance) => instance.props.title)
+      .filter((title) => title !== "(tabs)");
   }
 
-  test("shows the month and day as the title and today's weekday below it on both tabs", async () => {
+  test("titles Logs with Logs and a short line instead of the date", async () => {
     await renderRouter("./src/app");
-
-    expect(await screen.findAllByText("Sunday")).toHaveLength(2);
-    expectDateHeader();
-    expect(screen.queryByText(/Hello|Welcome back|Good morning/)).toBeNull();
+    await screen.findByText("Sunday");
 
     await act(() => {
       router.push("/records");
     });
-    expectDateHeader();
+
+    expect(largeTitles()).toEqual(["September 20", "Logs"]);
     expect(screen.getByLabelText("Logs timeline")).toBeOnTheScreen();
+    expect(screen.getAllByText("Sunday")).toHaveLength(1);
+    expect(screen.getByText("Your days, one stamp at a time")).toHaveProp(
+      "className",
+      expect.stringContaining("mb-4"),
+    );
   });
 });
 
@@ -52,7 +71,7 @@ describe("S-033 T-001 ST-001 tab root background", () => {
   test("paints both tabs with the canvas color, not the plain background", async () => {
     await renderRouter("./src/app");
 
-    await screen.findAllByText("Sunday");
+    await screen.findByText("Sunday");
     const backgrounds = tabBackgrounds();
     expect(backgrounds).toHaveLength(2);
     for (const className of backgrounds) {

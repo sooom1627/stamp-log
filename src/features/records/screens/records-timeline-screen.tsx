@@ -2,6 +2,8 @@ import { FlatList, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { DayCard } from "@/features/rallies/components/day-card";
+import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useDeleteStamp, useStamps } from "@/features/rallies/hooks/use-stamps";
@@ -9,12 +11,12 @@ import { confirmDeleteStamp } from "@/features/rallies/utils/confirm-delete-stam
 import { LoadError } from "@/shared/components/load-error";
 import {
   TabRootHeader,
-  TabRootWeekday,
+  TabRootSubtitle,
 } from "@/shared/components/tab-root-screen";
-import {
-  formatStampDay,
-  formatStampTime,
-} from "@/shared/utils/format-stamp-date-time";
+import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
+import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
+
+import { buildDayMarks } from "../utils/day-marks";
 
 type TimelineEmptyProps = {
   isError: boolean;
@@ -58,43 +60,54 @@ export function RecordsTimelineScreen() {
         return rally ? [{ stamp, rally }] : [];
       })
     : [];
+  const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
 
   return (
     <>
       <FlatList
         aria-label="Logs timeline"
         className="bg-canvas flex-1"
-        contentContainerClassName="gap-6 px-5 pb-32"
+        contentContainerClassName="gap-4 px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
-        data={posts}
-        keyExtractor={({ stamp }) => String(stamp.id)}
-        renderItem={({ item: { stamp, rally } }) => (
-          <StampPost
-            id={stamp.id}
-            emoji={rally.emoji}
-            title={formatStampDay(new Date(stamp.stampedAt))}
-            detail={formatStampTime(new Date(stamp.stampedAt))}
-            rallyName={rally.name}
-            memo={stamp.memo}
-            onPress={() =>
-              push({
-                pathname: "/records/rallies/[id]",
-                params: { id: rally.id },
-              })
-            }
-            onEdit={(stampId) =>
-              push({ pathname: "/edit-stamp", params: { stampId } })
-            }
-            onDelete={(stampId) =>
-              confirmDeleteStamp(() => deleteStamp(stampId))
-            }
-          />
+        data={sections}
+        keyExtractor={({ dateKey }) => dateKey}
+        renderItem={({ item: { dateKey, data } }) => (
+          <DayCard dateKey={dateKey} date={new Date(data[0].stamp.stampedAt)}>
+            {data.map(({ stamp, rally }) => (
+              <StampPost
+                key={stamp.id}
+                id={stamp.id}
+                emoji={rally.emoji}
+                title={rally.name}
+                detail={formatStampTime(new Date(stamp.stampedAt))}
+                memo={stamp.memo}
+                onPress={() =>
+                  push({
+                    pathname: "/records/rallies/[id]",
+                    params: { id: rally.id },
+                  })
+                }
+                onEdit={(stampId) =>
+                  push({ pathname: "/edit-stamp", params: { stampId } })
+                }
+                onDelete={(stampId) =>
+                  confirmDeleteStamp(() => deleteStamp(stampId))
+                }
+              />
+            ))}
+          </DayCard>
         )}
         ListHeaderComponent={
           <View>
-            <TabRootWeekday />
+            <TabRootSubtitle>Your days, one stamp at a time</TabRootSubtitle>
+            {/* Not linked to the list: moving it leaves the posts as they are. */}
+            <RallyMonthCalendar
+              testID="logs-calendar"
+              stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
+              dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
+            />
             {posts.length > 0 ? (
-              <View className="flex-row items-baseline justify-between">
+              <View className="mt-6 flex-row items-baseline justify-between">
                 <Text
                   role="heading"
                   className="text-foreground text-xl font-bold"
@@ -122,7 +135,7 @@ export function RecordsTimelineScreen() {
           />
         }
       />
-      <TabRootHeader />
+      <TabRootHeader title="Logs" />
     </>
   );
 }

@@ -6,11 +6,10 @@ import { Stack, useRouter } from "expo-router";
 
 import { LoadError } from "@/shared/components/load-error";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-import {
-  formatStampDay,
-  formatStampTime,
-} from "@/shared/utils/format-stamp-date-time";
+import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
+import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
+import { DayCard } from "../components/day-card";
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
@@ -60,6 +59,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         new Date(),
       )
     : null;
+  const sections = groupByLocalDay(stamps ?? [], (stamp) => stamp.stampedAt);
 
   useEffect(() => {
     if (isRalliesLoaded && !rally) {
@@ -88,22 +88,26 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         className="bg-canvas flex-1"
         contentContainerClassName="gap-6 px-5 py-6"
         contentInsetAdjustmentBehavior="automatic"
-        data={stamps}
-        keyExtractor={(stamp) => String(stamp.id)}
-        renderItem={({ item }) => (
-          <StampPost
-            id={item.id}
-            emoji={rally.emoji}
-            title={formatStampDay(new Date(item.stampedAt))}
-            detail={formatStampTime(new Date(item.stampedAt))}
-            memo={item.memo}
-            onEdit={(stampId) =>
-              push({ pathname: "/edit-stamp", params: { stampId } })
-            }
-            onDelete={(stampId) =>
-              confirmDeleteStamp(() => deleteStamp(stampId))
-            }
-          />
+        data={sections}
+        keyExtractor={({ dateKey }) => dateKey}
+        renderItem={({ item: { dateKey, data } }) => (
+          <DayCard dateKey={dateKey} date={new Date(data[0].stampedAt)}>
+            {data.map((stamp) => (
+              <StampPost
+                key={stamp.id}
+                id={stamp.id}
+                emoji={rally.emoji}
+                title={formatStampTime(new Date(stamp.stampedAt))}
+                memo={stamp.memo}
+                onEdit={(stampId) =>
+                  push({ pathname: "/edit-stamp", params: { stampId } })
+                }
+                onDelete={(stampId) =>
+                  confirmDeleteStamp(() => deleteStamp(stampId))
+                }
+              />
+            ))}
+          </DayCard>
         )}
         ListHeaderComponent={
           <View className="items-center gap-4">

@@ -82,6 +82,12 @@ function daysAgoAt(days: number, hours: number) {
   return date.toISOString();
 }
 
+// Logs keeps its own calendar mounted behind its tab, so calendar queries look
+// inside rally detail's calendar only.
+const rallyCalendar = () => within(screen.getByTestId("rally-calendar"));
+const findRallyCalendar = async () =>
+  within(await screen.findByTestId("rally-calendar"));
+
 const stampDateTimePattern = / (AM|PM)$/;
 const stampDayPattern = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), /;
 
@@ -98,7 +104,8 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
       .filter((stamp) => stamp.rallyId === rally.id)
       .map((stamp) => stamp.stampedAt);
 
-    // S-028: each post shows its day and its time on separate lines.
+    // S-011: the day is a section heading (Today and Yesterday carry it
+    // beside), and each post shows its time.
     // Logs also lists every stamp, so read the posts inside rally detail.
     const detail = within(await screen.findByLabelText("Rally detail"));
     const times = detail.getAllByText(stampDateTimePattern);
@@ -313,18 +320,26 @@ describe("S-006 T-002 ST-002 month calendar", () => {
       },
     );
 
-    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      await (await findRallyCalendar()).findByText("September 2026"),
+    ).toBeOnTheScreen();
     // S-028: the calendar opens on this week; the whole month is one tap away.
-    await user.press(screen.getByRole("button", { name: "Show month" }));
-    expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Sep 20, 2026, recorded")).toBeOnTheScreen();
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Show month" }),
+    );
     expect(
-      screen.getByLabelText("Sep 3, 2026, not recorded"),
+      rallyCalendar().getByLabelText("Sep 2, 2026, recorded"),
     ).toBeOnTheScreen();
     expect(
-      screen.getByLabelText("Sep 10, 2026, not recorded"),
+      rallyCalendar().getByLabelText("Sep 20, 2026, recorded"),
     ).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/, recorded$/)).toHaveLength(2);
+    expect(
+      rallyCalendar().getByLabelText("Sep 3, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(
+      rallyCalendar().getByLabelText("Sep 10, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(rallyCalendar().getAllByLabelText(/, recorded$/)).toHaveLength(2);
   });
 });
 
@@ -340,21 +355,37 @@ describe("S-006 T-002 ST-003 month navigation", () => {
         });
       },
     );
-    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      await (await findRallyCalendar()).findByText("September 2026"),
+    ).toBeOnTheScreen();
     // S-028: ‹ › step months in the month view.
-    await user.press(screen.getByRole("button", { name: "Show month" }));
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Show month" }),
+    );
 
-    await user.press(screen.getByRole("button", { name: "Previous month" }));
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Previous month" }),
+    );
 
-    expect(await screen.findByText("August 2026")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Aug 15, 2026, recorded")).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/, recorded$/)).toHaveLength(1);
+    expect(
+      await (await findRallyCalendar()).findByText("August 2026"),
+    ).toBeOnTheScreen();
+    expect(
+      rallyCalendar().getByLabelText("Aug 15, 2026, recorded"),
+    ).toBeOnTheScreen();
+    expect(rallyCalendar().getAllByLabelText(/, recorded$/)).toHaveLength(1);
 
-    await user.press(screen.getByRole("button", { name: "Next month" }));
-    await user.press(screen.getByRole("button", { name: "Next month" }));
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Next month" }),
+    );
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Next month" }),
+    );
 
-    expect(await screen.findByText("October 2026")).toBeOnTheScreen();
-    expect(screen.queryAllByLabelText(/, recorded$/)).toHaveLength(0);
+    expect(
+      await (await findRallyCalendar()).findByText("October 2026"),
+    ).toBeOnTheScreen();
+    expect(rallyCalendar().queryAllByLabelText(/, recorded$/)).toHaveLength(0);
   });
 });
 
@@ -526,8 +557,11 @@ describe("S-028 T-002 ST-003 rally summary", () => {
     const [todayStamp] = (await listStamps()).filter(
       (stamp) => stamp.rallyId === rally.id,
     );
+    // Logs also lists every stamp, so press Delete inside rally detail.
     await fireEvent(
-      screen.getByTestId(`stamp-delete-${todayStamp.id}`),
+      within(screen.getByLabelText("Rally detail")).getByTestId(
+        `stamp-delete-${todayStamp.id}`,
+      ),
       "buttonPress",
     );
     await act(async () => {
@@ -591,31 +625,45 @@ describe("S-028 T-003 ST-003 week and month views", () => {
       },
     );
 
-    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
     expect(
-      screen.getByLabelText("Sep 14, 2026, not recorded"),
+      await (await findRallyCalendar()).findByText("September 2026"),
     ).toBeOnTheScreen();
-    expect(screen.getByLabelText("Sep 18, 2026, recorded")).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
     expect(
-      screen.queryByLabelText("Sep 2, 2026, recorded"),
+      rallyCalendar().getByLabelText("Sep 14, 2026, not recorded"),
+    ).toBeOnTheScreen();
+    expect(
+      rallyCalendar().getByLabelText("Sep 18, 2026, recorded"),
+    ).toBeOnTheScreen();
+    expect(rallyCalendar().getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(
+      7,
+    );
+    expect(
+      rallyCalendar().queryByLabelText("Sep 2, 2026, recorded"),
     ).not.toBeOnTheScreen();
 
-    const showMonth = screen.getByRole("button", { name: "Show month" });
+    const showMonth = rallyCalendar().getByRole("button", {
+      name: "Show month",
+    });
     expect(showMonth).toBeCollapsed();
     await user.press(showMonth);
 
-    expect(screen.getByLabelText("Sep 2, 2026, recorded")).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(30);
-    const showWeek = screen.getByRole("button", { name: "Show week" });
+    expect(
+      rallyCalendar().getByLabelText("Sep 2, 2026, recorded"),
+    ).toBeOnTheScreen();
+    expect(rallyCalendar().getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(
+      30,
+    );
+    const showWeek = rallyCalendar().getByRole("button", { name: "Show week" });
     expect(showWeek).toBeExpanded();
 
     await user.press(showWeek);
 
     expect(
-      screen.queryByLabelText("Sep 2, 2026, recorded"),
+      rallyCalendar().queryByLabelText("Sep 2, 2026, recorded"),
     ).not.toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(7);
+    expect(rallyCalendar().getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(
+      7,
+    );
   });
 });
 
@@ -628,52 +676,68 @@ describe("S-028 T-003 ST-004 stepping weeks and months", () => {
         stampedAt: new Date(2026, 8, 10, 9).toISOString(),
       });
     });
-    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
     expect(
-      screen.queryByRole("button", { name: "Previous month" }),
+      await (await findRallyCalendar()).findByText("September 2026"),
+    ).toBeOnTheScreen();
+    expect(
+      rallyCalendar().queryByRole("button", { name: "Previous month" }),
     ).not.toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Previous week" }));
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Previous week" }),
+    );
     expect(
-      screen.getByLabelText("Sep 7, 2026, not recorded"),
+      rallyCalendar().getByLabelText("Sep 7, 2026, not recorded"),
     ).toBeOnTheScreen();
-    expect(screen.getByLabelText("Sep 10, 2026, recorded")).toBeOnTheScreen();
+    expect(
+      rallyCalendar().getByLabelText("Sep 10, 2026, recorded"),
+    ).toBeOnTheScreen();
 
-    const nextWeek = screen.getByRole("button", { name: "Next week" });
+    const nextWeek = rallyCalendar().getByRole("button", { name: "Next week" });
     await user.press(nextWeek);
     await user.press(nextWeek);
     await user.press(nextWeek);
     // Sep 28 – Oct 4 still holds September days.
     expect(
-      screen.getByLabelText("Oct 4, 2026, not recorded"),
+      rallyCalendar().getByLabelText("Oct 4, 2026, not recorded"),
     ).toBeOnTheScreen();
-    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+    expect(rallyCalendar().getByText("September 2026")).toBeOnTheScreen();
 
     await user.press(nextWeek);
     expect(
-      screen.getByLabelText("Oct 5, 2026, not recorded"),
+      rallyCalendar().getByLabelText("Oct 5, 2026, not recorded"),
     ).toBeOnTheScreen();
-    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+    expect(rallyCalendar().getByText("October 2026")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Previous week" }));
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Previous week" }),
+    );
     expect(
-      screen.getByLabelText("Sep 28, 2026, not recorded"),
+      rallyCalendar().getByLabelText("Sep 28, 2026, not recorded"),
     ).toBeOnTheScreen();
-    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+    expect(rallyCalendar().getByText("October 2026")).toBeOnTheScreen();
   });
 
   test("steps by month in the month view", async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 12));
     const { user } = await openRallyDetail("Month steps");
-    await user.press(await screen.findByRole("button", { name: "Show month" }));
+    await user.press(
+      await (
+        await findRallyCalendar()
+      ).findByRole("button", { name: "Show month" }),
+    );
 
     expect(
-      screen.queryByRole("button", { name: "Previous week" }),
+      rallyCalendar().queryByRole("button", { name: "Previous week" }),
     ).not.toBeOnTheScreen();
-    await user.press(screen.getByRole("button", { name: "Next month" }));
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Next month" }),
+    );
 
-    expect(screen.getByText("October 2026")).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/^Oct \d+, 2026, /)).toHaveLength(31);
+    expect(rallyCalendar().getByText("October 2026")).toBeOnTheScreen();
+    expect(rallyCalendar().getAllByLabelText(/^Oct \d+, 2026, /)).toHaveLength(
+      31,
+    );
   });
 });
 
@@ -688,12 +752,16 @@ describe("S-028 T-003 ST-005 month picker", () => {
     });
 
     await user.press(
-      await screen.findByRole("button", {
+      await (
+        await findRallyCalendar()
+      ).findByRole("button", {
         name: "Choose month, September 2026",
       }),
     );
-    const monthWheel = await screen.findByTestId("month-picker-month");
-    const yearWheel = screen.getByTestId("month-picker-year");
+    const monthWheel = await (
+      await findRallyCalendar()
+    ).findByTestId("month-picker-month");
+    const yearWheel = rallyCalendar().getByTestId("month-picker-year");
     expect(monthWheel).toHaveProp("selection", 8);
     expect(yearWheel).toHaveProp("selection", 2026);
 
@@ -703,19 +771,35 @@ describe("S-028 T-003 ST-005 month picker", () => {
     await fireEvent(yearWheel, "selectionChange", {
       nativeEvent: { selection: 2025 },
     });
-    await fireEvent(screen.getByTestId("month-picker-done"), "buttonPress");
+    await fireEvent(
+      rallyCalendar().getByTestId("month-picker-done"),
+      "buttonPress",
+    );
 
-    expect(await screen.findByText("March 2025")).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/^Mar \d+, 2025, /)).toHaveLength(31);
-    expect(screen.getByLabelText("Mar 14, 2025, recorded")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Show week" })).toBeOnTheScreen();
+    expect(
+      await (await findRallyCalendar()).findByText("March 2025"),
+    ).toBeOnTheScreen();
+    expect(rallyCalendar().getAllByLabelText(/^Mar \d+, 2025, /)).toHaveLength(
+      31,
+    );
+    expect(
+      rallyCalendar().getByLabelText("Mar 14, 2025, recorded"),
+    ).toBeOnTheScreen();
+    expect(
+      rallyCalendar().getByRole("button", { name: "Show week" }),
+    ).toBeOnTheScreen();
     // The native sheet keeps its content until it reports the dismissal.
-    expect(screen.getByTestId("month-picker-sheet")).toHaveProp(
+    expect(rallyCalendar().getByTestId("month-picker-sheet")).toHaveProp(
       "isPresented",
       false,
     );
-    await fireEvent(screen.getByTestId("month-picker-sheet"), "dismiss");
-    expect(screen.queryByTestId("month-picker-month")).not.toBeOnTheScreen();
+    await fireEvent(
+      rallyCalendar().getByTestId("month-picker-sheet"),
+      "dismiss",
+    );
+    expect(
+      rallyCalendar().queryByTestId("month-picker-month"),
+    ).not.toBeOnTheScreen();
   });
 });
 
@@ -723,13 +807,15 @@ describe("S-028 T-003 ST-005 month picker reopen", () => {
   test("starts from the shown month again after closing without Done", async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 12));
     const { user } = await openRallyDetail("Picker reopen");
-    const heading = await screen.findByRole("button", {
+    const heading = await (
+      await findRallyCalendar()
+    ).findByRole("button", {
       name: "Choose month, September 2026",
     });
 
     await user.press(heading);
     await fireEvent(
-      screen.getByTestId("month-picker-month"),
+      rallyCalendar().getByTestId("month-picker-month"),
       "selectionChange",
       {
         nativeEvent: { selection: 2 },
@@ -737,20 +823,22 @@ describe("S-028 T-003 ST-005 month picker reopen", () => {
     );
     // Swiping the sheet down reports the closed state from the native side.
     await fireEvent(
-      screen.getByTestId("month-picker-sheet"),
+      rallyCalendar().getByTestId("month-picker-sheet"),
       "isPresentedChange",
       {
         nativeEvent: { isPresented: false },
       },
     );
-    await fireEvent(screen.getByTestId("month-picker-sheet"), "dismiss");
-    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+    await fireEvent(
+      rallyCalendar().getByTestId("month-picker-sheet"),
+      "dismiss",
+    );
+    expect(rallyCalendar().getByText("September 2026")).toBeOnTheScreen();
 
     await user.press(heading);
-    expect(await screen.findByTestId("month-picker-month")).toHaveProp(
-      "selection",
-      8,
-    );
+    expect(
+      await (await findRallyCalendar()).findByTestId("month-picker-month"),
+    ).toHaveProp("selection", 8);
   });
 });
 
@@ -764,12 +852,14 @@ describe("S-028 T-004 ST-006 open a day from the calendar", () => {
       });
     });
 
-    const tomorrow = await screen.findByLabelText("Sep 17, 2026, not recorded");
+    const tomorrow = await (
+      await findRallyCalendar()
+    ).findByLabelText("Sep 17, 2026, not recorded");
     expect(tomorrow).toBeDisabled();
     await user.press(tomorrow);
     expect(screen.queryByTestId("rally-day-sheet")).not.toBeOnTheScreen();
 
-    const recordedDay = screen.getByRole("button", {
+    const recordedDay = rallyCalendar().getByRole("button", {
       name: "Sep 14, 2026, recorded",
     });
     await user.press(recordedDay);
@@ -783,7 +873,7 @@ describe("S-028 T-004 ST-006 open a day from the calendar", () => {
 });
 
 describe("S-028 RT-001 ST-003 posts look", () => {
-  test("titles the timeline Stamps and splits each post into a bold day and a light time", async () => {
+  test("titles the timeline Stamps with the count", async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 12));
     await openRallyDetail("Posts look", async (rallyId) => {
       await saveStamp({
@@ -796,18 +886,56 @@ describe("S-028 RT-001 ST-003 posts look", () => {
     const detail = within(await screen.findByLabelText("Rally detail"));
     expect(detail.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
     expect(detail.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
+    expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
+  });
+});
 
-    const day = detail.getByText("Fri, Sep 18");
-    expect(day).toHaveProp(
+describe("S-011 RT-001 ST-007 rally detail day cards", () => {
+  test("puts each day's posts on one card under its heading and titles each post with its time", async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    let pastStampId = 0;
+    await openRallyDetail("Day sections", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 19, 8).toISOString(),
+      });
+      const past = await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 18, 19, 2).toISOString(),
+      });
+      pastStampId = past.id;
+    });
+
+    const list = await screen.findByLabelText("Rally detail");
+    // Headings scroll with their cards instead of sticking over the posts.
+    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
+    const detail = within(list);
+    expect(
+      within(detail.getByTestId("day-card-2026-09-18")).getByTestId(
+        `stamp-row-${pastStampId}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(detail.getByTestId("day-card-2026-09-20")).queryByTestId(
+        `stamp-row-${pastStampId}`,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(detail.getByTestId("day-section-2026-09-20")).getByRole("heading"),
+    ).toHaveTextContent("Today");
+    expect(
+      within(detail.getByTestId("day-section-2026-09-19")).getByRole("heading"),
+    ).toHaveTextContent("Yesterday");
+    expect(
+      within(detail.getByTestId("day-section-2026-09-18")).getByRole("heading"),
+    ).toHaveTextContent("Fri, Sep 18");
+
+    const post = within(detail.getByTestId(`stamp-row-${pastStampId}`));
+    expect(post.getByText("7:02 PM")).toHaveProp(
       "className",
       expect.stringContaining("font-semibold"),
     );
-    const time = detail.getByText("7:02 PM");
-    expect(time).toHaveProp(
-      "className",
-      expect.stringContaining("text-foreground-muted"),
-    );
-    expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
+    expect(post.queryByText("Fri, Sep 18")).not.toBeOnTheScreen();
   });
 });
 
@@ -852,21 +980,21 @@ describe("S-028 RT-001 ST-005 calendar look", () => {
       "className",
       expect.stringContaining("bg-surface "),
     );
-    const recorded = screen.getByRole("button", {
+    const recorded = rallyCalendar().getByRole("button", {
       name: "Sep 14, 2026, recorded",
     });
     expect(within(recorded).getByText("🗼")).toBeOnTheScreen();
     expect(within(recorded).queryByText("14")).not.toBeOnTheScreen();
-    expect(screen.getByTestId("calendar-day-2026-09-14")).toHaveProp(
+    expect(rallyCalendar().getByTestId("calendar-day-2026-09-14")).toHaveProp(
       "className",
       expect.stringContaining("bg-accent-soft"),
     );
     // Today (Sep 16) also has a stamp from openRallyDetail.
-    expect(screen.getByTestId("calendar-day-2026-09-16")).toHaveProp(
+    expect(rallyCalendar().getByTestId("calendar-day-2026-09-16")).toHaveProp(
       "className",
       expect.stringContaining("border-accent"),
     );
-    const future = screen.getByLabelText("Sep 17, 2026, not recorded");
+    const future = rallyCalendar().getByLabelText("Sep 17, 2026, not recorded");
     expect(within(future).getByText("17")).toHaveProp(
       "className",
       expect.stringContaining("text-foreground-muted"),

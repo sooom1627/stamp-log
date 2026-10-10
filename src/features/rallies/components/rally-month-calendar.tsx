@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { ChevronLeft, ChevronRight } from "@/shared/components/icons";
+import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 import {
@@ -10,6 +11,7 @@ import {
   buildWeek,
   shiftWeek,
   weekHeadingMonth,
+  type DayMark,
   type MonthDay,
 } from "../utils/month-grid";
 
@@ -24,10 +26,18 @@ const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 type CalendarDayProps = {
   day: MonthDay | null;
-  emoji: string;
+  emoji: string | undefined;
+  mark: DayMark | undefined;
   todayKey: string;
-  onPress: (key: string) => void;
+  onPress: ((key: string) => void) | undefined;
 };
+
+function dayLabel(day: MonthDay, mark: DayMark | undefined) {
+  const date = dayFormatter.format(day.date);
+  if (!day.isRecorded) return `${date}, not recorded`;
+  if (!mark) return `${date}, recorded`;
+  return `${date}, recorded, ${formatStampCount(mark.extraCount + 1)}`;
+}
 
 // Complete class strings per state (no interpolation, see AGENTS.md).
 function dayCircleClassName(isRecorded: boolean, isToday: boolean) {
@@ -43,23 +53,29 @@ function dayCircleClassName(isRecorded: boolean, isToday: boolean) {
   return "size-10 items-center justify-center rounded-full";
 }
 
-function CalendarDay({ day, emoji, todayKey, onPress }: CalendarDayProps) {
+function CalendarDay({
+  day,
+  emoji,
+  mark,
+  todayKey,
+  onPress,
+}: CalendarDayProps) {
   if (!day) return <View className="flex-1" />;
 
   // Keys are YYYY-MM-DD, so string order is date order.
   const isFuture = day.key > todayKey;
   const isToday = day.key === todayKey;
+  const isDisabled = isFuture || !onPress;
+  const extraCount = mark?.extraCount ?? 0;
 
   return (
     <Pressable
       role="button"
-      aria-label={`${dayFormatter.format(day.date)}, ${
-        day.isRecorded ? "recorded" : "not recorded"
-      }`}
-      aria-disabled={isFuture}
-      disabled={isFuture}
+      aria-label={dayLabel(day, mark)}
+      aria-disabled={isDisabled}
+      disabled={isDisabled}
       className="flex-1 items-center py-1"
-      onPress={() => onPress(day.key)}
+      onPress={() => onPress?.(day.key)}
     >
       <View
         testID={`calendar-day-${day.key}`}
@@ -67,7 +83,7 @@ function CalendarDay({ day, emoji, todayKey, onPress }: CalendarDayProps) {
       >
         {day.isRecorded ? (
           // The cell's aria-label already reads the day and "recorded".
-          <Text className="text-xl">{emoji}</Text>
+          <Text className="text-xl">{mark?.emoji ?? emoji}</Text>
         ) : (
           <Text
             className={
@@ -79,17 +95,33 @@ function CalendarDay({ day, emoji, todayKey, onPress }: CalendarDayProps) {
             {day.date.getDate()}
           </Text>
         )}
+        {day.isRecorded && extraCount > 0 ? (
+          // Overlaps the circle's bottom-right corner; the label reads the count.
+          <View
+            aria-hidden
+            className="bg-surface border-border absolute -right-1.5 -bottom-1 rounded-full border px-1"
+          >
+            <Text className="text-foreground-secondary text-[10px] font-semibold">
+              +{extraCount}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );
 }
 
 type RallyMonthCalendarProps = {
+  testID?: string;
   stampDates: string[];
-  // Shown on recorded days in place of the day number.
-  emoji: string;
-  // Called with the YYYY-MM-DD key of a day up to today.
-  onPressDay: (key: string) => void;
+  // Shown on recorded days in place of the day number (one rally).
+  emoji?: string;
+  // Per-day emoji and extra count keyed by YYYY-MM-DD (every rally, on Logs).
+  // Wins over `emoji`.
+  dayMarks?: ReadonlyMap<string, DayMark>;
+  // Called with the YYYY-MM-DD key of a day up to today. Without it no day
+  // can be pressed.
+  onPressDay?: (key: string) => void;
 };
 
 function firstDayOfMonth(date: Date) {
@@ -109,8 +141,10 @@ function pickerYears(stampDates: string[], shownMonth: Date) {
 }
 
 export function RallyMonthCalendar({
+  testID = "rally-calendar",
   stampDates,
   emoji,
+  dayMarks,
   onPressDay,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
@@ -152,7 +186,7 @@ export function RallyMonthCalendar({
 
   return (
     <View
-      testID="rally-calendar"
+      testID={testID}
       className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
     >
       <View className="flex-row items-center justify-between">
@@ -200,6 +234,7 @@ export function RallyMonthCalendar({
               key={day?.key ?? `blank-${dayIndex}`}
               day={day}
               emoji={emoji}
+              mark={day ? dayMarks?.get(day.key) : undefined}
               todayKey={todayKey}
               onPress={onPressDay}
             />
