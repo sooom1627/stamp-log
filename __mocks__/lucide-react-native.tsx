@@ -8,3 +8,4 @@ export const Check = MockIcon;
 export const ChevronLeft = MockIcon;
 export const ChevronRight = MockIcon;
 export const Plus = MockIcon;
+export const Star = MockIcon;
