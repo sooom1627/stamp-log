@@ -67,7 +67,7 @@ export function RecordsTimelineScreen() {
       <FlatList
         aria-label="Logs timeline"
         className="bg-canvas flex-1"
-        contentContainerClassName="gap-6 px-5 pb-32"
+        contentContainerClassName="gap-4 px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
         data={sections}
         keyExtractor={({ dateKey }) => dateKey}
