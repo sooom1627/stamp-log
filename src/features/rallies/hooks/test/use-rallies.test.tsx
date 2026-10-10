@@ -28,8 +28,8 @@ function createWrapper() {
 }
 
 describe("S-013 T-001 ST-003 useUpdateRally", () => {
-  test("rallies show the updated name, type and emoji when the caller's onSuccess runs", async () => {
-    await saveRally({ name: "Walk", type: "action", emoji: "🚶" });
+  test("rallies show the updated name and emoji when the caller's onSuccess runs", async () => {
+    await saveRally({ name: "Walk", emoji: "🚶" });
     const { result } = await renderHook(
       () => ({
         queryClient: useQueryClient(),
@@ -48,7 +48,6 @@ describe("S-013 T-001 ST-003 useUpdateRally", () => {
     const updated: Rally = {
       id: walk.id,
       name: "Hike",
-      type: "place",
       emoji: "⛰️",
     };
 

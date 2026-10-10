@@ -23,7 +23,7 @@ beforeEach(() => {
 });
 
 async function openPastStamp(name: string) {
-  await saveRally({ name, type: "person" });
+  await saveRally({ name });
   const rally = (await listRallies()).find(
     (candidate) => candidate.name === name,
   );
@@ -126,7 +126,7 @@ describe("S-025 T-001 ST-005 past stamp formSheet", () => {
   });
 
   test("cannot save on a day the rally already has a stamp", async () => {
-    await saveRally({ name: "Same day rally", type: "place" });
+    await saveRally({ name: "Same day rally" });
     const rally = (await listRallies()).find(
       (candidate) => candidate.name === "Same day rally",
     );
@@ -161,7 +161,7 @@ describe("S-025 T-001 ST-005 past stamp formSheet", () => {
 
 describe("S-028 T-004 ST-004 past stamp for a given day", () => {
   async function openPastStampOn(name: string, date: string) {
-    await saveRally({ name, type: "person" });
+    await saveRally({ name });
     const rally = (await listRallies()).find(
       (candidate) => candidate.name === name,
     );

@@ -29,7 +29,7 @@ describe("S-024 T-001 ST-001 fit form sheet", () => {
 
 describe("S-002 T-002 RT-003 ST-002 save memo", () => {
   test("persists memo on stamp after save", async () => {
-    await saveRally({ name: "Memo save rally", type: "place" });
+    await saveRally({ name: "Memo save rally" });
     const [rally] = await listRallies();
     const stamp = await saveStamp({ rallyId: rally.id });
 

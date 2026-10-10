@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 async function openEditRally(name: string) {
-  await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+  await ralliesDb.saveRally({ name, emoji: "🗼" });
   const rally = (await ralliesDb.listRallies()).find(
     (candidate) => candidate.name === name,
   );
@@ -72,7 +72,6 @@ describe("S-013 T-001 ST-004 edit rally sheet", () => {
     await expect(findRally(rally.id)).resolves.toEqual({
       id: rally.id,
       name: "After rename",
-      type: "place",
       emoji: "🔬",
     });
   });

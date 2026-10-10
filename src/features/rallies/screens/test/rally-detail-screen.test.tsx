@@ -43,7 +43,7 @@ async function openRallyDetail(
   name: string,
   seed?: (rallyId: number) => Promise<void>,
 ) {
-  await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+  await ralliesDb.saveRally({ name, emoji: "🗼" });
   const [rally] = await ralliesDb.listRallies();
   await saveStamp({ rallyId: rally.id });
   await seed?.(rally.id);
@@ -125,7 +125,7 @@ describe("S-006 T-001 ST-003 stamp timeline", () => {
   });
 
   test("does not show stamps of other rallies", async () => {
-    await ralliesDb.saveRally({ name: "Other", type: "place", emoji: "🎨" });
+    await ralliesDb.saveRally({ name: "Other", emoji: "🎨" });
     const [other] = await ralliesDb.listRallies();
     await saveStamp({ rallyId: other.id });
 
@@ -222,7 +222,7 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
 
 describe("S-006 T-001 ST-009 empty and error states", () => {
   async function openWithoutStamps(name: string) {
-    await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+    await ralliesDb.saveRally({ name, emoji: "🗼" });
     const [rally] = await ralliesDb.listRallies();
 
     await renderRouter("./src/app");
@@ -303,7 +303,7 @@ describe("S-006 T-001 ST-010 menu tap target", () => {
 describe("S-006 T-002 ST-002 month calendar", () => {
   test("marks this rally's recorded days in the current month", async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 12));
-    await ralliesDb.saveRally({ name: "Other", type: "place", emoji: "🎨" });
+    await ralliesDb.saveRally({ name: "Other", emoji: "🎨" });
     const [other] = await ralliesDb.listRallies();
     await saveStamp({
       rallyId: other.id,
@@ -516,7 +516,7 @@ describe("S-017 T-001 ST-003 confirm names the stamps deleted with the rally", (
   }
 
   async function openEmptyRally(name: string) {
-    await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+    await ralliesDb.saveRally({ name, emoji: "🗼" });
     const [rally] = await ralliesDb.listRallies();
     await renderRouter("./src/app");
     expect(
@@ -613,7 +613,7 @@ describe("S-017 T-001 ST-003 confirm names the stamps deleted with the rally", (
 
 describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () => {
   async function saveRallyWithStamps(name: string, count: number) {
-    await ralliesDb.saveRally({ name, type: "place", emoji: "🧭" });
+    await ralliesDb.saveRally({ name, emoji: "🧭" });
     const [rally] = await ralliesDb.listRallies();
     for (let index = 0; index < count; index += 1) {
       await saveStamp({ rallyId: rally.id });
@@ -784,7 +784,7 @@ describe("S-028 T-002 ST-003 rally summary", () => {
 
 describe("S-028 T-002 ST-004 rally summary without stamps", () => {
   async function openEmptyRally(name: string) {
-    await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+    await ralliesDb.saveRally({ name, emoji: "🗼" });
     const [rally] = await ralliesDb.listRallies();
 
     await renderRouter("./src/app");

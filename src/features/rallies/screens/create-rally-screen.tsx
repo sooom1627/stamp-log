@@ -42,7 +42,7 @@ export function CreateRallyScreen() {
   const handleSave = () => {
     if (!canSave) return;
 
-    saveRally({ name, type: "place", emoji }, { onSuccess: back });
+    saveRally({ name, emoji }, { onSuccess: back });
   };
 
   return (
