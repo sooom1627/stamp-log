@@ -51,6 +51,7 @@ export default function RootLayout() {
             <Stack.Screen name="add-past-stamp" options={formSheetOptions} />
             <Stack.Screen name="edit-stamp" options={formSheetOptions} />
             <Stack.Screen name="rally-day" options={formSheetOptions} />
+            <Stack.Screen name="logs-day" options={formSheetOptions} />
           </Stack>
         </ThemeProvider>
         <Toaster position="bottom-center" closeButton />
