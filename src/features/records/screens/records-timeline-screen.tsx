@@ -1,7 +1,8 @@
-import { FlatList, Text, View } from "react-native";
+import { SectionList, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { DaySectionHeading } from "@/features/rallies/components/day-section-heading";
 import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
@@ -13,6 +14,7 @@ import {
   TabRootWeekday,
 } from "@/shared/components/tab-root-screen";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
+import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
 import { buildDayMarks } from "../utils/day-marks";
 
@@ -32,6 +34,10 @@ function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
       <Text className="text-foreground-secondary">No stamps yet</Text>
     </View>
   );
+}
+
+function PostSeparator() {
+  return <View className="h-5" />;
 }
 
 export function RecordsTimelineScreen() {
@@ -58,16 +64,25 @@ export function RecordsTimelineScreen() {
         return rally ? [{ stamp, rally }] : [];
       })
     : [];
+  const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
 
   return (
     <>
-      <FlatList
+      <SectionList
         aria-label="Logs timeline"
         className="bg-canvas flex-1"
-        contentContainerClassName="gap-6 px-5 pb-32"
+        contentContainerClassName="px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
-        data={posts}
+        sections={sections}
+        stickySectionHeadersEnabled
         keyExtractor={({ stamp }) => String(stamp.id)}
+        renderSectionHeader={({ section: { dateKey, data } }) => (
+          <DaySectionHeading
+            dateKey={dateKey}
+            date={new Date(data[0].stamp.stampedAt)}
+          />
+        )}
+        ItemSeparatorComponent={PostSeparator}
         renderItem={({ item: { stamp, rally } }) => (
           <StampPost
             id={stamp.id}
@@ -99,7 +114,7 @@ export function RecordsTimelineScreen() {
               dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
             />
             {posts.length > 0 ? (
-              <View className="mt-6 flex-row items-baseline justify-between">
+              <View className="mt-6 mb-2 flex-row items-baseline justify-between">
                 <Text
                   role="heading"
                   className="text-foreground text-xl font-bold"

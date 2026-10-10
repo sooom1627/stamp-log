@@ -129,6 +129,42 @@ describe("S-011 RT-001 ST-003 Logs post shape", () => {
   });
 });
 
+describe("S-011 RT-001 ST-004 Logs day sections", () => {
+  test("groups posts under sticky day headings, newest day first", async () => {
+    jest.setSystemTime(new Date(2026, 9, 10, 21));
+    const rally = await saveRallyNamed("Day sections", "📚");
+    const at = (day: number, hour: number) =>
+      new Date(2026, 9, day, hour).toISOString();
+    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([
+      { id: 904, rallyId: rally.id, stampedAt: at(10, 20), memo: null },
+      { id: 903, rallyId: rally.id, stampedAt: at(10, 8), memo: null },
+      { id: 902, rallyId: rally.id, stampedAt: at(9, 19), memo: null },
+      { id: 901, rallyId: rally.id, stampedAt: at(8, 6), memo: null },
+    ]);
+
+    await openLogs();
+
+    const list = await screen.findByLabelText("Logs timeline");
+    // One sticky header per day.
+    expect(list.props.stickyHeaderIndices).toHaveLength(3);
+    const logs = within(list);
+    expect(
+      logs
+        .getAllByRole("heading")
+        .map((heading) => heading.props.children)
+        .filter((title) => title !== "Stamps"),
+    ).toEqual(["Today", "Yesterday", "Thu, Oct 8"]);
+    expect(logs.getByText("Sat, Oct 10")).toBeOnTheScreen();
+    expect(logs.getByText("Fri, Oct 9")).toBeOnTheScreen();
+    expect(
+      within(logs.getByTestId("day-section-2026-10-10")).getByRole("heading"),
+    ).toHaveTextContent("Today");
+    expect(
+      logs.getAllByText(stampTimePattern).map((time) => time.props.children),
+    ).toEqual(["8:00 PM", "8:00 AM", "7:00 PM", "6:00 AM"]);
+  });
+});
+
 describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
   const logsTimeline = async () =>
     within(await screen.findByLabelText("Logs timeline"));
