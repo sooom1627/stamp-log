@@ -39,7 +39,7 @@ async function openEdit(
   name: string,
   seed: (rallyId: number) => Promise<number>,
 ) {
-  await saveRally({ name, type: "person", emoji: "🧑‍🔬" });
+  await saveRally({ name, emoji: "🧑‍🔬" });
   const rally = (await listRallies()).find(
     (candidate) => candidate.name === name,
   );

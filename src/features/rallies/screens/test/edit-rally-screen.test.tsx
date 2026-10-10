@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 async function openEditRally(name: string) {
-  await ralliesDb.saveRally({ name, type: "place", emoji: "🗼" });
+  await ralliesDb.saveRally({ name, emoji: "🗼" });
   const rally = (await ralliesDb.listRallies()).find(
     (candidate) => candidate.name === name,
   );
@@ -39,25 +39,25 @@ async function findRally(id: number) {
 }
 
 describe("S-013 T-001 ST-004 edit rally sheet", () => {
-  test("opens with the rally's current type, emoji and name", async () => {
+  test("opens with the rally's current emoji and name and no type choice", async () => {
     await openEditRally("Tokyo towers");
 
     expect(
       screen.getByRole("heading", { name: "Edit rally" }),
     ).toBeOnTheScreen();
-    expect(screen.getByRole("radio", { name: "Place" })).toBeChecked();
+    expect(screen.queryByText("Type")).toBeNull();
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
     expect(
       screen.getByRole("button", { name: "Select emoji (currently 🗼)" }),
     ).toBeOnTheScreen();
     expect(screen.getByLabelText("Name")).toHaveDisplayValue("Tokyo towers");
   });
 
-  test("saves the new name, type and emoji, closes and shows them on home", async () => {
+  test("saves the new name and emoji, closes and shows them on home", async () => {
     const { app, rally, user } = await openEditRally("Before rename");
 
     await user.clear(screen.getByLabelText("Name"));
     await user.type(screen.getByLabelText("Name"), "After rename");
-    await user.press(screen.getByRole("radio", { name: "Person" }));
     await user.press(
       screen.getByRole("button", { name: "Select emoji (currently 🗼)" }),
     );
@@ -72,20 +72,8 @@ describe("S-013 T-001 ST-004 edit rally sheet", () => {
     await expect(findRally(rally.id)).resolves.toEqual({
       id: rally.id,
       name: "After rename",
-      type: "person",
       emoji: "🔬",
     });
-  });
-
-  test("keeps the saved emoji when the type changes", async () => {
-    const { user } = await openEditRally("Emoji stays");
-
-    await user.press(screen.getByRole("radio", { name: "Action" }));
-
-    expect(screen.getByRole("radio", { name: "Action" })).toBeChecked();
-    expect(
-      screen.getByRole("button", { name: "Select emoji (currently 🗼)" }),
-    ).toBeOnTheScreen();
   });
 
   test.each(["", "   "])("cannot save when the name is %p", async (name) => {

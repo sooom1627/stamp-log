@@ -449,7 +449,7 @@ describe("S-006 ST-006 stamp update and delete Query hooks", () => {
 
 describe("S-006 RT-002 ST-005 invalidate before mutation success", () => {
   test("the caller's onSuccess sees rallies and stamps without the deleted rally", async () => {
-    await saveRally({ name: "Refetch check", type: "place" });
+    await saveRally({ name: "Refetch check" });
     const { result } = await renderHook(
       () => ({
         queryClient: useQueryClient(),

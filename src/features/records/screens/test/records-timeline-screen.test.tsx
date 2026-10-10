@@ -40,7 +40,7 @@ function daysAgoAt(days: number, hours: number) {
 }
 
 async function saveRallyNamed(name: string, emoji: string) {
-  await saveRally({ name, type: "place", emoji });
+  await saveRally({ name, emoji });
   const rally = (await listRallies()).find(
     (candidate) => candidate.name === name,
   );

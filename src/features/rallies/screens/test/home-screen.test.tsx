@@ -14,7 +14,6 @@ import { toast } from "sonner-native";
 
 import * as ralliesDb from "../../db/rallies-db";
 import * as stampsDb from "../../db/stamps-db";
-import { type RallyType } from "../../schemas/rallies";
 
 jest.useFakeTimers();
 
@@ -47,8 +46,8 @@ function findToastAction(): { label: string; onClick: () => void } {
   return action;
 }
 
-async function renderHomeWithRally(name: string, type: RallyType = "place") {
-  await ralliesDb.saveRally({ name, type });
+async function renderHomeWithRally(name: string) {
+  await ralliesDb.saveRally({ name });
   await renderRouter("./src/app");
   expect(
     await screen.findByRole("button", { name: `View ${name} details` }),
@@ -64,7 +63,7 @@ describe("ST-001 create rally entry", () => {
     await user.press(await screen.findByRole("link", { name: "Create rally" }));
 
     expect(
-      await screen.findByPlaceholderText("Enter a place to track"),
+      await screen.findByPlaceholderText("Enter a rally name"),
     ).toBeOnTheScreen();
     // S-028 RT-002 ST-003: the heading lives in the sheet, not a native header.
     const sheet = screen.getByTestId("create-rally-form");
@@ -132,11 +131,11 @@ describe("S-002 T-001 ST-004 stamp rally", () => {
     ).toBeDisabled();
   });
 
-  test("stamps person, place, and action rallies the same way", async () => {
+  test("stamps several rallies the same way", async () => {
     const rallies = [
-      { name: "Classmates", type: "person" },
-      { name: "Stations on Yamanote", type: "place" },
-      { name: "Goals this year", type: "action" },
+      { name: "Classmates" },
+      { name: "Stations on Yamanote" },
+      { name: "Goals this year" },
     ] as const;
 
     for (const rally of rallies) {
@@ -297,7 +296,7 @@ describe("S-029 T-001 ST-004 today card", () => {
     emoji: string,
     stampedAts: string[],
   ) {
-    await ralliesDb.saveRally({ name, type: "place", emoji });
+    await ralliesDb.saveRally({ name, emoji });
     const rally = (await ralliesDb.listRallies()).find(
       (saved) => saved.name === name,
     );
@@ -422,7 +421,7 @@ describe("S-029 T-003 ST-002 rally order", () => {
   });
 
   async function saveRallyWithStamps(name: string, stampCount: number) {
-    await ralliesDb.saveRally({ name, type: "place" });
+    await ralliesDb.saveRally({ name });
     const rally = (await ralliesDb.listRallies()).find(
       (saved) => saved.name === name,
     );
