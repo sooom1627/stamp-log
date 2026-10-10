@@ -73,13 +73,14 @@ describe("S-028 T-004 ST-003 rally day sheet", () => {
   test("S-028 RT-002 ST-002 pads the top by a fixed amount, not the header height", async () => {
     await openRallyDay("Rally day layout", "2026-09-18");
 
-    const sheet = await screen.findByTestId("rally-day-sheet");
-    expect(sheet).toHaveProp("className", expect.stringContaining("pt-8"));
-    expect(sheet).not.toHaveProp("style", expect.anything());
+    // The heading stays fixed while the posts scroll under it.
+    const heading = await screen.findByTestId("rally-day-sheet-heading");
+    expect(heading).toHaveProp("className", expect.stringContaining("pt-8"));
+    expect(heading).not.toHaveProp("style", expect.anything());
     expect(
-      within(sheet).getByRole("heading", { name: "Sep 18, 2026" }),
+      within(heading).getByRole("heading", { name: "Sep 18, 2026" }),
     ).toBeOnTheScreen();
-    expect(within(sheet).getByText("Friday")).toBeOnTheScreen();
+    expect(within(heading).getByText("Friday")).toBeOnTheScreen();
   });
 
   test("deletes a stamp of the day after confirmation", async () => {

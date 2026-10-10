@@ -15,7 +15,7 @@ type FormSheetLayoutProps = {
   title: string;
   /** Extra layout classes (e.g. `gap-5`). */
   className?: string;
-  /** Wraps the whole sheet in a ScrollView. Only for sheets without a footer. */
+  /** Scrolls the content under a fixed heading. Only for sheets without a footer. */
   scrollable?: boolean;
   children: ReactNode;
 };
@@ -26,8 +26,8 @@ type FormSheetLayoutProps = {
 // react-native-screens force-overrides the ScrollView frame to the full sheet,
 // which interferes with sibling content (footer) and stops rendering.
 // Keep the root intrinsically sized so fitToContents includes the Save button.
-// `scrollable` sheets (a day's posts, no footer) instead put everything in one
-// ScrollView, so that full-sheet frame becomes the scroll area.
+// `scrollable` sheets (a day's posts, no footer) instead make one ScrollView the
+// root, so that full-sheet frame becomes the scroll area.
 export function FormSheetLayout({
   testID,
   eyebrow,
@@ -36,27 +36,49 @@ export function FormSheetLayout({
   scrollable = false,
   children,
 }: FormSheetLayoutProps) {
-  const sheet = (
+  const heading = (
+    <View className="gap-1">
+      {eyebrow ? (
+        <Text className="text-accent-strong text-sm font-semibold">
+          {eyebrow}
+        </Text>
+      ) : null}
+      <Text role="heading" className="text-foreground text-3xl font-bold">
+        {title}
+      </Text>
+    </View>
+  );
+
+  if (scrollable) {
+    // The heading is the sticky first child, so it stays under the grabber
+    // while the posts scroll beneath it.
+    return (
+      <ScrollView
+        testID={testID}
+        className="bg-background"
+        contentContainerClassName={`gap-5 px-5 pb-6 ${className}`}
+        stickyHeaderIndices={[0]}
+      >
+        <View
+          testID={testID ? `${testID}-heading` : undefined}
+          className="bg-background pt-8"
+        >
+          {heading}
+        </View>
+        {children}
+      </ScrollView>
+    );
+  }
+
+  return (
     <View
       testID={testID}
       className={`bg-background gap-5 px-5 pt-8 pb-6 ${className}`}
     >
-      <View className="gap-1">
-        {eyebrow ? (
-          <Text className="text-accent-strong text-sm font-semibold">
-            {eyebrow}
-          </Text>
-        ) : null}
-        <Text role="heading" className="text-foreground text-3xl font-bold">
-          {title}
-        </Text>
-      </View>
+      {heading}
       {children}
     </View>
   );
-
-  if (!scrollable) return sheet;
-  return <ScrollView className="bg-background">{sheet}</ScrollView>;
 }
 
 type FormFieldProps = {

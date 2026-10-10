@@ -45,19 +45,22 @@ describe("S-028 RT-002 ST-001 FormSheetLayout", () => {
     expect(screen.getAllByText(/./)).toHaveLength(2);
   });
 
-  test("S-012 wraps the whole sheet in a scroll view when scrollable", async () => {
+  test("S-012 scrolls the content under a sticky heading when scrollable", async () => {
     await render(
       <FormSheetLayout testID="sheet" title="Sep 18, 2026" scrollable>
         <Text>Body</Text>
       </FormSheetLayout>,
     );
 
-    // react-native-screens sizes the first scroll view to the whole sheet,
-    // so the heading and the content scroll together.
+    // react-native-screens sizes the first scroll view to the whole sheet.
+    // The heading is its sticky first child, so only the content scrolls.
     const [scrollView] = scrollViews();
-    expect(within(scrollView).getByTestId("sheet")).toBeOnTheScreen();
+    expect(scrollView).toHaveProp("testID", "sheet");
+    expect(scrollView).toHaveProp("stickyHeaderIndices", [0]);
+    const heading = within(scrollView).getByTestId("sheet-heading");
+    expect(heading).toHaveProp("className", expect.stringContaining("pt-8"));
     expect(
-      within(scrollView).getByRole("heading", { name: "Sep 18, 2026" }),
+      within(heading).getByRole("heading", { name: "Sep 18, 2026" }),
     ).toBeOnTheScreen();
     expect(within(scrollView).getByText("Body")).toBeOnTheScreen();
   });
