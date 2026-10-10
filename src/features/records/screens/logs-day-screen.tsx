@@ -1,3 +1,5 @@
+import { Text, View } from "react-native";
+
 import { useRouter } from "expo-router";
 
 import { StampPost } from "@/features/rallies/components/stamp-post";
@@ -34,6 +36,8 @@ export function LogsDayScreen({ date }: LogsDayScreenProps) {
   } = useRallies();
   const { mutate: deleteStamp } = useDeleteStamp();
 
+  const isLoaded = stamps !== undefined && rallies !== undefined;
+  const isError = isStampsError || isRalliesError;
   const dayKey = localDateKey(date);
   // Newest first, as listStamps returns them. A stamp shows once its rally is
   // loaded, so every post has its name.
@@ -49,13 +53,22 @@ export function LogsDayScreen({ date }: LogsDayScreenProps) {
       eyebrow={weekdayFormatter.format(date)}
       title={dateFormatter.format(date)}
     >
-      {isStampsError || isRalliesError ? (
+      {isError ? (
         <LoadError
           onRetry={() => {
             void refetchStamps();
             void refetchRallies();
           }}
         />
+      ) : null}
+      {/* The calendar opens recorded days only, so this shows after deleting
+          the day's last stamp. */}
+      {isLoaded && !isError && posts.length === 0 ? (
+        <View className="items-center py-8">
+          <Text className="text-foreground-secondary">
+            No stamps on this day
+          </Text>
+        </View>
       ) : null}
       {posts.map(({ stamp, rally }) => (
         <StampPost

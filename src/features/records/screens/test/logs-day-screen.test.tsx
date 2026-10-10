@@ -1,11 +1,23 @@
+import { Alert, type AlertButton } from "react-native";
+
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, screen, waitFor, within } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 
 import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
 import * as stampsDb from "@/features/rallies/db/stamps-db";
-import { saveStamp, updateStampMemo } from "@/features/rallies/db/stamps-db";
+import {
+  listStamps,
+  saveStamp,
+  updateStampMemo,
+} from "@/features/rallies/db/stamps-db";
 
 jest.useFakeTimers();
 
@@ -85,5 +97,51 @@ describe("S-012 T-001 ST-002 Logs day sheet", () => {
     const sheet = within(await screen.findByTestId("logs-day-sheet"));
     expect(await sheet.findByText("Couldn't load")).toBeOnTheScreen();
     expect(sheet.getByRole("button", { name: "Retry" })).toBeOnTheScreen();
+  });
+});
+
+describe("S-012 T-001 ST-004 Logs day edit and delete", () => {
+  async function openWithOneStamp(name: string) {
+    const rally = await saveRallyNamed(name, "📚");
+    const stamp = await saveStamp({ rallyId: rally.id, stampedAt: at(15, 10) });
+    // Only this stamp exists, so deleting it empties the day.
+    const realListStamps = stampsDb.listStamps;
+    jest
+      .spyOn(stampsDb, "listStamps")
+      .mockImplementation(async () =>
+        (await realListStamps()).filter((s) => s.rallyId === rally.id),
+      );
+    await openLogsDay("2026-09-15");
+    const sheet = within(await screen.findByTestId("logs-day-sheet"));
+    await sheet.findByText(name);
+    return { stamp, sheet };
+  }
+
+  test("opens Edit stamp from the post menu", async () => {
+    const { stamp, sheet } = await openWithOneStamp("Day edit");
+
+    await fireEvent(sheet.getByTestId(`stamp-edit-${stamp.id}`), "buttonPress");
+
+    expect(await screen.findByTestId("edit-stamp-form")).toBeOnTheScreen();
+  });
+
+  test("deletes after confirmation, stays on the sheet and shows the empty day", async () => {
+    jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const { stamp, sheet } = await openWithOneStamp("Day delete");
+
+    await fireEvent(
+      sheet.getByTestId(`stamp-delete-${stamp.id}`),
+      "buttonPress",
+    );
+    const buttons: AlertButton[] =
+      jest.mocked(Alert.alert).mock.calls.at(-1)?.[2] ?? [];
+    await act(async () => {
+      buttons.find((button) => button.style === "destructive")?.onPress?.();
+    });
+
+    expect(await sheet.findByText("No stamps on this day")).toBeOnTheScreen();
+    expect(screen.getByTestId("logs-day-sheet")).toBeOnTheScreen();
+    jest.restoreAllMocks();
+    expect((await listStamps()).some(({ id }) => id === stamp.id)).toBe(false);
   });
 });
