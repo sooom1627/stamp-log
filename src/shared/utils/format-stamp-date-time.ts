@@ -21,6 +21,28 @@ export function formatStampDay(date: Date, now = new Date()) {
   return `${weekdayFormatter.format(date)}, ${monthFormatter.format(date)} ${date.getDate()}${yearSuffix(date, now)}`;
 }
 
+function isSameDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+// The heading of a day section in a timeline: Today / Yesterday with the date
+// beside it, otherwise the date alone.
+export function formatDayHeading(date: Date, now = new Date()) {
+  const day = formatStampDay(date, now);
+  if (isSameDay(date, now)) return { title: "Today", detail: day };
+  const yesterday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() - 1,
+  );
+  if (isSameDay(date, yesterday)) return { title: "Yesterday", detail: day };
+  return { title: day };
+}
+
 export function formatStampDateTime(date: Date, now = new Date()) {
   return `${monthFormatter.format(date)} ${date.getDate()}${yearSuffix(date, now)}, ${formatStampTime(date)}`;
 }
