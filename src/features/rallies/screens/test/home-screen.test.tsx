@@ -563,6 +563,9 @@ describe("S-033 T-001 ST-002 tiles on the canvas", () => {
 });
 
 describe("S-002 T-002 RT-002 error display", () => {
+  // Logs shares the lists and has its own error, so look inside Home.
+  const home = async () => within(await screen.findByLabelText("Home"));
+
   test("shows load error and retry when rally list fails", async () => {
     jest
       .spyOn(ralliesDb, "listRallies")
@@ -570,8 +573,10 @@ describe("S-002 T-002 RT-002 error display", () => {
 
     await renderRouter("./src/app");
 
-    expect(await screen.findByText("Couldn't load")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Retry" })).toBeOnTheScreen();
+    expect(await (await home()).findByText("Couldn't load")).toBeOnTheScreen();
+    expect(
+      (await home()).getByRole("button", { name: "Retry" }),
+    ).toBeOnTheScreen();
     expect(
       screen.queryByText("Could not save. Please try again."),
     ).not.toBeOnTheScreen();
@@ -584,8 +589,10 @@ describe("S-002 T-002 RT-002 error display", () => {
 
     await renderRouter("./src/app");
 
-    expect(await screen.findByText("Couldn't load")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Retry" })).toBeOnTheScreen();
+    expect(await (await home()).findByText("Couldn't load")).toBeOnTheScreen();
+    expect(
+      (await home()).getByRole("button", { name: "Retry" }),
+    ).toBeOnTheScreen();
   });
 
   test("shows list after retrying a failed load", async () => {
@@ -594,14 +601,14 @@ describe("S-002 T-002 RT-002 error display", () => {
       .mockRejectedValue(new Error("disk full"));
 
     await renderRouter("./src/app");
-    expect(await screen.findByText("Couldn't load")).toBeOnTheScreen();
+    expect(await (await home()).findByText("Couldn't load")).toBeOnTheScreen();
 
     listSpy.mockResolvedValue([]);
     const user = userEvent.setup();
-    await user.press(screen.getByRole("button", { name: "Retry" }));
+    await user.press((await home()).getByRole("button", { name: "Retry" }));
 
     await waitFor(() => {
-      expect(screen.queryByText("Couldn't load")).not.toBeOnTheScreen();
+      expect(screen.queryAllByText("Couldn't load")).toHaveLength(0);
     });
   });
 });

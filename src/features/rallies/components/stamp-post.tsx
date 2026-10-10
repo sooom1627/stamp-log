@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
 import {
@@ -20,7 +20,13 @@ type StampPostProps = {
   // (detail); a single day shows the time only.
   title: string;
   detail?: string;
+  // Logs shows posts from every rally, so it names the rally; rally screens
+  // leave it out.
+  rallyName?: string;
   memo: Stamp["memo"];
+  // Logs opens the stamp's rally. The … menu sits outside the pressable area
+  // so its taps never reach this.
+  onPress?: () => void;
   onEdit: (id: Stamp["id"]) => void;
   onDelete: (id: Stamp["id"]) => void;
 };
@@ -30,14 +36,16 @@ export function StampPost({
   emoji,
   title,
   detail,
+  rallyName,
   memo,
+  onPress,
   onEdit,
   onDelete,
 }: StampPostProps) {
   const { color: menuColor } = useResolveClassNames("text-foreground-muted");
 
-  return (
-    <View className="flex-row items-start gap-3">
+  const content = (
+    <>
       <View className="bg-accent-soft border-continuous size-9 items-center justify-center rounded-xl">
         <Text aria-hidden className="text-lg">
           {emoji}
@@ -54,6 +62,11 @@ export function StampPost({
             </Text>
           ) : null}
         </View>
+        {rallyName ? (
+          <Text selectable className="text-accent-strong text-sm">
+            {rallyName}
+          </Text>
+        ) : null}
         {memo ? (
           <Text selectable className="text-foreground-secondary text-base">
             {memo}
@@ -62,6 +75,23 @@ export function StampPost({
           <Text className="text-foreground-muted text-base">no memo</Text>
         )}
       </View>
+    </>
+  );
+
+  return (
+    <View className="flex-row items-start gap-3">
+      {onPress ? (
+        <Pressable
+          testID={`stamp-post-${id}`}
+          role="link"
+          onPress={onPress}
+          className="flex-1 flex-row items-start gap-3"
+        >
+          {content}
+        </Pressable>
+      ) : (
+        <View className="flex-1 flex-row items-start gap-3">{content}</View>
+      )}
       <Host matchContents>
         <Menu
           testID={`stamp-menu-${id}`}

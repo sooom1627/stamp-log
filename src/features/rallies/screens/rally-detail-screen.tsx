@@ -18,7 +18,7 @@ import { StampPost } from "../components/stamp-post";
 import { useDeleteRally, useRallies } from "../hooks/use-rallies";
 import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
-import { type Stamp } from "../schemas/stamps";
+import { confirmDeleteStamp } from "../utils/confirm-delete-stamp";
 import { buildRallySummary } from "../utils/rally-summary";
 
 type TimelineEmptyProps = {
@@ -81,16 +81,6 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       },
     ]);
 
-  const confirmDeleteStamp = (stampId: Stamp["id"]) =>
-    Alert.alert("Delete stamp?", "This action cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => deleteStamp(stampId),
-      },
-    ]);
-
   return (
     <>
       <FlatList
@@ -110,7 +100,9 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             onEdit={(stampId) =>
               push({ pathname: "/edit-stamp", params: { stampId } })
             }
-            onDelete={confirmDeleteStamp}
+            onDelete={(stampId) =>
+              confirmDeleteStamp(() => deleteStamp(stampId))
+            }
           />
         )}
         ListHeaderComponent={

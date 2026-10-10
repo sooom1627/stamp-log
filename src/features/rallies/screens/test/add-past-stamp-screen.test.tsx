@@ -137,7 +137,11 @@ describe("S-025 T-001 ST-005 past stamp formSheet", () => {
     });
 
     await renderRouter("./src/app");
-    expect(await screen.findByText("Same day rally")).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("button", {
+        name: "View Same day rally details",
+      }),
+    ).toBeOnTheScreen();
     await act(() => {
       router.push(`/add-past-stamp?rallyId=${rally.id}`);
     });
