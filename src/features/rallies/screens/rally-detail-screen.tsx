@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-
 import { Alert, FlatList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
@@ -14,9 +12,10 @@ import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
 import { StampPost } from "../components/stamp-post";
+import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import {
   useDeleteRally,
-  useRallies,
+  useRally,
   useSetRallyArchived,
   useSetRallyFavorite,
 } from "../hooks/use-rallies";
@@ -60,7 +59,7 @@ type RallyDetailScreenProps = {
 
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
-  const { data: rallies, isSuccess: isRalliesLoaded } = useRallies();
+  const { data: rally } = useRally(rallyId);
   const {
     data: stamps,
     isError: isStampsError,
@@ -70,7 +69,6 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { mutate: deleteRally } = useDeleteRally();
   const { mutate: setRallyFavorite } = useSetRallyFavorite();
   const { mutate: setRallyArchived } = useSetRallyArchived();
-  const rally = rallies?.find((candidate) => candidate.id === rallyId);
   const summary = stamps
     ? buildRallySummary(
         stamps.map((stamp) => stamp.stampedAt),
@@ -79,11 +77,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
     : null;
   const sections = groupByLocalDay(stamps ?? [], (stamp) => stamp.stampedAt);
 
-  useEffect(() => {
-    if (isRalliesLoaded && !rally) {
-      back();
-    }
-  }, [back, isRalliesLoaded, rally]);
+  useCloseWhenMissing(rally === null);
 
   if (!rally) {
     return null;

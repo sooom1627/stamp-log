@@ -7,15 +7,22 @@ import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 
-import { saveRally } from "../../db/rallies-db";
+import { listRallies, saveRally } from "../../db/rallies-db";
+import { saveStamp } from "../../db/stamps-db";
 import { type Rally } from "../../schemas/rallies";
 import { type Stamp } from "../../schemas/stamps";
-import { ralliesQueryKey, useDeleteRally, useRallies } from "../use-rallies";
+import {
+  ralliesQueryKey,
+  useDeleteRally,
+  useRallies,
+  useRally,
+} from "../use-rallies";
 import {
   stampsQueryKey,
   useDeleteStamp,
   useRallyStamps,
   useSaveStamp,
+  useStamp,
   useStamps,
   useUpdateStamp,
   useUpdateStampMemo,
@@ -490,5 +497,39 @@ describe("S-006 RT-002 ST-005 invalidate before mutation success", () => {
     expect(seen.stamps?.some((stamp) => stamp.rallyId === rally.id)).toBe(
       false,
     );
+  });
+});
+
+describe("RT-001 ST-003 useRally and useStamp read one record by id", () => {
+  test("useRally returns the rally, and null once loaded without it", async () => {
+    await saveRally({ name: "One by id", emoji: "🔎" });
+    const rally = (await listRallies()).find(
+      (candidate) => candidate.name === "One by id",
+    );
+    if (!rally) throw new Error("rally not saved");
+
+    const { result } = await renderHook(
+      () => ({ found: useRally(rally.id), missing: useRally(999999) }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.found.data).toEqual(rally);
+    });
+    expect(result.current.missing.data).toBeNull();
+  });
+
+  test("useStamp returns the stamp, and null once loaded without it", async () => {
+    const stamp = await saveStamp({ rallyId: 701 });
+
+    const { result } = await renderHook(
+      () => ({ found: useStamp(stamp.id), missing: useStamp(999999) }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.found.data).toEqual(stamp);
+    });
+    expect(result.current.missing.data).toBeNull();
   });
 });

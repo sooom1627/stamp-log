@@ -11,7 +11,8 @@ import {
 } from "@/shared/utils/local-date-key";
 
 import { StampPost } from "../components/stamp-post";
-import { useRallies } from "../hooks/use-rallies";
+import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
+import { useRally } from "../hooks/use-rallies";
 import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 
@@ -26,10 +27,11 @@ type RallyDayScreenProps = {
 
 export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
   const { push } = useRouter();
-  const { data: rallies } = useRallies();
+  const { data: rally } = useRally(rallyId);
   const { data: rallyStamps } = useRallyStamps(rallyId);
 
-  const rally = rallies?.find((candidate) => candidate.id === rallyId);
+  // A rally that does not exist closes the sheet, like an invalid id.
+  useCloseWhenMissing(rally === null);
   const dayKey = localDateKey(date);
   const dayStamps = (rallyStamps ?? []).filter(
     (stamp) => localDateKeyFromIso(stamp.stampedAt) === dayKey,

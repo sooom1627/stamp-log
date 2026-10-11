@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Pressable, Text, View } from "react-native";
 
@@ -16,7 +16,8 @@ import {
   FormTextInput,
 } from "@/shared/components/form-sheet";
 
-import { useRallies, useUpdateRally } from "../hooks/use-rallies";
+import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
+import { useRally, useUpdateRally } from "../hooks/use-rallies";
 import {
   rallyEmojiSchema,
   rallyNameSchema,
@@ -28,16 +29,10 @@ type EditRallyScreenProps = {
 };
 
 export function EditRallyScreen({ rallyId }: EditRallyScreenProps) {
-  const { data: rallies, isSuccess: isRalliesLoaded } = useRallies();
-  const { back } = useRouter();
-
-  const rally = rallies?.find((candidate) => candidate.id === rallyId);
-  const isMissing = isRalliesLoaded && !rally;
+  const { data: rally } = useRally(rallyId);
 
   // A rally that does not exist closes the sheet, like an invalid id.
-  useEffect(() => {
-    if (isMissing) back();
-  }, [isMissing, back]);
+  useCloseWhenMissing(rally === null);
 
   if (!rally) return null;
 
