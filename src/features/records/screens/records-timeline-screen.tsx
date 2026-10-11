@@ -6,8 +6,7 @@ import { DayCard } from "@/features/rallies/components/day-card";
 import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
-import { useDeleteStamp, useStamps } from "@/features/rallies/hooks/use-stamps";
-import { confirmDeleteStamp } from "@/features/rallies/utils/confirm-delete-stamp";
+import { useStamps } from "@/features/rallies/hooks/use-stamps";
 import { LoadError } from "@/shared/components/load-error";
 import {
   TabRootHeader,
@@ -48,7 +47,6 @@ export function RecordsTimelineScreen() {
     isError: isRalliesError,
     refetch: refetchRallies,
   } = useRallies();
-  const { mutate: deleteStamp } = useDeleteStamp();
   const isLoaded = stamps !== undefined && rallies !== undefined;
   const isError = isStampsError || isRalliesError;
   // A stamp is shown once its rally is loaded, so every post has its name.
@@ -76,22 +74,15 @@ export function RecordsTimelineScreen() {
             {data.map(({ stamp, rally }) => (
               <StampPost
                 key={stamp.id}
-                id={stamp.id}
+                stamp={stamp}
                 emoji={rally.emoji}
                 title={rally.name}
                 detail={formatStampTime(new Date(stamp.stampedAt))}
-                memo={stamp.memo}
                 onPress={() =>
                   push({
                     pathname: "/records/rallies/[id]",
                     params: { id: rally.id },
                   })
-                }
-                onEdit={(stampId) =>
-                  push({ pathname: "/edit-stamp", params: { stampId } })
-                }
-                onDelete={(stampId) =>
-                  confirmDeleteStamp(() => deleteStamp(stampId))
                 }
               />
             ))}

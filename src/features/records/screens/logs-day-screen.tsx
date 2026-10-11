@@ -1,11 +1,8 @@
 import { Text, View } from "react-native";
 
-import { useRouter } from "expo-router";
-
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
-import { useDeleteStamp, useStamps } from "@/features/rallies/hooks/use-stamps";
-import { confirmDeleteStamp } from "@/features/rallies/utils/confirm-delete-stamp";
+import { useStamps } from "@/features/rallies/hooks/use-stamps";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { LoadError } from "@/shared/components/load-error";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
@@ -23,7 +20,6 @@ type LogsDayScreenProps = {
 };
 
 export function LogsDayScreen({ date }: LogsDayScreenProps) {
-  const { push } = useRouter();
   const {
     data: stamps,
     isError: isStampsError,
@@ -34,7 +30,6 @@ export function LogsDayScreen({ date }: LogsDayScreenProps) {
     isError: isRalliesError,
     refetch: refetchRallies,
   } = useRallies();
-  const { mutate: deleteStamp } = useDeleteStamp();
 
   const isLoaded = stamps !== undefined && rallies !== undefined;
   const isError = isStampsError || isRalliesError;
@@ -74,15 +69,10 @@ export function LogsDayScreen({ date }: LogsDayScreenProps) {
       {posts.map(({ stamp, rally }) => (
         <StampPost
           key={stamp.id}
-          id={stamp.id}
+          stamp={stamp}
           emoji={rally.emoji}
           title={rally.name}
           detail={formatStampTime(new Date(stamp.stampedAt))}
-          memo={stamp.memo}
-          onEdit={(stampId) =>
-            push({ pathname: "/edit-stamp", params: { stampId } })
-          }
-          onDelete={(stampId) => confirmDeleteStamp(() => deleteStamp(stampId))}
         />
       ))}
     </FormSheetLayout>

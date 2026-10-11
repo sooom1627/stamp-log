@@ -20,9 +20,8 @@ import {
   useSetRallyArchived,
   useSetRallyFavorite,
 } from "../hooks/use-rallies";
-import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
+import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
-import { confirmDeleteStamp } from "../utils/confirm-delete-stamp";
 import { buildRallySummary } from "../utils/rally-summary";
 
 type TimelineEmptyProps = {
@@ -71,7 +70,6 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { mutate: deleteRally } = useDeleteRally();
   const { mutate: setRallyFavorite } = useSetRallyFavorite();
   const { mutate: setRallyArchived } = useSetRallyArchived();
-  const { mutate: deleteStamp } = useDeleteStamp();
   const rally = rallies?.find((candidate) => candidate.id === rallyId);
   const summary = stamps
     ? buildRallySummary(
@@ -115,16 +113,9 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             {data.map((stamp) => (
               <StampPost
                 key={stamp.id}
-                id={stamp.id}
+                stamp={stamp}
                 emoji={rally.emoji}
                 title={formatStampTime(new Date(stamp.stampedAt))}
-                memo={stamp.memo}
-                onEdit={(stampId) =>
-                  push({ pathname: "/edit-stamp", params: { stampId } })
-                }
-                onDelete={(stampId) =>
-                  confirmDeleteStamp(() => deleteStamp(stampId))
-                }
               />
             ))}
           </DayCard>
