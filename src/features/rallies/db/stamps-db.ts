@@ -1,7 +1,5 @@
 import { type SQLiteDatabase } from "expo-sqlite";
 
-import { getDb } from "@/shared/db/get-db";
-
 import {
   hasStampOnLocalDay,
   sameDayStampMessage,
@@ -15,44 +13,7 @@ import {
   type UpdateStampMemoInput,
 } from "../schemas/stamps";
 
-import { tableColumnNames } from "./table-columns";
-
-async function ensureStamps(db: SQLiteDatabase) {
-  let columns = await tableColumnNames(db, "stamps");
-  if (columns.length > 0 && !columns.includes("rally_id")) {
-    await db.execAsync("DROP TABLE stamps");
-    columns = [];
-  }
-
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS stamps (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      rally_id INTEGER NOT NULL,
-      stamped_at TEXT NOT NULL,
-      memo TEXT
-    );
-  `);
-
-  if (columns.length > 0 && !columns.includes("memo")) {
-    await db.execAsync("ALTER TABLE stamps ADD COLUMN memo TEXT");
-  }
-}
-
-let stampsDbReady: Promise<SQLiteDatabase> | undefined;
-
-// Sets up the table once per app start; a failed setup is retried on the next call.
-export function withStampsDb() {
-  stampsDbReady ??= getDb()
-    .then(async (db) => {
-      await ensureStamps(db);
-      return db;
-    })
-    .catch((error: unknown) => {
-      stampsDbReady = undefined;
-      throw error;
-    });
-  return stampsDbReady;
-}
+import { withAppDb } from "./schema";
 
 const stampColumns = "id, rally_id AS rallyId, stamped_at AS stampedAt, memo";
 
@@ -84,7 +45,7 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
   const parsed = saveStampInputSchema.parse(input);
   const { rallyId } = parsed;
   const stampedAt = parsed.stampedAt ?? new Date().toISOString();
-  const db = await withStampsDb();
+  const db = await withAppDb();
   if (parsed.stampedAt !== undefined) {
     await assertNoStampOnLocalDay(db, { rallyId, date: new Date(stampedAt) });
   }
@@ -102,7 +63,7 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
 }
 
 export async function listStamps(): Promise<Stamp[]> {
-  const db = await withStampsDb();
+  const db = await withAppDb();
   const rows = await db.getAllAsync<Stamp>(
     `SELECT ${stampColumns} FROM stamps ORDER BY stamped_at DESC, id DESC`,
   );
@@ -113,7 +74,7 @@ export async function updateStampMemo(
   input: UpdateStampMemoInput,
 ): Promise<Stamp> {
   const { id, memo } = updateStampMemoInputSchema.parse(input);
-  const db = await withStampsDb();
+  const db = await withAppDb();
   const current = await findStamp(db, id);
   await db.runAsync("UPDATE stamps SET memo = ? WHERE id = ?", memo, id);
   return stampSchema.parse({ ...current, memo });
@@ -121,7 +82,7 @@ export async function updateStampMemo(
 
 export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
   const { id, stampedAt, memo } = updateStampInputSchema.parse(input);
-  const db = await withStampsDb();
+  const db = await withAppDb();
   const current = await findStamp(db, id);
   await assertNoStampOnLocalDay(db, {
     rallyId: current.rallyId,
@@ -138,6 +99,15 @@ export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
 }
 
 export async function deleteStamp(id: Stamp["id"]): Promise<void> {
-  const db = await withStampsDb();
+  const db = await withAppDb();
   await db.runAsync("DELETE FROM stamps WHERE id = ?", id);
+}
+
+// Runs in the caller's transaction, so deleting a rally and its stamps
+// succeeds or fails as one.
+export async function deleteRallyStamps(
+  txn: SQLiteDatabase,
+  rallyId: Stamp["rallyId"],
+): Promise<void> {
+  await txn.runAsync("DELETE FROM stamps WHERE rally_id = ?", rallyId);
 }

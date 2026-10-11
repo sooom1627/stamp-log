@@ -1,4 +1,6 @@
+import { withAppDb } from "../schema";
 import {
+  deleteRallyStamps,
   deleteStamp,
   listStamps,
   saveStamp,
@@ -255,5 +257,33 @@ describe("S-006 ST-005 stamp update and delete", () => {
       (stamp) => stamp.rallyId === 508,
     );
     expect(stamps).toEqual([kept]);
+  });
+});
+
+describe("RT-001 ST-002 one place sets up the tables", () => {
+  test("sets up every table on a cold start", async () => {
+    const { getDb, schema } = loadFreshDb();
+
+    await schema.withAppDb();
+
+    const db = await getDb();
+    const tables = await db.getAllAsync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('rallies', 'stamps') ORDER BY name",
+    );
+    expect(tables.map(({ name }) => name)).toEqual(["rallies", "stamps"]);
+  });
+
+  test("deleteRallyStamps removes only that rally's stamps in the caller's transaction", async () => {
+    const removed = await saveStamp({ rallyId: 601 });
+    const kept = await saveStamp({ rallyId: 602 });
+    const db = await withAppDb();
+
+    await db.withExclusiveTransactionAsync((txn) =>
+      deleteRallyStamps(txn, removed.rallyId),
+    );
+
+    const stamps = await listStamps();
+    expect(stamps.some((stamp) => stamp.rallyId === 601)).toBe(false);
+    expect(stamps).toContainEqual(kept);
   });
 });
