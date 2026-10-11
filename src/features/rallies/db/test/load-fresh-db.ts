@@ -1,11 +1,13 @@
 import type * as GetDbModule from "@/shared/db/get-db";
 
 import type * as RalliesDbModule from "../rallies-db";
+import type * as SchemaModule from "../schema";
 import type * as StampsDbModule from "../stamps-db";
 
 type FreshDb = {
   getDb: typeof GetDbModule.getDb;
   ralliesDb: typeof RalliesDbModule;
+  schema: typeof SchemaModule;
   stampsDb: typeof StampsDbModule;
 };
 
@@ -19,6 +21,7 @@ export function loadFreshDb(): FreshDb {
     modules = {
       getDb: getDbModule.getDb,
       ralliesDb: require("../rallies-db") as typeof RalliesDbModule,
+      schema: require("../schema") as typeof SchemaModule,
       stampsDb: require("../stamps-db") as typeof StampsDbModule,
     };
   });

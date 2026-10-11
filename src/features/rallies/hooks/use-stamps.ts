@@ -26,6 +26,15 @@ export function useRallyStamps(rallyId: Stamp["rallyId"]) {
   });
 }
 
+// One stamp by id: undefined while loading, null once loaded without it.
+export function useStamp(stampId: Stamp["id"]) {
+  return useQuery({
+    queryKey: stampsQueryKey,
+    queryFn: listStamps,
+    select: (stamps) => stamps.find((stamp) => stamp.id === stampId) ?? null,
+  });
+}
+
 export function useSaveStamp() {
   const queryClient = useQueryClient();
 

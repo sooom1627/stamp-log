@@ -8,6 +8,7 @@ import {
   setRallyFavorite,
   updateRally,
 } from "../db/rallies-db";
+import { type Rally } from "../schemas/rallies";
 
 import { stampsQueryKey } from "./use-stamps";
 
@@ -17,6 +18,16 @@ export function useRallies() {
   return useQuery({
     queryKey: ralliesQueryKey,
     queryFn: listRallies,
+  });
+}
+
+// One rally by id: undefined while loading, null once loaded without it.
+// Without an id (its stamp is still loading) it is null too.
+export function useRally(rallyId: Rally["id"] | undefined) {
+  return useQuery({
+    queryKey: ralliesQueryKey,
+    queryFn: listRallies,
+    select: (rallies) => rallies.find((rally) => rally.id === rallyId) ?? null,
   });
 }
 

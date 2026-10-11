@@ -11,10 +11,10 @@ import {
 } from "@/shared/utils/local-date-key";
 
 import { StampPost } from "../components/stamp-post";
-import { useRallies } from "../hooks/use-rallies";
-import { useDeleteStamp, useRallyStamps } from "../hooks/use-stamps";
+import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
+import { useRally } from "../hooks/use-rallies";
+import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
-import { confirmDeleteStamp } from "../utils/confirm-delete-stamp";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "long" });
 const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
@@ -27,11 +27,11 @@ type RallyDayScreenProps = {
 
 export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
   const { push } = useRouter();
-  const { data: rallies } = useRallies();
+  const { data: rally } = useRally(rallyId);
   const { data: rallyStamps } = useRallyStamps(rallyId);
-  const { mutate: deleteStamp } = useDeleteStamp();
 
-  const rally = rallies?.find((candidate) => candidate.id === rallyId);
+  // A rally that does not exist closes the sheet, like an invalid id.
+  useCloseWhenMissing(rally === null);
   const dayKey = localDateKey(date);
   const dayStamps = (rallyStamps ?? []).filter(
     (stamp) => localDateKeyFromIso(stamp.stampedAt) === dayKey,
@@ -76,16 +76,9 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
         ? dayStamps.map((stamp) => (
             <StampPost
               key={stamp.id}
-              id={stamp.id}
+              stamp={stamp}
               emoji={rally.emoji}
               title={formatStampTime(new Date(stamp.stampedAt))}
-              memo={stamp.memo}
-              onEdit={(stampId) =>
-                push({ pathname: "/edit-stamp", params: { stampId } })
-              }
-              onDelete={(stampId) =>
-                confirmDeleteStamp(() => deleteStamp(stampId))
-              }
             />
           ))
         : null}
