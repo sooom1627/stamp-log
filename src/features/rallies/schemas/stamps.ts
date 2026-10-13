@@ -43,13 +43,23 @@ export const updateStampMemoInputSchema = stampSchema
   .refine(({ memo, photoUris }) => memo !== null || photoUris.length > 0, {
     message: "Add a memo or photos",
   });
-export const updateStampInputSchema = stampSchema.pick({ id: true }).extend({
-  stampedAt: notFutureDatetimeSchema,
-  memo: z
-    .string()
-    .trim()
-    .transform((memo) => (memo === "" ? null : memo)),
-});
+// The edit sheet sends the photos it keeps by id and the ones it adds by URI.
+export const updateStampInputSchema = stampSchema
+  .pick({ id: true })
+  .extend({
+    stampedAt: notFutureDatetimeSchema,
+    memo: z
+      .string()
+      .trim()
+      .transform((memo) => (memo === "" ? null : memo)),
+    keptPhotoIds: z.array(stampPhotoSchema.shape.id),
+    newPhotoUris: z.array(z.string().min(1)),
+  })
+  .refine(
+    ({ keptPhotoIds, newPhotoUris }) =>
+      keptPhotoIds.length + newPhotoUris.length <= maxStampPhotos,
+    { message: `A stamp can have up to ${maxStampPhotos} photos` },
+  );
 
 export type Stamp = z.infer<typeof stampSchema>;
 export type SaveStampInput = z.infer<typeof saveStampInputSchema>;

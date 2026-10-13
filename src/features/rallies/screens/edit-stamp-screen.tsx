@@ -72,7 +72,13 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
     if (!canSave) return;
 
     updateStamp(
-      { id: stamp.id, stampedAt: stampedAt.toISOString(), memo },
+      {
+        id: stamp.id,
+        stampedAt: stampedAt.toISOString(),
+        memo,
+        keptPhotoIds: stamp.photos.map((photo) => photo.id),
+        newPhotoUris: [],
+      },
       { onSuccess: back },
     );
   };

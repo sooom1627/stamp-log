@@ -186,6 +186,8 @@ describe("S-006 ST-005 stamp update and delete", () => {
       id: saved.id,
       stampedAt: localAt(10, 9),
       memo: "  Met them  ",
+      keptPhotoIds: [],
+      newPhotoUris: [],
     });
 
     expect(updated).toEqual({
@@ -208,6 +210,8 @@ describe("S-006 ST-005 stamp update and delete", () => {
       id: saved.id,
       stampedAt: saved.stampedAt,
       memo: "   ",
+      keptPhotoIds: [],
+      newPhotoUris: [],
     });
 
     expect(updated.memo).toBeNull();
@@ -217,7 +221,13 @@ describe("S-006 ST-005 stamp update and delete", () => {
     const saved = await saveStamp({ rallyId: 503, stampedAt: localAt(10, 9) });
 
     await expect(
-      updateStamp({ id: saved.id, stampedAt: localAt(10, 18), memo: "" }),
+      updateStamp({
+        id: saved.id,
+        stampedAt: localAt(10, 18),
+        memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }),
     ).resolves.toMatchObject({ stampedAt: localAt(10, 18) });
   });
 
@@ -229,7 +239,13 @@ describe("S-006 ST-005 stamp update and delete", () => {
     });
 
     await expect(
-      updateStamp({ id: other.id, stampedAt: localAt(10, 20), memo: "" }),
+      updateStamp({
+        id: other.id,
+        stampedAt: localAt(10, 20),
+        memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }),
     ).rejects.toThrow("already has a stamp");
     expect(
       (await listStamps()).find((stamp) => stamp.id === other.id)?.stampedAt,
@@ -241,7 +257,13 @@ describe("S-006 ST-005 stamp update and delete", () => {
     const saved = await saveStamp({ rallyId: 506, stampedAt: localAt(11, 9) });
 
     await expect(
-      updateStamp({ id: saved.id, stampedAt: localAt(10, 9), memo: "" }),
+      updateStamp({
+        id: saved.id,
+        stampedAt: localAt(10, 9),
+        memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }),
     ).resolves.toMatchObject({ stampedAt: localAt(10, 9) });
   });
 
@@ -253,13 +275,21 @@ describe("S-006 ST-005 stamp update and delete", () => {
         id: saved.id,
         stampedAt: "2026-09-19T12:35:00.000Z",
         memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
       }),
     ).rejects.toThrow();
   });
 
   test("rejects an unknown stamp id", async () => {
     await expect(
-      updateStamp({ id: 999999, stampedAt: localAt(10, 9), memo: "" }),
+      updateStamp({
+        id: 999999,
+        stampedAt: localAt(10, 9),
+        memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }),
     ).rejects.toThrow("Stamp not found");
   });
 
