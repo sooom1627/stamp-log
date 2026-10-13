@@ -33,7 +33,16 @@
           "imageWidth": 76
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to attach your photos to stamps.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -89,10 +89,10 @@ describe("S-025 T-001 ST-005 past stamp formSheet", () => {
     const [stamp] = await stampsOf(rally.id);
     expect(stamp.stampedAt).toBe(new Date(2026, 8, 19, 12, 0).toISOString());
     expect(toast).toHaveBeenCalledWith(
-      "Add a memo?",
+      "Add a memo or photos?",
       expect.objectContaining({
         duration: 5000,
-        action: { label: "Add memo", onClick: expect.any(Function) },
+        action: { label: "Add", onClick: expect.any(Function) },
       }),
     );
   });
