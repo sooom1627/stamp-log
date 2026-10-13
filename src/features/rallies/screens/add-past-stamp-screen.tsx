@@ -11,7 +11,8 @@ import {
   StampDateTimeErrors,
   StampDateTimeFields,
 } from "../components/stamp-date-time-fields";
-import { useRallies } from "../hooks/use-rallies";
+import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
+import { useRally } from "../hooks/use-rallies";
 import { useRallyStamps, useSaveStamp } from "../hooks/use-stamps";
 import { hasStampOnLocalDay } from "../schemas/stamps";
 
@@ -39,18 +40,18 @@ function initialStampedAt(day?: Date) {
 export function AddPastStampScreen({ rallyId, day }: AddPastStampScreenProps) {
   const [stampedAt, setStampedAt] = useState(() => initialStampedAt(day));
   const { back } = useRouter();
-  const { data: rallies } = useRallies();
+  const { data: rally } = useRally(rallyId);
   const { data: rallyStamps } = useRallyStamps(rallyId);
   const { mutate: saveStamp, isPending: isSaving } = useSaveStamp();
 
-  const rally = rallies?.find((candidate) => candidate.id === rallyId);
+  // A rally that does not exist closes the sheet, like an invalid id.
+  useCloseWhenMissing(rally === null);
   const isFuture = stampedAt.getTime() > Date.now();
   const hasStampOnDay = hasStampOnLocalDay(rallyStamps ?? [], {
     rallyId,
     date: stampedAt,
   });
-  const canSave =
-    rally !== undefined && !isFuture && !hasStampOnDay && !isSaving;
+  const canSave = !!rally && !isFuture && !hasStampOnDay && !isSaving;
 
   const handleSave = () => {
     if (!canSave) return;

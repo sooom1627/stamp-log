@@ -13,8 +13,9 @@ import {
   StampDateTimeErrors,
   StampDateTimeFields,
 } from "../components/stamp-date-time-fields";
-import { useRallies } from "../hooks/use-rallies";
-import { useStamps, useUpdateStamp } from "../hooks/use-stamps";
+import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
+import { useRally } from "../hooks/use-rallies";
+import { useStamp, useStamps, useUpdateStamp } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { hasStampOnLocalDay, type Stamp } from "../schemas/stamps";
 
@@ -26,11 +27,14 @@ type EditStampScreenProps = {
 };
 
 export function EditStampScreen({ stampId }: EditStampScreenProps) {
-  const { data: rallies } = useRallies();
+  const { data: stamp } = useStamp(stampId);
+  const { data: rally } = useRally(stamp?.rallyId);
   const { data: stamps } = useStamps();
 
-  const stamp = stamps?.find((candidate) => candidate.id === stampId);
-  const rally = rallies?.find((candidate) => candidate.id === stamp?.rallyId);
+  // A stamp that does not exist closes the sheet, like an invalid id.
+  useCloseWhenMissing(
+    stamp === null || (stamp !== undefined && rally === null),
+  );
 
   if (!stamp || !rally || !stamps) {
     return null;

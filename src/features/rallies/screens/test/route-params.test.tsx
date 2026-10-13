@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act } from "@testing-library/react-native";
+import { act, waitFor } from "@testing-library/react-native";
 
 jest.useFakeTimers();
 
@@ -31,5 +31,27 @@ describe("S-006 RT-003 ST-002 invalid id URL params close the screen", () => {
     });
 
     expect(app.getPathname()).toBe("/");
+  });
+});
+
+describe("RT-001 ST-003 ids of records that do not exist close the screen", () => {
+  test.each([
+    ["/edit-stamp?stampId=999999"],
+    ["/add-stamp-memo?stampId=999999"],
+    ["/add-past-stamp?rallyId=999999"],
+    ["/rally-day?rallyId=999999&date=2020-01-01"],
+    ["/edit-rally?rallyId=999999"],
+    ["/rallies/999999"],
+  ] as const)("%s goes back home", async (href) => {
+    const app = renderRouter("./src/app");
+    await app;
+
+    await act(() => {
+      router.push(href);
+    });
+
+    await waitFor(() => {
+      expect(app.getPathname()).toBe("/");
+    });
   });
 });

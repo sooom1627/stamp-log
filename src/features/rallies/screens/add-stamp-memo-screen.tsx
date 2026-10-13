@@ -9,8 +9,9 @@ import {
   FormTextInput,
 } from "@/shared/components/form-sheet";
 
-import { useRallies } from "../hooks/use-rallies";
-import { useStamps, useUpdateStampMemo } from "../hooks/use-stamps";
+import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
+import { useRally } from "../hooks/use-rallies";
+import { useStamp, useUpdateStampMemo } from "../hooks/use-stamps";
 import { updateStampMemoInputSchema } from "../schemas/stamps";
 
 type AddStampMemoScreenProps = {
@@ -22,12 +23,12 @@ type AddStampMemoScreenProps = {
 export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   const [memo, setMemo] = useState("");
   const { back } = useRouter();
-  const { data: stamps } = useStamps();
-  const { data: rallies } = useRallies();
+  const { data: stamp } = useStamp(stampId);
+  const { data: rally } = useRally(stamp?.rallyId);
   const { mutate: updateStampMemo, isPending: isSaving } = useUpdateStampMemo();
 
-  const stamp = stamps?.find((candidate) => candidate.id === stampId);
-  const rally = rallies?.find((candidate) => candidate.id === stamp?.rallyId);
+  // A stamp that does not exist closes the sheet, like an invalid id.
+  useCloseWhenMissing(stamp === null);
 
   const isMemoValid = updateStampMemoInputSchema.safeParse({
     id: stampId,
