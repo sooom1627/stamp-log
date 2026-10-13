@@ -30,6 +30,7 @@ const stamp = (rallyId: number, stampedAt: string): Stamp => ({
   rallyId,
   stampedAt,
   memo: null,
+  photos: [],
 });
 
 describe("S-011 T-001 ST-001 buildDayMarks", () => {

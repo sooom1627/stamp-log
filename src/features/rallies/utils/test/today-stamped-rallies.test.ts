@@ -29,6 +29,7 @@ const stamp = (rallyId: number, stampedAt: string): Stamp => ({
   rallyId,
   stampedAt,
   memo: null,
+  photos: [],
 });
 
 const namesOf = (stamps: Stamp[]) =>

@@ -18,6 +18,7 @@ const stamp: Stamp = {
   rallyId: 1,
   stampedAt: "2026-09-18T10:02:00.000Z",
   memo: "Talked at the lab",
+  photos: [],
 };
 
 beforeEach(() => {

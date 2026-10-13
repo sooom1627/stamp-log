@@ -15,24 +15,28 @@ import {
 
 import { withAppDb } from "./schema";
 
+// A row of the stamps table. Photos are read from stamp_photos in S-035
+// ST-003; until then every stamp has none.
+type StampRow = Omit<Stamp, "photos">;
+
 const stampColumns = "id, rally_id AS rallyId, stamped_at AS stampedAt, memo";
 
 async function findStamp(db: SQLiteDatabase, id: Stamp["id"]) {
-  const row = await db.getFirstAsync<Stamp>(
+  const row = await db.getFirstAsync<StampRow>(
     `SELECT ${stampColumns} FROM stamps WHERE id = ?`,
     id,
   );
   if (!row) {
     throw new Error("Stamp not found");
   }
-  return stampSchema.parse(row);
+  return stampSchema.parse({ ...row, photos: [] });
 }
 
 async function assertNoStampOnLocalDay(
   db: SQLiteDatabase,
   target: Parameters<typeof hasStampOnLocalDay>[1],
 ) {
-  const stamps = await db.getAllAsync<Stamp>(
+  const stamps = await db.getAllAsync<StampRow>(
     `SELECT ${stampColumns} FROM stamps WHERE rally_id = ?`,
     target.rallyId,
   );
@@ -59,15 +63,16 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
     rallyId,
     stampedAt,
     memo: null,
+    photos: [],
   });
 }
 
 export async function listStamps(): Promise<Stamp[]> {
   const db = await withAppDb();
-  const rows = await db.getAllAsync<Stamp>(
+  const rows = await db.getAllAsync<StampRow>(
     `SELECT ${stampColumns} FROM stamps ORDER BY stamped_at DESC, id DESC`,
   );
-  return rows.map((row) => stampSchema.parse(row));
+  return rows.map((row) => stampSchema.parse({ ...row, photos: [] }));
 }
 
 export async function updateStampMemo(

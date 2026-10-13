@@ -178,6 +178,7 @@ describe("S-006 ST-005 stamp update and delete", () => {
       rallyId: 501,
       stampedAt: localAt(10, 9),
       memo: "Met them",
+      photos: [],
     });
     expect((await listStamps()).find((stamp) => stamp.id === saved.id)).toEqual(
       updated,

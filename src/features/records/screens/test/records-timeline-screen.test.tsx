@@ -136,10 +136,34 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     const at = (day: number, hour: number) =>
       new Date(2026, 9, day, hour).toISOString();
     jest.spyOn(stampsDb, "listStamps").mockResolvedValue([
-      { id: 904, rallyId: rally.id, stampedAt: at(10, 20), memo: null },
-      { id: 903, rallyId: rally.id, stampedAt: at(10, 8), memo: null },
-      { id: 902, rallyId: rally.id, stampedAt: at(9, 19), memo: null },
-      { id: 901, rallyId: rally.id, stampedAt: at(8, 6), memo: null },
+      {
+        id: 904,
+        rallyId: rally.id,
+        stampedAt: at(10, 20),
+        memo: null,
+        photos: [],
+      },
+      {
+        id: 903,
+        rallyId: rally.id,
+        stampedAt: at(10, 8),
+        memo: null,
+        photos: [],
+      },
+      {
+        id: 902,
+        rallyId: rally.id,
+        stampedAt: at(9, 19),
+        memo: null,
+        photos: [],
+      },
+      {
+        id: 901,
+        rallyId: rally.id,
+        stampedAt: at(8, 6),
+        memo: null,
+        photos: [],
+      },
     ]);
 
     await openLogs();
