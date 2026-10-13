@@ -1,4 +1,7 @@
+import { Directory, File, Paths } from "expo-file-system";
+
 import { withAppDb } from "../schema";
+import { stampPhotoUri } from "../stamp-photo-files";
 import {
   deleteRallyStamps,
   deleteStamp,
@@ -286,5 +289,156 @@ describe("RT-001 ST-002 one place sets up the tables", () => {
     const stamps = await listStamps();
     expect(stamps.some((stamp) => stamp.rallyId === 601)).toBe(false);
     expect(stamps).toContainEqual(kept);
+  });
+});
+
+describe("S-035 ST-003 stamp photos", () => {
+  let nextPickedId = 1;
+  // A photo picked from the library: it carries EXIF until re-encoded.
+  const pickPhoto = () => {
+    const file = new File(Paths.cache, `picked-${nextPickedId++}.jpg`);
+    file.write("jpeg with exif");
+    return file.uri;
+  };
+  const savedPhotoFiles = () => {
+    const directory = new Directory(Paths.document, "stamp-photos");
+    return directory.exists ? directory.list() : [];
+  };
+
+  test("a new stamp has no photos", async () => {
+    const saved = await saveStamp({ rallyId: 301 });
+    expect(saved.photos).toEqual([]);
+    const listed = (await listStamps()).find((stamp) => stamp.id === saved.id);
+    expect(listed?.photos).toEqual([]);
+  });
+
+  test("saves photos only and keeps the memo as it was", async () => {
+    const saved = await saveStamp({ rallyId: 302 });
+    await updateStampMemo({ id: saved.id, memo: "Kyoto" });
+
+    const updated = await updateStampMemo({
+      id: saved.id,
+      memo: "",
+      photoUris: [pickPhoto(), pickPhoto()],
+    });
+
+    expect(updated.memo).toBe("Kyoto");
+    expect(updated.photos.map((photo) => photo.position)).toEqual([0, 1]);
+    expect((await listStamps()).find((stamp) => stamp.id === saved.id)).toEqual(
+      updated,
+    );
+  });
+
+  test("saves a memo and photos together", async () => {
+    const saved = await saveStamp({ rallyId: 303 });
+
+    const updated = await updateStampMemo({
+      id: saved.id,
+      memo: "Met them",
+      photoUris: [pickPhoto()],
+    });
+
+    expect(updated.memo).toBe("Met them");
+    expect(updated.photos).toHaveLength(1);
+  });
+
+  test("stores a re-encoded copy, not the picked photo itself", async () => {
+    const saved = await saveStamp({ rallyId: 304 });
+    const pickedUri = pickPhoto();
+
+    const {
+      photos: [photo],
+    } = await updateStampMemo({
+      id: saved.id,
+      memo: "",
+      photoUris: [pickedUri],
+    });
+
+    const stored = new File(stampPhotoUri(photo.fileName));
+    expect(stored.uri).not.toBe(pickedUri);
+    expect(stored.textSync()).toBe(`re-encoded:${pickedUri}`);
+    // The photo in the library is left as it was.
+    expect(new File(pickedUri).textSync()).toBe("jpeg with exif");
+  });
+
+  test("rejects going over 4 photos and saves no file or row", async () => {
+    const saved = await saveStamp({ rallyId: 305 });
+    await updateStampMemo({
+      id: saved.id,
+      memo: "",
+      photoUris: [pickPhoto(), pickPhoto(), pickPhoto()],
+    });
+    const filesBefore = savedPhotoFiles().length;
+
+    await expect(
+      updateStampMemo({
+        id: saved.id,
+        memo: "More",
+        photoUris: [pickPhoto(), pickPhoto()],
+      }),
+    ).rejects.toThrow();
+
+    const listed = (await listStamps()).find((stamp) => stamp.id === saved.id);
+    expect(listed?.photos).toHaveLength(3);
+    expect(listed?.memo).toBeNull();
+    expect(savedPhotoFiles()).toHaveLength(filesBefore);
+  });
+
+  test("leaves no file behind when the db write fails", async () => {
+    const saved = await saveStamp({ rallyId: 306 });
+    const filesBefore = savedPhotoFiles().length;
+    const db = await withAppDb();
+    const runInTransaction = db.withExclusiveTransactionAsync;
+    // The photo rows fail to insert inside the transaction.
+    const spy = jest
+      .spyOn(db, "withExclusiveTransactionAsync")
+      .mockImplementation((task) =>
+        runInTransaction((txn) =>
+          task({
+            ...txn,
+            runAsync: (source: string, ...params: never[]) =>
+              source.startsWith("INSERT INTO stamp_photos")
+                ? Promise.reject(new Error("disk full"))
+                : txn.runAsync(source, ...params),
+          } as typeof txn),
+        ),
+      );
+
+    try {
+      await expect(
+        updateStampMemo({
+          id: saved.id,
+          memo: "Kyoto",
+          photoUris: [pickPhoto(), pickPhoto()],
+        }),
+      ).rejects.toThrow("disk full");
+    } finally {
+      spy.mockRestore();
+    }
+
+    const listed = (await listStamps()).find((stamp) => stamp.id === saved.id);
+    expect(listed).toMatchObject({ memo: null, photos: [] });
+    expect(savedPhotoFiles()).toHaveLength(filesBefore);
+  });
+
+  test("creates the photo table on an old db and reads old stamps with no photos", async () => {
+    const { getDb, stampsDb } = loadFreshDb();
+    const db = await getDb();
+    await db.execAsync(
+      "CREATE TABLE stamps (id INTEGER PRIMARY KEY AUTOINCREMENT, rally_id INTEGER NOT NULL, stamped_at TEXT NOT NULL, memo TEXT)",
+    );
+    await db.runAsync(
+      "INSERT INTO stamps (rally_id, stamped_at) VALUES (?, ?)",
+      7,
+      "2026-09-01T00:00:00.000Z",
+    );
+
+    const [old] = await stampsDb.listStamps();
+    expect(old.photos).toEqual([]);
+    await expect(
+      db.getAllAsync(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'stamp_photos'",
+      ),
+    ).resolves.toHaveLength(1);
   });
 });
