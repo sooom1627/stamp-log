@@ -13,6 +13,7 @@ import {
 } from "../schemas/rallies";
 
 import { withAppDb } from "./schema";
+import { deleteStampPhotoFiles } from "./stamp-photo-files";
 import { deleteRallyStamps } from "./stamps-db";
 
 export async function saveRally(input: SaveRallyInput): Promise<void> {
@@ -63,10 +64,13 @@ export async function setRallyArchived(
 export async function deleteRally(id: Rally["id"]): Promise<void> {
   const db = await withAppDb();
   // One transaction, so a failed rally delete never leaves its stamps gone.
+  // Photo files are removed only after it is saved.
+  let photoFileNames: string[] = [];
   await db.withExclusiveTransactionAsync(async (txn) => {
-    await deleteRallyStamps(txn, id);
+    photoFileNames = await deleteRallyStamps(txn, id);
     await txn.runAsync("DELETE FROM rallies WHERE id = ?", id);
   });
+  deleteStampPhotoFiles(photoFileNames);
 }
 
 export async function listRallies(): Promise<Rally[]> {

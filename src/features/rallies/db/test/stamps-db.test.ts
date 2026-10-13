@@ -19,6 +19,18 @@ beforeEach(() => {
   jest.setSystemTime(new Date("2026-09-19T12:34:00.000Z"));
 });
 
+let nextPickedId = 1;
+// A photo picked from the library: it carries EXIF until re-encoded.
+const pickPhoto = () => {
+  const file = new File(Paths.cache, `picked-${nextPickedId++}.jpg`);
+  file.write("jpeg with exif");
+  return file.uri;
+};
+const savedPhotoFiles = () => {
+  const directory = new Directory(Paths.document, "stamp-photos");
+  return directory.exists ? directory.list() : [];
+};
+
 describe("ST-002 stamps SQLite", () => {
   test("returns saved stamp with rallyId and ISO stampedAt", async () => {
     const saved = await saveStamp({ rallyId: 1 });
@@ -282,9 +294,9 @@ describe("RT-001 ST-002 one place sets up the tables", () => {
     const kept = await saveStamp({ rallyId: 602 });
     const db = await withAppDb();
 
-    await db.withExclusiveTransactionAsync((txn) =>
-      deleteRallyStamps(txn, removed.rallyId),
-    );
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await deleteRallyStamps(txn, removed.rallyId);
+    });
 
     const stamps = await listStamps();
     expect(stamps.some((stamp) => stamp.rallyId === 601)).toBe(false);
@@ -293,18 +305,6 @@ describe("RT-001 ST-002 one place sets up the tables", () => {
 });
 
 describe("S-035 ST-003 stamp photos", () => {
-  let nextPickedId = 1;
-  // A photo picked from the library: it carries EXIF until re-encoded.
-  const pickPhoto = () => {
-    const file = new File(Paths.cache, `picked-${nextPickedId++}.jpg`);
-    file.write("jpeg with exif");
-    return file.uri;
-  };
-  const savedPhotoFiles = () => {
-    const directory = new Directory(Paths.document, "stamp-photos");
-    return directory.exists ? directory.list() : [];
-  };
-
   test("a new stamp has no photos", async () => {
     const saved = await saveStamp({ rallyId: 301 });
     expect(saved.photos).toEqual([]);
@@ -440,5 +440,94 @@ describe("S-035 ST-003 stamp photos", () => {
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'stamp_photos'",
       ),
     ).resolves.toHaveLength(1);
+  });
+});
+
+describe("S-035 T-002 ST-001 deleting a stamp removes its photos", () => {
+  const savePhotoStamp = async (rallyId: number, count: number) => {
+    const saved = await saveStamp({ rallyId });
+    return updateStampMemo({
+      id: saved.id,
+      memo: "",
+      photoUris: Array.from({ length: count }, pickPhoto),
+    });
+  };
+  const photoFileExists = (fileName: string) =>
+    new File(stampPhotoUri(fileName)).exists;
+  const photoRowCount = async (stampId: number) => {
+    const db = await withAppDb();
+    const row = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM stamp_photos WHERE stamp_id = ?",
+      stampId,
+    );
+    return row?.count;
+  };
+
+  test("removes the stamp's photo rows and files and keeps other stamps' photos", async () => {
+    const removed = await savePhotoStamp(701, 2);
+    const kept = await savePhotoStamp(701, 1);
+
+    await deleteStamp(removed.id);
+
+    expect(await photoRowCount(removed.id)).toBe(0);
+    expect(
+      removed.photos.map(({ fileName }) => photoFileExists(fileName)),
+    ).toEqual([false, false]);
+    const listed = (await listStamps()).find((stamp) => stamp.id === kept.id);
+    expect(listed?.photos).toEqual(kept.photos);
+    expect(photoFileExists(kept.photos[0].fileName)).toBe(true);
+  });
+
+  test("keeps the photo rows and files when the db delete fails", async () => {
+    const stamp = await savePhotoStamp(702, 2);
+    const db = await withAppDb();
+    await db.execAsync(`
+      CREATE TRIGGER fail_stamp_delete BEFORE DELETE ON stamps
+      WHEN OLD.id = ${stamp.id}
+      BEGIN SELECT RAISE(ABORT, 'delete failed'); END;
+    `);
+
+    try {
+      await expect(deleteStamp(stamp.id)).rejects.toThrow("delete failed");
+    } finally {
+      await db.execAsync("DROP TRIGGER fail_stamp_delete");
+    }
+
+    const listed = (await listStamps()).find(({ id }) => id === stamp.id);
+    expect(listed?.photos).toEqual(stamp.photos);
+    expect(
+      stamp.photos.every(({ fileName }) => photoFileExists(fileName)),
+    ).toBe(true);
+  });
+
+  test("keeps the stamp deleted when a photo file cannot be removed", async () => {
+    const stamp = await savePhotoStamp(703, 1);
+    const spy = jest.spyOn(File.prototype, "delete").mockImplementation(() => {
+      throw new Error("file busy");
+    });
+
+    try {
+      await expect(deleteStamp(stamp.id)).resolves.toBeUndefined();
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect((await listStamps()).some(({ id }) => id === stamp.id)).toBe(false);
+    expect(await photoRowCount(stamp.id)).toBe(0);
+  });
+
+  test("deleteRallyStamps removes the rally's photo rows and returns their files", async () => {
+    const removed = await savePhotoStamp(704, 2);
+    const kept = await savePhotoStamp(705, 1);
+    const db = await withAppDb();
+
+    let fileNames: string[] = [];
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      fileNames = await deleteRallyStamps(txn, removed.rallyId);
+    });
+
+    expect(await photoRowCount(removed.id)).toBe(0);
+    expect(await photoRowCount(kept.id)).toBe(1);
+    expect(fileNames).toEqual(removed.photos.map(({ fileName }) => fileName));
   });
 });

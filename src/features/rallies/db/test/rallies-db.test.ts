@@ -1,7 +1,10 @@
+import { File, Paths } from "expo-file-system";
 import { type SQLiteDatabase } from "expo-sqlite";
 
 import { deleteRally, listRallies, saveRally } from "../rallies-db";
-import { listStamps, saveStamp } from "../stamps-db";
+import { withAppDb } from "../schema";
+import { stampPhotoUri } from "../stamp-photo-files";
+import { listStamps, saveStamp, updateStampMemo } from "../stamps-db";
 
 import { loadFreshDb } from "./load-fresh-db";
 
@@ -104,6 +107,55 @@ describe("S-017 T-001 ST-002 deleteRally in one transaction", () => {
 
     await expect(ralliesDb.listRallies()).resolves.toHaveLength(1);
     await expect(stampsDb.listStamps()).resolves.toHaveLength(1);
+  });
+});
+
+describe("S-035 T-002 ST-001 deleting a rally removes its photos", () => {
+  let nextPickedId = 1;
+  const savePhotoStamp = async (rallyId: number) => {
+    const picked = new File(Paths.cache, `rally-picked-${nextPickedId++}.jpg`);
+    picked.write("jpeg with exif");
+    const saved = await saveStamp({ rallyId });
+    return updateStampMemo({ id: saved.id, memo: "", photoUris: [picked.uri] });
+  };
+  const photoFileExists = (fileName: string) =>
+    new File(stampPhotoUri(fileName)).exists;
+
+  test("removes only that rally's photo files", async () => {
+    const removed = await savePhotoStamp(801);
+    const kept = await savePhotoStamp(802);
+
+    await deleteRally(801);
+
+    expect(photoFileExists(removed.photos[0].fileName)).toBe(false);
+    expect(photoFileExists(kept.photos[0].fileName)).toBe(true);
+    const listed = (await listStamps()).find(({ id }) => id === kept.id);
+    expect(listed?.photos).toEqual(kept.photos);
+  });
+
+  test("keeps the photo rows and files when deleting the rally fails", async () => {
+    await saveRally({ name: "Photo walk" });
+    const rally = (await listRallies()).find(
+      ({ name }) => name === "Photo walk",
+    );
+    if (!rally) throw new Error("rally not saved");
+    const stamp = await savePhotoStamp(rally.id);
+    const db = await withAppDb();
+    await db.execAsync(`
+      CREATE TRIGGER fail_rally_delete BEFORE DELETE ON rallies
+      WHEN OLD.id = ${rally.id}
+      BEGIN SELECT RAISE(ABORT, 'delete failed'); END;
+    `);
+
+    try {
+      await expect(deleteRally(rally.id)).rejects.toThrow("delete failed");
+    } finally {
+      await db.execAsync("DROP TRIGGER fail_rally_delete");
+    }
+
+    const listed = (await listStamps()).find(({ id }) => id === stamp.id);
+    expect(listed?.photos).toEqual(stamp.photos);
+    expect(photoFileExists(stamp.photos[0].fileName)).toBe(true);
   });
 });
 

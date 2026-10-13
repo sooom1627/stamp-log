@@ -153,16 +153,35 @@ export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
   return stampSchema.parse({ ...current, stampedAt, memo });
 }
 
+// The db goes first: if it fails the files stay, so no row points to a missing
+// photo. Files are removed only after the delete is saved.
 export async function deleteStamp(id: Stamp["id"]): Promise<void> {
   const db = await withAppDb();
-  await db.runAsync("DELETE FROM stamps WHERE id = ?", id);
+  let photos: StampPhoto[] = [];
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    photos = await listPhotos(txn, id);
+    await txn.runAsync("DELETE FROM stamp_photos WHERE stamp_id = ?", id);
+    await txn.runAsync("DELETE FROM stamps WHERE id = ?", id);
+  });
+  deleteStampPhotoFiles(photos.map(({ fileName }) => fileName));
 }
 
 // Runs in the caller's transaction, so deleting a rally and its stamps
-// succeeds or fails as one.
+// succeeds or fails as one. Returns the photo files for the caller to remove
+// once the transaction is saved.
 export async function deleteRallyStamps(
   txn: SQLiteDatabase,
   rallyId: Stamp["rallyId"],
-): Promise<void> {
+): Promise<StampPhoto["fileName"][]> {
+  const rallyStamps = "SELECT id FROM stamps WHERE rally_id = ?";
+  const photos = await txn.getAllAsync<Pick<StampPhoto, "fileName">>(
+    `SELECT file_name AS fileName FROM stamp_photos WHERE stamp_id IN (${rallyStamps}) ORDER BY stamp_id, position`,
+    rallyId,
+  );
+  await txn.runAsync(
+    `DELETE FROM stamp_photos WHERE stamp_id IN (${rallyStamps})`,
+    rallyId,
+  );
   await txn.runAsync("DELETE FROM stamps WHERE rally_id = ?", rallyId);
+  return photos.map(({ fileName }) => fileName);
 }

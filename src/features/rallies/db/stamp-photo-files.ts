@@ -28,9 +28,15 @@ export async function writeStampPhoto(sourceUri: string) {
   return file.name;
 }
 
+// Best effort: a file left behind is only unused space, and the db change it
+// follows is already saved, so a failed delete is not reported.
 export function deleteStampPhotoFiles(fileNames: StampPhoto["fileName"][]) {
   for (const fileName of fileNames) {
-    const file = new File(photosDirectory(), fileName);
-    if (file.exists) file.delete();
+    try {
+      const file = new File(photosDirectory(), fileName);
+      if (file.exists) file.delete();
+    } catch {
+      // Keep removing the rest.
+    }
   }
 }
