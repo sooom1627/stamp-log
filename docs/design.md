@@ -94,7 +94,7 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 | ラリーを編集     | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013, S-040                                           |
 | メモと写真を追加 | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002, S-035                                           |
 | 過去のスタンプ   | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                                                  |
-| スタンプを編集   | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014                                           |
+| スタンプを編集   | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014, S-036                                    |
 | ラリー一覧       | [screens/rallies-list.md](./screens/rallies-list.md)         | ワイヤー    | S-039                                                  |
 | ラリー詳細       | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-013, S-025, S-028, S-032, S-039, S-035 |
 | ラリーの日       | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028, S-035                                           |
