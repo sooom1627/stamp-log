@@ -186,6 +186,8 @@ describe("S-006 ST-005 stamp update and delete", () => {
       id: saved.id,
       stampedAt: localAt(10, 9),
       memo: "  Met them  ",
+      keptPhotoIds: [],
+      newPhotoUris: [],
     });
 
     expect(updated).toEqual({
@@ -208,6 +210,8 @@ describe("S-006 ST-005 stamp update and delete", () => {
       id: saved.id,
       stampedAt: saved.stampedAt,
       memo: "   ",
+      keptPhotoIds: [],
+      newPhotoUris: [],
     });
 
     expect(updated.memo).toBeNull();
@@ -217,7 +221,13 @@ describe("S-006 ST-005 stamp update and delete", () => {
     const saved = await saveStamp({ rallyId: 503, stampedAt: localAt(10, 9) });
 
     await expect(
-      updateStamp({ id: saved.id, stampedAt: localAt(10, 18), memo: "" }),
+      updateStamp({
+        id: saved.id,
+        stampedAt: localAt(10, 18),
+        memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }),
     ).resolves.toMatchObject({ stampedAt: localAt(10, 18) });
   });
 
@@ -229,7 +239,13 @@ describe("S-006 ST-005 stamp update and delete", () => {
     });
 
     await expect(
-      updateStamp({ id: other.id, stampedAt: localAt(10, 20), memo: "" }),
+      updateStamp({
+        id: other.id,
+        stampedAt: localAt(10, 20),
+        memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }),
     ).rejects.toThrow("already has a stamp");
     expect(
       (await listStamps()).find((stamp) => stamp.id === other.id)?.stampedAt,
@@ -241,7 +257,13 @@ describe("S-006 ST-005 stamp update and delete", () => {
     const saved = await saveStamp({ rallyId: 506, stampedAt: localAt(11, 9) });
 
     await expect(
-      updateStamp({ id: saved.id, stampedAt: localAt(10, 9), memo: "" }),
+      updateStamp({
+        id: saved.id,
+        stampedAt: localAt(10, 9),
+        memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }),
     ).resolves.toMatchObject({ stampedAt: localAt(10, 9) });
   });
 
@@ -253,13 +275,21 @@ describe("S-006 ST-005 stamp update and delete", () => {
         id: saved.id,
         stampedAt: "2026-09-19T12:35:00.000Z",
         memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
       }),
     ).rejects.toThrow();
   });
 
   test("rejects an unknown stamp id", async () => {
     await expect(
-      updateStamp({ id: 999999, stampedAt: localAt(10, 9), memo: "" }),
+      updateStamp({
+        id: 999999,
+        stampedAt: localAt(10, 9),
+        memo: "",
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }),
     ).rejects.toThrow("Stamp not found");
   });
 
@@ -529,5 +559,153 @@ describe("S-035 T-002 ST-001 deleting a stamp removes its photos", () => {
     expect(await photoRowCount(removed.id)).toBe(0);
     expect(await photoRowCount(kept.id)).toBe(1);
     expect(fileNames).toEqual(removed.photos.map(({ fileName }) => fileName));
+  });
+});
+
+describe("S-036 ST-003 replacing photos on update", () => {
+  const savePhotoStamp = async (rallyId: number, count: number) => {
+    const saved = await saveStamp({ rallyId, stampedAt: localDay(10) });
+    return updateStampMemo({
+      id: saved.id,
+      memo: "",
+      photoUris: Array.from({ length: count }, pickPhoto),
+    });
+  };
+  const localDay = (day: number) => new Date(2026, 8, day, 9, 0).toISOString();
+  const photoFileExists = (fileName: string) =>
+    new File(stampPhotoUri(fileName)).exists;
+  const findListed = async (id: number) =>
+    (await listStamps()).find((stamp) => stamp.id === id);
+
+  test("removes a dropped photo's row and file and keeps the rest", async () => {
+    const stamp = await savePhotoStamp(901, 2);
+    const [dropped, kept] = stamp.photos;
+
+    const updated = await updateStamp({
+      id: stamp.id,
+      stampedAt: stamp.stampedAt,
+      memo: "",
+      keptPhotoIds: [kept.id],
+      newPhotoUris: [],
+    });
+
+    expect(updated.photos.map(({ id }) => id)).toEqual([kept.id]);
+    expect(photoFileExists(dropped.fileName)).toBe(false);
+    expect(photoFileExists(kept.fileName)).toBe(true);
+    expect(await findListed(stamp.id)).toEqual(updated);
+  });
+
+  test("adds new photos after the kept ones as re-encoded copies", async () => {
+    const stamp = await savePhotoStamp(902, 1);
+    const pickedUri = pickPhoto();
+
+    const updated = await updateStamp({
+      id: stamp.id,
+      stampedAt: stamp.stampedAt,
+      memo: "",
+      keptPhotoIds: [stamp.photos[0].id],
+      newPhotoUris: [pickedUri],
+    });
+
+    expect(updated.photos).toHaveLength(2);
+    expect(updated.photos[0]).toEqual(stamp.photos[0]);
+    expect(new File(stampPhotoUri(updated.photos[1].fileName)).textSync()).toBe(
+      `re-encoded:${pickedUri}`,
+    );
+  });
+
+  test("renumbers positions from 0", async () => {
+    const stamp = await savePhotoStamp(903, 3);
+    const [, second, third] = stamp.photos;
+
+    const updated = await updateStamp({
+      id: stamp.id,
+      stampedAt: stamp.stampedAt,
+      memo: "",
+      keptPhotoIds: [second.id, third.id],
+      newPhotoUris: [pickPhoto()],
+    });
+
+    expect(updated.photos.map(({ position }) => position)).toEqual([0, 1, 2]);
+    expect(updated.photos.slice(0, 2).map(({ id }) => id)).toEqual([
+      second.id,
+      third.id,
+    ]);
+  });
+
+  test("ignores kept ids of another stamp's photos", async () => {
+    const other = await savePhotoStamp(904, 1);
+    const stamp = await savePhotoStamp(905, 1);
+
+    const updated = await updateStamp({
+      id: stamp.id,
+      stampedAt: stamp.stampedAt,
+      memo: "",
+      keptPhotoIds: [other.photos[0].id],
+      newPhotoUris: [],
+    });
+
+    expect(updated.photos).toEqual([]);
+    expect((await findListed(other.id))?.photos).toEqual(other.photos);
+    expect(photoFileExists(other.photos[0].fileName)).toBe(true);
+  });
+
+  test("rejects going over 4 photos and changes nothing", async () => {
+    const stamp = await savePhotoStamp(906, 3);
+    const filesBefore = savedPhotoFiles().length;
+
+    await expect(
+      updateStamp({
+        id: stamp.id,
+        stampedAt: stamp.stampedAt,
+        memo: "Changed",
+        keptPhotoIds: stamp.photos.map(({ id }) => id),
+        newPhotoUris: [pickPhoto(), pickPhoto()],
+      }),
+    ).rejects.toThrow();
+
+    expect(await findListed(stamp.id)).toEqual(stamp);
+    expect(savedPhotoFiles()).toHaveLength(filesBefore);
+  });
+
+  test("changes nothing and leaves no new file when the db write fails", async () => {
+    const stamp = await savePhotoStamp(907, 2);
+    const filesBefore = savedPhotoFiles().length;
+    const db = await withAppDb();
+    const runInTransaction = db.withExclusiveTransactionAsync;
+    // The new photo rows fail to insert inside the transaction.
+    const spy = jest
+      .spyOn(db, "withExclusiveTransactionAsync")
+      .mockImplementation((task) =>
+        runInTransaction((txn) =>
+          task({
+            ...txn,
+            runAsync: (source: string, ...params: never[]) =>
+              source.startsWith("INSERT INTO stamp_photos")
+                ? Promise.reject(new Error("disk full"))
+                : txn.runAsync(source, ...params),
+          } as typeof txn),
+        ),
+      );
+
+    try {
+      await expect(
+        updateStamp({
+          id: stamp.id,
+          stampedAt: localDay(11),
+          memo: "Changed",
+          keptPhotoIds: [stamp.photos[1].id],
+          newPhotoUris: [pickPhoto()],
+        }),
+      ).rejects.toThrow("disk full");
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect(await findListed(stamp.id)).toEqual(stamp);
+    expect(
+      stamp.photos.every(({ fileName }) => photoFileExists(fileName)),
+    ).toBe(true);
+    expect(savedPhotoFiles()).toHaveLength(filesBefore);
   });
 });

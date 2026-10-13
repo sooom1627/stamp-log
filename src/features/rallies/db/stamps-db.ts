@@ -135,8 +135,11 @@ export async function updateStampMemo(
   return findStamp(db, id);
 }
 
+// Same order as updateStampMemo for new photos, and as deleteStamp for
+// dropped ones: their files go only after the db change is saved.
 export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
-  const { id, stampedAt, memo } = updateStampInputSchema.parse(input);
+  const { id, stampedAt, memo, keptPhotoIds, newPhotoUris } =
+    updateStampInputSchema.parse(input);
   const db = await withAppDb();
   const current = await findStamp(db, id);
   await assertNoStampOnLocalDay(db, {
@@ -144,13 +147,51 @@ export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
     date: new Date(stampedAt),
     excludedId: id,
   });
-  await db.runAsync(
-    "UPDATE stamps SET stamped_at = ?, memo = ? WHERE id = ?",
-    stampedAt,
-    memo,
-    id,
+  // Only this stamp's photos count; ids of other stamps' photos are ignored.
+  const keptPhotos = current.photos.filter((photo) =>
+    keptPhotoIds.includes(photo.id),
   );
-  return stampSchema.parse({ ...current, stampedAt, memo });
+  const droppedPhotos = current.photos.filter(
+    (photo) => !keptPhotoIds.includes(photo.id),
+  );
+
+  const newFileNames: StampPhoto["fileName"][] = [];
+  try {
+    for (const photoUri of newPhotoUris) {
+      newFileNames.push(await writeStampPhoto(photoUri));
+    }
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        "UPDATE stamps SET stamped_at = ?, memo = ? WHERE id = ?",
+        stampedAt,
+        memo,
+        id,
+      );
+      for (const { id: photoId } of droppedPhotos) {
+        await txn.runAsync("DELETE FROM stamp_photos WHERE id = ?", photoId);
+      }
+      for (const [position, { id: photoId }] of keptPhotos.entries()) {
+        await txn.runAsync(
+          "UPDATE stamp_photos SET position = ? WHERE id = ?",
+          position,
+          photoId,
+        );
+      }
+      for (const [index, fileName] of newFileNames.entries()) {
+        await txn.runAsync(
+          "INSERT INTO stamp_photos (stamp_id, file_name, position) VALUES (?, ?, ?)",
+          id,
+          fileName,
+          keptPhotos.length + index,
+        );
+      }
+    });
+  } catch (error) {
+    deleteStampPhotoFiles(newFileNames);
+    throw error;
+  }
+  deleteStampPhotoFiles(droppedPhotos.map(({ fileName }) => fileName));
+  return findStamp(db, id);
 }
 
 // The db goes first: if it fails the files stay, so no row points to a missing

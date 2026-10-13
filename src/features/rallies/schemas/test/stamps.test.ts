@@ -205,11 +205,15 @@ describe("S-006 ST-004 stamp update input", () => {
         id: 1,
         stampedAt: "2026-09-18T11:40:00.000Z",
         memo: "  Met them  ",
+        keptPhotoIds: [],
+        newPhotoUris: [],
       }),
     ).toEqual({
       id: 1,
       stampedAt: "2026-09-18T11:40:00.000Z",
       memo: "Met them",
+      keptPhotoIds: [],
+      newPhotoUris: [],
     });
   });
 
@@ -219,6 +223,8 @@ describe("S-006 ST-004 stamp update input", () => {
         id: 1,
         stampedAt: "2026-09-19T12:34:00.000Z",
         memo: "Met them",
+        keptPhotoIds: [],
+        newPhotoUris: [],
       }).stampedAt,
     ).toBe("2026-09-19T12:34:00.000Z");
   });
@@ -229,6 +235,8 @@ describe("S-006 ST-004 stamp update input", () => {
         id: 1,
         stampedAt: "2026-09-19T12:35:00.000Z",
         memo: "Met them",
+        keptPhotoIds: [],
+        newPhotoUris: [],
       }).success,
     ).toBe(false);
   });
@@ -239,6 +247,8 @@ describe("S-006 ST-004 stamp update input", () => {
         id: 1,
         stampedAt: "yesterday",
         memo: "Met them",
+        keptPhotoIds: [],
+        newPhotoUris: [],
       }).success,
     ).toBe(false);
   });
@@ -250,6 +260,8 @@ describe("S-006 ST-004 stamp update input", () => {
           id: 1,
           stampedAt: "2026-09-18T11:40:00.000Z",
           memo,
+          keptPhotoIds: [],
+          newPhotoUris: [],
         }).memo,
       ).toBeNull();
     }
@@ -260,6 +272,8 @@ describe("S-006 ST-004 stamp update input", () => {
       updateStampInputSchema.safeParse({
         stampedAt: "2026-09-18T11:40:00.000Z",
         memo: "Met them",
+        keptPhotoIds: [],
+        newPhotoUris: [],
       }).success,
     ).toBe(false);
   });
@@ -336,6 +350,62 @@ describe("S-006 RT-002 ST-002 same local day rule", () => {
         date: new Date(2026, 8, 18, 12, 0),
         excludedId: 1,
       }),
+    ).toBe(false);
+  });
+});
+
+describe("S-036 ST-002 photos in the stamp update input", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-09-19T12:34:00.000Z"));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const base = { id: 1, stampedAt: "2026-09-18T11:40:00.000Z", memo: "" };
+
+  test("accepts kept photos and new photos up to 4 in total", () => {
+    expect(
+      updateStampInputSchema.parse({
+        ...base,
+        keptPhotoIds: [10, 11],
+        newPhotoUris: ["file:///picked-1.jpg", "file:///picked-2.jpg"],
+      }),
+    ).toMatchObject({
+      keptPhotoIds: [10, 11],
+      newPhotoUris: ["file:///picked-1.jpg", "file:///picked-2.jpg"],
+    });
+  });
+
+  test("rejects 5 photos in total", () => {
+    expect(
+      updateStampInputSchema.safeParse({
+        ...base,
+        keptPhotoIds: [10, 11, 12],
+        newPhotoUris: ["file:///picked-1.jpg", "file:///picked-2.jpg"],
+      }).success,
+    ).toBe(false);
+  });
+
+  test("accepts removing every photo", () => {
+    expect(
+      updateStampInputSchema.safeParse({
+        ...base,
+        keptPhotoIds: [],
+        newPhotoUris: [],
+      }).success,
+    ).toBe(true);
+  });
+
+  test("rejects an input without the photo fields", () => {
+    expect(updateStampInputSchema.safeParse(base).success).toBe(false);
+    expect(
+      updateStampInputSchema.safeParse({ ...base, keptPhotoIds: [] }).success,
+    ).toBe(false);
+    expect(
+      updateStampInputSchema.safeParse({ ...base, newPhotoUris: [] }).success,
     ).toBe(false);
   });
 });

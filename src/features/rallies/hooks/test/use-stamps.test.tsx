@@ -397,6 +397,8 @@ describe("S-006 ST-006 stamp update and delete Query hooks", () => {
         id: editedId,
         stampedAt: fiveDaysAgo,
         memo: "Moved back",
+        keptPhotoIds: [],
+        newPhotoUris: [],
       });
     });
 
@@ -440,6 +442,8 @@ describe("S-006 ST-006 stamp update and delete Query hooks", () => {
           id: edited.id,
           stampedAt: daysAgoAt(1, 20),
           memo: "",
+          keptPhotoIds: [],
+          newPhotoUris: [],
         }),
       ).rejects.toThrow("already has a stamp");
     });
