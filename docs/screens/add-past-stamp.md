@@ -13,7 +13,7 @@
   - [rally-detail.md](./rally-detail.md) の右上「…」→「Past stamp」（そのラリーを渡す）
   - [rally-day.md](./rally-day.md) の「Stamp this day」（そのラリーと日付を渡す）
   - ルート `/add-past-stamp?rallyId=&date=`（formSheet）。`date`（`YYYY-MM-DD`）は任意
-  - 入口はラリー詳細とラリーの日だけ。スタンプ詳細からは開かない
+  - 入口はラリー詳細とラリーの日だけ
 - 出: 保存成功でシートを閉じ、開いた画面（ラリー詳細、またはラリーの日）に戻る。stamps Query は invalidate され、ラリー詳細の収集数とホーム（週表示・収集数）に選んだ日時で反映される
 
 ## レイアウト
