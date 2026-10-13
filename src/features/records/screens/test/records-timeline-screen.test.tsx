@@ -1,5 +1,6 @@
 import { Alert, type AlertButton } from "react-native";
 
+import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
@@ -27,6 +28,20 @@ import {
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 jest.useFakeTimers();
+
+// Photos the user picked in the library, saved onto the stamp (S-035).
+let nextPickedPhotoId = 1;
+async function attachPhotos(stampId: number, count: number) {
+  const photoUris = Array.from({ length: count }, () => {
+    const file = new File(
+      Paths.cache,
+      `post-picked-${nextPickedPhotoId++}.jpg`,
+    );
+    file.write("jpeg with exif");
+    return file.uri;
+  });
+  await updateStampMemo({ id: stampId, memo: "", photoUris });
+}
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -510,5 +525,28 @@ describe("S-039 T-002 ST-005 archived rallies in Logs", () => {
 
     const logs = within(await screen.findByLabelText("Logs timeline"));
     expect(await logs.findByText("Archived trips")).toBeOnTheScreen();
+  });
+});
+
+describe("S-035 ST-006 photo mark on Logs posts", () => {
+  test("shows the photo mark and count beside the rally name and time", async () => {
+    const lab = await saveRallyNamed("Logs photos", "📷");
+    const withPhoto = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(withPhoto.id, 1);
+    const withoutPhoto = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(2, 19),
+    });
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const marked = within(logs.getByTestId(`stamp-post-${withPhoto.id}`));
+    expect(marked.getByLabelText("1 photo")).toHaveTextContent("1");
+    const plain = within(logs.getByTestId(`stamp-post-${withoutPhoto.id}`));
+    expect(plain.queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
   });
 });

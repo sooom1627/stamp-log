@@ -12,6 +12,8 @@ import {
 
 import { useResolveClassNames } from "uniwind";
 
+import { ImageIcon } from "@/shared/components/icons";
+
 import { useDeleteStamp } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
 
@@ -36,7 +38,8 @@ export function StampPost({
   detail,
   onPress,
 }: StampPostProps) {
-  const { id, memo } = stamp;
+  const { id, memo, photos } = stamp;
+  const photoCount = photos.length;
   const { push } = useRouter();
   const { mutate: deleteStamp } = useDeleteStamp();
   const { color: menuColor } = useResolveClassNames("text-foreground-muted");
@@ -63,6 +66,23 @@ export function StampPost({
             <Text selectable className="text-foreground-muted text-sm">
               {detail}
             </Text>
+          ) : null}
+          {photoCount > 0 ? (
+            // S-035: shows that photos are attached. Opening them is S-037.
+            <View
+              role="img"
+              aria-label={`${photoCount} ${photoCount === 1 ? "photo" : "photos"}`}
+              className="bg-surface-muted flex-row items-center gap-1 self-center rounded-full px-2 py-0.5"
+            >
+              <ImageIcon
+                colorClassName="accent-text-muted"
+                size={13}
+                strokeWidth={2}
+              />
+              <Text className="text-foreground-secondary text-xs font-semibold">
+                {photoCount}
+              </Text>
+            </View>
           ) : null}
         </View>
         {memo ? (
