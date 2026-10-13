@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { Text, View } from "react-native";
+
 import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
@@ -68,7 +70,15 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
         />
       </FormField>
 
-      <StampPhotoField photoUris={photoUris} onChangePhotoUris={setPhotoUris} />
+      <View className="gap-2">
+        <StampPhotoField
+          photoUris={photoUris}
+          onChangePhotoUris={setPhotoUris}
+        />
+        <Text className="text-foreground-muted text-xs">
+          Save with a memo, photos, or both
+        </Text>
+      </View>
 
       <Button
         label="Save"

@@ -89,9 +89,6 @@ export function StampPhotoField({
           <View key={`empty-${index}`} className="flex-1" />
         ))}
       </View>
-      <Text className="text-foreground-muted text-xs">
-        Save with a memo, photos, or both
-      </Text>
     </View>
   );
 }

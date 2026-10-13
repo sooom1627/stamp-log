@@ -1,3 +1,5 @@
+import { File, Paths } from "expo-file-system";
+import { launchImageLibraryAsync } from "expo-image-picker";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
@@ -273,5 +275,120 @@ describe("S-006 T-001 ST-011 Save only after a change", () => {
     await pickDate("edit-stamp-date", localAt(12, 0));
 
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+});
+
+describe("S-036 ST-004 add and remove photos in the edit sheet", () => {
+  let nextPickedId = 1;
+  const pickedFile = () => {
+    const file = new File(Paths.cache, `edit-picked-${nextPickedId++}.jpg`);
+    file.write("jpeg with exif");
+    return file.uri;
+  };
+  // The user picks these photos in the system photo library.
+  function pickPhotos(count: number) {
+    const assets = Array.from({ length: count }, () => ({
+      uri: pickedFile(),
+      width: 1,
+      height: 1,
+    }));
+    jest.mocked(launchImageLibraryAsync).mockResolvedValueOnce({
+      canceled: false,
+      assets,
+    } as unknown as Awaited<ReturnType<typeof launchImageLibraryAsync>>);
+  }
+  const openWithPhotos = (name: string, count: number) =>
+    openEdit(name, async (rallyId) => {
+      const stamp = await saveStamp({
+        rallyId,
+        stampedAt: localAt(18, 11, 40).toISOString(),
+      });
+      if (count > 0) {
+        await updateStampMemo({
+          id: stamp.id,
+          memo: "",
+          photoUris: Array.from({ length: count }, pickedFile),
+        });
+      }
+      return stamp.id;
+    });
+  const post = (stampId: number) =>
+    within(rallyDetail().getByTestId(`stamp-row-${stampId}`));
+
+  test("shows the stamp's photos and saves after removing one", async () => {
+    const { stampId, user } = await openWithPhotos("Remove photo rally", 3);
+    expect(screen.getByText("3 / 4")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Remove photo 1" }));
+    expect(screen.getByText("2 / 4")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await post(stampId).findByLabelText("2 photos")).toHaveTextContent(
+      "2",
+    );
+    expect((await findStamp(stampId))?.photos).toHaveLength(2);
+  });
+
+  test("removes the photo mark when every photo is removed", async () => {
+    const { stampId, user } = await openWithPhotos("Remove all rally", 2);
+
+    await user.press(screen.getByRole("button", { name: "Remove photo 2" }));
+    await user.press(screen.getByRole("button", { name: "Remove photo 1" }));
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
+    expect(screen.queryByTestId("edit-stamp-form")).not.toBeOnTheScreen();
+    expect(post(stampId).queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
+    expect((await findStamp(stampId))?.photos).toEqual([]);
+  });
+
+  test("does not show the memo sheet's memo-or-photos hint", async () => {
+    await openWithPhotos("No hint rally", 0);
+
+    expect(
+      screen.queryByText("Save with a memo, photos, or both"),
+    ).not.toBeOnTheScreen();
+  });
+
+  test("adds photos to a stamp without photos", async () => {
+    const { stampId, user } = await openWithPhotos("Add photo rally", 0);
+    expect(screen.getByText("0 / 4")).toBeOnTheScreen();
+
+    pickPhotos(2);
+    await user.press(screen.getByRole("button", { name: "Add photos" }));
+    expect(await screen.findByText("2 / 4")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Save" }));
+
+    expect(await post(stampId).findByLabelText("2 photos")).toHaveTextContent(
+      "2",
+    );
+  });
+
+  test("hides Add at 4 photos in total", async () => {
+    const { user } = await openWithPhotos("Four photos rally", 3);
+
+    pickPhotos(1);
+    await user.press(screen.getByRole("button", { name: "Add photos" }));
+
+    expect(launchImageLibraryAsync).toHaveBeenLastCalledWith(
+      expect.objectContaining({ selectionLimit: 1 }),
+    );
+    expect(await screen.findByText("4 / 4")).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Add photos" }),
+    ).not.toBeOnTheScreen();
+  });
+
+  test("enables Save when only the photos change and disables it when reverted", async () => {
+    const { user } = await openWithPhotos("Photo change rally", 1);
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+
+    pickPhotos(1);
+    await user.press(screen.getByRole("button", { name: "Add photos" }));
+    expect(await screen.findByText("2 / 4")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+
+    await user.press(screen.getByRole("button", { name: "Remove photo 2" }));
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 });

@@ -13,6 +13,8 @@ import {
   StampDateTimeErrors,
   StampDateTimeFields,
 } from "../components/stamp-date-time-fields";
+import { StampPhotoField } from "../components/stamp-photo-field";
+import { stampPhotoUri } from "../db/stamp-photo-files";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import { useRally } from "../hooks/use-rallies";
 import { useStamp, useStamps, useUpdateStamp } from "../hooks/use-stamps";
@@ -54,6 +56,11 @@ type EditStampFormProps = {
 function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   const [stampedAt, setStampedAt] = useState(() => new Date(stamp.stampedAt));
   const [memo, setMemo] = useState(stamp.memo ?? "");
+  // Saved photos are shown by their file URI; picked ones by the picker's URI.
+  const savedPhotoUris = stamp.photos.map(({ fileName }) =>
+    stampPhotoUri(fileName),
+  );
+  const [photoUris, setPhotoUris] = useState(savedPhotoUris);
   const { back } = useRouter();
   const { mutate: updateStamp, isPending: isSaving } = useUpdateStamp();
 
@@ -65,7 +72,8 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   });
   const isChanged =
     toMinutes(stampedAt) !== toMinutes(new Date(stamp.stampedAt)) ||
-    memo.trim() !== (stamp.memo ?? "");
+    memo.trim() !== (stamp.memo ?? "") ||
+    photoUris.join("\n") !== savedPhotoUris.join("\n");
   const canSave = isChanged && !isFuture && !hasStampOnDay && !isSaving;
 
   const handleSave = () => {
@@ -76,8 +84,10 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
         id: stamp.id,
         stampedAt: stampedAt.toISOString(),
         memo,
-        keptPhotoIds: stamp.photos.map((photo) => photo.id),
-        newPhotoUris: [],
+        keptPhotoIds: stamp.photos
+          .filter((_, index) => photoUris.includes(savedPhotoUris[index]))
+          .map(({ id }) => id),
+        newPhotoUris: photoUris.filter((uri) => !savedPhotoUris.includes(uri)),
       },
       { onSuccess: back },
     );
@@ -106,6 +116,8 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
           className="max-h-48 min-h-32"
         />
       </FormField>
+
+      <StampPhotoField photoUris={photoUris} onChangePhotoUris={setPhotoUris} />
 
       <StampDateTimeErrors isFuture={isFuture} hasStampOnDay={hasStampOnDay} />
 
