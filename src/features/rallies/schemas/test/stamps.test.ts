@@ -1,5 +1,6 @@
 import {
   hasStampOnLocalDay,
+  maxStampPhotos,
   notFutureDatetimeSchema,
   saveStampInputSchema,
   stampSchema,
@@ -14,6 +15,7 @@ describe("ST-001 stamp schema", () => {
       rallyId: 2,
       stampedAt: "2026-09-19T12:34:00.000Z",
       memo: null,
+      photos: [],
     };
 
     expect(stampSchema.parse(stamp)).toEqual(stamp);
@@ -42,6 +44,7 @@ describe("ST-002 optional stamp memo", () => {
       rallyId: 2,
       stampedAt: "2026-09-19T12:34:00.000Z",
       memo: "Met them",
+      photos: [],
     };
 
     expect(stampSchema.parse(stamp)).toEqual(stamp);
@@ -53,6 +56,7 @@ describe("ST-002 optional stamp memo", () => {
       rallyId: 2,
       stampedAt: "2026-09-19T12:34:00.000Z",
       memo: null,
+      photos: [],
     };
 
     expect(stampSchema.parse(stamp)).toEqual(stamp);
@@ -61,12 +65,82 @@ describe("ST-002 optional stamp memo", () => {
   test("update input accepts id and memo and rejects empty values", () => {
     expect(
       updateStampMemoInputSchema.parse({ id: 1, memo: "Met them" }),
-    ).toEqual({ id: 1, memo: "Met them" });
+    ).toEqual({ id: 1, memo: "Met them", photoUris: [] });
     expect(() =>
       updateStampMemoInputSchema.parse({ id: 1, memo: "" }),
     ).toThrow();
     expect(() =>
       updateStampMemoInputSchema.parse({ id: 1, memo: "   " }),
+    ).toThrow();
+  });
+});
+
+describe("S-035 ST-002 stamp photos", () => {
+  const baseStamp = {
+    id: 1,
+    rallyId: 2,
+    stampedAt: "2026-09-19T12:34:00.000Z",
+    memo: null,
+  };
+  const photo = (position: number) => ({
+    id: position + 1,
+    stampId: 1,
+    fileName: `photo-${position}.jpg`,
+    position,
+  });
+
+  test("a stamp carries up to 4 photos", () => {
+    expect(maxStampPhotos).toBe(4);
+    const stamp = { ...baseStamp, photos: [0, 1, 2, 3].map(photo) };
+
+    expect(stampSchema.parse(stamp)).toEqual(stamp);
+  });
+
+  test("rejects a stamp without photos", () => {
+    expect(() => stampSchema.parse(baseStamp)).toThrow();
+  });
+
+  test("rejects a stamp with 5 photos", () => {
+    expect(() =>
+      stampSchema.parse({ ...baseStamp, photos: [0, 1, 2, 3, 4].map(photo) }),
+    ).toThrow();
+  });
+
+  test("memo input accepts photos only and stores no memo", () => {
+    expect(
+      updateStampMemoInputSchema.parse({
+        id: 1,
+        memo: "  ",
+        photoUris: ["file:///a.jpg"],
+      }),
+    ).toEqual({ id: 1, memo: null, photoUris: ["file:///a.jpg"] });
+  });
+
+  test("memo input accepts a memo without photos", () => {
+    expect(
+      updateStampMemoInputSchema.parse({
+        id: 1,
+        memo: " Met them ",
+        photoUris: [],
+      }),
+    ).toEqual({ id: 1, memo: "Met them", photoUris: [] });
+  });
+
+  test("memo input rejects neither memo nor photos", () => {
+    expect(() =>
+      updateStampMemoInputSchema.parse({ id: 1, memo: "", photoUris: [] }),
+    ).toThrow();
+  });
+
+  test("memo input rejects more than 4 photos", () => {
+    expect(() =>
+      updateStampMemoInputSchema.parse({
+        id: 1,
+        memo: "",
+        photoUris: ["a", "b", "c", "d", "e"].map(
+          (name) => `file:///${name}.jpg`,
+        ),
+      }),
     ).toThrow();
   });
 });

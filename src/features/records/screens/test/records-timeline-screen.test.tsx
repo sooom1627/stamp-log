@@ -1,5 +1,6 @@
 import { Alert, type AlertButton } from "react-native";
 
+import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
@@ -27,6 +28,20 @@ import {
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 jest.useFakeTimers();
+
+// Photos the user picked in the library, saved onto the stamp (S-035).
+let nextPickedPhotoId = 1;
+async function attachPhotos(stampId: number, count: number) {
+  const photoUris = Array.from({ length: count }, () => {
+    const file = new File(
+      Paths.cache,
+      `post-picked-${nextPickedPhotoId++}.jpg`,
+    );
+    file.write("jpeg with exif");
+    return file.uri;
+  });
+  await updateStampMemo({ id: stampId, memo: "", photoUris });
+}
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -136,10 +151,34 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     const at = (day: number, hour: number) =>
       new Date(2026, 9, day, hour).toISOString();
     jest.spyOn(stampsDb, "listStamps").mockResolvedValue([
-      { id: 904, rallyId: rally.id, stampedAt: at(10, 20), memo: null },
-      { id: 903, rallyId: rally.id, stampedAt: at(10, 8), memo: null },
-      { id: 902, rallyId: rally.id, stampedAt: at(9, 19), memo: null },
-      { id: 901, rallyId: rally.id, stampedAt: at(8, 6), memo: null },
+      {
+        id: 904,
+        rallyId: rally.id,
+        stampedAt: at(10, 20),
+        memo: null,
+        photos: [],
+      },
+      {
+        id: 903,
+        rallyId: rally.id,
+        stampedAt: at(10, 8),
+        memo: null,
+        photos: [],
+      },
+      {
+        id: 902,
+        rallyId: rally.id,
+        stampedAt: at(9, 19),
+        memo: null,
+        photos: [],
+      },
+      {
+        id: 901,
+        rallyId: rally.id,
+        stampedAt: at(8, 6),
+        memo: null,
+        photos: [],
+      },
     ]);
 
     await openLogs();
@@ -486,5 +525,28 @@ describe("S-039 T-002 ST-005 archived rallies in Logs", () => {
 
     const logs = within(await screen.findByLabelText("Logs timeline"));
     expect(await logs.findByText("Archived trips")).toBeOnTheScreen();
+  });
+});
+
+describe("S-035 ST-006 photo mark on Logs posts", () => {
+  test("shows the photo mark and count beside the rally name and time", async () => {
+    const lab = await saveRallyNamed("Logs photos", "📷");
+    const withPhoto = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(withPhoto.id, 1);
+    const withoutPhoto = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(2, 19),
+    });
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const marked = within(logs.getByTestId(`stamp-post-${withPhoto.id}`));
+    expect(marked.getByLabelText("1 photo")).toHaveTextContent("1");
+    const plain = within(logs.getByTestId(`stamp-post-${withoutPhoto.id}`));
+    expect(plain.queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
   });
 });

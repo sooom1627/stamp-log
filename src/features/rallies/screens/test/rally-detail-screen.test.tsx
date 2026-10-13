@@ -1,5 +1,6 @@
 import { Alert, type AlertButton } from "react-native";
 
+import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
@@ -23,6 +24,20 @@ import * as stampsDb from "../../db/stamps-db";
 import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
+
+// Photos the user picked in the library, saved onto the stamp (S-035).
+let nextPickedPhotoId = 1;
+async function attachPhotos(stampId: number, count: number) {
+  const photoUris = Array.from({ length: count }, () => {
+    const file = new File(
+      Paths.cache,
+      `post-picked-${nextPickedPhotoId++}.jpg`,
+    );
+    file.write("jpeg with exif");
+    return file.uri;
+  });
+  await updateStampMemo({ id: stampId, memo: "", photoUris });
+}
 
 beforeEach(() => {
   jest.spyOn(Alert, "alert").mockImplementation(() => {});
@@ -1458,5 +1473,29 @@ describe("S-039 T-002 ST-004 archive from the actions menu", () => {
     });
     expect(screen.queryByText("Archived")).not.toBeOnTheScreen();
     await expect(isArchivedSaved(rally.id)).resolves.toBe(false);
+  });
+});
+
+describe("S-035 ST-006 photo mark on posts", () => {
+  test("marks only the posts with photos, with the count beside the time", async () => {
+    let withPhotosId = 0;
+    let withoutPhotosId = 0;
+    await openRallyDetail("Photo marks", async (rallyId) => {
+      const withPhotos = await saveStamp({
+        rallyId,
+        stampedAt: daysAgoAt(1, 12),
+      });
+      await attachPhotos(withPhotos.id, 3);
+      withPhotosId = withPhotos.id;
+      withoutPhotosId = (
+        await saveStamp({ rallyId, stampedAt: daysAgoAt(2, 12) })
+      ).id;
+    });
+
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    const marked = within(detail.getByTestId(`stamp-row-${withPhotosId}`));
+    expect(marked.getByLabelText("3 photos")).toHaveTextContent("3");
+    const plain = within(detail.getByTestId(`stamp-row-${withoutPhotosId}`));
+    expect(plain.queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
   });
 });

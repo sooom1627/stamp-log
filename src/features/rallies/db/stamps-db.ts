@@ -2,6 +2,7 @@ import { type SQLiteDatabase } from "expo-sqlite";
 
 import {
   hasStampOnLocalDay,
+  maxStampPhotos,
   sameDayStampMessage,
   saveStampInputSchema,
   stampSchema,
@@ -9,30 +10,55 @@ import {
   updateStampMemoInputSchema,
   type SaveStampInput,
   type Stamp,
+  type StampPhoto,
   type UpdateStampInput,
   type UpdateStampMemoInput,
 } from "../schemas/stamps";
 
 import { withAppDb } from "./schema";
+import { deleteStampPhotoFiles, writeStampPhoto } from "./stamp-photo-files";
+
+// A row of the stamps table. Its photos live in stamp_photos.
+type StampRow = Omit<Stamp, "photos">;
 
 const stampColumns = "id, rally_id AS rallyId, stamped_at AS stampedAt, memo";
+const photoColumns = "id, stamp_id AS stampId, file_name AS fileName, position";
+
+async function listPhotos(db: SQLiteDatabase, stampId?: Stamp["id"]) {
+  if (stampId === undefined) {
+    return db.getAllAsync<StampPhoto>(
+      `SELECT ${photoColumns} FROM stamp_photos ORDER BY stamp_id, position`,
+    );
+  }
+  return db.getAllAsync<StampPhoto>(
+    `SELECT ${photoColumns} FROM stamp_photos WHERE stamp_id = ? ORDER BY position`,
+    stampId,
+  );
+}
+
+function withPhotos(row: StampRow, photos: StampPhoto[]) {
+  return stampSchema.parse({
+    ...row,
+    photos: photos.filter((photo) => photo.stampId === row.id),
+  });
+}
 
 async function findStamp(db: SQLiteDatabase, id: Stamp["id"]) {
-  const row = await db.getFirstAsync<Stamp>(
+  const row = await db.getFirstAsync<StampRow>(
     `SELECT ${stampColumns} FROM stamps WHERE id = ?`,
     id,
   );
   if (!row) {
     throw new Error("Stamp not found");
   }
-  return stampSchema.parse(row);
+  return withPhotos(row, await listPhotos(db, id));
 }
 
 async function assertNoStampOnLocalDay(
   db: SQLiteDatabase,
   target: Parameters<typeof hasStampOnLocalDay>[1],
 ) {
-  const stamps = await db.getAllAsync<Stamp>(
+  const stamps = await db.getAllAsync<StampRow>(
     `SELECT ${stampColumns} FROM stamps WHERE rally_id = ?`,
     target.rallyId,
   );
@@ -59,25 +85,54 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
     rallyId,
     stampedAt,
     memo: null,
+    photos: [],
   });
 }
 
 export async function listStamps(): Promise<Stamp[]> {
   const db = await withAppDb();
-  const rows = await db.getAllAsync<Stamp>(
+  const rows = await db.getAllAsync<StampRow>(
     `SELECT ${stampColumns} FROM stamps ORDER BY stamped_at DESC, id DESC`,
   );
-  return rows.map((row) => stampSchema.parse(row));
+  const photos = await listPhotos(db);
+  return rows.map((row) => withPhotos(row, photos));
 }
 
+// Photos are written before the db so a failed write leaves the stamp as it
+// was; files written for a failed save are removed again.
 export async function updateStampMemo(
   input: UpdateStampMemoInput,
 ): Promise<Stamp> {
-  const { id, memo } = updateStampMemoInputSchema.parse(input);
+  const { id, memo, photoUris } = updateStampMemoInputSchema.parse(input);
   const db = await withAppDb();
   const current = await findStamp(db, id);
-  await db.runAsync("UPDATE stamps SET memo = ? WHERE id = ?", memo, id);
-  return stampSchema.parse({ ...current, memo });
+  if (current.photos.length + photoUris.length > maxStampPhotos) {
+    throw new Error(`A stamp can have up to ${maxStampPhotos} photos`);
+  }
+
+  const fileNames: StampPhoto["fileName"][] = [];
+  try {
+    for (const photoUri of photoUris) {
+      fileNames.push(await writeStampPhoto(photoUri));
+    }
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      if (memo !== null) {
+        await txn.runAsync("UPDATE stamps SET memo = ? WHERE id = ?", memo, id);
+      }
+      for (const [index, fileName] of fileNames.entries()) {
+        await txn.runAsync(
+          "INSERT INTO stamp_photos (stamp_id, file_name, position) VALUES (?, ?, ?)",
+          id,
+          fileName,
+          current.photos.length + index,
+        );
+      }
+    });
+  } catch (error) {
+    deleteStampPhotoFiles(fileNames);
+    throw error;
+  }
+  return findStamp(db, id);
 }
 
 export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {

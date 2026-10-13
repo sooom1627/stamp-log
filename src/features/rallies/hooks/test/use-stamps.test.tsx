@@ -1,3 +1,5 @@
+import { File, Paths } from "expo-file-system";
+
 import {
   QueryClientProvider,
   useQueryClient,
@@ -154,6 +156,38 @@ describe("ST-004 memo update Query hook", () => {
     expect(
       result.current.query.data?.find((stamp) => stamp.id === savedId)?.memo,
     ).toBeNull();
+  });
+});
+
+describe("S-035 ST-004 save memo and photos", () => {
+  test("photos saved after stamping show up in the stamp list", async () => {
+    const picked = new File(Paths.cache, "hook-picked.jpg");
+    picked.write("jpeg with exif");
+    const { result } = await renderHook(() => useStampsFlow(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => {
+      expect(result.current.query.isSuccess).toBe(true);
+    });
+    let savedId = 0;
+    await act(async () => {
+      savedId = (await result.current.save.mutateAsync({ rallyId: 41 })).id;
+    });
+
+    await act(async () => {
+      await result.current.updateMemo.mutateAsync({
+        id: savedId,
+        memo: "",
+        photoUris: [picked.uri],
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        result.current.query.data?.find((stamp) => stamp.id === savedId)
+          ?.photos,
+      ).toHaveLength(1);
+    });
   });
 });
 
