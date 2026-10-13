@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useColorScheme } from "react-native";
 
-import { Stack } from "expo-router";
+import { Stack, type ErrorBoundaryProps } from "expo-router";
 import {
   DarkTheme,
   DefaultTheme,
@@ -14,9 +14,15 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { toast, Toaster } from "sonner-native";
 import { useResolveClassNames } from "uniwind";
 
+import { RenderError } from "@/shared/components/render-error";
 import { createQueryClient } from "@/shared/query/create-query-client";
 
 import "../../tailwind.css";
+
+// Catches a render error in any route; the layout itself is replaced until retry.
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  return <RenderError retry={retry} />;
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
