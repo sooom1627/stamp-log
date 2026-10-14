@@ -7,5 +7,7 @@ function MockIcon() {
 export const Check = MockIcon;
 export const ChevronLeft = MockIcon;
 export const ChevronRight = MockIcon;
+export const Image = MockIcon;
 export const Plus = MockIcon;
 export const Star = MockIcon;
+export const X = MockIcon;

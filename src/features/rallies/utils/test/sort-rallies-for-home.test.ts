@@ -17,6 +17,7 @@ const stampsFor = (rallyId: number, count: number): Stamp[] =>
     rallyId,
     stampedAt: new Date(2026, 8, 20).toISOString(),
     memo: null,
+    photos: [],
   }));
 
 const idsOf = (rallies: Rally[]) => rallies.map((sorted) => sorted.id);

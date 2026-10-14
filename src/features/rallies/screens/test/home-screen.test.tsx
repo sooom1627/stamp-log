@@ -216,11 +216,11 @@ describe("S-002 T-002 ST-001 memo toast", () => {
       }),
     ).toBeDisabled();
     expect(toast).toHaveBeenCalledWith(
-      "Add a memo?",
+      "Add a memo or photos?",
       expect.objectContaining({
         duration: 5000,
         action: {
-          label: "Add memo",
+          label: "Add",
           onClick: expect.any(Function),
         },
       }),
@@ -262,7 +262,7 @@ describe("S-002 T-002 ST-005 memo formSheet", () => {
     ).toBeDisabled();
 
     const action = findToastAction();
-    expect(action.label).toBe("Add memo");
+    expect(action.label).toBe("Add");
 
     await act(async () => {
       action.onClick();
@@ -270,7 +270,9 @@ describe("S-002 T-002 ST-005 memo formSheet", () => {
 
     expect(toast.dismiss).toHaveBeenCalled();
     expect(await screen.findByText("Memo")).toBeOnTheScreen();
-    expect(screen.getByRole("heading", { name: "Add memo" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("heading", { name: "Memo & photos" }),
+    ).toBeOnTheScreen();
 
     await user.type(screen.getByPlaceholderText("Enter memo"), "Met them");
     await user.press(screen.getByRole("button", { name: "Save" }));

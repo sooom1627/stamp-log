@@ -66,6 +66,18 @@ async function ensureStamps(db: SQLiteDatabase) {
   }
 }
 
+// Photos are kept apart from stamps (S-035); the stamps table is unchanged.
+async function ensureStampPhotos(db: SQLiteDatabase) {
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS stamp_photos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      stamp_id INTEGER NOT NULL,
+      file_name TEXT NOT NULL,
+      position INTEGER NOT NULL
+    );
+  `);
+}
+
 let appDbReady: Promise<SQLiteDatabase> | undefined;
 
 // Sets up every table once per app start, in one place, so no query can reach
@@ -75,6 +87,7 @@ export function withAppDb() {
     .then(async (db) => {
       await ensureRallies(db);
       await ensureStamps(db);
+      await ensureStampPhotos(db);
       return db;
     })
     .catch((error: unknown) => {

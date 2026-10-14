@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { Text, View } from "react-native";
+
 import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
@@ -9,6 +11,7 @@ import {
   FormTextInput,
 } from "@/shared/components/form-sheet";
 
+import { StampPhotoField } from "../components/stamp-photo-field";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import { useRally } from "../hooks/use-rallies";
 import { useStamp, useUpdateStampMemo } from "../hooks/use-stamps";
@@ -22,6 +25,7 @@ type AddStampMemoScreenProps = {
 // (no ScrollView in a formSheet; see FormSheetLayout).
 export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   const [memo, setMemo] = useState("");
+  const [photoUris, setPhotoUris] = useState<string[]>([]);
   const { back } = useRouter();
   const { data: stamp } = useStamp(stampId);
   const { data: rally } = useRally(stamp?.rallyId);
@@ -30,23 +34,25 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   // A stamp that does not exist closes the sheet, like an invalid id.
   useCloseWhenMissing(stamp === null);
 
-  const isMemoValid = updateStampMemoInputSchema.safeParse({
+  // A memo or at least one photo (S-035).
+  const isInputValid = updateStampMemoInputSchema.safeParse({
     id: stampId,
     memo,
+    photoUris,
   }).success;
-  const canSave = isMemoValid && !isSaving;
+  const canSave = isInputValid && !isSaving;
 
   const handleSave = () => {
     if (!canSave) return;
 
-    updateStampMemo({ id: stampId, memo }, { onSuccess: back });
+    updateStampMemo({ id: stampId, memo, photoUris }, { onSuccess: back });
   };
 
   return (
     <FormSheetLayout
       testID="add-stamp-memo-form"
       eyebrow={rally ? `${rally.emoji} ${rally.name}` : undefined}
-      title="Add memo"
+      title="Memo & photos"
     >
       <FormField label="Memo">
         <FormTextInput
@@ -63,6 +69,16 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
           className="max-h-48 min-h-32"
         />
       </FormField>
+
+      <View className="gap-2">
+        <StampPhotoField
+          photoUris={photoUris}
+          onChangePhotoUris={setPhotoUris}
+        />
+        <Text className="text-foreground-muted text-xs">
+          Save with a memo, photos, or both
+        </Text>
+      </View>
 
       <Button
         label="Save"
