@@ -1,6 +1,8 @@
 import { type ReactNode } from "react";
 
 import {
+  Keyboard,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -26,6 +28,9 @@ type FormSheetLayoutProps = {
 // react-native-screens force-overrides the ScrollView frame to the full sheet,
 // which interferes with sibling content (footer) and stops rendering.
 // Keep the root intrinsically sized so fitToContents includes the Save button.
+// The root is a Pressable that closes the keyboard: without a scroll view a tap
+// outside a multiline field is the only way to close it, and the keyboard
+// covers Save once the sheet is taller than the space above it.
 // `scrollable` sheets (a day's posts, no footer) instead make one ScrollView the
 // root, so that full-sheet frame becomes the scroll area.
 export function FormSheetLayout({
@@ -71,13 +76,15 @@ export function FormSheetLayout({
   }
 
   return (
-    <View
+    <Pressable
       testID={testID}
+      accessible={false}
+      onPress={Keyboard.dismiss}
       className={`bg-background gap-5 px-5 pt-8 pb-6 ${className}`}
     >
       {heading}
       {children}
-    </View>
+    </Pressable>
   );
 }
 

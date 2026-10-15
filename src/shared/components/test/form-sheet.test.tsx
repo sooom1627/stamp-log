@@ -1,6 +1,11 @@
-import { Text } from "react-native";
+import { Keyboard, Text, TextInput } from "react-native";
 
-import { render, screen, within } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react-native";
 
 import { FormSheetLayout } from "../form-sheet";
 
@@ -73,5 +78,22 @@ describe("S-028 RT-002 ST-001 FormSheetLayout", () => {
     );
 
     expect(scrollViews()).toHaveLength(0);
+  });
+
+  // A multiline memo keeps Return for new lines and the sheet has no scroll
+  // view, so a tap outside the field is the way to close the keyboard and
+  // reach Save.
+  test("dismisses the keyboard when the sheet is tapped outside a field", async () => {
+    const dismiss = jest.spyOn(Keyboard, "dismiss");
+    await render(
+      <FormSheetLayout testID="sheet" title="Edit stamp">
+        <TextInput aria-label="Memo" multiline />
+      </FormSheetLayout>,
+    );
+
+    fireEvent.press(screen.getByTestId("sheet"));
+
+    expect(dismiss).toHaveBeenCalled();
+    dismiss.mockRestore();
   });
 });
