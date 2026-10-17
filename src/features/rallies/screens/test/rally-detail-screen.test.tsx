@@ -707,11 +707,6 @@ describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () 
       router.push("/records");
     });
     const logs = await screen.findByLabelText("Logs timeline");
-    const countBefore = Number(
-      within(logs)
-        .getByLabelText(/stamps in the timeline$/)
-        .props["aria-label"].split(" ")[0],
-    );
     expect(within(logs).getAllByText("Logs deleted")).toHaveLength(3);
     await act(() => {
       router.push(`/records/rallies/${rally.id}`);
@@ -721,12 +716,9 @@ describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () 
     await confirmDelete();
 
     const logsAfter = within(screen.getByLabelText("Logs timeline"));
-    expect(
-      await logsAfter.findByLabelText(
-        `${countBefore - 3} stamps in the timeline`,
-      ),
-    ).toBeOnTheScreen();
-    expect(logsAfter.queryByText("Logs deleted")).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(logsAfter.queryByText("Logs deleted")).not.toBeOnTheScreen();
+    });
     expect(logsAfter.getByText("Logs kept")).toBeOnTheScreen();
   });
 });

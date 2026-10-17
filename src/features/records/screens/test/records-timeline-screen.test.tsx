@@ -63,6 +63,27 @@ async function saveRallyNamed(name: string, emoji: string) {
   return rally;
 }
 
+// The switch's segments are @expo/ui SwiftUI Text, which is not host text in
+// Jest, so getByText cannot see them; read each native view's text prop.
+function pickerSegments(logs: ReturnType<typeof within>) {
+  const texts: string[] = [];
+  const collect = (element: ReturnType<typeof screen.getByTestId> | string) => {
+    if (typeof element === "string") return;
+    if (typeof element.props.text === "string") texts.push(element.props.text);
+    element.children.forEach(collect);
+  };
+  collect(logs.getByTestId("logs-view-picker"));
+  return texts;
+}
+
+// The database is shared by every test; show only this test's stamps.
+async function showOnlyStamps(ids: number[]) {
+  const stamps = await listStamps();
+  jest
+    .spyOn(stampsDb, "listStamps")
+    .mockResolvedValue(stamps.filter(({ id }) => ids.includes(id)));
+}
+
 async function openLogs() {
   await renderRouter("./src/app");
   expect(
@@ -113,10 +134,12 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
     ).toEqual(["🔬", "🏃", "🔬"]);
     expect(logs.getByText("Talked at the lab")).toBeOnTheScreen();
     expect(logs.getAllByText("no memo")).toHaveLength(2);
-    expect(logs.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
-    expect(logs.getByLabelText("3 stamps in the timeline")).toHaveTextContent(
-      "3",
+    // S-037: the Stamps heading became the Stamps / Album switch.
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
     );
+    expect(pickerSegments(logs)).toEqual(["Stamps · 3", "Album · 0"]);
   });
 });
 
@@ -217,13 +240,13 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
   const logsTimeline = async () =>
     within(await screen.findByLabelText("Logs timeline"));
 
-  test("shows No stamps yet without the Stamps heading when there are no stamps", async () => {
+  test("shows No stamps yet without the Stamps / Album switch when there are no stamps", async () => {
     jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
     await openLogs();
     const logs = await logsTimeline();
 
     expect(await logs.findByText("No stamps yet")).toBeOnTheScreen();
-    expect(logs.queryByRole("heading", { name: "Stamps" })).toBeNull();
+    expect(logs.queryByTestId("logs-view-picker")).not.toBeOnTheScreen();
   });
 
   test("shows nothing while the stamps are loading", async () => {
@@ -576,5 +599,100 @@ describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
     expect(app.getPathname()).toBe("/stamp-photos");
     expect(await screen.findByText("1 / 2")).toBeOnTheScreen();
     expect(screen.getByText("🎞️ Logs viewer")).toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-002 ST-002 Logs Album", () => {
+  async function switchToAlbum() {
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "album" },
+    });
+    return logs;
+  }
+
+  test("starts on Stamps with the counts of stamps and photos", async () => {
+    const lab = await saveRallyNamed("Album counts", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 2);
+    const other = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(2, 19),
+    });
+    await showOnlyStamps([stamp.id, other.id]);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(pickerSegments(logs)).toEqual(["Stamps · 2", "Album · 2"]);
+    expect(logs.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+  });
+
+  test("Album shows every rally's photos newest first with the rally emoji", async () => {
+    const lab = await saveRallyNamed("Album lab", "🔬");
+    const cafe = await saveRallyNamed("Album cafe", "☕");
+    const older = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(2, 19),
+    });
+    await attachPhotos(older.id, 2);
+    const newer = await saveStamp({
+      rallyId: cafe.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(newer.id, 1);
+    await showOnlyStamps([older.id, newer.id]);
+    await openLogs();
+
+    const logs = await switchToAlbum();
+
+    expect(logs.queryByTestId(`stamp-post-${newer.id}`)).not.toBeOnTheScreen();
+    const tiles = logs.getAllByRole("button", { name: /^Open photo, / });
+    expect(tiles).toHaveLength(3);
+    expect(tiles[0]).toHaveAccessibleName(/^Open photo, Album cafe, /);
+    expect(tiles[1]).toHaveAccessibleName(/^Open photo, Album lab, /);
+    expect(tiles[2]).toHaveAccessibleName(/^Open photo, Album lab, /);
+    const hidden = { includeHiddenElements: true };
+    expect(within(tiles[0]).getByText("☕", hidden)).toBeOnTheScreen();
+    expect(within(tiles[1]).getByText("🔬", hidden)).toBeOnTheScreen();
+  });
+
+  test("pressing a photo opens the stamp's photos from that photo", async () => {
+    const lab = await saveRallyNamed("Album open", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 2);
+    await openLogs();
+    const logs = await switchToAlbum();
+
+    await userEvent
+      .setup()
+      .press(logs.getAllByRole("button", { name: /^Open photo, / })[1]);
+
+    expect(await screen.findByText("2 / 2")).toBeOnTheScreen();
+  });
+
+  test("shows No photos yet when no stamp has photos", async () => {
+    const lab = await saveRallyNamed("Album empty", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await showOnlyStamps([stamp.id]);
+    await openLogs();
+
+    const logs = await switchToAlbum();
+
+    expect(logs.getByText("No photos yet")).toBeOnTheScreen();
+    expect(logs.queryByTestId(`stamp-post-${stamp.id}`)).not.toBeOnTheScreen();
   });
 });
