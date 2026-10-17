@@ -1494,8 +1494,27 @@ describe("S-035 ST-006 photo mark on posts", () => {
 
     const detail = within(await screen.findByLabelText("Rally detail"));
     const marked = within(detail.getByTestId(`stamp-row-${withPhotosId}`));
-    expect(marked.getByLabelText("3 photos")).toHaveTextContent("3");
+    expect(marked.getByLabelText("3 photos. Show photos")).toHaveTextContent(
+      "3",
+    );
     const plain = within(detail.getByTestId(`stamp-row-${withoutPhotosId}`));
-    expect(plain.queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
+    expect(plain.queryByLabelText(/Show photos$/)).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
+  test("opens the stamp's photos full screen from the first photo", async () => {
+    await openRallyDetail("Detail viewer", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 3);
+    });
+    const detail = within(await screen.findByLabelText("Rally detail"));
+
+    await userEvent
+      .setup()
+      .press(detail.getByRole("button", { name: "3 photos. Show photos" }));
+
+    expect(await screen.findByText("1 / 3")).toBeOnTheScreen();
+    expect(screen.getByText("🗼 Detail viewer")).toBeOnTheScreen();
   });
 });

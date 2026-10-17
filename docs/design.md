@@ -39,10 +39,11 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 - **タブルート**（ホーム / 記録）に出す
 - **スタック**（ラリー詳細）でも残す。戻ると元のタブ
 - **formSheet**（ラリーを作る / ラリーを編集 / メモと写真を追加 / 過去のスタンプ / スタンプを編集 / ラリーの日 / Logs の日）では出さない
+- **全画面モーダル**（スタンプの写真）でも出さない
 - アイコンは実装時（iOS は SF Symbol、Android は Material）。色・選択色は Uniwind / システム
 - **タブルートの見出し:** ホームは大見出しが今日の月日（例: `September 20`）、その下に曜日（例: `Sunday`）。記録は大見出しが `Logs`、その下に一言 `Your days, one stamp at a time`（日付は出さない）。挨拶は出さない
 - **ホーム:** 押す場所。今日押したラリーを見せる今日の判子のカード、ラリーの 2 列タイル、ワンタップ、作成（一覧の最後）。収集数。全件はラリー詳細へ。
-- **記録:** 振り返り。上にカレンダー、下にラリー横断のタイムライン。カレンダーの日付から Logs の日（formSheet）、投稿からラリー詳細。UI のラベルは `Logs`。
+- **記録:** 振り返り。上にカレンダー、下にラリー横断のタイムラインと写真のアルバム（`Stamps / Album` で切り替える）。カレンダーの日付から Logs の日（formSheet）、投稿からラリー詳細。UI のラベルは `Logs`。
 
 ラリー詳細はタブではなくスタック。ホームからも記録からも開ける。
 
@@ -50,10 +51,13 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 
 formSheet はネイティブのヘッダーを出さない。内容の先頭に小さい補足行（任意。スタンプ系はラリーの絵文字と名前、ラリーの日と Logs の日は曜日）と大きい見出し（操作名、ラリーの日と Logs の日は日付）を置き、全シートで同じ形にする。閉じるのはシートを下げる操作。
 
+スタンプの写真は全画面モーダル（iOS の全画面表示）で開き、ネイティブのヘッダーを出さない。閉じるのは画面の閉じるボタンだけ（全画面表示には下スワイプで閉じる操作が無く、独自には作らない）。
+
 ```
 ホーム ──タップ（ラリーのタイル）──► ラリー詳細
 記録 ──タップ（投稿）──► ラリー詳細
 記録 ──日付（カレンダー）──► Logs の日（formSheet）
+投稿の写真マーク / Album の写真 ──► スタンプの写真（全画面モーダル）
 ```
 
 ### ラリーの絵文字
@@ -87,19 +91,20 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 
 ## 画面一覧
 
-| 画面             | ファイル                                                     | 深さ        | Story                                                  |
-| ---------------- | ------------------------------------------------------------ | ----------- | ------------------------------------------------------ |
-| ホーム           | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008, S-029, S-032, S-039               |
-| ラリーを作る     | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-040, S-039                                    |
-| ラリーを編集     | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013, S-040                                           |
-| メモと写真を追加 | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002, S-035                                           |
-| 過去のスタンプ   | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                                                  |
-| スタンプを編集   | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014, S-036                                    |
-| ラリー一覧       | [screens/rallies-list.md](./screens/rallies-list.md)         | ワイヤー    | S-039                                                  |
-| ラリー詳細       | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-013, S-025, S-028, S-032, S-039, S-035 |
-| ラリーの日       | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028, S-035                                           |
-| 記録（Logs）     | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010, S-011, S-012, S-035                             |
-| Logs の日        | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012, S-035                                           |
+| 画面             | ファイル                                                     | 深さ        | Story                                                         |
+| ---------------- | ------------------------------------------------------------ | ----------- | ------------------------------------------------------------- |
+| ホーム           | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008, S-029, S-032, S-039                      |
+| ラリーを作る     | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-040, S-039                                           |
+| ラリーを編集     | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013, S-040                                                  |
+| メモと写真を追加 | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002, S-035                                                  |
+| 過去のスタンプ   | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                                                         |
+| スタンプを編集   | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014, S-036                                           |
+| ラリー一覧       | [screens/rallies-list.md](./screens/rallies-list.md)         | ワイヤー    | S-039                                                         |
+| ラリー詳細       | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-013, S-025, S-028, S-032, S-039, S-035, S-037 |
+| ラリーの日       | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028, S-035, S-037                                           |
+| 記録（Logs）     | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010, S-011, S-012, S-035, S-037                             |
+| Logs の日        | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012, S-035, S-037                                           |
+| スタンプの写真   | [screens/stamp-photos.md](./screens/stamp-photos.md)         | ワイヤー    | S-037                                                         |
 
 ## ルート案
 
@@ -115,3 +120,4 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 - `/records/rallies/[id]` — ラリー詳細（Logs のスタック。戻ると Logs）
 - `/records` — 記録（タブ。カレンダーとタイムライン）
 - `/logs-day?date=` — Logs の日（formSheet）
+- `/stamp-photos?photoId=` — スタンプの写真（全画面モーダル。開いた写真のスタンプの写真をめくる）

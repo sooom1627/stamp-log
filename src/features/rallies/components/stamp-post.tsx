@@ -68,10 +68,18 @@ export function StampPost({
             </Text>
           ) : null}
           {photoCount > 0 ? (
-            // S-035: shows that photos are attached. Opening them is S-037.
-            <View
-              role="img"
-              aria-label={`${photoCount} ${photoCount === 1 ? "photo" : "photos"}`}
+            // Opens the stamp's photos (S-037). Inside a pressable post
+            // (Logs) the inner press wins, so the post does not open.
+            <Pressable
+              role="button"
+              aria-label={`${photoCount} ${photoCount === 1 ? "photo" : "photos"}. Show photos`}
+              hitSlop={10}
+              onPress={() =>
+                push({
+                  pathname: "/stamp-photos",
+                  params: { photoId: photos[0].id },
+                })
+              }
               className="bg-surface-muted flex-row items-center gap-1 self-center rounded-full px-2 py-0.5"
             >
               <ImageIcon
@@ -82,7 +90,7 @@ export function StampPost({
               <Text className="text-foreground-secondary text-xs font-semibold">
                 {photoCount}
               </Text>
-            </View>
+            </Pressable>
           ) : null}
         </View>
         {memo ? (
