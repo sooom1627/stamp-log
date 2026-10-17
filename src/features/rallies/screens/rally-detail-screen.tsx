@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { Alert, FlatList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
@@ -7,11 +9,16 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
+import { AlbumRow, albumRows } from "../components/album-row";
 import { DayCard } from "../components/day-card";
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
 import { StampPost } from "../components/stamp-post";
+import {
+  StampsAlbumPicker,
+  type StampsView,
+} from "../components/stamps-album-picker";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import {
   useDeleteRally,
@@ -21,21 +28,28 @@ import {
 } from "../hooks/use-rallies";
 import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
+import { albumPhotos, type AlbumPhoto } from "../utils/album-photos";
 import { buildRallySummary } from "../utils/rally-summary";
 
 type TimelineEmptyProps = {
   isError: boolean;
   isLoaded: boolean;
+  message: string;
   onRetry: () => void;
 };
 
-function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
+function TimelineEmpty({
+  isError,
+  isLoaded,
+  message,
+  onRetry,
+}: TimelineEmptyProps) {
   if (isError) return <LoadError onRetry={onRetry} />;
   if (!isLoaded) return null;
 
   return (
     <View className="items-center py-12">
-      <Text className="text-foreground-secondary">No stamps yet</Text>
+      <Text className="text-foreground-secondary">{message}</Text>
     </View>
   );
 }
@@ -59,6 +73,8 @@ type RallyDetailScreenProps = {
 
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
+  // Starts on Stamps every time the screen opens (not remembered).
+  const [view, setView] = useState<StampsView>("stamps");
   const { data: rally } = useRally(rallyId);
   const {
     data: stamps,
@@ -83,6 +99,24 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
     return null;
   }
 
+  const photos = albumPhotos(stamps ?? [], [rally]);
+  const isAlbum = view === "album";
+  // One list for both views, so the calendar above keeps its state.
+  const items: (
+    | { kind: "row"; key: string; row: AlbumPhoto[] }
+    | { kind: "day"; key: string; section: (typeof sections)[number] }
+  )[] = isAlbum
+    ? albumRows(photos).map((row) => ({
+        kind: "row",
+        key: `row-${row[0].id}`,
+        row,
+      }))
+    : sections.map((section) => ({
+        kind: "day",
+        key: section.dateKey,
+        section,
+      }));
+
   const confirmDelete = () =>
     Alert.alert("Delete rally?", deleteRallyMessage(stamps?.length), [
       { text: "Cancel", style: "cancel" },
@@ -98,24 +132,37 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       <FlatList
         aria-label="Rally detail"
         className="bg-canvas flex-1"
-        contentContainerClassName="gap-6 px-5 py-6"
+        contentContainerClassName={
+          isAlbum ? "gap-0.5 px-5 py-6" : "gap-6 px-5 py-6"
+        }
         contentInsetAdjustmentBehavior="automatic"
-        data={sections}
-        keyExtractor={({ dateKey }) => dateKey}
-        renderItem={({ item: { dateKey, data } }) => (
-          <DayCard dateKey={dateKey} date={new Date(data[0].stampedAt)}>
-            {data.map((stamp) => (
-              <StampPost
-                key={stamp.id}
-                stamp={stamp}
-                emoji={rally.emoji}
-                title={formatStampTime(new Date(stamp.stampedAt))}
-              />
-            ))}
-          </DayCard>
-        )}
+        data={items}
+        keyExtractor={({ key }) => key}
+        renderItem={({ item }) => {
+          // One rally's photos, so the tiles need no emoji.
+          if (item.kind === "row") {
+            return <AlbumRow photos={item.row} showsEmoji={false} />;
+          }
+          const { dateKey, data } = item.section;
+          return (
+            <DayCard dateKey={dateKey} date={new Date(data[0].stampedAt)}>
+              {data.map((stamp) => (
+                <StampPost
+                  key={stamp.id}
+                  stamp={stamp}
+                  emoji={rally.emoji}
+                  title={formatStampTime(new Date(stamp.stampedAt))}
+                />
+              ))}
+            </DayCard>
+          );
+        }}
         ListHeaderComponent={
-          <View className="items-center gap-4">
+          <View
+            className={
+              isAlbum ? "items-center gap-4 pb-6" : "items-center gap-4"
+            }
+          >
             <View
               testID="rally-top-panel"
               className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
@@ -153,19 +200,14 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               }
             />
             {stamps && stamps.length > 0 ? (
-              <View className="w-full flex-row items-baseline justify-between pt-4">
-                <Text
-                  role="heading"
-                  className="text-foreground text-xl font-bold"
-                >
-                  Stamps
-                </Text>
-                <Text
-                  aria-label={`${stamps.length} stamps in the timeline`}
-                  className="text-foreground-muted text-base"
-                >
-                  {stamps.length}
-                </Text>
+              <View className="w-full pt-4">
+                <StampsAlbumPicker
+                  testID="rally-view-picker"
+                  view={view}
+                  stampCount={stamps.length}
+                  photoCount={photos.length}
+                  onChangeView={setView}
+                />
               </View>
             ) : null}
           </View>
@@ -174,6 +216,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           <TimelineEmpty
             isError={isStampsError}
             isLoaded={isStampsLoaded}
+            message={isAlbum ? "No photos yet" : "No stamps yet"}
             onRetry={() => void refetchStamps()}
           />
         }
