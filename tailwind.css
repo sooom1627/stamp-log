@@ -8,6 +8,11 @@
   --color-main-hover: #334155;
   --color-surface-muted-active: #e2e8f0;
   --color-text-muted: #64748b;
+  /* The full-screen photo viewer stays dark in both themes (S-037). */
+  --color-photo-viewer: #000000;
+  --color-photo-viewer-foreground: #f1f5f9;
+  --color-photo-viewer-muted: #94a3b8;
+  --color-photo-viewer-control: #334155;
 }
 
 /* Semantic colors: use these instead of `dark:` variants. Both variants must
