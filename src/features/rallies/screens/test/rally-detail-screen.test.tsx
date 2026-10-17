@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner-native";
 
 import {
-  formatStampDateTime,
+  formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
@@ -1528,7 +1528,7 @@ describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
   });
 });
 
-describe("S-037 T-002 ST-003 rally detail Album", () => {
+describe("S-037 T-002 ST-003 / T-003 ST-004 rally detail Album", () => {
   async function switchToAlbum() {
     const detail = within(await screen.findByLabelText("Rally detail"));
     await fireEvent(
@@ -1558,7 +1558,7 @@ describe("S-037 T-002 ST-003 rally detail Album", () => {
     ).toBeOnTheScreen();
   });
 
-  test("Album shows only this rally's photos newest first without the emoji", async () => {
+  test("Album makes one tile per day of this rally, newest first, without the emoji", async () => {
     let olderStampedAt = "";
     let newerStampedAt = "";
     await openRallyDetail("Detail album", async (rallyId) => {
@@ -1582,18 +1582,23 @@ describe("S-037 T-002 ST-003 rally detail Album", () => {
     expect(
       detail.queryByRole("button", { name: /photos?\. Show photos$/ }),
     ).not.toBeOnTheScreen();
-    const tiles = detail.getAllByRole("button", { name: /^Open photo, / });
-    expect(tiles).toHaveLength(3);
-    const newerLabel = `Open photo, Detail album, ${formatStampDateTime(new Date(newerStampedAt))}`;
-    const olderLabel = `Open photo, Detail album, ${formatStampDateTime(new Date(olderStampedAt))}`;
-    expect(tiles[0]).toHaveAccessibleName(newerLabel);
-    expect(tiles[1]).toHaveAccessibleName(olderLabel);
-    expect(tiles[2]).toHaveAccessibleName(olderLabel);
+    const tiles = detail.getAllByRole("button", {
+      name: /^Open (\d+ )?photos?, /,
+    });
+    expect(tiles).toHaveLength(2);
+    expect(tiles[0]).toHaveAccessibleName(
+      `Open photo, Detail album, ${formatStampDate(new Date(newerStampedAt))}`,
+    );
+    expect(tiles[1]).toHaveAccessibleName(
+      `Open 2 photos, Detail album, ${formatStampDate(new Date(olderStampedAt))}`,
+    );
     const hidden = { includeHiddenElements: true };
+    expect(within(tiles[1]).getByText("2", hidden)).toBeOnTheScreen();
     expect(within(tiles[0]).queryByText("🗼", hidden)).not.toBeOnTheScreen();
+    expect(pickerSegments(detail)).toEqual(["Stamps · 3", "Album · 3"]);
   });
 
-  test("pressing a photo opens the stamp's photos from that photo", async () => {
+  test("pressing a tile opens its photos from the first one", async () => {
     await openRallyDetail("Detail album open", async (rallyId) => {
       const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
       await attachPhotos(stamp.id, 2);
@@ -1602,9 +1607,9 @@ describe("S-037 T-002 ST-003 rally detail Album", () => {
 
     await userEvent
       .setup()
-      .press(detail.getAllByRole("button", { name: /^Open photo, / })[1]);
+      .press(detail.getByRole("button", { name: /^Open 2 photos, / }));
 
-    expect(await screen.findByText("2 / 2")).toBeOnTheScreen();
+    expect(await screen.findByText("1 / 2")).toBeOnTheScreen();
   });
 
   test("shows No photos yet when the rally has no photos", async () => {

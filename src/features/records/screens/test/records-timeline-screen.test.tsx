@@ -22,6 +22,7 @@ import {
   updateStampMemo,
 } from "@/features/rallies/db/stamps-db";
 import {
+  formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
@@ -602,7 +603,7 @@ describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
   });
 });
 
-describe("S-037 T-002 ST-002 Logs Album", () => {
+describe("S-037 T-002 ST-002 / T-003 ST-004 Logs Album", () => {
   async function switchToAlbum() {
     const logs = within(await screen.findByLabelText("Logs timeline"));
     await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
@@ -635,50 +636,73 @@ describe("S-037 T-002 ST-002 Logs Album", () => {
     expect(logs.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
   });
 
-  test("Album shows every rally's photos newest first with the rally emoji", async () => {
+  test("Album makes one tile per day and rally, newest first, with the emoji and the count", async () => {
     const lab = await saveRallyNamed("Album lab", "🔬");
     const cafe = await saveRallyNamed("Album cafe", "☕");
-    const older = await saveStamp({
+    const labOlder = await saveStamp({
       rallyId: lab.id,
-      stampedAt: daysAgoAt(2, 19),
+      stampedAt: daysAgoAt(3, 9),
     });
-    await attachPhotos(older.id, 2);
-    const newer = await saveStamp({
+    await attachPhotos(labOlder.id, 1);
+    const labDay = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 9),
+    });
+    await attachPhotos(labDay.id, 2);
+    const cafeDay = await saveStamp({
       rallyId: cafe.id,
       stampedAt: daysAgoAt(1, 19),
     });
-    await attachPhotos(newer.id, 1);
-    await showOnlyStamps([older.id, newer.id]);
+    await attachPhotos(cafeDay.id, 1);
+    await showOnlyStamps([labOlder.id, labDay.id, cafeDay.id]);
     await openLogs();
 
     const logs = await switchToAlbum();
 
-    expect(logs.queryByTestId(`stamp-post-${newer.id}`)).not.toBeOnTheScreen();
-    const tiles = logs.getAllByRole("button", { name: /^Open photo, / });
+    expect(
+      logs.queryByTestId(`stamp-post-${cafeDay.id}`),
+    ).not.toBeOnTheScreen();
+    const tiles = logs.getAllByRole("button", {
+      name: /^Open (\d+ )?photos?, /,
+    });
+    const day = (iso: string) => formatStampDate(new Date(iso));
     expect(tiles).toHaveLength(3);
-    expect(tiles[0]).toHaveAccessibleName(/^Open photo, Album cafe, /);
-    expect(tiles[1]).toHaveAccessibleName(/^Open photo, Album lab, /);
-    expect(tiles[2]).toHaveAccessibleName(/^Open photo, Album lab, /);
+    expect(tiles[0]).toHaveAccessibleName(
+      `Open photo, Album cafe, ${day(cafeDay.stampedAt)}`,
+    );
+    expect(tiles[1]).toHaveAccessibleName(
+      `Open 2 photos, Album lab, ${day(labDay.stampedAt)}`,
+    );
+    expect(tiles[2]).toHaveAccessibleName(
+      `Open photo, Album lab, ${day(labOlder.stampedAt)}`,
+    );
     const hidden = { includeHiddenElements: true };
     expect(within(tiles[0]).getByText("☕", hidden)).toBeOnTheScreen();
     expect(within(tiles[1]).getByText("🔬", hidden)).toBeOnTheScreen();
+    // The count shows only on a tile with two photos or more.
+    expect(within(tiles[1]).getByText("2", hidden)).toBeOnTheScreen();
+    expect(within(tiles[0]).queryByText("1", hidden)).not.toBeOnTheScreen();
+    expect(pickerSegments(logs)).toEqual(["Stamps · 3", "Album · 4"]);
   });
 
-  test("pressing a photo opens the stamp's photos from that photo", async () => {
+  test("pressing a tile opens its photos from the first one", async () => {
     const lab = await saveRallyNamed("Album open", "🔬");
     const stamp = await saveStamp({
       rallyId: lab.id,
       stampedAt: daysAgoAt(1, 19),
     });
     await attachPhotos(stamp.id, 2);
+    await showOnlyStamps([stamp.id]);
     await openLogs();
     const logs = await switchToAlbum();
 
     await userEvent
       .setup()
-      .press(logs.getAllByRole("button", { name: /^Open photo, / })[1]);
+      .press(
+        logs.getByRole("button", { name: /^Open 2 photos, Album open, / }),
+      );
 
-    expect(await screen.findByText("2 / 2")).toBeOnTheScreen();
+    expect(await screen.findByText("1 / 2")).toBeOnTheScreen();
   });
 
   test("shows No photos yet when no stamp has photos", async () => {

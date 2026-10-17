@@ -28,7 +28,7 @@ import {
 } from "../hooks/use-rallies";
 import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
-import { albumPhotos, type AlbumPhoto } from "../utils/album-photos";
+import { albumTiles, type AlbumTile } from "../utils/album-photos";
 import { buildRallySummary } from "../utils/rally-summary";
 
 type TimelineEmptyProps = {
@@ -99,16 +99,17 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
     return null;
   }
 
-  const photos = albumPhotos(stamps ?? [], [rally]);
+  const tiles = albumTiles(stamps ?? [], [rally]);
+  const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const isAlbum = view === "album";
   // One list for both views, so the calendar above keeps its state.
   const items: (
-    | { kind: "row"; key: string; row: AlbumPhoto[] }
+    | { kind: "row"; key: string; row: AlbumTile[] }
     | { kind: "day"; key: string; section: (typeof sections)[number] }
   )[] = isAlbum
-    ? albumRows(photos).map((row) => ({
+    ? albumRows(tiles).map((row) => ({
         kind: "row",
-        key: `row-${row[0].id}`,
+        key: `row-${row[0].key}`,
         row,
       }))
     : sections.map((section) => ({
@@ -141,7 +142,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         renderItem={({ item }) => {
           // One rally's photos, so the tiles need no emoji.
           if (item.kind === "row") {
-            return <AlbumRow photos={item.row} showsEmoji={false} />;
+            return <AlbumRow tiles={item.row} showsEmoji={false} />;
           }
           const { dateKey, data } = item.section;
           return (
@@ -205,7 +206,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                   testID="rally-view-picker"
                   view={view}
                   stampCount={stamps.length}
-                  photoCount={photos.length}
+                  photoCount={photoCount}
                   onChangeView={setView}
                 />
               </View>

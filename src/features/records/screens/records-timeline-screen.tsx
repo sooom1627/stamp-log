@@ -15,8 +15,8 @@ import {
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useStamps } from "@/features/rallies/hooks/use-stamps";
 import {
-  albumPhotos,
-  type AlbumPhoto,
+  albumTiles,
+  type AlbumTile,
 } from "@/features/rallies/utils/album-photos";
 import { LoadError } from "@/shared/components/load-error";
 import {
@@ -78,16 +78,17 @@ export function RecordsTimelineScreen() {
       })
     : [];
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
-  const photos = albumPhotos(stamps ?? [], rallies ?? []);
+  const tiles = albumTiles(stamps ?? [], rallies ?? []);
+  const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const isAlbum = view === "album";
   // One list for both views, so the calendar above keeps its state.
   const items: (
-    | { kind: "row"; key: string; row: AlbumPhoto[] }
+    | { kind: "row"; key: string; row: AlbumTile[] }
     | { kind: "day"; key: string; section: (typeof sections)[number] }
   )[] = isAlbum
-    ? albumRows(photos).map((row) => ({
+    ? albumRows(tiles).map((row) => ({
         kind: "row",
-        key: `row-${row[0].id}`,
+        key: `row-${row[0].key}`,
         row,
       }))
     : sections.map((section) => ({
@@ -109,7 +110,7 @@ export function RecordsTimelineScreen() {
         keyExtractor={({ key }) => key}
         renderItem={({ item }) => {
           if (item.kind === "row") {
-            return <AlbumRow photos={item.row} showsEmoji />;
+            return <AlbumRow tiles={item.row} showsEmoji />;
           }
           const { dateKey, data } = item.section;
           return (
@@ -151,7 +152,7 @@ export function RecordsTimelineScreen() {
                   testID="logs-view-picker"
                   view={view}
                   stampCount={posts.length}
-                  photoCount={photos.length}
+                  photoCount={photoCount}
                   onChangeView={setView}
                 />
               </View>
