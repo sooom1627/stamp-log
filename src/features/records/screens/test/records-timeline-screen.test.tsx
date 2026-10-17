@@ -545,8 +545,36 @@ describe("S-035 ST-006 photo mark on Logs posts", () => {
 
     const logs = within(await screen.findByLabelText("Logs timeline"));
     const marked = within(logs.getByTestId(`stamp-post-${withPhoto.id}`));
-    expect(marked.getByLabelText("1 photo")).toHaveTextContent("1");
+    expect(marked.getByLabelText("1 photo. Show photos")).toHaveTextContent(
+      "1",
+    );
     const plain = within(logs.getByTestId(`stamp-post-${withoutPhoto.id}`));
-    expect(plain.queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
+    expect(plain.queryByLabelText(/Show photos$/)).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
+  // Pressing the rest of the post still opens the rally (S-010 T-001 ST-006).
+  test("opens the stamp's photos full screen instead of the rally", async () => {
+    const rally = await saveRallyNamed("Logs viewer", "🎞️");
+    const stamp = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 2);
+    const app = renderRouter("./src/app");
+    await app;
+    await act(() => {
+      router.push("/records");
+    });
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+
+    await userEvent
+      .setup()
+      .press(logs.getByRole("button", { name: "2 photos. Show photos" }));
+
+    expect(app.getPathname()).toBe("/stamp-photos");
+    expect(await screen.findByText("1 / 2")).toBeOnTheScreen();
+    expect(screen.getByText("🎞️ Logs viewer")).toBeOnTheScreen();
   });
 });
