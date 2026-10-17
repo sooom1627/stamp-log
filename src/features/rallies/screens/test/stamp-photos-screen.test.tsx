@@ -141,3 +141,88 @@ describe("S-037 T-001 ST-002 page through a stamp's photos full screen", () => {
     },
   );
 });
+
+describe("S-037 T-003 ST-003 page through the day's photos of the rally", () => {
+  async function pickedPhotos(count: number) {
+    return Array.from({ length: count }, () => {
+      const file = new File(
+        Paths.cache,
+        `viewer-day-${nextPickedPhotoId++}.jpg`,
+      );
+      file.write("jpeg");
+      return file.uri;
+    });
+  }
+
+  // Two stamps of one rally on one day (older data, or S-026 later), plus
+  // another rally's stamp that day.
+  async function seedDay() {
+    await saveRally({ name: "Viewer day rally", emoji: "🔬" });
+    await saveRally({ name: "Viewer other rally", emoji: "☕" });
+    const rallies = await listRallies();
+    const rally = rallies.find(({ name }) => name === "Viewer day rally");
+    const other = rallies.find(({ name }) => name === "Viewer other rally");
+    if (!rally || !other) throw new Error("Rallies not found");
+    const morningAt = new Date(2026, 9, 10, 9, 0);
+    const morning = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: morningAt.toISOString(),
+    });
+    await updateStampMemo({
+      id: morning.id,
+      memo: "",
+      photoUris: await pickedPhotos(2),
+    });
+    // Stamped now (21:00 the same day): the same-day check only guards past
+    // stamps.
+    const evening = await saveStamp({ rallyId: rally.id });
+    await updateStampMemo({
+      id: evening.id,
+      memo: "",
+      photoUris: await pickedPhotos(1),
+    });
+    const otherStamp = await saveStamp({ rallyId: other.id });
+    await updateStampMemo({
+      id: otherStamp.id,
+      memo: "",
+      photoUris: await pickedPhotos(1),
+    });
+    const stamps = await listStamps();
+    const byId = (id: number) => {
+      const stamp = stamps.find((candidate) => candidate.id === id);
+      if (!stamp) throw new Error(`Stamp ${id} not found`);
+      return stamp;
+    };
+    return {
+      morning: byId(morning.id),
+      morningAt,
+      evening: byId(evening.id),
+    };
+  }
+
+  test("pages through every photo of the rally that day, oldest stamp first", async () => {
+    const { evening } = await seedDay();
+
+    await openViewer(evening.photos[0].id);
+
+    expect(await screen.findByText("3 / 3")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Photo 3 of 3")).toBeOnTheScreen();
+    expect(screen.getByText("🔬 Viewer day rally")).toBeOnTheScreen();
+    expect(screen.getByText(formatStampDateTime(now, now))).toBeOnTheScreen();
+  });
+
+  test("the date follows the stamp of the photo shown", async () => {
+    const { evening, morningAt } = await seedDay();
+    await openViewer(evening.photos[0].id);
+    const pages = await screen.findByTestId("stamp-photos-pages");
+
+    await fireEvent(pages, "momentumScrollEnd", {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+
+    expect(screen.getByText("1 / 3")).toBeOnTheScreen();
+    expect(
+      screen.getByText(formatStampDateTime(morningAt, now)),
+    ).toBeOnTheScreen();
+  });
+});

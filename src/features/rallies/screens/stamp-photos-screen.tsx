@@ -18,43 +18,40 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "@/shared/components/icons";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
-import { stampPhotoUri } from "../db/stamp-photo-files";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import { useRally } from "../hooks/use-rallies";
 import { useStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
-import { type Stamp, type StampPhoto } from "../schemas/stamps";
+import { type StampPhoto } from "../schemas/stamps";
+import { dayRallyPhotos, type DayRallyPhoto } from "../utils/album-photos";
 
 type StampPhotosScreenProps = {
   photoId: StampPhoto["id"];
 };
 
-// The photos of the stamp that holds `photoId`, opened at that photo (S-037).
+// The photos of `photoId`'s rally on its local day, opened at that photo
+// (S-037). Usually that is one stamp's photos.
 export function StampPhotosScreen({ photoId }: StampPhotosScreenProps) {
   const { data: stamps } = useStamps();
-  // undefined while loading, null once loaded without the photo.
-  const stamp =
-    stamps === undefined
-      ? undefined
-      : (stamps.find(({ photos }) => photos.some(({ id }) => id === photoId)) ??
-        null);
-  const { data: rally } = useRally(stamp?.rallyId);
+  // undefined while loading, empty once loaded without the photo.
+  const photos =
+    stamps === undefined ? undefined : dayRallyPhotos(stamps, photoId);
+  const { data: rally } = useRally(photos?.[0]?.rallyId);
+  const isMissing = photos?.length === 0;
 
   // A photo that does not exist (or was removed meanwhile) closes the screen.
-  useCloseWhenMissing(
-    stamp === null || (stamp !== undefined && rally === null),
-  );
+  useCloseWhenMissing(isMissing || (photos !== undefined && rally === null));
 
-  if (!stamp || !rally) {
+  if (!photos || isMissing || !rally) {
     return <View className="bg-photo-viewer flex-1" />;
   }
 
-  const startIndex = stamp.photos.findIndex(({ id }) => id === photoId);
+  const startIndex = photos.findIndex(({ id }) => id === photoId);
 
   return (
     <StampPhotosPager
-      key={stamp.id}
-      stamp={stamp}
+      key={photos[0].id}
+      photos={photos}
       rally={rally}
       startIndex={startIndex}
     />
@@ -62,14 +59,19 @@ export function StampPhotosScreen({ photoId }: StampPhotosScreenProps) {
 }
 
 type StampPhotosPagerProps = {
-  stamp: Stamp;
+  photos: DayRallyPhoto[];
   rally: Rally;
   startIndex: number;
 };
 
-function StampPhotosPager({ stamp, rally, startIndex }: StampPhotosPagerProps) {
-  const { photos } = stamp;
-  const [index, setIndex] = useState(startIndex);
+function StampPhotosPager({
+  photos,
+  rally,
+  startIndex,
+}: StampPhotosPagerProps) {
+  const [pageIndex, setIndex] = useState(startIndex);
+  // A photo removed while open shortens the list; stay on a real page.
+  const index = Math.min(pageIndex, photos.length - 1);
   const { width } = useWindowDimensions();
   const { top, bottom } = useSafeAreaInsets();
   const { back } = useRouter();
@@ -104,7 +106,7 @@ function StampPhotosPager({ stamp, rally, startIndex }: StampPhotosPagerProps) {
             {`${rally.emoji} ${rally.name}`}
           </Text>
           <Text className="text-photo-viewer-muted text-sm">
-            {formatStampDateTime(new Date(stamp.stampedAt))}
+            {formatStampDateTime(new Date(photos[index].stampedAt))}
           </Text>
         </View>
         {/* Balances the close button so the title stays centered. */}
@@ -131,7 +133,7 @@ function StampPhotosPager({ stamp, rally, startIndex }: StampPhotosPagerProps) {
             style={{ width }}
           >
             <Image
-              source={{ uri: stampPhotoUri(item.fileName) }}
+              source={{ uri: item.uri }}
               contentFit="contain"
               style={{ flex: 1 }}
             />
