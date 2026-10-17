@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner-native";
 
 import {
+  formatStampDateTime,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
@@ -72,6 +73,19 @@ async function openRallyDetail(
   });
 
   return { rally, user: userEvent.setup() };
+}
+
+// The switch's segments are @expo/ui SwiftUI Text, which is not host text in
+// Jest, so getByText cannot see them; read each native view's text prop.
+function pickerSegments(detail: ReturnType<typeof within>) {
+  const texts: string[] = [];
+  const collect = (element: ReturnType<typeof screen.getByTestId> | string) => {
+    if (typeof element === "string") return;
+    if (typeof element.props.text === "string") texts.push(element.props.text);
+    element.children.forEach(collect);
+  };
+  collect(detail.getByTestId("rally-view-picker"));
+  return texts;
 }
 
 describe("Rally detail", () => {
@@ -1098,10 +1112,13 @@ describe("S-028 RT-001 ST-003 posts look", () => {
       });
     });
 
-    // Logs also has a Stamps heading, so look inside rally detail.
     const detail = within(await screen.findByLabelText("Rally detail"));
-    expect(detail.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
-    expect(detail.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
+    // S-037: the Stamps heading became the Stamps / Album switch.
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(pickerSegments(detail)).toEqual(["Stamps · 2", "Album · 0"]);
     expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
   });
 });
@@ -1508,5 +1525,94 @@ describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
 
     expect(await screen.findByText("1 / 3")).toBeOnTheScreen();
     expect(screen.getByText("🗼 Detail viewer")).toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-002 ST-003 rally detail Album", () => {
+  async function switchToAlbum() {
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    await fireEvent(
+      detail.getByTestId("rally-view-picker"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: "album" },
+      },
+    );
+    return detail;
+  }
+
+  test("starts on Stamps with the counts of stamps and photos", async () => {
+    await openRallyDetail("Detail counts", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 3);
+    });
+
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(pickerSegments(detail)).toEqual(["Stamps · 2", "Album · 3"]);
+    expect(
+      detail.getByRole("button", { name: "3 photos. Show photos" }),
+    ).toBeOnTheScreen();
+  });
+
+  test("Album shows only this rally's photos newest first without the emoji", async () => {
+    let olderStampedAt = "";
+    let newerStampedAt = "";
+    await openRallyDetail("Detail album", async (rallyId) => {
+      const older = await saveStamp({ rallyId, stampedAt: daysAgoAt(2, 12) });
+      await attachPhotos(older.id, 2);
+      const newer = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(newer.id, 1);
+      olderStampedAt = older.stampedAt;
+      newerStampedAt = newer.stampedAt;
+      await ralliesDb.saveRally({ name: "Other rally", emoji: "☕" });
+      const other = (await ralliesDb.listRallies()).find(
+        ({ name }) => name === "Other rally",
+      );
+      if (!other) throw new Error("Other rally not found");
+      const otherStamp = await saveStamp({ rallyId: other.id });
+      await attachPhotos(otherStamp.id, 1);
+    });
+
+    const detail = await switchToAlbum();
+
+    expect(
+      detail.queryByRole("button", { name: /photos?\. Show photos$/ }),
+    ).not.toBeOnTheScreen();
+    const tiles = detail.getAllByRole("button", { name: /^Open photo, / });
+    expect(tiles).toHaveLength(3);
+    const newerLabel = `Open photo, Detail album, ${formatStampDateTime(new Date(newerStampedAt))}`;
+    const olderLabel = `Open photo, Detail album, ${formatStampDateTime(new Date(olderStampedAt))}`;
+    expect(tiles[0]).toHaveAccessibleName(newerLabel);
+    expect(tiles[1]).toHaveAccessibleName(olderLabel);
+    expect(tiles[2]).toHaveAccessibleName(olderLabel);
+    const hidden = { includeHiddenElements: true };
+    expect(within(tiles[0]).queryByText("🗼", hidden)).not.toBeOnTheScreen();
+  });
+
+  test("pressing a photo opens the stamp's photos from that photo", async () => {
+    await openRallyDetail("Detail album open", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 2);
+    });
+    const detail = await switchToAlbum();
+
+    await userEvent
+      .setup()
+      .press(detail.getAllByRole("button", { name: /^Open photo, / })[1]);
+
+    expect(await screen.findByText("2 / 2")).toBeOnTheScreen();
+  });
+
+  test("shows No photos yet when the rally has no photos", async () => {
+    await openRallyDetail("Detail no photos");
+
+    const detail = await switchToAlbum();
+
+    expect(detail.getByText("No photos yet")).toBeOnTheScreen();
+    expect(detail.queryByText("no memo")).not.toBeOnTheScreen();
   });
 });
