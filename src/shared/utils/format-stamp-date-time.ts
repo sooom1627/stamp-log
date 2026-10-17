@@ -43,6 +43,11 @@ export function formatDayHeading(date: Date, now = new Date()) {
   return { title: day };
 }
 
+// The date of a stamp without its time, e.g. "Oct 10" (S-037 Album tiles).
+export function formatStampDate(date: Date, now = new Date()) {
+  return `${monthFormatter.format(date)} ${date.getDate()}${yearSuffix(date, now)}`;
+}
+
 export function formatStampDateTime(date: Date, now = new Date()) {
-  return `${monthFormatter.format(date)} ${date.getDate()}${yearSuffix(date, now)}, ${formatStampTime(date)}`;
+  return `${formatStampDate(date, now)}, ${formatStampTime(date)}`;
 }
