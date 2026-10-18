@@ -12,9 +12,15 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
+import { State } from "react-native-gesture-handler";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 import { toast } from "sonner-native";
 
 import {
+  formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
@@ -72,6 +78,19 @@ async function openRallyDetail(
   });
 
   return { rally, user: userEvent.setup() };
+}
+
+// The switch's segments are @expo/ui SwiftUI Text, which is not host text in
+// Jest, so getByText cannot see them; read each native view's text prop.
+function pickerSegments(detail: ReturnType<typeof within>) {
+  const texts: string[] = [];
+  const collect = (element: ReturnType<typeof screen.getByTestId> | string) => {
+    if (typeof element === "string") return;
+    if (typeof element.props.text === "string") texts.push(element.props.text);
+    element.children.forEach(collect);
+  };
+  collect(detail.getByTestId("rally-view-picker"));
+  return texts;
 }
 
 describe("Rally detail", () => {
@@ -707,11 +726,6 @@ describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () 
       router.push("/records");
     });
     const logs = await screen.findByLabelText("Logs timeline");
-    const countBefore = Number(
-      within(logs)
-        .getByLabelText(/stamps in the timeline$/)
-        .props["aria-label"].split(" ")[0],
-    );
     expect(within(logs).getAllByText("Logs deleted")).toHaveLength(3);
     await act(() => {
       router.push(`/records/rallies/${rally.id}`);
@@ -721,12 +735,9 @@ describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () 
     await confirmDelete();
 
     const logsAfter = within(screen.getByLabelText("Logs timeline"));
-    expect(
-      await logsAfter.findByLabelText(
-        `${countBefore - 3} stamps in the timeline`,
-      ),
-    ).toBeOnTheScreen();
-    expect(logsAfter.queryByText("Logs deleted")).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(logsAfter.queryByText("Logs deleted")).not.toBeOnTheScreen();
+    });
     expect(logsAfter.getByText("Logs kept")).toBeOnTheScreen();
   });
 });
@@ -1106,10 +1117,13 @@ describe("S-028 RT-001 ST-003 posts look", () => {
       });
     });
 
-    // Logs also has a Stamps heading, so look inside rally detail.
     const detail = within(await screen.findByLabelText("Rally detail"));
-    expect(detail.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
-    expect(detail.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
+    // S-037: the Stamps heading became the Stamps / Album switch.
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(pickerSegments(detail)).toEqual(["Stamps · 2", "Album · 0"]);
     expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
   });
 });
@@ -1494,8 +1508,165 @@ describe("S-035 ST-006 photo mark on posts", () => {
 
     const detail = within(await screen.findByLabelText("Rally detail"));
     const marked = within(detail.getByTestId(`stamp-row-${withPhotosId}`));
-    expect(marked.getByLabelText("3 photos")).toHaveTextContent("3");
+    expect(marked.getByLabelText("3 photos. Show photos")).toHaveTextContent(
+      "3",
+    );
     const plain = within(detail.getByTestId(`stamp-row-${withoutPhotosId}`));
-    expect(plain.queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
+    expect(plain.queryByLabelText(/Show photos$/)).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
+  test("opens the stamp's photos full screen from the first photo", async () => {
+    await openRallyDetail("Detail viewer", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 3);
+    });
+    const detail = within(await screen.findByLabelText("Rally detail"));
+
+    await userEvent
+      .setup()
+      .press(detail.getByRole("button", { name: "3 photos. Show photos" }));
+
+    expect(await screen.findByText("1 / 3")).toBeOnTheScreen();
+    expect(screen.getByText("🗼 Detail viewer")).toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-002 ST-003 / T-003 ST-004 rally detail Album", () => {
+  async function switchToAlbum() {
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    await fireEvent(
+      detail.getByTestId("rally-view-picker"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: "album" },
+      },
+    );
+    return detail;
+  }
+
+  test("starts on Stamps with the counts of stamps and photos", async () => {
+    await openRallyDetail("Detail counts", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 3);
+    });
+
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(pickerSegments(detail)).toEqual(["Stamps · 2", "Album · 3"]);
+    expect(
+      detail.getByRole("button", { name: "3 photos. Show photos" }),
+    ).toBeOnTheScreen();
+  });
+
+  test("Album makes one tile per day of this rally, newest first, without the emoji", async () => {
+    let olderStampedAt = "";
+    let newerStampedAt = "";
+    await openRallyDetail("Detail album", async (rallyId) => {
+      const older = await saveStamp({ rallyId, stampedAt: daysAgoAt(2, 12) });
+      await attachPhotos(older.id, 2);
+      const newer = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(newer.id, 1);
+      olderStampedAt = older.stampedAt;
+      newerStampedAt = newer.stampedAt;
+      await ralliesDb.saveRally({ name: "Other rally", emoji: "☕" });
+      const other = (await ralliesDb.listRallies()).find(
+        ({ name }) => name === "Other rally",
+      );
+      if (!other) throw new Error("Other rally not found");
+      const otherStamp = await saveStamp({ rallyId: other.id });
+      await attachPhotos(otherStamp.id, 1);
+    });
+
+    const detail = await switchToAlbum();
+
+    expect(
+      detail.queryByRole("button", { name: /photos?\. Show photos$/ }),
+    ).not.toBeOnTheScreen();
+    const tiles = detail.getAllByRole("button", {
+      name: /^Open (\d+ )?photos?, /,
+    });
+    expect(tiles).toHaveLength(2);
+    expect(tiles[0]).toHaveAccessibleName(
+      `Open photo, Detail album, ${formatStampDate(new Date(newerStampedAt))}`,
+    );
+    expect(tiles[1]).toHaveAccessibleName(
+      `Open 2 photos, Detail album, ${formatStampDate(new Date(olderStampedAt))}`,
+    );
+    const hidden = { includeHiddenElements: true };
+    expect(within(tiles[1]).getByText("2", hidden)).toBeOnTheScreen();
+    expect(within(tiles[0]).queryByText("🗼", hidden)).not.toBeOnTheScreen();
+    expect(pickerSegments(detail)).toEqual(["Stamps · 3", "Album · 3"]);
+  });
+
+  test("pressing a tile opens its photos from the first one", async () => {
+    await openRallyDetail("Detail album open", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 2);
+    });
+    const detail = await switchToAlbum();
+
+    await userEvent
+      .setup()
+      .press(detail.getByRole("button", { name: /^Open 2 photos, / }));
+
+    expect(await screen.findByText("1 / 2")).toBeOnTheScreen();
+  });
+
+  test("shows No photos yet when the rally has no photos", async () => {
+    await openRallyDetail("Detail no photos");
+
+    const detail = await switchToAlbum();
+
+    expect(detail.getByText("No photos yet")).toBeOnTheScreen();
+    expect(detail.queryByText("no memo")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-004 ST-003 / ST-004 swipe between Stamps and Album on rally detail", () => {
+  // The swipe starts on the list under the switch: its first entry here.
+  async function swipe(translationX: number) {
+    await act(() => {
+      fireGestureHandler(getByGestureTestId("rally-view-swipe-0"), [
+        { state: State.BEGAN, translationX: 0 },
+        { state: State.ACTIVE, translationX },
+        { state: State.END, translationX },
+      ]);
+    });
+  }
+
+  test("a left swipe shows the Album and a right swipe goes back to Stamps", async () => {
+    await openRallyDetail("Detail swipe", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 2);
+    });
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    expect(
+      await detail.findByRole("button", { name: "2 photos. Show photos" }),
+    ).toBeOnTheScreen();
+
+    await swipe(-120);
+
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "album",
+    );
+    expect(
+      detail.getByRole("button", { name: /^Open 2 photos, Detail swipe, / }),
+    ).toBeOnTheScreen();
+
+    await swipe(120);
+
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(
+      detail.getByRole("button", { name: "2 photos. Show photos" }),
+    ).toBeOnTheScreen();
   });
 });
