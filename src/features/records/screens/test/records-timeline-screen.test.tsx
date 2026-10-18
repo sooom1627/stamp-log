@@ -726,10 +726,11 @@ describe("S-037 T-002 ST-002 / T-003 ST-004 Logs Album", () => {
   });
 });
 
-describe("S-037 T-004 ST-002 swipe between Stamps and Album on Logs", () => {
-  async function swipe(translationX: number) {
+describe("S-037 T-004 ST-002 / ST-004 swipe between Stamps and Album on Logs", () => {
+  // The swipe starts on the list under the switch: its first entry here.
+  async function swipe(translationX: number, on = "logs-view-swipe-0") {
     await act(() => {
-      fireGestureHandler(getByGestureTestId("logs-view-swipe"), [
+      fireGestureHandler(getByGestureTestId(on), [
         { state: State.BEGAN, translationX: 0 },
         { state: State.ACTIVE, translationX },
         { state: State.END, translationX },
@@ -794,5 +795,23 @@ describe("S-037 T-004 ST-002 swipe between Stamps and Album on Logs", () => {
       "selection",
       "album",
     );
+  });
+
+  test("swipes back to Stamps from the empty Album", async () => {
+    const lab = await saveRallyNamed("Swipe empty", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await showOnlyStamps([stamp.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(await logs.findByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+
+    await swipe(-120);
+    expect(logs.getByText("No photos yet")).toBeOnTheScreen();
+    await swipe(120, "logs-view-swipe-empty");
+
+    expect(logs.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
   });
 });

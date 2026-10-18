@@ -1627,10 +1627,11 @@ describe("S-037 T-002 ST-003 / T-003 ST-004 rally detail Album", () => {
   });
 });
 
-describe("S-037 T-004 ST-003 swipe between Stamps and Album on rally detail", () => {
+describe("S-037 T-004 ST-003 / ST-004 swipe between Stamps and Album on rally detail", () => {
+  // The swipe starts on the list under the switch: its first entry here.
   async function swipe(translationX: number) {
     await act(() => {
-      fireGestureHandler(getByGestureTestId("rally-view-swipe"), [
+      fireGestureHandler(getByGestureTestId("rally-view-swipe-0"), [
         { state: State.BEGAN, translationX: 0 },
         { state: State.ACTIVE, translationX },
         { state: State.END, translationX },

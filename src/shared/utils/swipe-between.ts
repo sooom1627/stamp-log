@@ -9,9 +9,6 @@ type SwipeBetweenOptions<T> = {
   value: T;
   onChange: (value: T) => void;
   isEnabled?: boolean;
-  // Points at the left edge where the swipe cannot start, leaving that edge
-  // to the system back gesture on a pushed screen.
-  leftEdge?: number;
 };
 
 // Switches a segmented choice by swiping sideways (S-039, S-037): left goes
@@ -23,12 +20,10 @@ export function swipeBetween<T>({
   value,
   onChange,
   isEnabled = true,
-  leftEdge = 0,
 }: SwipeBetweenOptions<T>) {
   return Gesture.Pan()
     .withTestId(testId)
     .enabled(isEnabled)
-    .hitSlop({ left: -leftEdge })
     .activeOffsetX([-20, 20])
     .failOffsetY([-15, 15])
     .runOnJS(true)
