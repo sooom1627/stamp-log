@@ -1,7 +1,7 @@
 import { Directory, File, Paths } from "expo-file-system";
 
 import { withAppDb } from "../schema";
-import { stampPhotoUri } from "../stamp-photo-files";
+import { stampPhotoThumbUri, stampPhotoUri } from "../stamp-photo-files";
 import {
   deleteRallyStamps,
   deleteStamp,
@@ -28,6 +28,10 @@ const pickPhoto = () => {
 };
 const savedPhotoFiles = () => {
   const directory = new Directory(Paths.document, "stamp-photos");
+  return directory.exists ? directory.list() : [];
+};
+const savedThumbFiles = () => {
+  const directory = new Directory(Paths.document, "stamp-photo-thumbs");
   return directory.exists ? directory.list() : [];
 };
 
@@ -707,5 +711,56 @@ describe("S-036 ST-003 replacing photos on update", () => {
       stamp.photos.every(({ fileName }) => photoFileExists(fileName)),
     ).toBe(true);
     expect(savedPhotoFiles()).toHaveLength(filesBefore);
+  });
+});
+
+describe("S-037 T-005 ST-002 small copies for the album", () => {
+  test("keeps a small re-encoded copy beside each saved photo", async () => {
+    const saved = await saveStamp({ rallyId: 501 });
+    const pickedUri = pickPhoto();
+
+    const {
+      photos: [photo],
+    } = await updateStampMemo({
+      id: saved.id,
+      memo: "",
+      photoUris: [pickedUri],
+    });
+
+    const thumbUri = stampPhotoThumbUri(photo.fileName);
+    expect(thumbUri).not.toBe(stampPhotoUri(photo.fileName));
+    // The mock's picked photo is 4000 x 3000, so the short side is the height.
+    expect(new File(thumbUri).textSync()).toBe(
+      `re-encoded:${pickedUri}:resized:{"height":400}`,
+    );
+    expect(new File(stampPhotoUri(photo.fileName)).textSync()).toBe(
+      `re-encoded:${pickedUri}`,
+    );
+  });
+
+  test("removes the small copy with the photo", async () => {
+    const saved = await saveStamp({ rallyId: 502 });
+    const {
+      photos: [photo],
+    } = await updateStampMemo({
+      id: saved.id,
+      memo: "",
+      photoUris: [pickPhoto()],
+    });
+    const thumbUri = stampPhotoThumbUri(photo.fileName);
+    expect(new File(thumbUri).exists).toBe(true);
+    const thumbsBefore = savedThumbFiles().length;
+
+    await deleteStamp(saved.id);
+
+    expect(new File(thumbUri).exists).toBe(false);
+    expect(new File(stampPhotoUri(photo.fileName)).exists).toBe(false);
+    expect(savedThumbFiles()).toHaveLength(thumbsBefore - 1);
+  });
+
+  test("falls back to the photo itself when it has no small copy", () => {
+    expect(stampPhotoThumbUri("saved-before-thumbs.jpg")).toBe(
+      stampPhotoUri("saved-before-thumbs.jpg"),
+    );
   });
 });
