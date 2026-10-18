@@ -1,6 +1,6 @@
 import { localDateKeyFromIso } from "@/shared/utils/local-date-key";
 
-import { stampPhotoUri } from "../db/stamp-photo-files";
+import { stampPhotoThumbUri, stampPhotoUri } from "../db/stamp-photo-files";
 import { type Rally } from "../schemas/rallies";
 import { type Stamp, type StampPhoto } from "../schemas/stamps";
 
@@ -54,7 +54,7 @@ export function albumTiles(
           {
             key,
             coverPhotoId: cover.id,
-            coverUri: stampPhotoUri(cover.fileName),
+            coverUri: stampPhotoThumbUri(cover.fileName),
             photoCount: group.reduce(
               (sum, { photos }) => sum + photos.length,
               0,

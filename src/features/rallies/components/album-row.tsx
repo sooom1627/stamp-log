@@ -53,7 +53,10 @@ export function AlbumRow({ tiles, showsEmoji }: AlbumRowProps) {
           className="bg-surface-muted aspect-square flex-1"
         >
           <Image
+            testID="album-tile-image"
             source={{ uri: tile.coverUri }}
+            // A file on the device: keep the decoded image in memory only.
+            cachePolicy="memory"
             contentFit="cover"
             style={{ flex: 1 }}
           />

@@ -20,6 +20,7 @@ import {
 
 import * as ralliesDb from "@/features/rallies/db/rallies-db";
 import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
+import { stampPhotoThumbUri } from "@/features/rallies/db/stamp-photo-files";
 import * as stampsDb from "@/features/rallies/db/stamps-db";
 import {
   listStamps,
@@ -813,5 +814,33 @@ describe("S-037 T-004 ST-002 / ST-004 swipe between Stamps and Album on Logs", (
     await swipe(120, "logs-view-swipe-empty");
 
     expect(logs.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-005 ST-003 small copies in the Album", () => {
+  test("a tile shows the small copy of its first photo", async () => {
+    const lab = await saveRallyNamed("Album thumbs", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 2);
+    await showOnlyStamps([stamp.id]);
+    const [cover] = (await listStamps()).find(
+      ({ id }) => id === stamp.id,
+    )!.photos;
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "album" },
+    });
+
+    const tile = logs.getByRole("button", {
+      name: /^Open 2 photos, Album thumbs, /,
+    });
+
+    expect(within(tile).getByTestId("album-tile-image")).toHaveProp("source", [
+      { uri: stampPhotoThumbUri(cover.fileName) },
+    ]);
   });
 });
