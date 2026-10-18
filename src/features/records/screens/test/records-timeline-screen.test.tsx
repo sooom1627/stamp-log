@@ -12,6 +12,11 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
+import { State } from "react-native-gesture-handler";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 
 import * as ralliesDb from "@/features/rallies/db/rallies-db";
 import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
@@ -718,5 +723,76 @@ describe("S-037 T-002 ST-002 / T-003 ST-004 Logs Album", () => {
 
     expect(logs.getByText("No photos yet")).toBeOnTheScreen();
     expect(logs.queryByTestId(`stamp-post-${stamp.id}`)).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-004 ST-002 swipe between Stamps and Album on Logs", () => {
+  async function swipe(translationX: number) {
+    await act(() => {
+      fireGestureHandler(getByGestureTestId("logs-view-swipe"), [
+        { state: State.BEGAN, translationX: 0 },
+        { state: State.ACTIVE, translationX },
+        { state: State.END, translationX },
+      ]);
+    });
+  }
+
+  async function openLogsWithPhotos() {
+    const lab = await saveRallyNamed("Swipe lab", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 1);
+    await showOnlyStamps([stamp.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(await logs.findByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+    return { logs, stamp };
+  }
+
+  test("a left swipe shows the Album and a right swipe goes back to Stamps", async () => {
+    const { logs, stamp } = await openLogsWithPhotos();
+
+    await swipe(-120);
+
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "album",
+    );
+    expect(
+      logs.getByRole("button", { name: /^Open photo, Swipe lab, / }),
+    ).toBeOnTheScreen();
+
+    await swipe(120);
+
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(logs.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+  });
+
+  test("stays put at the ends and on a short move", async () => {
+    const { logs } = await openLogsWithPhotos();
+
+    await swipe(120);
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+
+    await swipe(-20);
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+
+    await swipe(-120);
+    await swipe(-120);
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "album",
+    );
   });
 });

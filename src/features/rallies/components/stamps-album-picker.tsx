@@ -3,6 +3,9 @@ import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
 export type StampsView = "stamps" | "album";
 
+// In the order of the segments, for switching by a sideways swipe.
+export const stampsViews: readonly StampsView[] = ["stamps", "album"];
+
 type StampsAlbumPickerProps = {
   testID: string;
   view: StampsView;

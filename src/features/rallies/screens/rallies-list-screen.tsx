@@ -6,9 +6,10 @@ import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { Button, Host, Picker, Text as SwiftText } from "@expo/ui/swift-ui";
 import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { GestureDetector } from "react-native-gesture-handler";
 
 import { LoadError } from "@/shared/components/load-error";
+import { swipeBetween } from "@/shared/utils/swipe-between";
 
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
@@ -17,9 +18,6 @@ import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
-
-// A swipe shorter than this stays on the tab.
-const SWIPE_DISTANCE = 60;
 
 // Matches the screen's px-5 and the grid's gap-2.5.
 const SCREEN_PADDING = 20;
@@ -32,6 +30,7 @@ const filters: { value: RalliesFilter; label: string; empty: string }[] = [
   { value: "favorites", label: "Favorites", empty: "No favorites yet" },
   { value: "archived", label: "Archived", empty: "No archived rallies" },
 ];
+const filterValues = filters.map(({ value }) => value);
 
 function isInFilter(rally: Rally, filter: RalliesFilter) {
   if (filter === "archived") return rally.isArchived;
@@ -80,19 +79,12 @@ export function RalliesListScreen() {
   const emptyText = filters.find(({ value }) => value === filter)?.empty;
   const openCreateRally = () => push("/create-rally");
 
-  // Left goes to the next tab, right to the previous one; the ends stay put.
-  // It starts only on a sideways move, so vertical scrolling is untouched.
-  const swipeTabs = Gesture.Pan()
-    .withTestId("rallies-list-swipe")
-    .activeOffsetX([-20, 20])
-    .failOffsetY([-15, 15])
-    .runOnJS(true)
-    .onEnd(({ translationX }) => {
-      if (Math.abs(translationX) < SWIPE_DISTANCE) return;
-      const index = filters.findIndex(({ value }) => value === filter);
-      const next = filters[index + (translationX < 0 ? 1 : -1)];
-      if (next) setFilter(next.value);
-    });
+  const swipeTabs = swipeBetween({
+    testId: "rallies-list-swipe",
+    values: filterValues,
+    value: filter,
+    onChange: setFilter,
+  });
 
   const retryLists = () => {
     void refetchRallies();

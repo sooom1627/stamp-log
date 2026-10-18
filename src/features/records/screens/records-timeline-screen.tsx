@@ -4,12 +4,15 @@ import { FlatList, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { GestureDetector } from "react-native-gesture-handler";
+
 import { AlbumRow, albumRows } from "@/features/rallies/components/album-row";
 import { DayCard } from "@/features/rallies/components/day-card";
 import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import {
   StampsAlbumPicker,
+  stampsViews,
   type StampsView,
 } from "@/features/rallies/components/stamps-album-picker";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
@@ -25,6 +28,7 @@ import {
 } from "@/shared/components/tab-root-screen";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
+import { swipeBetween } from "@/shared/utils/swipe-between";
 
 import { buildDayMarks } from "../utils/day-marks";
 
@@ -81,6 +85,14 @@ export function RecordsTimelineScreen() {
   const tiles = albumTiles(stamps ?? [], rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const isAlbum = view === "album";
+  // Only while the switch is shown: without stamps there is nothing to swipe to.
+  const swipeViews = swipeBetween({
+    testId: "logs-view-swipe",
+    values: stampsViews,
+    value: view,
+    onChange: setView,
+    isEnabled: posts.length > 0,
+  });
   // One list for both views, so the calendar above keeps its state.
   const items: (
     | { kind: "row"; key: string; row: AlbumTile[] }
@@ -99,78 +111,83 @@ export function RecordsTimelineScreen() {
 
   return (
     <>
-      <FlatList
-        aria-label="Logs timeline"
-        className="bg-canvas flex-1"
-        contentContainerClassName={
-          isAlbum ? "gap-0.5 px-5 pb-32" : "gap-4 px-5 pb-32"
-        }
-        contentInsetAdjustmentBehavior="automatic"
-        data={items}
-        keyExtractor={({ key }) => key}
-        renderItem={({ item }) => {
-          if (item.kind === "row") {
-            return <AlbumRow tiles={item.row} showsEmoji />;
+      <GestureDetector gesture={swipeViews}>
+        <FlatList
+          aria-label="Logs timeline"
+          className="bg-canvas flex-1"
+          contentContainerClassName={
+            isAlbum ? "gap-0.5 px-5 pb-32" : "gap-4 px-5 pb-32"
           }
-          const { dateKey, data } = item.section;
-          return (
-            <DayCard dateKey={dateKey} date={new Date(data[0].stamp.stampedAt)}>
-              {data.map(({ stamp, rally }) => (
-                <StampPost
-                  key={stamp.id}
-                  stamp={stamp}
-                  emoji={rally.emoji}
-                  title={rally.name}
-                  detail={formatStampTime(new Date(stamp.stampedAt))}
-                  onPress={() =>
-                    push({
-                      pathname: "/records/rallies/[id]",
-                      params: { id: rally.id },
-                    })
-                  }
-                />
-              ))}
-            </DayCard>
-          );
-        }}
-        ListHeaderComponent={
-          <View>
-            <TabRootSubtitle>Your days, one stamp at a time</TabRootSubtitle>
-            {/* Not linked to the list: moving it leaves the posts as they are. */}
-            <RallyMonthCalendar
-              testID="logs-calendar"
-              stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
-              dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
-              isRecordedOnly
-              onPressDay={(date) =>
-                push({ pathname: "/logs-day", params: { date } })
-              }
+          contentInsetAdjustmentBehavior="automatic"
+          data={items}
+          keyExtractor={({ key }) => key}
+          renderItem={({ item }) => {
+            if (item.kind === "row") {
+              return <AlbumRow tiles={item.row} showsEmoji />;
+            }
+            const { dateKey, data } = item.section;
+            return (
+              <DayCard
+                dateKey={dateKey}
+                date={new Date(data[0].stamp.stampedAt)}
+              >
+                {data.map(({ stamp, rally }) => (
+                  <StampPost
+                    key={stamp.id}
+                    stamp={stamp}
+                    emoji={rally.emoji}
+                    title={rally.name}
+                    detail={formatStampTime(new Date(stamp.stampedAt))}
+                    onPress={() =>
+                      push({
+                        pathname: "/records/rallies/[id]",
+                        params: { id: rally.id },
+                      })
+                    }
+                  />
+                ))}
+              </DayCard>
+            );
+          }}
+          ListHeaderComponent={
+            <View>
+              <TabRootSubtitle>Your days, one stamp at a time</TabRootSubtitle>
+              {/* Not linked to the list: moving it leaves the posts as they are. */}
+              <RallyMonthCalendar
+                testID="logs-calendar"
+                stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
+                dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
+                isRecordedOnly
+                onPressDay={(date) =>
+                  push({ pathname: "/logs-day", params: { date } })
+                }
+              />
+              {posts.length > 0 ? (
+                <View className="mt-6 mb-2">
+                  <StampsAlbumPicker
+                    testID="logs-view-picker"
+                    view={view}
+                    stampCount={posts.length}
+                    photoCount={photoCount}
+                    onChangeView={setView}
+                  />
+                </View>
+              ) : null}
+            </View>
+          }
+          ListEmptyComponent={
+            <TimelineEmpty
+              isError={isError}
+              isLoaded={isLoaded}
+              message={isAlbum ? "No photos yet" : "No stamps yet"}
+              onRetry={() => {
+                void refetchStamps();
+                void refetchRallies();
+              }}
             />
-            {posts.length > 0 ? (
-              <View className="mt-6 mb-2">
-                <StampsAlbumPicker
-                  testID="logs-view-picker"
-                  view={view}
-                  stampCount={posts.length}
-                  photoCount={photoCount}
-                  onChangeView={setView}
-                />
-              </View>
-            ) : null}
-          </View>
-        }
-        ListEmptyComponent={
-          <TimelineEmpty
-            isError={isError}
-            isLoaded={isLoaded}
-            message={isAlbum ? "No photos yet" : "No stamps yet"}
-            onRetry={() => {
-              void refetchStamps();
-              void refetchRallies();
-            }}
-          />
-        }
-      />
+          }
+        />
+      </GestureDetector>
       <TabRootHeader title="Logs" />
     </>
   );
