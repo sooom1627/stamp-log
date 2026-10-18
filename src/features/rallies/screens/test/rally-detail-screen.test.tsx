@@ -12,6 +12,11 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
+import { State } from "react-native-gesture-handler";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 import { toast } from "sonner-native";
 
 import {
@@ -1619,5 +1624,48 @@ describe("S-037 T-002 ST-003 / T-003 ST-004 rally detail Album", () => {
 
     expect(detail.getByText("No photos yet")).toBeOnTheScreen();
     expect(detail.queryByText("no memo")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-004 ST-003 swipe between Stamps and Album on rally detail", () => {
+  async function swipe(translationX: number) {
+    await act(() => {
+      fireGestureHandler(getByGestureTestId("rally-view-swipe"), [
+        { state: State.BEGAN, translationX: 0 },
+        { state: State.ACTIVE, translationX },
+        { state: State.END, translationX },
+      ]);
+    });
+  }
+
+  test("a left swipe shows the Album and a right swipe goes back to Stamps", async () => {
+    await openRallyDetail("Detail swipe", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 2);
+    });
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    expect(
+      await detail.findByRole("button", { name: "2 photos. Show photos" }),
+    ).toBeOnTheScreen();
+
+    await swipe(-120);
+
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "album",
+    );
+    expect(
+      detail.getByRole("button", { name: /^Open 2 photos, Detail swipe, / }),
+    ).toBeOnTheScreen();
+
+    await swipe(120);
+
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(
+      detail.getByRole("button", { name: "2 photos. Show photos" }),
+    ).toBeOnTheScreen();
   });
 });
