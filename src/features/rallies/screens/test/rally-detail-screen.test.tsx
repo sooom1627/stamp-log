@@ -1382,15 +1382,13 @@ describe("S-032 T-001 ST-006 favorite star in the header", () => {
 
     await fireEvent(star, "buttonPress");
 
-    await waitFor(async () => {
-      await expect(isFavoriteSaved(rally.id)).resolves.toBe(true);
-    });
     await waitFor(() => {
       expect(screen.getByTestId("rally-favorite")).toHaveProp(
         "label",
         "Remove from favorites",
       );
     });
+    expect(await isFavoriteSaved(rally.id)).toBe(true);
     expect(screen.getByTestId("rally-favorite")).toHaveProp(
       "systemImage",
       "star.fill",
@@ -1408,15 +1406,13 @@ describe("S-032 T-001 ST-006 favorite star in the header", () => {
 
     await fireEvent(star, "buttonPress");
 
-    await waitFor(async () => {
-      await expect(isFavoriteSaved(rally.id)).resolves.toBe(false);
-    });
     await waitFor(() => {
       expect(screen.getByTestId("rally-favorite")).toHaveProp(
         "label",
         "Add to favorites",
       );
     });
+    expect(await isFavoriteSaved(rally.id)).toBe(false);
   });
 
   test("keeps the star out of the actions menu", async () => {
@@ -1452,11 +1448,9 @@ describe("S-039 T-002 ST-004 archive from the actions menu", () => {
 
     await pressArchiveAction();
 
-    await waitFor(async () => {
-      await expect(isArchivedSaved(rally.id)).resolves.toBe(true);
-    });
-    expect(Alert.alert).not.toHaveBeenCalled();
     expect(await screen.findByText("Archived")).toBeOnTheScreen();
+    expect(await isArchivedSaved(rally.id)).toBe(true);
+    expect(Alert.alert).not.toHaveBeenCalled();
     expect(screen.getByTestId("rally-action-archive")).toHaveProp(
       "label",
       "Unarchive rally",

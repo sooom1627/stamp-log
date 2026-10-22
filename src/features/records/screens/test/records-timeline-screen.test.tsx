@@ -12,11 +12,6 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
-import { State } from "react-native-gesture-handler";
-import {
-  fireGestureHandler,
-  getByGestureTestId,
-} from "react-native-gesture-handler/jest-utils";
 
 import * as ralliesDb from "@/features/rallies/db/rallies-db";
 import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
@@ -35,6 +30,12 @@ import {
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 jest.useFakeTimers();
+
+// The native commands the pager sends to turn its page. Jest loads the
+// package's CommonJS build, so spy on that copy.
+const { Commands: PagerViewCommands } = jest.requireActual<
+  typeof import("react-native-pager-view/lib/typescript/PagerViewNativeComponent")
+>("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 // Photos the user picked in the library, saved onto the stamp (S-035).
 let nextPickedPhotoId = 1;
@@ -665,10 +666,11 @@ describe("S-037 T-002 ST-002 / T-003 ST-004 Logs Album", () => {
 
     const logs = await switchToAlbum();
 
+    const album = within(logs.getByTestId("logs-view-pager-album"));
     expect(
-      logs.queryByTestId(`stamp-post-${cafeDay.id}`),
+      album.queryByTestId(`stamp-post-${cafeDay.id}`),
     ).not.toBeOnTheScreen();
-    const tiles = logs.getAllByRole("button", {
+    const tiles = album.getAllByRole("button", {
       name: /^Open (\d+ )?photos?, /,
     });
     const day = (iso: string) => formatStampDate(new Date(iso));
@@ -722,25 +724,15 @@ describe("S-037 T-002 ST-002 / T-003 ST-004 Logs Album", () => {
 
     const logs = await switchToAlbum();
 
-    expect(logs.getByText("No photos yet")).toBeOnTheScreen();
-    expect(logs.queryByTestId(`stamp-post-${stamp.id}`)).not.toBeOnTheScreen();
+    const album = within(logs.getByTestId("logs-view-pager-album"));
+    expect(album.getByText("No photos yet")).toBeOnTheScreen();
+    expect(album.queryByTestId(`stamp-post-${stamp.id}`)).not.toBeOnTheScreen();
   });
 });
 
-describe("S-037 T-004 ST-002 / ST-004 swipe between Stamps and Album on Logs", () => {
-  // The swipe starts on the list under the switch: its first entry here.
-  async function swipe(translationX: number, on = "logs-view-swipe-0") {
-    await act(() => {
-      fireGestureHandler(getByGestureTestId(on), [
-        { state: State.BEGAN, translationX: 0 },
-        { state: State.ACTIVE, translationX },
-        { state: State.END, translationX },
-      ]);
-    });
-  }
-
+describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
   async function openLogsWithPhotos() {
-    const lab = await saveRallyNamed("Swipe lab", "🔬");
+    const lab = await saveRallyNamed("Pager lab", "🔬");
     const stamp = await saveStamp({
       rallyId: lab.id,
       stampedAt: daysAgoAt(1, 19),
@@ -753,67 +745,60 @@ describe("S-037 T-004 ST-002 / ST-004 swipe between Stamps and Album on Logs", (
     return { logs, stamp };
   }
 
-  test("a left swipe shows the Album and a right swipe goes back to Stamps", async () => {
+  test("keeps the calendar and the switch above two pages, Stamps then Album", async () => {
     const { logs, stamp } = await openLogsWithPhotos();
 
-    await swipe(-120);
+    const pager = within(logs.getByTestId("logs-view-pager"));
+    expect(pager.queryByTestId("logs-calendar")).not.toBeOnTheScreen();
+    expect(pager.queryByTestId("logs-view-picker")).not.toBeOnTheScreen();
+    const stampsPage = within(pager.getByTestId("logs-view-pager-stamps"));
+    const albumPage = within(pager.getByTestId("logs-view-pager-album"));
+    expect(stampsPage.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+    expect(
+      albumPage.getByRole("button", { name: /^Open photo, Pager lab, / }),
+    ).toBeOnTheScreen();
+  });
 
+  test("turning the page changes the switch", async () => {
+    const { logs } = await openLogsWithPhotos();
+    const pager = logs.getByTestId("logs-view-pager");
+
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 1 } });
     expect(logs.getByTestId("logs-view-picker")).toHaveProp(
       "selection",
       "album",
     );
-    expect(
-      logs.getByRole("button", { name: /^Open photo, Swipe lab, / }),
-    ).toBeOnTheScreen();
 
-    await swipe(120);
-
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 0 } });
     expect(logs.getByTestId("logs-view-picker")).toHaveProp(
       "selection",
       "stamps",
     );
-    expect(logs.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
   });
 
-  test("stays put at the ends and on a short move", async () => {
+  test("choosing on the switch turns the page", async () => {
+    // The page turn itself is native; check that it is asked for.
+    const setPage = jest.spyOn(PagerViewCommands, "setPage");
     const { logs } = await openLogsWithPhotos();
 
-    await swipe(120);
-    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
-      "selection",
-      "stamps",
-    );
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "album" },
+    });
+    expect(setPage).toHaveBeenLastCalledWith(expect.anything(), 1);
 
-    await swipe(-20);
-    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
-      "selection",
-      "stamps",
-    );
-
-    await swipe(-120);
-    await swipe(-120);
-    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
-      "selection",
-      "album",
-    );
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "stamps" },
+    });
+    expect(setPage).toHaveBeenLastCalledWith(expect.anything(), 0);
   });
 
-  test("swipes back to Stamps from the empty Album", async () => {
-    const lab = await saveRallyNamed("Swipe empty", "🔬");
-    const stamp = await saveStamp({
-      rallyId: lab.id,
-      stampedAt: daysAgoAt(1, 19),
-    });
-    await showOnlyStamps([stamp.id]);
+  test("has no pages without stamps", async () => {
+    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
     await openLogs();
     const logs = within(await screen.findByLabelText("Logs timeline"));
-    expect(await logs.findByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
 
-    await swipe(-120);
-    expect(logs.getByText("No photos yet")).toBeOnTheScreen();
-    await swipe(120, "logs-view-swipe-empty");
-
-    expect(logs.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+    expect(await logs.findByText("No stamps yet")).toBeOnTheScreen();
+    expect(logs.queryByTestId("logs-view-pager")).not.toBeOnTheScreen();
   });
 });
 
