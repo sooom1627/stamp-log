@@ -61,11 +61,13 @@ describe("S-011 Logs title", () => {
 });
 
 describe("S-033 T-001 ST-001 tab root background", () => {
-  // The scroll view (a FlatList on Logs) is the tab's whole background.
+  // The root fills the tab: Home's scroll view, and on Logs the view that
+  // holds the fixed top and the pages (S-043).
   function tabBackgrounds() {
-    return screen.container
-      .queryAll((instance) => instance.type === "RCTScrollView")
-      .map((instance) => instance.props.className);
+    return [
+      screen.getByLabelText("Home"),
+      screen.getByLabelText("Logs timeline"),
+    ].map((root) => root.props.className);
   }
 
   test("paints both tabs with the canvas color, not the plain background", async () => {
