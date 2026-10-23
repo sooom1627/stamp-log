@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Alert, FlatList, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
+import { useHeaderHeight } from "expo-router/react-navigation";
 
 import { LoadError } from "@/shared/components/load-error";
-import { SwipeBetweenArea } from "@/shared/components/swipe-between-area";
+import { SwipePages } from "@/shared/components/swipe-pages";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
@@ -30,7 +31,7 @@ import {
 } from "../hooks/use-rallies";
 import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
-import { albumTiles, type AlbumTile } from "../utils/album-photos";
+import { albumTiles } from "../utils/album-photos";
 import { buildRallySummary } from "../utils/rally-summary";
 
 type TimelineEmptyProps = {
@@ -75,6 +76,7 @@ type RallyDetailScreenProps = {
 
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
+  const headerHeight = useHeaderHeight();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
   const { data: rally } = useRally(rallyId);
@@ -103,29 +105,6 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
 
   const tiles = albumTiles(stamps ?? [], [rally]);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
-  const isAlbum = view === "album";
-  const swipeOptions = {
-    values: stampsViews,
-    value: view,
-    onChange: setView,
-    isEnabled: (stamps?.length ?? 0) > 0,
-  };
-  // One list for both views, so the calendar above keeps its state.
-  const items: (
-    | { kind: "row"; key: string; row: AlbumTile[] }
-    | { kind: "day"; key: string; section: (typeof sections)[number] }
-  )[] = isAlbum
-    ? albumRows(tiles).map((row) => ({
-        kind: "row",
-        key: `row-${row[0].key}`,
-        row,
-      }))
-    : sections.map((section) => ({
-        kind: "day",
-        key: section.dateKey,
-        section,
-      }));
-
   const confirmDelete = () =>
     Alert.alert("Delete rally?", deleteRallyMessage(stamps?.length), [
       { text: "Cancel", style: "cancel" },
@@ -136,111 +115,122 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       },
     ]);
 
-  const renderEntry = (item: (typeof items)[number]) => {
-    // One rally's photos, so the tiles need no emoji.
-    if (item.kind === "row") {
-      return <AlbumRow tiles={item.row} showsEmoji={false} />;
-    }
-    const { dateKey, data } = item.section;
-    return (
-      <DayCard dateKey={dateKey} date={new Date(data[0].stampedAt)}>
-        {data.map((stamp) => (
-          <StampPost
-            key={stamp.id}
-            stamp={stamp}
-            emoji={rally.emoji}
-            title={formatStampTime(new Date(stamp.stampedAt))}
-          />
-        ))}
-      </DayCard>
-    );
-  };
-
   return (
     <>
-      <FlatList
+      {/* The header is transparent, so the fixed top starts below it. */}
+      <View
         aria-label="Rally detail"
         className="bg-canvas flex-1"
-        contentContainerClassName={
-          isAlbum ? "gap-0.5 px-5 py-6" : "gap-6 px-5 py-6"
-        }
-        contentInsetAdjustmentBehavior="automatic"
-        data={items}
-        keyExtractor={({ key }) => key}
-        renderItem={({ item, index }) => (
-          <SwipeBetweenArea
-            testId={`rally-view-swipe-${index}`}
-            {...swipeOptions}
-          >
-            {renderEntry(item)}
-          </SwipeBetweenArea>
-        )}
-        ListHeaderComponent={
+        style={{ paddingTop: headerHeight }}
+      >
+        <View className="items-center gap-4 px-5 pt-6">
           <View
-            className={
-              isAlbum ? "items-center gap-4 pb-6" : "items-center gap-4"
-            }
+            testID="rally-top-panel"
+            className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
           >
-            <View
-              testID="rally-top-panel"
-              className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
-            >
-              <View className="bg-background size-20 items-center justify-center rounded-full">
-                <Text className="text-5xl">{rally.emoji}</Text>
-              </View>
-              <Text
-                selectable
-                role="heading"
-                className="text-foreground mt-1 text-2xl font-bold"
-              >
-                {rally.name}
-              </Text>
-              {rally.isArchived ? (
-                <Text className="text-foreground-muted text-sm font-medium">
-                  Archived
-                </Text>
-              ) : null}
-              {stamps ? (
-                <Text className="text-accent-strong text-base font-semibold">
-                  {formatStampCount(stamps.length)}
-                </Text>
-              ) : null}
-              {stamps ? <RallySummaryStats summary={summary} /> : null}
+            <View className="bg-background size-20 items-center justify-center rounded-full">
+              <Text className="text-5xl">{rally.emoji}</Text>
             </View>
-            <RallyMonthCalendar
-              stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
-              emoji={rally.emoji}
-              onPressDay={(date) =>
-                push({
-                  pathname: "/rally-day",
-                  params: { rallyId: rally.id, date },
-                })
-              }
-            />
-            {stamps && stamps.length > 0 ? (
-              <View className="w-full pt-4">
-                <StampsAlbumPicker
-                  testID="rally-view-picker"
-                  view={view}
-                  stampCount={stamps.length}
-                  photoCount={photoCount}
-                  onChangeView={setView}
-                />
-              </View>
+            <Text
+              selectable
+              role="heading"
+              className="text-foreground mt-1 text-2xl font-bold"
+            >
+              {rally.name}
+            </Text>
+            {rally.isArchived ? (
+              <Text className="text-foreground-muted text-sm font-medium">
+                Archived
+              </Text>
             ) : null}
+            {stamps ? (
+              <Text className="text-accent-strong text-base font-semibold">
+                {formatStampCount(stamps.length)}
+              </Text>
+            ) : null}
+            {stamps ? <RallySummaryStats summary={summary} /> : null}
           </View>
-        }
-        ListEmptyComponent={
-          <SwipeBetweenArea testId="rally-view-swipe-empty" {...swipeOptions}>
-            <TimelineEmpty
-              isError={isStampsError}
-              isLoaded={isStampsLoaded}
-              message={isAlbum ? "No photos yet" : "No stamps yet"}
-              onRetry={() => void refetchStamps()}
-            />
-          </SwipeBetweenArea>
-        }
-      />
+          <RallyMonthCalendar
+            stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+            emoji={rally.emoji}
+            onPressDay={(date) =>
+              push({
+                pathname: "/rally-day",
+                params: { rallyId: rally.id, date },
+              })
+            }
+          />
+          {stamps && stamps.length > 0 ? (
+            <View className="w-full pt-4">
+              <StampsAlbumPicker
+                testID="rally-view-picker"
+                view={view}
+                stampCount={stamps.length}
+                photoCount={photoCount}
+                onChangeView={setView}
+              />
+            </View>
+          ) : null}
+        </View>
+        {stamps && stamps.length > 0 ? (
+          <SwipePages
+            testID="rally-view-pager"
+            values={stampsViews}
+            value={view}
+            onChange={setView}
+            renderPage={(page) =>
+              page === "stamps" ? (
+                <FlatList
+                  contentContainerClassName="gap-6 px-5 py-6"
+                  contentInsetAdjustmentBehavior="automatic"
+                  data={sections}
+                  keyExtractor={({ dateKey }) => dateKey}
+                  renderItem={({ item: { dateKey, data } }) => (
+                    <DayCard
+                      dateKey={dateKey}
+                      date={new Date(data[0].stampedAt)}
+                    >
+                      {data.map((stamp) => (
+                        <StampPost
+                          key={stamp.id}
+                          stamp={stamp}
+                          emoji={rally.emoji}
+                          title={formatStampTime(new Date(stamp.stampedAt))}
+                        />
+                      ))}
+                    </DayCard>
+                  )}
+                />
+              ) : (
+                <FlatList
+                  contentContainerClassName="gap-0.5 px-5 py-6"
+                  contentInsetAdjustmentBehavior="automatic"
+                  data={albumRows(tiles)}
+                  keyExtractor={(row) => `row-${row[0].key}`}
+                  // One rally's photos, so the tiles need no emoji.
+                  renderItem={({ item: row }) => (
+                    <AlbumRow tiles={row} showsEmoji={false} />
+                  )}
+                  ListEmptyComponent={
+                    <View className="items-center py-12">
+                      <Text className="text-foreground-secondary">
+                        No photos yet
+                      </Text>
+                    </View>
+                  }
+                />
+              )
+            }
+          />
+        ) : (
+          <TimelineEmpty
+            isError={isStampsError}
+            isLoaded={isStampsLoaded}
+            message="No stamps yet"
+            onRetry={() => void refetchStamps()}
+          />
+        )}
+      </View>
       <Stack.Title>{rally.name}</Stack.Title>
       <RallyActionsMenu
         isFavorite={rally.isFavorite}
