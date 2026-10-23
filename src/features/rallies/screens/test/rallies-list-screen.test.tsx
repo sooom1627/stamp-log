@@ -1,23 +1,23 @@
 import { renderRouter } from "expo-router/testing-library";
 
 import {
-  act,
   fireEvent,
   screen,
   userEvent,
   waitFor,
   within,
 } from "@testing-library/react-native";
-import { State } from "react-native-gesture-handler";
-import {
-  fireGestureHandler,
-  getByGestureTestId,
-} from "react-native-gesture-handler/jest-utils";
 
 import * as ralliesDb from "../../db/rallies-db";
 import * as stampsDb from "../../db/stamps-db";
 
 jest.useFakeTimers();
+
+// The native commands the pager sends to turn its page. Jest loads the
+// package's CommonJS build, so spy on that copy.
+const { Commands: PagerViewCommands } = jest.requireActual<
+  typeof import("react-native-pager-view/lib/typescript/PagerViewNativeComponent")
+>("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -59,8 +59,17 @@ function ralliesList() {
   return within(screen.getByLabelText("Rallies list"));
 }
 
+function selectedFilter() {
+  return screen.getByTestId("rallies-list-filter").props.selection;
+}
+
+// Every tab is a page and all are rendered (S-043); read the chosen one.
+function shownPage() {
+  return within(screen.getByTestId(`rallies-list-pager-${selectedFilter()}`));
+}
+
 function tileNames() {
-  return ralliesList()
+  return shownPage()
     .queryAllByRole("button", { name: /^View .* details$/ })
     .map((tile) => tile.props.accessibilityLabel);
 }
@@ -243,9 +252,9 @@ describe("S-039 T-002 ST-005 Archived in the rallies list", () => {
       expect(tileNames()).toEqual(["View Old details"]);
     });
     expect(
-      ralliesList().queryByRole("button", { name: /^Stamp .* for today$/ }),
+      shownPage().queryByRole("button", { name: /^Stamp .* for today$/ }),
     ).not.toBeOnTheScreen();
-    expect(ralliesList().getByText("0 stamps")).toBeOnTheScreen();
+    expect(shownPage().getByText("0 stamps")).toBeOnTheScreen();
   });
 
   test("says there are no archived rallies when none are archived", async () => {
@@ -260,70 +269,76 @@ describe("S-039 T-002 ST-005 Archived in the rallies list", () => {
   });
 });
 
-describe("S-039 T-003 ST-002 swipe between list tabs", () => {
+describe("S-043 T-002 ST-002 pages for the list tabs", () => {
   beforeEach(async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
     await deleteAllRallies();
   });
 
-  async function swipe(translationX: number) {
-    await act(() => {
-      fireGestureHandler(getByGestureTestId("rallies-list-swipe"), [
-        { state: State.BEGAN, translationX: 0 },
-        { state: State.ACTIVE, translationX },
-        { state: State.END, translationX },
-      ]);
-    });
-  }
-
-  function selectedFilter() {
-    return screen.getByTestId("rallies-list-filter").props.selection;
-  }
-
-  test("moves to the next tab on a left swipe and back on a right swipe", async () => {
+  test("keeps the heading and the tabs above three pages, All, Favorites and Archived", async () => {
     await saveRallyWithStamps("Active", 0);
     await saveRallyWithStamps("Loved", 0, true);
     const old = await saveRallyWithStamps("Old", 0);
     await ralliesDb.setRallyArchived({ id: old.id, isArchived: true });
 
     await openRalliesList();
-    await waitFor(() => {
-      expect(tileNames()).toHaveLength(2);
-    });
 
-    await swipe(-120);
+    const pager = within(screen.getByTestId("rallies-list-pager"));
+    expect(
+      pager.queryByRole("heading", { name: "Your Days" }),
+    ).not.toBeOnTheScreen();
+    expect(pager.queryByTestId("rallies-list-filter")).not.toBeOnTheScreen();
+    const names = (page: string) =>
+      within(pager.getByTestId(`rallies-list-pager-${page}`))
+        .queryAllByRole("button", { name: /^View .* details$/ })
+        .map((tile) => tile.props.accessibilityLabel);
     await waitFor(() => {
-      expect(tileNames()).toEqual(["View Loved details"]);
+      expect(names("all")).toEqual([
+        "View Loved details",
+        "View Active details",
+      ]);
     });
-    expect(selectedFilter()).toBe("favorites");
+    expect(names("favorites")).toEqual(["View Loved details"]);
+    expect(names("archived")).toEqual(["View Old details"]);
+  });
 
-    await swipe(-120);
-    await waitFor(() => {
-      expect(tileNames()).toEqual(["View Old details"]);
-    });
+  test("turning the page changes the tab", async () => {
+    await openRalliesList();
+    const pager = screen.getByTestId("rallies-list-pager");
+
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 2 } });
     expect(selectedFilter()).toBe("archived");
 
-    await swipe(120);
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 1 } });
     expect(selectedFilter()).toBe("favorites");
   });
 
-  test("stays on the first and last tab at the ends", async () => {
+  test("choosing a tab turns the page", async () => {
+    // The page turn itself is native; check that it is asked for.
+    const setPage = jest.spyOn(PagerViewCommands, "setPage");
     await openRalliesList();
 
-    await swipe(120);
-    expect(selectedFilter()).toBe("all");
+    await fireEvent(
+      screen.getByTestId("rallies-list-filter"),
+      "selectionChange",
+      { nativeEvent: { selection: "archived" } },
+    );
 
-    await swipe(-120);
-    await swipe(-120);
-    await swipe(-120);
-    expect(selectedFilter()).toBe("archived");
+    expect(setPage).toHaveBeenLastCalledWith(expect.anything(), 2);
   });
 
-  test("ignores a short horizontal move", async () => {
+  test("shows one load error above the pages", async () => {
+    jest
+      .spyOn(ralliesDb, "listRallies")
+      .mockRejectedValue(new Error("disk full"));
+
     await openRalliesList();
 
-    await swipe(-20);
-
-    expect(selectedFilter()).toBe("all");
+    expect(
+      await ralliesList().findByRole("button", { name: "Retry" }),
+    ).toBeOnTheScreen();
+    expect(
+      ralliesList().getAllByRole("button", { name: "Retry" }),
+    ).toHaveLength(1);
   });
 });
