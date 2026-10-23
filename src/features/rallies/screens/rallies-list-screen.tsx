@@ -3,13 +3,12 @@ import { useCallback, useState } from "react";
 import { ScrollView, Text, useWindowDimensions, View } from "react-native";
 
 import { Stack, useFocusEffect, useRouter } from "expo-router";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { Button, Host, Picker, Text as SwiftText } from "@expo/ui/swift-ui";
 import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
-import { GestureDetector } from "react-native-gesture-handler";
-
 import { LoadError } from "@/shared/components/load-error";
-import { swipeBetween } from "@/shared/utils/swipe-between";
+import { SwipePages } from "@/shared/components/swipe-pages";
 
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
@@ -46,6 +45,7 @@ function stampDatesForRally(stamps: Stamp[], rallyId: number) {
 
 export function RalliesListScreen() {
   const { push } = useRouter();
+  const headerHeight = useHeaderHeight();
   const { width: windowWidth } = useWindowDimensions();
   const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
   const [filter, setFilter] = useState<RalliesFilter>("all");
@@ -70,21 +70,7 @@ export function RalliesListScreen() {
     setShouldResort(false);
     setOrderStamps(stamps);
   }
-  const shownRallies = rallies
-    ? sortRalliesForHome(
-        rallies.filter((rally) => isInFilter(rally, filter)),
-        orderStamps ?? stamps ?? [],
-      )
-    : undefined;
-  const emptyText = filters.find(({ value }) => value === filter)?.empty;
   const openCreateRally = () => push("/create-rally");
-
-  const swipeTabs = swipeBetween({
-    testId: "rallies-list-swipe",
-    values: filterValues,
-    value: filter,
-    onChange: setFilter,
-  });
 
   const retryLists = () => {
     void refetchRallies();
@@ -100,13 +86,13 @@ export function RalliesListScreen() {
           onPress={openCreateRally}
         />
       </Stack.Toolbar>
-      <GestureDetector gesture={swipeTabs}>
-        <ScrollView
-          aria-label="Rallies list"
-          className="bg-canvas flex-1"
-          contentContainerClassName="gap-4 px-5 pt-2 pb-32"
-          contentInsetAdjustmentBehavior="automatic"
-        >
+      {/* The header is transparent, so the fixed top starts below it. */}
+      <View
+        aria-label="Rallies list"
+        className="bg-canvas flex-1"
+        style={{ paddingTop: headerHeight }}
+      >
+        <View className="gap-4 px-5 pt-2">
           {/* The native toolbar button is not in the RN tree; tests press this. */}
           {process.env.NODE_ENV === "test" ? (
             <Host matchContents>
@@ -138,45 +124,70 @@ export function RalliesListScreen() {
           {isRalliesError || isStampsError ? (
             <LoadError onRetry={retryLists} />
           ) : null}
-          {shownRallies?.length === 0 ? (
-            <Text className="text-foreground-muted py-12 text-center text-sm">
-              {emptyText}
-            </Text>
-          ) : null}
-          {shownRallies?.length ? (
-            <View className="flex-row flex-wrap gap-2.5" testID="rally-grid">
-              {shownRallies.map((rally) => (
-                <RallyTile
-                  key={rally.id}
-                  name={rally.name}
-                  emoji={rally.emoji}
-                  isFavorite={rally.isFavorite}
-                  stampDates={stampDatesForRally(stamps ?? [], rally.id)}
-                  width={tileWidth}
-                  // Archived rallies are looked back on, not stamped.
-                  onPressStamp={
-                    rally.isArchived
-                      ? undefined
-                      : () =>
-                          saveStamp(
-                            { rallyId: rally.id },
-                            {
-                              onSuccess: (stamp) => showAddMemoToast(stamp.id),
-                            },
-                          )
-                  }
-                  onPressDetail={() =>
-                    push({
-                      pathname: "/rallies/[id]",
-                      params: { id: rally.id },
-                    })
-                  }
-                />
-              ))}
-            </View>
-          ) : null}
-        </ScrollView>
-      </GestureDetector>
+        </View>
+        <SwipePages
+          testID="rallies-list-pager"
+          values={filterValues}
+          value={filter}
+          onChange={setFilter}
+          renderPage={(page) => {
+            const shownRallies = rallies
+              ? sortRalliesForHome(
+                  rallies.filter((rally) => isInFilter(rally, page)),
+                  orderStamps ?? stamps ?? [],
+                )
+              : undefined;
+            return (
+              <ScrollView
+                contentContainerClassName="px-5 pt-4 pb-32"
+                contentInsetAdjustmentBehavior="automatic"
+              >
+                {shownRallies?.length === 0 ? (
+                  <Text className="text-foreground-muted py-12 text-center text-sm">
+                    {filters.find(({ value }) => value === page)?.empty}
+                  </Text>
+                ) : null}
+                {shownRallies?.length ? (
+                  <View
+                    className="flex-row flex-wrap gap-2.5"
+                    testID="rally-grid"
+                  >
+                    {shownRallies.map((rally) => (
+                      <RallyTile
+                        key={rally.id}
+                        name={rally.name}
+                        emoji={rally.emoji}
+                        isFavorite={rally.isFavorite}
+                        stampDates={stampDatesForRally(stamps ?? [], rally.id)}
+                        width={tileWidth}
+                        // Archived rallies are looked back on, not stamped.
+                        onPressStamp={
+                          rally.isArchived
+                            ? undefined
+                            : () =>
+                                saveStamp(
+                                  { rallyId: rally.id },
+                                  {
+                                    onSuccess: (stamp) =>
+                                      showAddMemoToast(stamp.id),
+                                  },
+                                )
+                        }
+                        onPressDetail={() =>
+                          push({
+                            pathname: "/rallies/[id]",
+                            params: { id: rally.id },
+                          })
+                        }
+                      />
+                    ))}
+                  </View>
+                ) : null}
+              </ScrollView>
+            );
+          }}
+        />
+      </View>
     </>
   );
 }
