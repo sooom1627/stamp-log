@@ -12,11 +12,6 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
-import { State } from "react-native-gesture-handler";
-import {
-  fireGestureHandler,
-  getByGestureTestId,
-} from "react-native-gesture-handler/jest-utils";
 import { toast } from "sonner-native";
 
 import {
@@ -30,6 +25,12 @@ import * as stampsDb from "../../db/stamps-db";
 import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
+
+// The native commands the pager sends to turn its page. Jest loads the
+// package's CommonJS build, so spy on that copy.
+const { Commands: PagerViewCommands } = jest.requireActual<
+  typeof import("react-native-pager-view/lib/typescript/PagerViewNativeComponent")
+>("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 // Photos the user picked in the library, saved onto the stamp (S-035).
 let nextPickedPhotoId = 1;
@@ -1578,10 +1579,11 @@ describe("S-037 T-002 ST-003 / T-003 ST-004 rally detail Album", () => {
 
     const detail = await switchToAlbum();
 
+    const album = within(detail.getByTestId("rally-view-pager-album"));
     expect(
-      detail.queryByRole("button", { name: /photos?\. Show photos$/ }),
+      album.queryByRole("button", { name: /photos?\. Show photos$/ }),
     ).not.toBeOnTheScreen();
-    const tiles = detail.getAllByRole("button", {
+    const tiles = album.getAllByRole("button", {
       name: /^Open (\d+ )?photos?, /,
     });
     expect(tiles).toHaveLength(2);
@@ -1616,25 +1618,15 @@ describe("S-037 T-002 ST-003 / T-003 ST-004 rally detail Album", () => {
 
     const detail = await switchToAlbum();
 
-    expect(detail.getByText("No photos yet")).toBeOnTheScreen();
-    expect(detail.queryByText("no memo")).not.toBeOnTheScreen();
+    const album = within(detail.getByTestId("rally-view-pager-album"));
+    expect(album.getByText("No photos yet")).toBeOnTheScreen();
+    expect(album.queryByText("no memo")).not.toBeOnTheScreen();
   });
 });
 
-describe("S-037 T-004 ST-003 / ST-004 swipe between Stamps and Album on rally detail", () => {
-  // The swipe starts on the list under the switch: its first entry here.
-  async function swipe(translationX: number) {
-    await act(() => {
-      fireGestureHandler(getByGestureTestId("rally-view-swipe-0"), [
-        { state: State.BEGAN, translationX: 0 },
-        { state: State.ACTIVE, translationX },
-        { state: State.END, translationX },
-      ]);
-    });
-  }
-
-  test("a left swipe shows the Album and a right swipe goes back to Stamps", async () => {
-    await openRallyDetail("Detail swipe", async (rallyId) => {
+describe("S-043 T-001 ST-003 rally detail pages for Stamps and Album", () => {
+  async function openWithPhotos(name: string) {
+    await openRallyDetail(name, async (rallyId) => {
       const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
       await attachPhotos(stamp.id, 2);
     });
@@ -1642,25 +1634,64 @@ describe("S-037 T-004 ST-003 / ST-004 swipe between Stamps and Album on rally de
     expect(
       await detail.findByRole("button", { name: "2 photos. Show photos" }),
     ).toBeOnTheScreen();
+    return detail;
+  }
 
-    await swipe(-120);
+  test("keeps the top, the calendar and the switch above two pages, Stamps then Album", async () => {
+    const detail = await openWithPhotos("Pager detail");
 
+    const pager = within(detail.getByTestId("rally-view-pager"));
+    expect(pager.queryByTestId("rally-top-panel")).not.toBeOnTheScreen();
+    expect(pager.queryByTestId("rally-view-picker")).not.toBeOnTheScreen();
+    const stampsPage = within(pager.getByTestId("rally-view-pager-stamps"));
+    const albumPage = within(pager.getByTestId("rally-view-pager-album"));
+    expect(
+      stampsPage.getByRole("button", { name: "2 photos. Show photos" }),
+    ).toBeOnTheScreen();
+    expect(
+      albumPage.getByRole("button", { name: /^Open 2 photos, Pager detail, / }),
+    ).toBeOnTheScreen();
+  });
+
+  test("turning the page changes the switch", async () => {
+    const detail = await openWithPhotos("Pager turn");
+    const pager = detail.getByTestId("rally-view-pager");
+
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 1 } });
     expect(detail.getByTestId("rally-view-picker")).toHaveProp(
       "selection",
       "album",
     );
-    expect(
-      detail.getByRole("button", { name: /^Open 2 photos, Detail swipe, / }),
-    ).toBeOnTheScreen();
 
-    await swipe(120);
-
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 0 } });
     expect(detail.getByTestId("rally-view-picker")).toHaveProp(
       "selection",
       "stamps",
     );
-    expect(
-      detail.getByRole("button", { name: "2 photos. Show photos" }),
-    ).toBeOnTheScreen();
+  });
+
+  test("choosing on the switch turns the page", async () => {
+    // The page turn itself is native; check that it is asked for.
+    const setPage = jest.spyOn(PagerViewCommands, "setPage");
+    const detail = await openWithPhotos("Pager switch");
+
+    await fireEvent(
+      detail.getByTestId("rally-view-picker"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: "album" },
+      },
+    );
+    expect(setPage).toHaveBeenLastCalledWith(expect.anything(), 1);
+  });
+
+  test("has no pages without stamps", async () => {
+    await openRallyDetail("Pager empty", async () => {
+      jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    });
+    const detail = within(await screen.findByLabelText("Rally detail"));
+
+    expect(await detail.findByText("No stamps yet")).toBeOnTheScreen();
+    expect(detail.queryByTestId("rally-view-pager")).not.toBeOnTheScreen();
   });
 });
