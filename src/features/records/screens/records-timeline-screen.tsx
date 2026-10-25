@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { FlatList, Text, View } from "react-native";
+import { ScrollView, Text, useWindowDimensions, View } from "react-native";
 
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -55,8 +55,14 @@ function TimelineEmpty({
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
   const headerHeight = useHeaderHeight();
+  const { height: windowHeight } = useWindowDimensions();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
+  // Each page's measured height; the pager takes the shown page's.
+  const [pageHeights, setPageHeights] = useState<Record<StampsView, number>>({
+    stamps: 0,
+    album: 0,
+  });
   const {
     data: stamps,
     isError: isStampsError,
@@ -81,29 +87,35 @@ export function RecordsTimelineScreen() {
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
   const tiles = albumTiles(stamps ?? [], rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
+  const hasPosts = posts.length > 0;
 
   return (
     <>
-      {/* The large title header is translucent, so the fixed top starts below it. */}
-      <View
-        aria-label="Logs timeline"
-        className="bg-canvas flex-1"
-        style={{ paddingTop: headerHeight }}
-      >
-        <View className="px-5">
-          <TabRootSubtitle>Your days, one stamp at a time</TabRootSubtitle>
-          {/* Not linked to the pages: moving it leaves the posts as they are. */}
-          <RallyMonthCalendar
-            testID="logs-calendar"
-            stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
-            dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
-            isRecordedOnly
-            onPressDay={(date) =>
-              push({ pathname: "/logs-day", params: { date } })
-            }
-          />
-          {posts.length > 0 ? (
-            <View className="mt-6 mb-2">
+      {/* The large title header is translucent, so the scroll starts below it. */}
+      <View className="bg-canvas flex-1" style={{ paddingTop: headerHeight }}>
+        {/* Like a profile: the top scrolls away and the switch sticks, while
+            the pages below still follow the finger (S-043 T-004). */}
+        <ScrollView
+          aria-label="Logs timeline"
+          className="bg-canvas flex-1"
+          contentContainerClassName="pb-32"
+          stickyHeaderIndices={hasPosts ? [1] : undefined}
+        >
+          <View className="px-5">
+            <TabRootSubtitle>Your days, one stamp at a time</TabRootSubtitle>
+            {/* Not linked to the pages: moving it leaves the posts as they are. */}
+            <RallyMonthCalendar
+              testID="logs-calendar"
+              stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
+              dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
+              isRecordedOnly
+              onPressDay={(date) =>
+                push({ pathname: "/logs-day", params: { date } })
+              }
+            />
+          </View>
+          {hasPosts ? (
+            <View className="bg-canvas px-5 pt-6 pb-2">
               <StampsAlbumPicker
                 testID="logs-view-picker"
                 view={view}
@@ -113,74 +125,88 @@ export function RecordsTimelineScreen() {
               />
             </View>
           ) : null}
-        </View>
-        {posts.length > 0 ? (
-          <SwipePages
-            testID="logs-view-pager"
-            values={stampsViews}
-            value={view}
-            onChange={setView}
-            renderPage={(page) =>
-              page === "stamps" ? (
-                <FlatList
-                  contentContainerClassName="gap-4 px-5 pt-2 pb-32"
-                  contentInsetAdjustmentBehavior="automatic"
-                  data={sections}
-                  keyExtractor={({ dateKey }) => dateKey}
-                  renderItem={({ item: section }) => (
-                    <DayCard
-                      dateKey={section.dateKey}
-                      date={new Date(section.data[0].stamp.stampedAt)}
-                    >
-                      {section.data.map(({ stamp, rally }) => (
-                        <StampPost
-                          key={stamp.id}
-                          stamp={stamp}
-                          emoji={rally.emoji}
-                          title={rally.name}
-                          detail={formatStampTime(new Date(stamp.stampedAt))}
-                          onPress={() =>
-                            push({
-                              pathname: "/records/rallies/[id]",
-                              params: { id: rally.id },
-                            })
-                          }
+          {hasPosts ? (
+            <SwipePages
+              testID="logs-view-pager"
+              values={stampsViews}
+              value={view}
+              onChange={setView}
+              // Zero until measured would hide the pages (and keep them from
+              // being measured), so start a screen tall.
+              height={pageHeights[view] || windowHeight}
+              renderPage={(page) => (
+                // The page fills the pager; this measures what it holds.
+                <View
+                  testID={`logs-view-page-${page}`}
+                  className="px-5 pt-2"
+                  onLayout={({ nativeEvent: { layout } }) =>
+                    setPageHeights((heights) => ({
+                      ...heights,
+                      [page]: layout.height,
+                    }))
+                  }
+                >
+                  {page === "stamps" ? (
+                    <View className="gap-4">
+                      {sections.map((section) => (
+                        <DayCard
+                          key={section.dateKey}
+                          dateKey={section.dateKey}
+                          date={new Date(section.data[0].stamp.stampedAt)}
+                        >
+                          {section.data.map(({ stamp, rally }) => (
+                            <StampPost
+                              key={stamp.id}
+                              stamp={stamp}
+                              emoji={rally.emoji}
+                              title={rally.name}
+                              detail={formatStampTime(
+                                new Date(stamp.stampedAt),
+                              )}
+                              onPress={() =>
+                                push({
+                                  pathname: "/records/rallies/[id]",
+                                  params: { id: rally.id },
+                                })
+                              }
+                            />
+                          ))}
+                        </DayCard>
+                      ))}
+                    </View>
+                  ) : (
+                    <View className="gap-0.5">
+                      {albumRows(tiles).map((row) => (
+                        <AlbumRow
+                          key={`row-${row[0].key}`}
+                          tiles={row}
+                          showsEmoji
                         />
                       ))}
-                    </DayCard>
-                  )}
-                />
-              ) : (
-                <FlatList
-                  contentContainerClassName="gap-0.5 px-5 pt-2 pb-32"
-                  contentInsetAdjustmentBehavior="automatic"
-                  data={albumRows(tiles)}
-                  keyExtractor={(row) => `row-${row[0].key}`}
-                  renderItem={({ item: row }) => (
-                    <AlbumRow tiles={row} showsEmoji />
-                  )}
-                  ListEmptyComponent={
-                    <View className="items-center py-12">
-                      <Text className="text-foreground-secondary">
-                        No photos yet
-                      </Text>
+                      {tiles.length === 0 ? (
+                        <View className="items-center py-12">
+                          <Text className="text-foreground-secondary">
+                            No photos yet
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
-                  }
-                />
-              )
-            }
-          />
-        ) : (
-          <TimelineEmpty
-            isError={isError}
-            isLoaded={isLoaded}
-            message="No stamps yet"
-            onRetry={() => {
-              void refetchStamps();
-              void refetchRallies();
-            }}
-          />
-        )}
+                  )}
+                </View>
+              )}
+            />
+          ) : (
+            <TimelineEmpty
+              isError={isError}
+              isLoaded={isLoaded}
+              message="No stamps yet"
+              onRetry={() => {
+                void refetchStamps();
+                void refetchRallies();
+              }}
+            />
+          )}
+        </ScrollView>
       </View>
       <TabRootHeader title="Logs" />
     </>
