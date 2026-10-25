@@ -1,3 +1,5 @@
+<!-- タイトル: Story PR「S-### Story 名」、Task PR「S-### T-### Task 名」、Story なしはコミット形式（fix: …）。マージは merge commit -->
+
 ## 概要
 
 <!-- 何を変えたか。Story PR なら Story の要約 -->

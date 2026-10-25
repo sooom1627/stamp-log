@@ -126,7 +126,7 @@ UI上の名称は開発過程で変更可能とする。画面の配置・遷移
 
 # 3. Epic
 
-Epic の一覧はこの表を正とする（Epic に GitHub のマイルストーンは使わない。マイルストーンはリリースの単位で、そのリリースに含める Story と Task を入れる）。Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues) に書き、Story 本文に `Epic: E-###` を書く。移行前の記録は [archive/backlog.md](./archive/backlog.md)。状態は 未着手 / 進行中 / 完了 のいずれかで、Story ブランチを切ったときと Story を `master` へマージするときに更新する（定義は [agile-workflow](../.cursor/rules/agile-workflow.mdc)）。
+Epic の一覧はこの表を正とする（Epic に GitHub のマイルストーンは使わない。マイルストーンはリリースの単位で、そのリリースに含める Story と Task を入れる。リリースの手順・版の付け方・タグは [agile-workflow](../.cursor/rules/agile-workflow.mdc) の Release 節）。Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues) に書き、Story 本文に `Epic: E-###` を書く。移行前の記録は [archive/backlog.md](./archive/backlog.md)。状態は 未着手 / 進行中 / 完了 のいずれかで、Story ブランチを切ったときと Story を `master` へマージするときに更新する（定義は [agile-workflow](../.cursor/rules/agile-workflow.mdc)）。
 
 | ID    | タイトル                     | 状態   | ゴール                                                                                                                                                                                                                                   |
 | ----- | ---------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
