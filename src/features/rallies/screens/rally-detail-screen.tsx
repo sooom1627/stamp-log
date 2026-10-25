@@ -1,17 +1,33 @@
-import { Alert, FlatList, Text, View } from "react-native";
+import { useState } from "react";
+
+import {
+  Alert,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { Stack, useRouter } from "expo-router";
+import { useHeaderHeight } from "expo-router/react-navigation";
 
 import { LoadError } from "@/shared/components/load-error";
+import { SwipePages } from "@/shared/components/swipe-pages";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
+import { AlbumGrid } from "../components/album-grid";
 import { DayCard } from "../components/day-card";
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
 import { StampPost } from "../components/stamp-post";
+import {
+  StampsAlbumPicker,
+  stampsViews,
+  type StampsView,
+} from "../components/stamps-album-picker";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import {
   useDeleteRally,
@@ -21,21 +37,28 @@ import {
 } from "../hooks/use-rallies";
 import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
+import { albumTiles } from "../utils/album-photos";
 import { buildRallySummary } from "../utils/rally-summary";
 
 type TimelineEmptyProps = {
   isError: boolean;
   isLoaded: boolean;
+  message: string;
   onRetry: () => void;
 };
 
-function TimelineEmpty({ isError, isLoaded, onRetry }: TimelineEmptyProps) {
+function TimelineEmpty({
+  isError,
+  isLoaded,
+  message,
+  onRetry,
+}: TimelineEmptyProps) {
   if (isError) return <LoadError onRetry={onRetry} />;
   if (!isLoaded) return null;
 
   return (
     <View className="items-center py-12">
-      <Text className="text-foreground-secondary">No stamps yet</Text>
+      <Text className="text-foreground-secondary">{message}</Text>
     </View>
   );
 }
@@ -59,6 +82,15 @@ type RallyDetailScreenProps = {
 
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
+  const headerHeight = useHeaderHeight();
+  const { height: windowHeight } = useWindowDimensions();
+  // Starts on Stamps every time the screen opens (not remembered).
+  const [view, setView] = useState<StampsView>("stamps");
+  // Each page's measured height; the pager takes the shown page's.
+  const [pageHeights, setPageHeights] = useState<Record<StampsView, number>>({
+    stamps: 0,
+    album: 0,
+  });
   const { data: rally } = useRally(rallyId);
   const {
     data: stamps,
@@ -83,6 +115,9 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
     return null;
   }
 
+  const hasStamps = stamps !== undefined && stamps.length > 0;
+  const tiles = albumTiles(stamps ?? [], [rally]);
+  const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const confirmDelete = () =>
     Alert.alert("Delete rally?", deleteRallyMessage(stamps?.length), [
       { text: "Cancel", style: "cancel" },
@@ -95,27 +130,17 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
 
   return (
     <>
-      <FlatList
-        aria-label="Rally detail"
-        className="bg-canvas flex-1"
-        contentContainerClassName="gap-6 px-5 py-6"
-        contentInsetAdjustmentBehavior="automatic"
-        data={sections}
-        keyExtractor={({ dateKey }) => dateKey}
-        renderItem={({ item: { dateKey, data } }) => (
-          <DayCard dateKey={dateKey} date={new Date(data[0].stampedAt)}>
-            {data.map((stamp) => (
-              <StampPost
-                key={stamp.id}
-                stamp={stamp}
-                emoji={rally.emoji}
-                title={formatStampTime(new Date(stamp.stampedAt))}
-              />
-            ))}
-          </DayCard>
-        )}
-        ListHeaderComponent={
-          <View className="items-center gap-4">
+      {/* The header is transparent, so the scroll starts below it. */}
+      <View className="bg-canvas flex-1" style={{ paddingTop: headerHeight }}>
+        {/* Like a profile: the top scrolls away and the switch sticks, while
+            the pages below still follow the finger (S-043 T-003). */}
+        <ScrollView
+          aria-label="Rally detail"
+          className="bg-canvas flex-1"
+          contentContainerClassName="pb-6"
+          stickyHeaderIndices={hasStamps ? [1] : undefined}
+        >
+          <View className="items-center gap-4 px-5 pt-6">
             <View
               testID="rally-top-panel"
               className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
@@ -152,32 +177,81 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                 })
               }
             />
-            {stamps && stamps.length > 0 ? (
-              <View className="w-full flex-row items-baseline justify-between pt-4">
-                <Text
-                  role="heading"
-                  className="text-foreground text-xl font-bold"
-                >
-                  Stamps
-                </Text>
-                <Text
-                  aria-label={`${stamps.length} stamps in the timeline`}
-                  className="text-foreground-muted text-base"
-                >
-                  {stamps.length}
-                </Text>
-              </View>
-            ) : null}
           </View>
-        }
-        ListEmptyComponent={
-          <TimelineEmpty
-            isError={isStampsError}
-            isLoaded={isStampsLoaded}
-            onRetry={() => void refetchStamps()}
-          />
-        }
-      />
+          {hasStamps ? (
+            <View className="bg-canvas px-5 pt-4 pb-2">
+              <StampsAlbumPicker
+                testID="rally-view-picker"
+                view={view}
+                stampCount={stamps.length}
+                photoCount={photoCount}
+                onChangeView={setView}
+              />
+            </View>
+          ) : null}
+          {hasStamps ? (
+            <SwipePages
+              testID="rally-view-pager"
+              values={stampsViews}
+              value={view}
+              onChange={setView}
+              // Zero until measured would hide the pages (and keep them from
+              // being measured), so start a screen tall.
+              height={pageHeights[view] || windowHeight}
+              renderPage={(page) => (
+                // The page fills the pager; this measures what it holds.
+                <View
+                  testID={`rally-view-page-${page}`}
+                  className="px-5 pt-4"
+                  onLayout={({ nativeEvent: { layout } }) =>
+                    setPageHeights((heights) => ({
+                      ...heights,
+                      [page]: layout.height,
+                    }))
+                  }
+                >
+                  {page === "stamps" ? (
+                    <View className="gap-6">
+                      {sections.map(({ dateKey, data }) => (
+                        <DayCard
+                          key={dateKey}
+                          dateKey={dateKey}
+                          date={new Date(data[0].stampedAt)}
+                        >
+                          {data.map((stamp) => (
+                            <StampPost
+                              key={stamp.id}
+                              stamp={stamp}
+                              emoji={rally.emoji}
+                              title={formatStampTime(new Date(stamp.stampedAt))}
+                            />
+                          ))}
+                        </DayCard>
+                      ))}
+                    </View>
+                  ) : tiles.length === 0 ? (
+                    <View className="items-center py-12">
+                      <Text className="text-foreground-secondary">
+                        No photos yet
+                      </Text>
+                    </View>
+                  ) : (
+                    // One rally's photos, so the tiles need no emoji.
+                    <AlbumGrid tiles={tiles} showsEmoji={false} />
+                  )}
+                </View>
+              )}
+            />
+          ) : (
+            <TimelineEmpty
+              isError={isStampsError}
+              isLoaded={isStampsLoaded}
+              message="No stamps yet"
+              onRetry={() => void refetchStamps()}
+            />
+          )}
+        </ScrollView>
+      </View>
       <Stack.Title>{rally.name}</Stack.Title>
       <RallyActionsMenu
         isFavorite={rally.isFavorite}

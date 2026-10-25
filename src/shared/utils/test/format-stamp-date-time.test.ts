@@ -1,5 +1,6 @@
 import {
   formatDayHeading,
+  formatStampDate,
   formatStampDateTime,
   formatStampDay,
   formatStampTime,
@@ -91,5 +92,15 @@ describe("S-011 RT-001 ST-002 day heading", () => {
     expect(
       formatDayHeading(new Date(2026, 8, 30, 22), new Date(2026, 9, 1, 1)),
     ).toEqual({ title: "Yesterday", detail: "Wed, Sep 30" });
+  });
+});
+
+describe("S-037 T-003 ST-004 formatStampDate", () => {
+  test("formats a day of this year as Oct 10, without the time", () => {
+    expect(formatStampDate(new Date(2026, 9, 10, 20, 15), now)).toBe("Oct 10");
+  });
+
+  test("adds the year for a day of another year", () => {
+    expect(formatStampDate(new Date(2025, 9, 10, 8), now)).toBe("Oct 10, 2025");
   });
 });

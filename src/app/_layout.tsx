@@ -58,6 +58,16 @@ export default function RootLayout() {
             <Stack.Screen name="edit-stamp" options={formSheetOptions} />
             <Stack.Screen name="rally-day" options={formSheetOptions} />
             <Stack.Screen name="logs-day" options={formSheetOptions} />
+            <Stack.Screen
+              name="stamp-photos"
+              options={{
+                // iOS full-screen presentation: it has no swipe-down dismiss,
+                // so the screen closes with its own Close button only.
+                presentation: "fullScreenModal",
+                headerShown: false,
+                statusBarStyle: "light",
+              }}
+            />
           </Stack>
         </ThemeProvider>
         <Toaster position="bottom-center" closeButton />

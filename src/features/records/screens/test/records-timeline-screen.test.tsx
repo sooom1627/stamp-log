@@ -1,4 +1,4 @@
-import { Alert, type AlertButton } from "react-native";
+import { Alert, StyleSheet, type AlertButton } from "react-native";
 
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
@@ -15,6 +15,7 @@ import {
 
 import * as ralliesDb from "@/features/rallies/db/rallies-db";
 import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
+import { stampPhotoThumbUri } from "@/features/rallies/db/stamp-photo-files";
 import * as stampsDb from "@/features/rallies/db/stamps-db";
 import {
   listStamps,
@@ -22,12 +23,19 @@ import {
   updateStampMemo,
 } from "@/features/rallies/db/stamps-db";
 import {
+  formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 jest.useFakeTimers();
+
+// The native commands the pager sends to turn its page. Jest loads the
+// package's CommonJS build, so spy on that copy.
+const { Commands: PagerViewCommands } = jest.requireActual<
+  typeof import("react-native-pager-view/lib/typescript/PagerViewNativeComponent")
+>("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 // Photos the user picked in the library, saved onto the stamp (S-035).
 let nextPickedPhotoId = 1;
@@ -61,6 +69,27 @@ async function saveRallyNamed(name: string, emoji: string) {
   );
   if (!rally) throw new Error(`Rally ${name} not found`);
   return rally;
+}
+
+// The switch's segments are @expo/ui SwiftUI Text, which is not host text in
+// Jest, so getByText cannot see them; read each native view's text prop.
+function pickerSegments(logs: ReturnType<typeof within>) {
+  const texts: string[] = [];
+  const collect = (element: ReturnType<typeof screen.getByTestId> | string) => {
+    if (typeof element === "string") return;
+    if (typeof element.props.text === "string") texts.push(element.props.text);
+    element.children.forEach(collect);
+  };
+  collect(logs.getByTestId("logs-view-picker"));
+  return texts;
+}
+
+// The database is shared by every test; show only this test's stamps.
+async function showOnlyStamps(ids: number[]) {
+  const stamps = await listStamps();
+  jest
+    .spyOn(stampsDb, "listStamps")
+    .mockResolvedValue(stamps.filter(({ id }) => ids.includes(id)));
 }
 
 async function openLogs() {
@@ -113,10 +142,12 @@ describe("S-010 T-001 ST-003 Logs timeline", () => {
     ).toEqual(["🔬", "🏃", "🔬"]);
     expect(logs.getByText("Talked at the lab")).toBeOnTheScreen();
     expect(logs.getAllByText("no memo")).toHaveLength(2);
-    expect(logs.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
-    expect(logs.getByLabelText("3 stamps in the timeline")).toHaveTextContent(
-      "3",
+    // S-037: the Stamps heading became the Stamps / Album switch.
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
     );
+    expect(pickerSegments(logs)).toEqual(["Stamps · 3", "Album · 0"]);
   });
 });
 
@@ -184,8 +215,9 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     await openLogs();
 
     const list = await screen.findByLabelText("Logs timeline");
-    // Headings scroll with their cards instead of sticking over the posts.
-    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
+    // Headings scroll with their cards instead of sticking over the posts:
+    // only the Stamps / Album switch (the second child) sticks (S-043 T-004).
+    expect(list.props.stickyHeaderIndices).toEqual([1]);
     const logs = within(list);
     const todayCard = within(logs.getByTestId("day-card-2026-10-10"));
     expect(todayCard.getByTestId("stamp-post-904")).toBeOnTheScreen();
@@ -217,13 +249,13 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
   const logsTimeline = async () =>
     within(await screen.findByLabelText("Logs timeline"));
 
-  test("shows No stamps yet without the Stamps heading when there are no stamps", async () => {
+  test("shows No stamps yet without the Stamps / Album switch when there are no stamps", async () => {
     jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
     await openLogs();
     const logs = await logsTimeline();
 
     expect(await logs.findByText("No stamps yet")).toBeOnTheScreen();
-    expect(logs.queryByRole("heading", { name: "Stamps" })).toBeNull();
+    expect(logs.queryByTestId("logs-view-picker")).not.toBeOnTheScreen();
   });
 
   test("shows nothing while the stamps are loading", async () => {
@@ -545,8 +577,319 @@ describe("S-035 ST-006 photo mark on Logs posts", () => {
 
     const logs = within(await screen.findByLabelText("Logs timeline"));
     const marked = within(logs.getByTestId(`stamp-post-${withPhoto.id}`));
-    expect(marked.getByLabelText("1 photo")).toHaveTextContent("1");
+    expect(marked.getByLabelText("1 photo. Show photos")).toHaveTextContent(
+      "1",
+    );
     const plain = within(logs.getByTestId(`stamp-post-${withoutPhoto.id}`));
-    expect(plain.queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
+    expect(plain.queryByLabelText(/Show photos$/)).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
+  // Pressing the rest of the post still opens the rally (S-010 T-001 ST-006).
+  test("opens the stamp's photos full screen instead of the rally", async () => {
+    const rally = await saveRallyNamed("Logs viewer", "🎞️");
+    const stamp = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 2);
+    const app = renderRouter("./src/app");
+    await app;
+    await act(() => {
+      router.push("/records");
+    });
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+
+    await userEvent
+      .setup()
+      .press(logs.getByRole("button", { name: "2 photos. Show photos" }));
+
+    expect(app.getPathname()).toBe("/stamp-photos");
+    expect(await screen.findByText("1 / 2")).toBeOnTheScreen();
+    expect(screen.getByText("🎞️ Logs viewer")).toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-002 ST-002 / T-003 ST-004 Logs Album", () => {
+  async function switchToAlbum() {
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "album" },
+    });
+    return logs;
+  }
+
+  test("starts on Stamps with the counts of stamps and photos", async () => {
+    const lab = await saveRallyNamed("Album counts", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 2);
+    const other = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(2, 19),
+    });
+    await showOnlyStamps([stamp.id, other.id]);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(pickerSegments(logs)).toEqual(["Stamps · 2", "Album · 2"]);
+    expect(logs.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+  });
+
+  test("Album makes one tile per day and rally, newest first, with the emoji and the count", async () => {
+    const lab = await saveRallyNamed("Album lab", "🔬");
+    const cafe = await saveRallyNamed("Album cafe", "☕");
+    const labOlder = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(3, 9),
+    });
+    await attachPhotos(labOlder.id, 1);
+    const labDay = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 9),
+    });
+    await attachPhotos(labDay.id, 2);
+    const cafeDay = await saveStamp({
+      rallyId: cafe.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(cafeDay.id, 1);
+    await showOnlyStamps([labOlder.id, labDay.id, cafeDay.id]);
+    await openLogs();
+
+    const logs = await switchToAlbum();
+
+    const album = within(logs.getByTestId("logs-view-pager-album"));
+    expect(
+      album.queryByTestId(`stamp-post-${cafeDay.id}`),
+    ).not.toBeOnTheScreen();
+    const tiles = album.getAllByRole("button", {
+      name: /^Open (\d+ )?photos?, /,
+    });
+    const day = (iso: string) => formatStampDate(new Date(iso));
+    expect(tiles).toHaveLength(3);
+    expect(tiles[0]).toHaveAccessibleName(
+      `Open photo, Album cafe, ${day(cafeDay.stampedAt)}`,
+    );
+    expect(tiles[1]).toHaveAccessibleName(
+      `Open 2 photos, Album lab, ${day(labDay.stampedAt)}`,
+    );
+    expect(tiles[2]).toHaveAccessibleName(
+      `Open photo, Album lab, ${day(labOlder.stampedAt)}`,
+    );
+    const hidden = { includeHiddenElements: true };
+    expect(within(tiles[0]).getByText("☕", hidden)).toBeOnTheScreen();
+    expect(within(tiles[1]).getByText("🔬", hidden)).toBeOnTheScreen();
+    // The count shows only on a tile with two photos or more.
+    expect(within(tiles[1]).getByText("2", hidden)).toBeOnTheScreen();
+    expect(within(tiles[0]).queryByText("1", hidden)).not.toBeOnTheScreen();
+    expect(pickerSegments(logs)).toEqual(["Stamps · 3", "Album · 4"]);
+  });
+
+  test("pressing a tile opens its photos from the first one", async () => {
+    const lab = await saveRallyNamed("Album open", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 2);
+    await showOnlyStamps([stamp.id]);
+    await openLogs();
+    const logs = await switchToAlbum();
+
+    await userEvent
+      .setup()
+      .press(
+        logs.getByRole("button", { name: /^Open 2 photos, Album open, / }),
+      );
+
+    expect(await screen.findByText("1 / 2")).toBeOnTheScreen();
+  });
+
+  test("shows No photos yet when no stamp has photos", async () => {
+    const lab = await saveRallyNamed("Album empty", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await showOnlyStamps([stamp.id]);
+    await openLogs();
+
+    const logs = await switchToAlbum();
+
+    const album = within(logs.getByTestId("logs-view-pager-album"));
+    expect(album.getByText("No photos yet")).toBeOnTheScreen();
+    expect(album.queryByTestId(`stamp-post-${stamp.id}`)).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
+  async function openLogsWithPhotos() {
+    const lab = await saveRallyNamed("Pager lab", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 1);
+    await showOnlyStamps([stamp.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(await logs.findByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+    return { logs, stamp };
+  }
+
+  test("keeps the calendar and the switch above two pages, Stamps then Album", async () => {
+    const { logs, stamp } = await openLogsWithPhotos();
+
+    const pager = within(logs.getByTestId("logs-view-pager"));
+    expect(pager.queryByTestId("logs-calendar")).not.toBeOnTheScreen();
+    expect(pager.queryByTestId("logs-view-picker")).not.toBeOnTheScreen();
+    const stampsPage = within(pager.getByTestId("logs-view-pager-stamps"));
+    const albumPage = within(pager.getByTestId("logs-view-pager-album"));
+    expect(stampsPage.getByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+    expect(
+      albumPage.getByRole("button", { name: /^Open photo, Pager lab, / }),
+    ).toBeOnTheScreen();
+  });
+
+  test("S-037 T-006 rounds only the outer corners of the album grid", async () => {
+    const { logs } = await openLogsWithPhotos();
+    const albumPage = within(logs.getByTestId("logs-view-pager-album"));
+
+    // The grid is one surface: only its outer corners are rounded.
+    const grid = albumPage.getByTestId("album-grid");
+    expect(grid).toHaveProp(
+      "className",
+      expect.stringMatching(
+        /(?=.*\brounded-2xl\b)(?=.*\boverflow-hidden\b)(?=.*\bborder-continuous\b)/,
+      ),
+    );
+    for (const tile of within(grid).getAllByRole("button", {
+      name: /^Open /,
+    })) {
+      expect(tile.props.className).not.toMatch(/rounded/);
+    }
+  });
+
+  test("S-043 T-004 scrolls the top away with the pages and keeps the switch stuck", async () => {
+    await openLogsWithPhotos();
+
+    // One vertical scroll holds the top, the switch and the pages, and its
+    // second child (the switch) sticks to the top.
+    const scroll = screen.getByLabelText("Logs timeline");
+    expect(scroll.type).toBe("RCTScrollView");
+    expect(scroll).toHaveProp("stickyHeaderIndices", [1]);
+    const inScroll = within(scroll);
+    expect(inScroll.getByTestId("logs-calendar")).toBeOnTheScreen();
+    expect(inScroll.getByTestId("logs-view-picker")).toBeOnTheScreen();
+    expect(inScroll.getByTestId("logs-view-pager")).toBeOnTheScreen();
+  });
+
+  test("S-043 T-004 lets the large title shrink and sticks the switch below the header", async () => {
+    await openLogsWithPhotos();
+
+    // The large title shrinks only when the scroll runs under the header, so
+    // the scroll takes the header's inset itself (as Home does).
+    const scroll = screen.getByLabelText("Logs timeline");
+    expect(scroll).toHaveProp("contentInsetAdjustmentBehavior", "automatic");
+    // A sticky header stops at the scroll's top edge, under the header, so
+    // the stuck part reaches up by the header's height above the switch.
+    const stuck = within(scroll).getByTestId("logs-view-switch");
+    const { marginTop, paddingTop } = StyleSheet.flatten(stuck.props.style);
+    expect(paddingTop).toBeGreaterThan(0);
+    expect(marginTop).toBe(-paddingTop);
+    expect(within(stuck).getByTestId("logs-view-picker")).toBeOnTheScreen();
+  });
+
+  test("S-043 T-004 shows the pages before they are measured, then takes the shown page's height", async () => {
+    await openLogsWithPhotos();
+    const pager = screen.getByTestId("logs-view-pager");
+
+    // Until a page reports its height, the pager is a screen tall rather
+    // than zero, so the pages show and can be measured.
+    expect(pager).toHaveStyle({ height: 1334 });
+
+    await fireEvent(screen.getByTestId("logs-view-page-stamps"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 750, height: 420 } },
+    });
+    expect(pager).toHaveStyle({ height: 420 });
+  });
+
+  test("turning the page changes the switch", async () => {
+    const { logs } = await openLogsWithPhotos();
+    const pager = logs.getByTestId("logs-view-pager");
+
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 1 } });
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "album",
+    );
+
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 0 } });
+    expect(logs.getByTestId("logs-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+  });
+
+  test("choosing on the switch turns the page", async () => {
+    // The page turn itself is native; check that it is asked for.
+    const setPage = jest.spyOn(PagerViewCommands, "setPage");
+    const { logs } = await openLogsWithPhotos();
+
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "album" },
+    });
+    expect(setPage).toHaveBeenLastCalledWith(expect.anything(), 1);
+
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "stamps" },
+    });
+    expect(setPage).toHaveBeenLastCalledWith(expect.anything(), 0);
+  });
+
+  test("has no pages without stamps", async () => {
+    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+
+    expect(await logs.findByText("No stamps yet")).toBeOnTheScreen();
+    expect(logs.queryByTestId("logs-view-pager")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-005 ST-003 small copies in the Album", () => {
+  test("a tile shows the small copy of its first photo", async () => {
+    const lab = await saveRallyNamed("Album thumbs", "🔬");
+    const stamp = await saveStamp({
+      rallyId: lab.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await attachPhotos(stamp.id, 2);
+    await showOnlyStamps([stamp.id]);
+    const [cover] = (await listStamps()).find(
+      ({ id }) => id === stamp.id,
+    )!.photos;
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "album" },
+    });
+
+    const tile = logs.getByRole("button", {
+      name: /^Open 2 photos, Album thumbs, /,
+    });
+
+    expect(within(tile).getByTestId("album-tile-image")).toHaveProp("source", [
+      { uri: stampPhotoThumbUri(cover.fileName) },
+    ]);
   });
 });

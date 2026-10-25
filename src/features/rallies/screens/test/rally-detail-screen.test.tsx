@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner-native";
 
 import {
+  formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
@@ -24,6 +25,12 @@ import * as stampsDb from "../../db/stamps-db";
 import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
+
+// The native commands the pager sends to turn its page. Jest loads the
+// package's CommonJS build, so spy on that copy.
+const { Commands: PagerViewCommands } = jest.requireActual<
+  typeof import("react-native-pager-view/lib/typescript/PagerViewNativeComponent")
+>("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 // Photos the user picked in the library, saved onto the stamp (S-035).
 let nextPickedPhotoId = 1;
@@ -72,6 +79,19 @@ async function openRallyDetail(
   });
 
   return { rally, user: userEvent.setup() };
+}
+
+// The switch's segments are @expo/ui SwiftUI Text, which is not host text in
+// Jest, so getByText cannot see them; read each native view's text prop.
+function pickerSegments(detail: ReturnType<typeof within>) {
+  const texts: string[] = [];
+  const collect = (element: ReturnType<typeof screen.getByTestId> | string) => {
+    if (typeof element === "string") return;
+    if (typeof element.props.text === "string") texts.push(element.props.text);
+    element.children.forEach(collect);
+  };
+  collect(detail.getByTestId("rally-view-picker"));
+  return texts;
 }
 
 describe("Rally detail", () => {
@@ -707,11 +727,6 @@ describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () 
       router.push("/records");
     });
     const logs = await screen.findByLabelText("Logs timeline");
-    const countBefore = Number(
-      within(logs)
-        .getByLabelText(/stamps in the timeline$/)
-        .props["aria-label"].split(" ")[0],
-    );
     expect(within(logs).getAllByText("Logs deleted")).toHaveLength(3);
     await act(() => {
       router.push(`/records/rallies/${rally.id}`);
@@ -721,12 +736,9 @@ describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () 
     await confirmDelete();
 
     const logsAfter = within(screen.getByLabelText("Logs timeline"));
-    expect(
-      await logsAfter.findByLabelText(
-        `${countBefore - 3} stamps in the timeline`,
-      ),
-    ).toBeOnTheScreen();
-    expect(logsAfter.queryByText("Logs deleted")).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(logsAfter.queryByText("Logs deleted")).not.toBeOnTheScreen();
+    });
     expect(logsAfter.getByText("Logs kept")).toBeOnTheScreen();
   });
 });
@@ -1106,10 +1118,13 @@ describe("S-028 RT-001 ST-003 posts look", () => {
       });
     });
 
-    // Logs also has a Stamps heading, so look inside rally detail.
     const detail = within(await screen.findByLabelText("Rally detail"));
-    expect(detail.getByRole("heading", { name: "Stamps" })).toBeOnTheScreen();
-    expect(detail.getByLabelText("2 stamps in the timeline")).toBeOnTheScreen();
+    // S-037: the Stamps heading became the Stamps / Album switch.
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(pickerSegments(detail)).toEqual(["Stamps · 2", "Album · 0"]);
     expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
   });
 });
@@ -1131,8 +1146,9 @@ describe("S-011 RT-001 ST-007 rally detail day cards", () => {
     });
 
     const list = await screen.findByLabelText("Rally detail");
-    // Headings scroll with their cards instead of sticking over the posts.
-    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
+    // Headings scroll with their cards instead of sticking over the posts;
+    // only the Stamps / Album switch (the second child) sticks (S-043 T-003).
+    expect(list.props.stickyHeaderIndices).toEqual([1]);
     const detail = within(list);
     expect(
       within(detail.getByTestId("day-card-2026-09-18")).getByTestId(
@@ -1368,15 +1384,13 @@ describe("S-032 T-001 ST-006 favorite star in the header", () => {
 
     await fireEvent(star, "buttonPress");
 
-    await waitFor(async () => {
-      await expect(isFavoriteSaved(rally.id)).resolves.toBe(true);
-    });
     await waitFor(() => {
       expect(screen.getByTestId("rally-favorite")).toHaveProp(
         "label",
         "Remove from favorites",
       );
     });
+    expect(await isFavoriteSaved(rally.id)).toBe(true);
     expect(screen.getByTestId("rally-favorite")).toHaveProp(
       "systemImage",
       "star.fill",
@@ -1394,15 +1408,13 @@ describe("S-032 T-001 ST-006 favorite star in the header", () => {
 
     await fireEvent(star, "buttonPress");
 
-    await waitFor(async () => {
-      await expect(isFavoriteSaved(rally.id)).resolves.toBe(false);
-    });
     await waitFor(() => {
       expect(screen.getByTestId("rally-favorite")).toHaveProp(
         "label",
         "Add to favorites",
       );
     });
+    expect(await isFavoriteSaved(rally.id)).toBe(false);
   });
 
   test("keeps the star out of the actions menu", async () => {
@@ -1438,11 +1450,9 @@ describe("S-039 T-002 ST-004 archive from the actions menu", () => {
 
     await pressArchiveAction();
 
-    await waitFor(async () => {
-      await expect(isArchivedSaved(rally.id)).resolves.toBe(true);
-    });
-    expect(Alert.alert).not.toHaveBeenCalled();
     expect(await screen.findByText("Archived")).toBeOnTheScreen();
+    expect(await isArchivedSaved(rally.id)).toBe(true);
+    expect(Alert.alert).not.toHaveBeenCalled();
     expect(screen.getByTestId("rally-action-archive")).toHaveProp(
       "label",
       "Unarchive rally",
@@ -1494,8 +1504,242 @@ describe("S-035 ST-006 photo mark on posts", () => {
 
     const detail = within(await screen.findByLabelText("Rally detail"));
     const marked = within(detail.getByTestId(`stamp-row-${withPhotosId}`));
-    expect(marked.getByLabelText("3 photos")).toHaveTextContent("3");
+    expect(marked.getByLabelText("3 photos. Show photos")).toHaveTextContent(
+      "3",
+    );
     const plain = within(detail.getByTestId(`stamp-row-${withoutPhotosId}`));
-    expect(plain.queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
+    expect(plain.queryByLabelText(/Show photos$/)).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
+  test("opens the stamp's photos full screen from the first photo", async () => {
+    await openRallyDetail("Detail viewer", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 3);
+    });
+    const detail = within(await screen.findByLabelText("Rally detail"));
+
+    await userEvent
+      .setup()
+      .press(detail.getByRole("button", { name: "3 photos. Show photos" }));
+
+    expect(await screen.findByText("1 / 3")).toBeOnTheScreen();
+    expect(screen.getByText("🗼 Detail viewer")).toBeOnTheScreen();
+  });
+});
+
+describe("S-037 T-002 ST-003 / T-003 ST-004 rally detail Album", () => {
+  async function switchToAlbum() {
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    await fireEvent(
+      detail.getByTestId("rally-view-picker"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: "album" },
+      },
+    );
+    return detail;
+  }
+
+  test("starts on Stamps with the counts of stamps and photos", async () => {
+    await openRallyDetail("Detail counts", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 3);
+    });
+
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+    expect(pickerSegments(detail)).toEqual(["Stamps · 2", "Album · 3"]);
+    expect(
+      detail.getByRole("button", { name: "3 photos. Show photos" }),
+    ).toBeOnTheScreen();
+  });
+
+  test("Album makes one tile per day of this rally, newest first, without the emoji", async () => {
+    let olderStampedAt = "";
+    let newerStampedAt = "";
+    await openRallyDetail("Detail album", async (rallyId) => {
+      const older = await saveStamp({ rallyId, stampedAt: daysAgoAt(2, 12) });
+      await attachPhotos(older.id, 2);
+      const newer = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(newer.id, 1);
+      olderStampedAt = older.stampedAt;
+      newerStampedAt = newer.stampedAt;
+      await ralliesDb.saveRally({ name: "Other rally", emoji: "☕" });
+      const other = (await ralliesDb.listRallies()).find(
+        ({ name }) => name === "Other rally",
+      );
+      if (!other) throw new Error("Other rally not found");
+      const otherStamp = await saveStamp({ rallyId: other.id });
+      await attachPhotos(otherStamp.id, 1);
+    });
+
+    const detail = await switchToAlbum();
+
+    const album = within(detail.getByTestId("rally-view-pager-album"));
+    expect(
+      album.queryByRole("button", { name: /photos?\. Show photos$/ }),
+    ).not.toBeOnTheScreen();
+    const tiles = album.getAllByRole("button", {
+      name: /^Open (\d+ )?photos?, /,
+    });
+    expect(tiles).toHaveLength(2);
+    expect(tiles[0]).toHaveAccessibleName(
+      `Open photo, Detail album, ${formatStampDate(new Date(newerStampedAt))}`,
+    );
+    expect(tiles[1]).toHaveAccessibleName(
+      `Open 2 photos, Detail album, ${formatStampDate(new Date(olderStampedAt))}`,
+    );
+    const hidden = { includeHiddenElements: true };
+    expect(within(tiles[1]).getByText("2", hidden)).toBeOnTheScreen();
+    expect(within(tiles[0]).queryByText("🗼", hidden)).not.toBeOnTheScreen();
+    expect(pickerSegments(detail)).toEqual(["Stamps · 3", "Album · 3"]);
+  });
+
+  test("pressing a tile opens its photos from the first one", async () => {
+    await openRallyDetail("Detail album open", async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 2);
+    });
+    const detail = await switchToAlbum();
+
+    await userEvent
+      .setup()
+      .press(detail.getByRole("button", { name: /^Open 2 photos, / }));
+
+    expect(await screen.findByText("1 / 2")).toBeOnTheScreen();
+  });
+
+  test("shows No photos yet when the rally has no photos", async () => {
+    await openRallyDetail("Detail no photos");
+
+    const detail = await switchToAlbum();
+
+    const album = within(detail.getByTestId("rally-view-pager-album"));
+    expect(album.getByText("No photos yet")).toBeOnTheScreen();
+    expect(album.queryByText("no memo")).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-043 T-001 ST-003 rally detail pages for Stamps and Album", () => {
+  async function openWithPhotos(name: string) {
+    await openRallyDetail(name, async (rallyId) => {
+      const stamp = await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
+      await attachPhotos(stamp.id, 2);
+    });
+    const detail = within(await screen.findByLabelText("Rally detail"));
+    expect(
+      await detail.findByRole("button", { name: "2 photos. Show photos" }),
+    ).toBeOnTheScreen();
+    return detail;
+  }
+
+  test("keeps the top, the calendar and the switch above two pages, Stamps then Album", async () => {
+    const detail = await openWithPhotos("Pager detail");
+
+    const pager = within(detail.getByTestId("rally-view-pager"));
+    expect(pager.queryByTestId("rally-top-panel")).not.toBeOnTheScreen();
+    expect(pager.queryByTestId("rally-view-picker")).not.toBeOnTheScreen();
+    const stampsPage = within(pager.getByTestId("rally-view-pager-stamps"));
+    const albumPage = within(pager.getByTestId("rally-view-pager-album"));
+    expect(
+      stampsPage.getByRole("button", { name: "2 photos. Show photos" }),
+    ).toBeOnTheScreen();
+    expect(
+      albumPage.getByRole("button", { name: /^Open 2 photos, Pager detail, / }),
+    ).toBeOnTheScreen();
+  });
+
+  test("S-037 T-006 rounds only the outer corners of the album grid", async () => {
+    const detail = await openWithPhotos("Album corners");
+    const albumPage = within(detail.getByTestId("rally-view-pager-album"));
+
+    // The grid is one surface: only its outer corners are rounded.
+    const grid = albumPage.getByTestId("album-grid");
+    expect(grid).toHaveProp(
+      "className",
+      expect.stringMatching(
+        /(?=.*\brounded-2xl\b)(?=.*\boverflow-hidden\b)(?=.*\bborder-continuous\b)/,
+      ),
+    );
+    for (const tile of within(grid).getAllByRole("button", {
+      name: /^Open /,
+    })) {
+      expect(tile.props.className).not.toMatch(/rounded/);
+    }
+  });
+
+  test("S-043 T-003 scrolls the top away with the pages and keeps the switch stuck", async () => {
+    await openWithPhotos("Profile scroll");
+
+    // One vertical scroll holds the top, the switch and the pages, and its
+    // second child (the switch) sticks to the top.
+    const scroll = screen.getByLabelText("Rally detail");
+    expect(scroll.type).toBe("RCTScrollView");
+    expect(scroll).toHaveProp("stickyHeaderIndices", [1]);
+    const inScroll = within(scroll);
+    expect(inScroll.getByTestId("rally-top-panel")).toBeOnTheScreen();
+    expect(inScroll.getByTestId("rally-view-picker")).toBeOnTheScreen();
+    expect(inScroll.getByTestId("rally-view-pager")).toBeOnTheScreen();
+  });
+
+  test("S-043 T-003 shows the pages before they are measured, then takes the shown page's height", async () => {
+    await openWithPhotos("Profile height");
+    const pager = screen.getByTestId("rally-view-pager");
+
+    // Until a page reports its height, the pager is a screen tall rather
+    // than zero, so the pages show and can be measured.
+    expect(pager).toHaveStyle({ height: 1334 });
+
+    await fireEvent(screen.getByTestId("rally-view-page-stamps"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 750, height: 420 } },
+    });
+    expect(pager).toHaveStyle({ height: 420 });
+  });
+
+  test("turning the page changes the switch", async () => {
+    const detail = await openWithPhotos("Pager turn");
+    const pager = detail.getByTestId("rally-view-pager");
+
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 1 } });
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "album",
+    );
+
+    await fireEvent(pager, "pageSelected", { nativeEvent: { position: 0 } });
+    expect(detail.getByTestId("rally-view-picker")).toHaveProp(
+      "selection",
+      "stamps",
+    );
+  });
+
+  test("choosing on the switch turns the page", async () => {
+    // The page turn itself is native; check that it is asked for.
+    const setPage = jest.spyOn(PagerViewCommands, "setPage");
+    const detail = await openWithPhotos("Pager switch");
+
+    await fireEvent(
+      detail.getByTestId("rally-view-picker"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: "album" },
+      },
+    );
+    expect(setPage).toHaveBeenLastCalledWith(expect.anything(), 1);
+  });
+
+  test("has no pages without stamps", async () => {
+    await openRallyDetail("Pager empty", async () => {
+      jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    });
+    const detail = within(await screen.findByLabelText("Rally detail"));
+
+    expect(await detail.findByText("No stamps yet")).toBeOnTheScreen();
+    expect(detail.queryByTestId("rally-view-pager")).not.toBeOnTheScreen();
   });
 });

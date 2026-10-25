@@ -323,9 +323,9 @@ describe("S-036 ST-004 add and remove photos in the edit sheet", () => {
     expect(screen.getByText("2 / 4")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(await post(stampId).findByLabelText("2 photos")).toHaveTextContent(
-      "2",
-    );
+    expect(
+      await post(stampId).findByLabelText("2 photos. Show photos"),
+    ).toHaveTextContent("2");
     expect((await findStamp(stampId))?.photos).toHaveLength(2);
   });
 
@@ -338,7 +338,9 @@ describe("S-036 ST-004 add and remove photos in the edit sheet", () => {
 
     expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
     expect(screen.queryByTestId("edit-stamp-form")).not.toBeOnTheScreen();
-    expect(post(stampId).queryByLabelText(/photos?$/)).not.toBeOnTheScreen();
+    expect(
+      post(stampId).queryByLabelText(/Show photos$/),
+    ).not.toBeOnTheScreen();
     expect((await findStamp(stampId))?.photos).toEqual([]);
   });
 
@@ -359,9 +361,9 @@ describe("S-036 ST-004 add and remove photos in the edit sheet", () => {
     expect(await screen.findByText("2 / 4")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(await post(stampId).findByLabelText("2 photos")).toHaveTextContent(
-      "2",
-    );
+    expect(
+      await post(stampId).findByLabelText("2 photos. Show photos"),
+    ).toHaveTextContent("2");
   });
 
   test("hides Add at 4 photos in total", async () => {

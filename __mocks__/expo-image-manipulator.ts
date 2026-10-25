@@ -11,12 +11,20 @@ export enum SaveFormat {
 
 let nextImageId = 1;
 
-export const ImageManipulator = {
-  manipulate: (source: string) => ({
+// Every picked photo stands in for a 4000 x 3000 (landscape) image.
+const sourceSize = { width: 4000, height: 3000 };
+
+type ResizeSize = { width?: number | null; height?: number | null };
+
+function context(source: string, resized?: ResizeSize) {
+  return {
+    // A resized save names the size it was asked for after its source.
+    resize: (size: ResizeSize) => context(source, size),
     renderAsync: async () => {
       // Reading the source fails like the native module when it is missing.
       new File(source).textSync();
       return {
+        ...sourceSize,
         saveAsync: async (_options?: {
           format?: SaveFormat;
           compress?: number;
@@ -24,10 +32,18 @@ export const ImageManipulator = {
           const directory = new Directory(Paths.cache, "ImageManipulator");
           directory.create({ intermediates: true, idempotent: true });
           const file = new File(directory, `image-${nextImageId++}.jpg`);
-          file.write(`re-encoded:${source}`);
+          file.write(
+            resized
+              ? `re-encoded:${source}:resized:${JSON.stringify(resized)}`
+              : `re-encoded:${source}`,
+          );
           return { uri: file.uri, width: 1, height: 1 };
         },
       };
     },
-  }),
+  };
+}
+
+export const ImageManipulator = {
+  manipulate: (source: string) => context(source),
 };
