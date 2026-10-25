@@ -3,7 +3,10 @@ import { Fragment, type ComponentType } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 
+import { useExportData } from "@/features/data-transfer/hooks/use-export-data";
+import { useImportFromFile } from "@/features/data-transfer/hooks/use-import-data";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import {
   ArrowUpRight,
@@ -23,25 +26,13 @@ type SettingsRow = {
   icon: ComponentType<IconProps>;
   // Opens a web page (↗) rather than going further into the app (›).
   isExternal?: boolean;
-  // Pressing does nothing yet. The data rows get their actions in S-041, the
-  // pages once their URLs exist, and Licenses in its own Story.
   role: "button" | "link";
+  // Rows without one do nothing yet: the pages get theirs once their URLs
+  // exist, and Licenses in its own Story.
+  onPress?: () => void;
+  // Busy rows cannot be pressed again until their action ends.
+  isBusy?: boolean;
 };
-
-const dataRows: SettingsRow[] = [
-  {
-    label: "Export data",
-    detail: "Save rallies and stamps to a file",
-    icon: Upload,
-    role: "button",
-  },
-  {
-    label: "Import data",
-    detail: "Replace this device's data with a file",
-    icon: Download,
-    role: "button",
-  },
-];
 
 const aboutRows: SettingsRow[] = [
   { label: "Help & support", icon: CircleHelp, isExternal: true, role: "link" },
@@ -50,12 +41,15 @@ const aboutRows: SettingsRow[] = [
 ];
 
 function SettingsRowItem({ row }: { row: SettingsRow }) {
-  const { label, detail, isExternal, role } = row;
+  const { label, detail, isExternal, role, onPress, isBusy } = row;
   const RowIcon = row.icon;
 
   return (
     <Pressable
       role={role}
+      onPress={onPress}
+      disabled={isBusy}
+      aria-busy={isBusy}
       className="active:bg-surface-muted-active min-h-13 flex-row items-center gap-3 px-4 py-2.5"
     >
       <View className="border-continuous bg-accent-soft size-8 items-center justify-center rounded-lg">
@@ -105,6 +99,30 @@ function SettingsGroup({
 
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
+  const { back } = useRouter();
+  const { mutate: exportData, isPending: isExporting } = useExportData();
+  // The sheet closes so the tabs show the imported data.
+  const { importFromFile, isImporting } = useImportFromFile({
+    onImported: back,
+  });
+  const dataRows: SettingsRow[] = [
+    {
+      label: "Export data",
+      detail: "Save rallies and stamps to a file",
+      icon: Upload,
+      role: "button",
+      onPress: () => exportData(),
+      isBusy: isExporting,
+    },
+    {
+      label: "Import data",
+      detail: "Replace this device's data with a file",
+      icon: Download,
+      role: "button",
+      onPress: () => void importFromFile(),
+      isBusy: isImporting,
+    },
+  ];
 
   return (
     <FormSheetLayout testID="settings-sheet" title="Settings" className="gap-7">
