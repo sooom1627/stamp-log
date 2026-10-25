@@ -4,7 +4,7 @@ import {
 } from "@/shared/utils/local-date-key";
 
 import { type Rally } from "../schemas/rallies";
-import { type Stamp } from "../schemas/stamps";
+import { compareStampsByTime, type Stamp } from "../schemas/stamps";
 
 // Rallies stamped on today's local date, once each, first stamped first.
 // Stamps of rallies that are not in the list are ignored.
@@ -18,7 +18,7 @@ export function buildTodayStampedRallies(
   const todayRallyIds = new Set(
     stamps
       .filter((stamp) => localDateKeyFromIso(stamp.stampedAt) === todayKey)
-      .sort((a, b) => Date.parse(a.stampedAt) - Date.parse(b.stampedAt))
+      .sort(compareStampsByTime)
       .map((stamp) => stamp.rallyId),
   );
 

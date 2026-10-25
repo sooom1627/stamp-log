@@ -1,4 +1,5 @@
 import {
+  compareStampsByTime,
   hasStampOnLocalDay,
   maxStampPhotos,
   notFutureDatetimeSchema,
@@ -407,5 +408,26 @@ describe("S-036 ST-002 photos in the stamp update input", () => {
     expect(
       updateStampInputSchema.safeParse({ ...base, newPhotoUris: [] }).success,
     ).toBe(false);
+  });
+});
+
+describe("RT ST-002 stamp time order", () => {
+  const stamp = (id: number, stampedAt: string) => ({ id, stampedAt });
+
+  test("sorts older stamps first", () => {
+    const later = stamp(1, "2026-09-19T12:00:00.000Z");
+    const earlier = stamp(2, "2026-09-18T12:00:00.000Z");
+
+    expect([later, earlier].sort(compareStampsByTime)).toEqual([
+      earlier,
+      later,
+    ]);
+  });
+
+  test("sorts the lower id first at the same time", () => {
+    const second = stamp(5, "2026-09-19T12:00:00.000Z");
+    const first = stamp(4, "2026-09-19T12:00:00.000Z");
+
+    expect([second, first].sort(compareStampsByTime)).toEqual([first, second]);
   });
 });

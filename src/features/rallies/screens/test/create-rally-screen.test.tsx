@@ -1,7 +1,6 @@
 import { renderRouter } from "expo-router/testing-library";
 
 import {
-  act,
   fireEvent,
   screen,
   userEvent,
@@ -66,9 +65,7 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
     expect(screen.getByTestId("emoji-picker")).toBeOnTheScreen();
     expect(screen.queryByTestId("emoji-color-selector")).toBeNull();
 
-    await act(async () => {
-      fireEvent(screen.getByLabelText("Name"), "focus");
-    });
+    await fireEvent(screen.getByLabelText("Name"), "focus");
     expect(screen.queryByTestId("emoji-picker")).toBeNull();
   });
 
@@ -82,9 +79,7 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
 
     const nameInput = screen.getByPlaceholderText("Enter a rally name");
     await user.type(nameInput, "Kamakura temples");
-    await act(async () => {
-      fireEvent(nameInput, "submitEditing");
-    });
+    await fireEvent(nameInput, "submitEditing");
 
     expect(await screen.findByText("Kamakura temples")).toBeOnTheScreen();
   });

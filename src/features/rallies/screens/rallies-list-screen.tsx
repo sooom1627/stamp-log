@@ -12,11 +12,12 @@ import { SwipePages } from "@/shared/components/swipe-pages";
 
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
-import { useRallies } from "../hooks/use-rallies";
-import { useSaveStamp, useStamps } from "../hooks/use-stamps";
+import { useRalliesAndStamps } from "../hooks/use-rallies-and-stamps";
+import { useSaveStamp } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
+import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 
 // Matches the screen's px-5 and the grid's gap-2.5.
 const SCREEN_PADDING = 20;
@@ -37,12 +38,6 @@ function isInFilter(rally: Rally, filter: RalliesFilter) {
   return filter === "favorites" ? rally.isFavorite : true;
 }
 
-function stampDatesForRally(stamps: Stamp[], rallyId: number) {
-  return stamps
-    .filter((stamp) => stamp.rallyId === rallyId)
-    .map((stamp) => stamp.stampedAt);
-}
-
 export function RalliesListScreen() {
   const { push } = useRouter();
   const headerHeight = useHeaderHeight();
@@ -50,15 +45,11 @@ export function RalliesListScreen() {
   const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
   const [filter, setFilter] = useState<RalliesFilter>("all");
   const {
-    data: rallies,
-    isError: isRalliesError,
-    refetch: refetchRallies,
-  } = useRallies();
-  const {
-    data: stamps,
-    isError: isStampsError,
-    refetch: refetchStamps,
-  } = useStamps();
+    rallies,
+    stamps,
+    isError: isListError,
+    retry: retryLists,
+  } = useRalliesAndStamps();
   const { mutate: saveStamp } = useSaveStamp();
 
   // Same as home: the order is fixed while the list is open, so a tile does
@@ -70,13 +61,8 @@ export function RalliesListScreen() {
     setShouldResort(false);
     setOrderStamps(stamps);
   }
+  const datesByRally = stampDatesByRally(stamps ?? []);
   const openCreateRally = () => push("/create-rally");
-
-  const retryLists = () => {
-    void refetchRallies();
-    void refetchStamps();
-  };
-
   return (
     <>
       <Stack.Toolbar placement="right">
@@ -121,9 +107,7 @@ export function RalliesListScreen() {
               ))}
             </Picker>
           </Host>
-          {isRalliesError || isStampsError ? (
-            <LoadError onRetry={retryLists} />
-          ) : null}
+          {isListError ? <LoadError onRetry={retryLists} /> : null}
         </View>
         <SwipePages
           testID="rallies-list-pager"
@@ -155,10 +139,11 @@ export function RalliesListScreen() {
                     {shownRallies.map((rally) => (
                       <RallyTile
                         key={rally.id}
+                        rallyId={rally.id}
                         name={rally.name}
                         emoji={rally.emoji}
                         isFavorite={rally.isFavorite}
-                        stampDates={stampDatesForRally(stamps ?? [], rally.id)}
+                        stampDates={datesByRally.get(rally.id) ?? []}
                         width={tileWidth}
                         // Archived rallies are looked back on, not stamped.
                         onPressStamp={
@@ -172,12 +157,6 @@ export function RalliesListScreen() {
                                       showAddMemoToast(stamp.id),
                                   },
                                 )
-                        }
-                        onPressDetail={() =>
-                          push({
-                            pathname: "/rallies/[id]",
-                            params: { id: rally.id },
-                          })
                         }
                       />
                     ))}

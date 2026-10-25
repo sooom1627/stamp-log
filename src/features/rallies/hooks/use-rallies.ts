@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import {
   deleteRally,
@@ -14,19 +19,20 @@ import { stampsQueryKey } from "./use-stamps";
 
 export const ralliesQueryKey = ["rallies"] as const;
 
+const ralliesQuery = queryOptions({
+  queryKey: ralliesQueryKey,
+  queryFn: () => listRallies(),
+});
+
 export function useRallies() {
-  return useQuery({
-    queryKey: ralliesQueryKey,
-    queryFn: listRallies,
-  });
+  return useQuery(ralliesQuery);
 }
 
 // One rally by id: undefined while loading, null once loaded without it.
 // Without an id (its stamp is still loading) it is null too.
 export function useRally(rallyId: Rally["id"] | undefined) {
   return useQuery({
-    queryKey: ralliesQueryKey,
-    queryFn: listRallies,
+    ...ralliesQuery,
     select: (rallies) => rallies.find((rally) => rally.id === rallyId) ?? null,
   });
 }

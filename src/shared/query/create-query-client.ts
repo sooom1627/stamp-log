@@ -7,7 +7,7 @@ export function createQueryClient(handlers?: {
     defaultOptions: { queries: { staleTime: Infinity, retry: false } },
     mutationCache: handlers?.onMutationError
       ? new MutationCache({
-          onError: (error) => handlers.onMutationError?.(error as Error),
+          onError: (error) => handlers.onMutationError?.(error),
         })
       : undefined,
   });

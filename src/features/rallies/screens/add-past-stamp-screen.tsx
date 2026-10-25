@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
+import { addLocalDays } from "@/shared/utils/add-local-days";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
 import { showAddMemoToast } from "../components/show-add-memo-toast";
@@ -31,9 +32,8 @@ function initialStampedAt(day?: Date) {
     return now;
   }
 
-  const date = day ? new Date(day) : new Date(now);
-  if (!day) date.setDate(date.getDate() - 1);
-  date.setHours(12, 0, 0, 0);
+  const date = addLocalDays(day ?? now, day ? 0 : -1);
+  date.setHours(12);
   return date;
 }
 

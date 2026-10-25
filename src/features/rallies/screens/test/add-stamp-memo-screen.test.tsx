@@ -61,9 +61,7 @@ describe("S-002 T-002 RT-003 ST-002 save memo", () => {
 
     const memoInput = screen.getByPlaceholderText("Enter memo");
     await user.type(memoInput, "Met them");
-    await act(async () => {
-      fireEvent(memoInput, "submitEditing");
-    });
+    await fireEvent(memoInput, "submitEditing");
 
     expect(
       await screen.findByRole("button", {

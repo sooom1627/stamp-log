@@ -363,6 +363,38 @@ describe("S-035 ST-003 stamp photos", () => {
     );
   });
 
+  test("lists each stamp with only its own photos, in position order", async () => {
+    const first = await saveStamp({ rallyId: 306 });
+    const second = await saveStamp({ rallyId: 307 });
+    await updateStampMemo({
+      id: first.id,
+      memo: "",
+      photoUris: [pickPhoto(), pickPhoto()],
+    });
+    await updateStampMemo({
+      id: second.id,
+      memo: "",
+      photoUris: [pickPhoto()],
+    });
+    await updateStampMemo({ id: first.id, memo: "", photoUris: [pickPhoto()] });
+
+    const listed = await listStamps();
+    const photosOf = (id: number) =>
+      listed.find((stamp) => stamp.id === id)?.photos ?? [];
+
+    expect(photosOf(first.id).map(({ stampId }) => stampId)).toEqual([
+      first.id,
+      first.id,
+      first.id,
+    ]);
+    expect(photosOf(first.id).map(({ position }) => position)).toEqual([
+      0, 1, 2,
+    ]);
+    expect(photosOf(second.id).map(({ stampId }) => stampId)).toEqual([
+      second.id,
+    ]);
+  });
+
   test("saves a memo and photos together", async () => {
     const saved = await saveStamp({ rallyId: 303 });
 

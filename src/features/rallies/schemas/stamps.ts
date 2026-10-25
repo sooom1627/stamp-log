@@ -67,6 +67,14 @@ export type StampPhoto = z.infer<typeof stampPhotoSchema>;
 export type UpdateStampMemoInput = z.input<typeof updateStampMemoInputSchema>;
 export type UpdateStampInput = z.input<typeof updateStampInputSchema>;
 
+// Older first; at the same time, the one saved first (lower id).
+export function compareStampsByTime(
+  a: Pick<Stamp, "id" | "stampedAt">,
+  b: Pick<Stamp, "id" | "stampedAt">,
+) {
+  return Date.parse(a.stampedAt) - Date.parse(b.stampedAt) || a.id - b.id;
+}
+
 export const sameDayStampMessage = "This rally already has a stamp on that day";
 
 // One stamp per rally per local calendar day (S-025 / S-006).

@@ -1,11 +1,17 @@
 import { Pressable, Text, View } from "react-native";
 
+import { Link } from "expo-router";
+
 import { Check, Plus, Star } from "@/shared/components/icons";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
-import { buildActivityDays, RallyActivityWeek } from "./rally-activity-week";
+import { type Rally } from "../schemas/rallies";
+import { buildLastDays } from "../utils/month-grid";
+
+import { RallyActivityWeek } from "./rally-activity-week";
 
 type RallyTileProps = {
+  rallyId: Rally["id"];
   name: string;
   emoji: string;
   isFavorite?: boolean;
@@ -13,19 +19,18 @@ type RallyTileProps = {
   width?: number;
   // Without it, the tile has no stamp button.
   onPressStamp?: () => void;
-  onPressDetail: () => void;
 };
 
 export function RallyTile({
+  rallyId,
   name,
   emoji,
   isFavorite = false,
   stampDates,
   width,
   onPressStamp,
-  onPressDetail,
 }: RallyTileProps) {
-  const activityDays = buildActivityDays(stampDates);
+  const activityDays = buildLastDays(stampDates, new Date());
   // The last of the 7 days is today.
   const isStampedToday = activityDays[activityDays.length - 1].isRecorded;
 
@@ -85,22 +90,26 @@ export function RallyTile({
           </Pressable>
         ) : null}
       </View>
-      <Pressable
-        role="button"
-        aria-label={`View ${name} details`}
-        className="gap-1 active:opacity-70"
-        onPress={onPressDetail}
+      <Link
+        href={{ pathname: "/rallies/[id]", params: { id: rallyId } }}
+        asChild
       >
-        <Text
-          numberOfLines={2}
-          className="text-foreground min-h-10 text-base leading-5 font-semibold"
+        <Pressable
+          role="button"
+          aria-label={`View ${name} details`}
+          className="gap-1 active:opacity-70"
         >
-          {name}
-        </Text>
-        <Text className="text-foreground-muted text-sm font-medium">
-          {formatStampCount(stampDates.length)}
-        </Text>
-      </Pressable>
+          <Text
+            numberOfLines={2}
+            className="text-foreground min-h-10 text-base leading-5 font-semibold"
+          >
+            {name}
+          </Text>
+          <Text className="text-foreground-muted text-sm font-medium">
+            {formatStampCount(stampDates.length)}
+          </Text>
+        </Pressable>
+      </Link>
       <RallyActivityWeek activityDays={activityDays} />
     </View>
   );
