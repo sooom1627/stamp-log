@@ -1,9 +1,15 @@
+import { Redirect } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 
 import { useResolveClassNames } from "uniwind";
 
+import { hasOnboarded } from "@/features/onboarding/db/onboarding-state";
+
 export default function TabsLayout() {
   const selectedTabStyle = useResolveClassNames("text-foreground");
+
+  // First launch (S-047): onboarding comes before the tabs.
+  if (!hasOnboarded()) return <Redirect href="/onboarding" />;
 
   return (
     <NativeTabs

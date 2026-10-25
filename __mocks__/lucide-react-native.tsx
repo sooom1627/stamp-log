@@ -12,6 +12,7 @@ export const CircleHelp = MockIcon;
 export const Download = MockIcon;
 export const FileText = MockIcon;
 export const Image = MockIcon;
+export const Lock = MockIcon;
 export const Plus = MockIcon;
 export const Shield = MockIcon;
 export const Star = MockIcon;
