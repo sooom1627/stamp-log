@@ -11,8 +11,8 @@ import {
 import { Stack, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
-import { LoadError } from "@/shared/components/load-error";
 import { SwipePages } from "@/shared/components/swipe-pages";
+import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
@@ -39,29 +39,6 @@ import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { albumTiles } from "../utils/album-photos";
 import { buildRallySummary } from "../utils/rally-summary";
-
-type TimelineEmptyProps = {
-  isError: boolean;
-  isLoaded: boolean;
-  message: string;
-  onRetry: () => void;
-};
-
-function TimelineEmpty({
-  isError,
-  isLoaded,
-  message,
-  onRetry,
-}: TimelineEmptyProps) {
-  if (isError) return <LoadError onRetry={onRetry} />;
-  if (!isLoaded) return null;
-
-  return (
-    <View className="items-center py-12">
-      <Text className="text-foreground-secondary">{message}</Text>
-    </View>
-  );
-}
 
 // Stamps that could not be loaded are still deleted with the rally, so the
 // message says so without a count.

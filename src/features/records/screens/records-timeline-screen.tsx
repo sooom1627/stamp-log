@@ -17,40 +17,16 @@ import {
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useStamps } from "@/features/rallies/hooks/use-stamps";
 import { albumTiles } from "@/features/rallies/utils/album-photos";
-import { LoadError } from "@/shared/components/load-error";
 import { SwipePages } from "@/shared/components/swipe-pages";
 import {
   TabRootHeader,
   TabRootSubtitle,
 } from "@/shared/components/tab-root-screen";
+import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
 import { buildDayMarks } from "../utils/day-marks";
-
-type TimelineEmptyProps = {
-  isError: boolean;
-  isLoaded: boolean;
-  message: string;
-  onRetry: () => void;
-};
-
-// Nothing while loading, so No stamps yet never flashes before the posts.
-function TimelineEmpty({
-  isError,
-  isLoaded,
-  message,
-  onRetry,
-}: TimelineEmptyProps) {
-  if (isError) return <LoadError onRetry={onRetry} />;
-  if (!isLoaded) return null;
-
-  return (
-    <View className="items-center py-12">
-      <Text className="text-foreground-secondary">{message}</Text>
-    </View>
-  );
-}
 
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
