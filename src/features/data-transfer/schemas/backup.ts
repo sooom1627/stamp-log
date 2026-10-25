@@ -25,4 +25,3 @@ export const backupSchema = z
   );
 
 export type Backup = z.infer<typeof backupSchema>;
-export type BackupStamp = z.infer<typeof backupStampSchema>;
