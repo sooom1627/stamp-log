@@ -63,6 +63,17 @@ export function buildWeek(anchor: Date, stampDates: string[]): MonthDay[] {
   });
 }
 
+// The 7 days ending today, oldest first.
+export function buildLastDays(stampDates: string[], today: Date): MonthDay[] {
+  const recordedDateKeys = toRecordedDateKeys(stampDates);
+
+  return Array.from({ length: DAYS_PER_WEEK }, (_, index) => {
+    const date = addLocalDays(today, index - (DAYS_PER_WEEK - 1));
+    const key = localDateKey(date);
+    return { date, key, isRecorded: recordedDateKeys.has(key) };
+  });
+}
+
 export function shiftWeek(anchor: Date, delta: number) {
   return addLocalDays(anchor, delta * DAYS_PER_WEEK);
 }

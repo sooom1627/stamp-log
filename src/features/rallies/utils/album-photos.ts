@@ -2,7 +2,11 @@ import { localDateKeyFromIso } from "@/shared/utils/local-date-key";
 
 import { stampPhotoThumbUri, stampPhotoUri } from "../db/stamp-photo-files";
 import { type Rally } from "../schemas/rallies";
-import { type Stamp, type StampPhoto } from "../schemas/stamps";
+import {
+  compareStampsByTime,
+  type Stamp,
+  type StampPhoto,
+} from "../schemas/stamps";
 
 export type AlbumTile = {
   key: string;
@@ -13,9 +17,6 @@ export type AlbumTile = {
   rallyName: Rally["name"];
   stampedAt: Stamp["stampedAt"];
 };
-
-const byOldest = (a: Stamp, b: Stamp) =>
-  Date.parse(a.stampedAt) - Date.parse(b.stampedAt) || a.id - b.id;
 
 // Copy before sorting: the stamps come from the query cache.
 const photosInOrder = (stamp: Stamp) =>
@@ -33,7 +34,7 @@ export function albumTiles(
 ): AlbumTile[] {
   const ralliesById = new Map(rallies.map((rally) => [rally.id, rally]));
   const groups = new Map<string, Stamp[]>();
-  for (const stamp of [...stamps].sort(byOldest)) {
+  for (const stamp of [...stamps].sort(compareStampsByTime)) {
     if (rallyId !== undefined && stamp.rallyId !== rallyId) continue;
     if (stamp.photos.length === 0) continue;
     const key = dayRallyKey(stamp);
@@ -45,7 +46,9 @@ export function albumTiles(
   return (
     [...groups.entries()]
       // Each group is oldest first, so its last stamp is its newest.
-      .sort(([, a], [, b]) => byOldest(b[b.length - 1], a[a.length - 1]))
+      .sort(([, a], [, b]) =>
+        compareStampsByTime(b[b.length - 1], a[a.length - 1]),
+      )
       .flatMap(([key, group]) => {
         const rally = ralliesById.get(group[0].rallyId);
         if (!rally) return [];
@@ -89,7 +92,7 @@ export function dayRallyPhotos(
 
   return stamps
     .filter((stamp) => dayRallyKey(stamp) === key)
-    .sort(byOldest)
+    .sort(compareStampsByTime)
     .flatMap((stamp) =>
       photosInOrder(stamp).map((photo) => ({
         id: photo.id,

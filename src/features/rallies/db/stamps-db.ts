@@ -36,11 +36,9 @@ async function listPhotos(db: SQLiteDatabase, stampId?: Stamp["id"]) {
   );
 }
 
+// `photos` are this stamp's, in position order.
 function withPhotos(row: StampRow, photos: StampPhoto[]) {
-  return stampSchema.parse({
-    ...row,
-    photos: photos.filter((photo) => photo.stampId === row.id),
-  });
+  return stampSchema.parse({ ...row, photos });
 }
 
 async function findStamp(db: SQLiteDatabase, id: Stamp["id"]) {
@@ -94,12 +92,49 @@ export async function listStamps(): Promise<Stamp[]> {
   const rows = await db.getAllAsync<StampRow>(
     `SELECT ${stampColumns} FROM stamps ORDER BY stamped_at DESC, id DESC`,
   );
-  const photos = await listPhotos(db);
-  return rows.map((row) => withPhotos(row, photos));
+  const photosByStampId = new Map<Stamp["id"], StampPhoto[]>();
+  for (const photo of await listPhotos(db)) {
+    const photos = photosByStampId.get(photo.stampId);
+    if (photos) photos.push(photo);
+    else photosByStampId.set(photo.stampId, [photo]);
+  }
+  return rows.map((row) => withPhotos(row, photosByStampId.get(row.id) ?? []));
 }
 
 // Photos are written before the db so a failed write leaves the stamp as it
 // was; files written for a failed save are removed again.
+async function saveWithNewPhotos(
+  photoUris: string[],
+  save: (fileNames: StampPhoto["fileName"][]) => Promise<void>,
+) {
+  const fileNames: StampPhoto["fileName"][] = [];
+  try {
+    for (const photoUri of photoUris) {
+      fileNames.push(await writeStampPhoto(photoUri));
+    }
+    await save(fileNames);
+  } catch (error) {
+    deleteStampPhotoFiles(fileNames);
+    throw error;
+  }
+}
+
+async function insertPhotos(
+  txn: SQLiteDatabase,
+  stampId: Stamp["id"],
+  fileNames: StampPhoto["fileName"][],
+  firstPosition: number,
+) {
+  for (const [index, fileName] of fileNames.entries()) {
+    await txn.runAsync(
+      "INSERT INTO stamp_photos (stamp_id, file_name, position) VALUES (?, ?, ?)",
+      stampId,
+      fileName,
+      firstPosition + index,
+    );
+  }
+}
+
 export async function updateStampMemo(
   input: UpdateStampMemoInput,
 ): Promise<Stamp> {
@@ -110,28 +145,14 @@ export async function updateStampMemo(
     throw new Error(`A stamp can have up to ${maxStampPhotos} photos`);
   }
 
-  const fileNames: StampPhoto["fileName"][] = [];
-  try {
-    for (const photoUri of photoUris) {
-      fileNames.push(await writeStampPhoto(photoUri));
-    }
-    await db.withExclusiveTransactionAsync(async (txn) => {
+  await saveWithNewPhotos(photoUris, (fileNames) =>
+    db.withExclusiveTransactionAsync(async (txn) => {
       if (memo !== null) {
         await txn.runAsync("UPDATE stamps SET memo = ? WHERE id = ?", memo, id);
       }
-      for (const [index, fileName] of fileNames.entries()) {
-        await txn.runAsync(
-          "INSERT INTO stamp_photos (stamp_id, file_name, position) VALUES (?, ?, ?)",
-          id,
-          fileName,
-          current.photos.length + index,
-        );
-      }
-    });
-  } catch (error) {
-    deleteStampPhotoFiles(fileNames);
-    throw error;
-  }
+      await insertPhotos(txn, id, fileNames, current.photos.length);
+    }),
+  );
   return findStamp(db, id);
 }
 
@@ -155,12 +176,8 @@ export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
     (photo) => !keptPhotoIds.includes(photo.id),
   );
 
-  const newFileNames: StampPhoto["fileName"][] = [];
-  try {
-    for (const photoUri of newPhotoUris) {
-      newFileNames.push(await writeStampPhoto(photoUri));
-    }
-    await db.withExclusiveTransactionAsync(async (txn) => {
+  await saveWithNewPhotos(newPhotoUris, (newFileNames) =>
+    db.withExclusiveTransactionAsync(async (txn) => {
       await txn.runAsync(
         "UPDATE stamps SET stamped_at = ?, memo = ? WHERE id = ?",
         stampedAt,
@@ -177,19 +194,9 @@ export async function updateStamp(input: UpdateStampInput): Promise<Stamp> {
           photoId,
         );
       }
-      for (const [index, fileName] of newFileNames.entries()) {
-        await txn.runAsync(
-          "INSERT INTO stamp_photos (stamp_id, file_name, position) VALUES (?, ?, ?)",
-          id,
-          fileName,
-          keptPhotos.length + index,
-        );
-      }
-    });
-  } catch (error) {
-    deleteStampPhotoFiles(newFileNames);
-    throw error;
-  }
+      await insertPhotos(txn, id, newFileNames, keptPhotos.length);
+    }),
+  );
   deleteStampPhotoFiles(droppedPhotos.map(({ fileName }) => fileName));
   return findStamp(db, id);
 }

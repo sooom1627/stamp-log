@@ -64,12 +64,8 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { mutate: deleteRally } = useDeleteRally();
   const { mutate: setRallyFavorite } = useSetRallyFavorite();
   const { mutate: setRallyArchived } = useSetRallyArchived();
-  const summary = stamps
-    ? buildRallySummary(
-        stamps.map((stamp) => stamp.stampedAt),
-        new Date(),
-      )
-    : null;
+  const stampDates = stamps?.map((stamp) => stamp.stampedAt) ?? [];
+  const summary = stamps ? buildRallySummary(stampDates, new Date()) : null;
   const sections = groupByLocalDay(stamps ?? [], (stamp) => stamp.stampedAt);
 
   useCloseWhenMissing(rally === null);
@@ -131,7 +127,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               {stamps ? <RallySummaryStats summary={summary} /> : null}
             </View>
             <RallyMonthCalendar
-              stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+              stampDates={stampDates}
               emoji={rally.emoji}
               onPressDay={(date) =>
                 push({

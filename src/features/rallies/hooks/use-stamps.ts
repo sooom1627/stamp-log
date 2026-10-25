@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import {
   deleteStamp,
@@ -11,17 +16,18 @@ import { type Stamp } from "../schemas/stamps";
 
 export const stampsQueryKey = ["stamps"] as const;
 
+const stampsQuery = queryOptions({
+  queryKey: stampsQueryKey,
+  queryFn: () => listStamps(),
+});
+
 export function useStamps() {
-  return useQuery({
-    queryKey: stampsQueryKey,
-    queryFn: listStamps,
-  });
+  return useQuery(stampsQuery);
 }
 
 export function useRallyStamps(rallyId: Stamp["rallyId"]) {
   return useQuery({
-    queryKey: stampsQueryKey,
-    queryFn: listStamps,
+    ...stampsQuery,
     select: (stamps) => stamps.filter((stamp) => stamp.rallyId === rallyId),
   });
 }
@@ -29,8 +35,7 @@ export function useRallyStamps(rallyId: Stamp["rallyId"]) {
 // One stamp by id: undefined while loading, null once loaded without it.
 export function useStamp(stampId: Stamp["id"]) {
   return useQuery({
-    queryKey: stampsQueryKey,
-    queryFn: listStamps,
+    ...stampsQuery,
     select: (stamps) => stamps.find((stamp) => stamp.id === stampId) ?? null,
   });
 }

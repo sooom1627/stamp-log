@@ -1,4 +1,5 @@
 import {
+  buildLastDays,
   buildMonthWeeks,
   buildWeek,
   shiftWeek,
@@ -153,5 +154,37 @@ describe("S-028 ST-002 weekHeadingMonth", () => {
     expect(weekHeadingMonth(new Date(2026, 8, 20, 15), weekOf(9, 28))).toEqual(
       september,
     );
+  });
+});
+
+describe("RT ST-003 buildLastDays", () => {
+  test("lists the last 7 local days, oldest first and today last", () => {
+    const days = buildLastDays([], new Date(2026, 9, 2, 9));
+
+    expect(days.map(({ key }) => key)).toEqual([
+      "2026-09-26",
+      "2026-09-27",
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+    ]);
+  });
+
+  test("marks the days with a stamp as recorded", () => {
+    const days = buildLastDays(
+      [
+        new Date(2026, 9, 2, 8).toISOString(),
+        new Date(2026, 8, 28, 23, 59).toISOString(),
+        new Date(2026, 8, 25, 12).toISOString(),
+      ],
+      new Date(2026, 9, 2, 9),
+    );
+
+    expect(days.filter((day) => day.isRecorded).map(({ key }) => key)).toEqual([
+      "2026-09-28",
+      "2026-10-02",
+    ]);
   });
 });

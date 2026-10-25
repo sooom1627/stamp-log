@@ -30,7 +30,7 @@ export function TabRootHeader({ title }: { title?: string }) {
         <Stack.Toolbar.View>
           <View
             aria-label="Logo"
-            className="size-8 rounded-full bg-[#c7c7cc]"
+            className="bg-surface-muted size-8 rounded-full"
           />
         </Stack.Toolbar.View>
       </Stack.Toolbar>

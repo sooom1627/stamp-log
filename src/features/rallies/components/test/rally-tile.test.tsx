@@ -9,11 +9,11 @@ const at = (day: number, hours = 12) =>
   new Date(2026, 8, day, hours).toISOString();
 
 const defaultProps = {
+  rallyId: 1,
   name: "Kyoto trip",
   emoji: "⛩️",
   stampDates: [] as string[],
   onPressStamp: () => {},
-  onPressDetail: () => {},
 };
 
 describe("S-029 T-002 ST-001 RallyTile", () => {
@@ -97,27 +97,18 @@ describe("S-029 T-002 ST-001 RallyTile", () => {
     expect(screen.queryByLabelText("Sep 13, 2026, recorded")).toBeNull();
   });
 
-  test("stamp and detail buttons call their callbacks", async () => {
+  // Opening the rally from the detail button is covered on Home and the
+  // rallies list, where the tile is inside the router.
+  test("the stamp button calls its callback", async () => {
     const onPressStamp = jest.fn();
-    const onPressDetail = jest.fn();
     const user = userEvent.setup();
 
-    await render(
-      <RallyTile
-        {...defaultProps}
-        onPressStamp={onPressStamp}
-        onPressDetail={onPressDetail}
-      />,
-    );
+    await render(<RallyTile {...defaultProps} onPressStamp={onPressStamp} />);
 
     await user.press(
       screen.getByRole("button", { name: "Stamp Kyoto trip for today" }),
     );
-    await user.press(
-      screen.getByRole("button", { name: "View Kyoto trip details" }),
-    );
 
     expect(onPressStamp).toHaveBeenCalledTimes(1);
-    expect(onPressDetail).toHaveBeenCalledTimes(1);
   });
 });

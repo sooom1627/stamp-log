@@ -1,11 +1,8 @@
 import { Text, View } from "react-native";
 
-import { addLocalDays } from "@/shared/utils/add-local-days";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
-import {
-  localDateKey,
-  localDateKeyFromIso,
-} from "@/shared/utils/local-date-key";
+
+import { type MonthDay } from "../utils/month-grid";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -16,28 +13,11 @@ function twoLetterWeekday(date: Date) {
   return weekdayFormatter.format(date).slice(0, 2);
 }
 
-type ActivityDay = {
-  date: Date;
-  key: string;
-  isRecorded: boolean;
-};
-
-export function buildActivityDays(stampDates: string[], today = new Date()) {
-  const recordedDateKeys = new Set(
-    stampDates.map((stampDate) => localDateKeyFromIso(stampDate)),
-  );
-  return Array.from({ length: 7 }, (_, index): ActivityDay => {
-    const date = addLocalDays(today, index - 6);
-    const key = localDateKey(date);
-    return { date, key, isRecorded: recordedDateKeys.has(key) };
-  });
-}
-
 // The last 7 days, oldest to today, as two-letter weekdays over dots.
 export function RallyActivityWeek({
   activityDays,
 }: {
-  activityDays: ActivityDay[];
+  activityDays: MonthDay[];
 }) {
   return (
     <View className="w-full gap-1.5" testID="activity-week">

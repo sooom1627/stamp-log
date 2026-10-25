@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
-import { Link, useFocusEffect, useRouter } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 
 import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
@@ -11,11 +11,11 @@ import { TabRootScreen } from "@/shared/components/tab-root-screen";
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
 import { TodayCard } from "../components/today-card";
-import { useRallies } from "../hooks/use-rallies";
-import { useSaveStamp, useStamps } from "../hooks/use-stamps";
+import { useRalliesAndStamps } from "../hooks/use-rallies-and-stamps";
+import { useSaveStamp } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
-import { stampDatesForRally } from "../utils/stamp-dates-for-rally";
+import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 
 // Matches the tab root's px-5 and the grid's gap-2.5.
@@ -23,21 +23,15 @@ const SCREEN_PADDING = 20;
 const TILE_GAP = 10;
 
 export function HomeScreen() {
-  const { push } = useRouter();
   const { width: windowWidth } = useWindowDimensions();
   const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
   const {
-    data: rallies,
-    isError: isRalliesError,
-    refetch: refetchRallies,
-  } = useRallies();
-  const {
-    data: stamps,
-    isError: isStampsError,
-    refetch: refetchStamps,
-  } = useStamps();
+    rallies,
+    stamps,
+    isError: isListError,
+    retry: retryLists,
+  } = useRalliesAndStamps();
   const { mutate: saveStamp } = useSaveStamp();
-  const isListError = isRalliesError || isStampsError;
   const today = new Date();
 
   // Tiles are ordered by the stamps seen when home came into focus, so a
@@ -56,11 +50,7 @@ export function HomeScreen() {
         orderStamps ?? stamps ?? [],
       )
     : undefined;
-
-  const retryLists = () => {
-    void refetchRallies();
-    void refetchStamps();
-  };
+  const datesByRally = stampDatesByRally(stamps ?? []);
 
   return (
     <TabRootScreen label="Home">
@@ -95,19 +85,17 @@ export function HomeScreen() {
             {orderedRallies.map((rally) => (
               <RallyTile
                 key={rally.id}
+                rallyId={rally.id}
                 name={rally.name}
                 emoji={rally.emoji}
                 isFavorite={rally.isFavorite}
-                stampDates={stampDatesForRally(stamps ?? [], rally.id)}
+                stampDates={datesByRally.get(rally.id) ?? []}
                 width={tileWidth}
                 onPressStamp={() =>
                   saveStamp(
                     { rallyId: rally.id },
                     { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
                   )
-                }
-                onPressDetail={() =>
-                  push({ pathname: "/rallies/[id]", params: { id: rally.id } })
                 }
               />
             ))}

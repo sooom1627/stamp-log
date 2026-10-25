@@ -50,6 +50,14 @@ describe("S-029 T-001 ST-004 buildTodayStampedRallies", () => {
     ).toEqual(["Tokyo towers", "Morning run"]);
   });
 
+  test("puts the earlier saved stamp first when two share a time", () => {
+    const first = stamp(1, at(20, 8));
+    const second = stamp(2, at(20, 8));
+
+    // Newest first, as listStamps returns them.
+    expect(namesOf([second, first])).toEqual(["Tokyo towers", "Morning run"]);
+  });
+
   test("uses the local calendar day at the midnight boundary", () => {
     expect(namesOf([stamp(1, at(19, 23, 59)), stamp(2, at(20, 0, 0))])).toEqual(
       ["Morning run"],

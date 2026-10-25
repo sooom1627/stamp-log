@@ -13,8 +13,7 @@ import {
   StampsAlbumPicker,
   type StampsView,
 } from "@/features/rallies/components/stamps-album-picker";
-import { useRallies } from "@/features/rallies/hooks/use-rallies";
-import { useStamps } from "@/features/rallies/hooks/use-stamps";
+import { useRalliesAndStamps } from "@/features/rallies/hooks/use-rallies-and-stamps";
 import { albumTiles } from "@/features/rallies/utils/album-photos";
 import { stampsWithRallies } from "@/features/rallies/utils/stamps-with-rallies";
 import {
@@ -32,18 +31,7 @@ export function RecordsTimelineScreen() {
   const headerHeight = useHeaderHeight();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
-  const {
-    data: stamps,
-    isError: isStampsError,
-    refetch: refetchStamps,
-  } = useStamps();
-  const {
-    data: rallies,
-    isError: isRalliesError,
-    refetch: refetchRallies,
-  } = useRallies();
-  const isLoaded = stamps !== undefined && rallies !== undefined;
-  const isError = isStampsError || isRalliesError;
+  const { rallies, stamps, isLoaded, isError, retry } = useRalliesAndStamps();
   // A stamp is shown once its rally is loaded, so every post has its name.
   const posts = stampsWithRallies(stamps ?? [], rallies ?? []);
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
@@ -140,10 +128,7 @@ export function RecordsTimelineScreen() {
             isError={isError}
             isLoaded={isLoaded}
             message="No stamps yet"
-            onRetry={() => {
-              void refetchStamps();
-              void refetchRallies();
-            }}
+            onRetry={retry}
           />
         )}
       </ScrollView>

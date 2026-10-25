@@ -1,6 +1,6 @@
 import { Alert, Pressable, Text, View } from "react-native";
 
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
 import {
   accessibilityLabel,
@@ -10,7 +10,7 @@ import {
   shapes,
 } from "@expo/ui/swift-ui/modifiers";
 
-import { useResolveClassNames } from "uniwind";
+import { useCSSVariable } from "uniwind";
 
 import { ImageIcon } from "@/shared/components/icons";
 
@@ -42,7 +42,7 @@ export function StampPost({
   const photoCount = photos.length;
   const { push } = useRouter();
   const { mutate: deleteStamp } = useDeleteStamp();
-  const { color: menuColor } = useResolveClassNames("text-foreground-muted");
+  const menuColor = useCSSVariable("--color-foreground-muted") as string;
 
   const confirmDelete = () =>
     Alert.alert("Delete stamp?", "This action cannot be undone.", [
@@ -70,27 +70,29 @@ export function StampPost({
           {photoCount > 0 ? (
             // Opens the stamp's photos (S-037). Inside a pressable post
             // (Logs) the inner press wins, so the post does not open.
-            <Pressable
-              role="button"
-              aria-label={`${photoCount} ${photoCount === 1 ? "photo" : "photos"}. Show photos`}
-              hitSlop={10}
-              onPress={() =>
-                push({
-                  pathname: "/stamp-photos",
-                  params: { photoId: photos[0].id },
-                })
-              }
-              className="bg-surface-muted flex-row items-center gap-1 self-center rounded-full px-2 py-0.5"
+            <Link
+              href={{
+                pathname: "/stamp-photos",
+                params: { photoId: photos[0].id },
+              }}
+              asChild
             >
-              <ImageIcon
-                colorClassName="accent-text-muted"
-                size={13}
-                strokeWidth={2}
-              />
-              <Text className="text-foreground-secondary text-xs font-semibold">
-                {photoCount}
-              </Text>
-            </Pressable>
+              <Pressable
+                role="button"
+                aria-label={`${photoCount} ${photoCount === 1 ? "photo" : "photos"}. Show photos`}
+                hitSlop={10}
+                className="bg-surface-muted flex-row items-center gap-1 self-center rounded-full px-2 py-0.5"
+              >
+                <ImageIcon
+                  colorClassName="accent-text-muted"
+                  size={13}
+                  strokeWidth={2}
+                />
+                <Text className="text-foreground-secondary text-xs font-semibold">
+                  {photoCount}
+                </Text>
+              </Pressable>
+            </Link>
           ) : null}
         </View>
         {memo ? (
