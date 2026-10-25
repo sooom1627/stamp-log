@@ -75,6 +75,7 @@ master
 - マージは **merge commit だけ**（1 Sub = 1 コミットの履歴を残す）。squash / rebase はしない
 - マージしたブランチは消す（GitHub の自動削除）。続く Task のある Story ブランチは Story PR のマージまで残る
 - `master` への直接 push はしない（PR と CI `build` の成功が必須）
+- CI `build`（lint・format・typecheck・test）は PR（宛先を問わず、マージ後の状態）と `master` への push で回る。PR を出す前の push では回らないので、手元の pre-commit（`pnpm run check`）に任せる。docs だけの変更でも省かない
 
 ## Release
 
