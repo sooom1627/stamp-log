@@ -28,7 +28,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 - **Validation**: Zod
 - **Navigation**: Expo Router (File-based)
 - **I18n**: i18next (expo-localization)
-- **Testing**: Jest + React Native Testing Library (Classical TDD)
+- **Testing**: Jest + React Native Testing Library (Classical TDD); Maestro for iOS E2E smoke
 
 ---
 
@@ -92,6 +92,7 @@ Details and the mandatory Red → Green cycle live in `.cursor/rules/tdd-cycle.m
 - **Classical Style**: Prefer sociable tests; mock only out-of-process dependencies (e.g. Camera, Push Notifications); assert behavior, not implementation details.
 - **Tools**: Jest for logic and React Native Testing Library (RNTL) for component behavior.
 - **Location**: `src/features/<name>/<layer>/test/` (e.g. `hooks/test/`). Do not colocate `*.test.ts(x)` with source.
+- **E2E**: Maestro flows in `.maestro/` (iOS simulator, one smoke flow for create rally → stamp today). Run `pnpm e2e` locally after `pnpm expo run:ios`; it is not part of `pnpm run check`. Select by accessibility label; add a `testID` only where a label is ambiguous.
 
 ---
 

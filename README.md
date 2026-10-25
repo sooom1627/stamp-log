@@ -33,3 +33,13 @@ pnpm run check
 ```
 
 format → lint → typecheck → test をまとめて実行します。pre-commit（husky）でも同じゲートが走ります。
+
+## E2E（iOS）
+
+主要導線（ラリー作成 → 今日のスタンプ）のスモークを [Maestro](https://maestro.dev/) で確認します。フローは [`.maestro/`](.maestro) にあり、`pnpm run check` には含めません。macOS と Xcode が必要です。
+
+1. Maestro CLI を入れる（[Installing Maestro](https://docs.maestro.dev/maestro-cli/how-to-install-maestro-cli)）
+2. iOS シミュレータにアプリを入れる: `pnpm expo run:ios`
+3. `pnpm e2e`
+
+EAS の `e2e-test` プロファイル（シミュレータ用ビルド）を `eas build:run -p ios --latest` で入れて試すこともできます。
