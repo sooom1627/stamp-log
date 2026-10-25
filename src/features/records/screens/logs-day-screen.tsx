@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { StampPost } from "@/features/rallies/components/stamp-post";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useStamps } from "@/features/rallies/hooks/use-stamps";
+import { stampsWithRallies } from "@/features/rallies/utils/stamps-with-rallies";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { LoadError } from "@/shared/components/load-error";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
@@ -35,11 +36,9 @@ export function LogsDayScreen({ date }: LogsDayScreenProps) {
   const dayKey = localDateKey(date);
   // Newest first, as listStamps returns them. A stamp shows once its rally is
   // loaded, so every post has its name.
-  const posts = (stamps ?? []).flatMap((stamp) => {
-    if (localDateKeyFromIso(stamp.stampedAt) !== dayKey) return [];
-    const rally = rallies?.find((candidate) => candidate.id === stamp.rallyId);
-    return rally ? [{ stamp, rally }] : [];
-  });
+  const posts = stampsWithRallies(stamps ?? [], rallies ?? []).filter(
+    ({ stamp }) => localDateKeyFromIso(stamp.stampedAt) === dayKey,
+  );
 
   return (
     <FormSheetLayout

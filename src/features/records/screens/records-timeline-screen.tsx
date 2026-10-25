@@ -17,6 +17,7 @@ import {
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useStamps } from "@/features/rallies/hooks/use-stamps";
 import { albumTiles } from "@/features/rallies/utils/album-photos";
+import { stampsWithRallies } from "@/features/rallies/utils/stamps-with-rallies";
 import { SwipePages } from "@/shared/components/swipe-pages";
 import {
   TabRootHeader,
@@ -52,14 +53,7 @@ export function RecordsTimelineScreen() {
   const isLoaded = stamps !== undefined && rallies !== undefined;
   const isError = isStampsError || isRalliesError;
   // A stamp is shown once its rally is loaded, so every post has its name.
-  const posts = rallies
-    ? (stamps ?? []).flatMap((stamp) => {
-        const rally = rallies.find(
-          (candidate) => candidate.id === stamp.rallyId,
-        );
-        return rally ? [{ stamp, rally }] : [];
-      })
-    : [];
+  const posts = stampsWithRallies(stamps ?? [], rallies ?? []);
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
   const tiles = albumTiles(stamps ?? [], rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
