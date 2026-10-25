@@ -25,7 +25,7 @@ Read and write Issues with the GitHub MCP tools or `gh issue view` / `gh issue e
 - IDs: next Story ID = the largest `S-` in issue titles + 1. `T-###` / `RT-###` restart at 001 per Story; `ST-###` restarts at 001 per Task.
 - Deferred Stories keep the `deferred` label. Withdrawn Stories are closed as "not planned".
 - Issue forms: `.github/ISSUE_TEMPLATE/story.yml`, `task.yml`.
-- **Release**: a GitHub milestone (e.g. `ストア公開`) groups the Stories and Tasks that must ship in that release. Add the Story and each of its Tasks to the milestone. Close the milestone when the release is out. A milestone never stands for an Epic.
+- **Release**: a GitHub milestone (e.g. `ストア公開`) groups the Stories and Tasks that must ship in that release. Add the Story and each of its Tasks to the milestone. Close the milestone when the release is out. A milestone never stands for an Epic. How to ship one: see **Release** below.
 - GitHub Projects are not used. To list an Epic's Stories, search issues for `"Epic: E-###"`.
 - Epic status (the 状態 column in `docs/product.md` §3):
   - **未着手**: no Story is done and no Story branch exists
@@ -64,7 +64,7 @@ master
 | Story なしのリファクタ | `refactor/<slug>` | `master` | `master` |
 | Story なしの docs | `docs/<slug>` | `master` | `master` |
 | 設定・依存・ツール | `chore/<slug>` | `master` | `master` |
-| Story なしの不具合修正 | `fix/<slug>` | `master`（公開後の修正は Release 節） | `master` |
+| Story なしの不具合修正 | `fix/<slug>` | `master` | `master` |
 
 - `<slug>` は英小文字とハイフンで、中身が分かる短い名前（例: `feat/s-027-t-001-eas-setup`）
 - Claude のセッションに割り当てられた `claude/…` のブランチは使わず、上の名前でブランチを切る
@@ -75,6 +75,21 @@ master
 - マージは **merge commit だけ**（1 Sub = 1 コミットの履歴を残す）。squash / rebase はしない
 - マージしたブランチは消す（GitHub の自動削除）。続く Task のある Story ブランチは Story PR のマージまで残る
 - `master` への直接 push はしない（PR と CI `build` の成功が必須）
+
+## Release
+
+`master` はいつでもストアに出せる状態に保つ。リリース用のブランチは作らない。
+
+1. マイルストーンの Story と Task が全部 `master` に入ったら、`chore/release-x.y.z` を切り、`app.json` と `package.json` の `version` を上げる PR（`chore: release x.y.z`）を出してマージする
+2. そのマージコミットから、手元で `eas build -p ios --profile production` と `eas submit -p ios` を行う。ビルド番号は EAS が管理して上げる（`cli.appVersionSource: remote` と `production` の `autoIncrement`）
+3. TestFlight の実機で主な流れを確かめてから、審査に出す
+4. ビルドしたコミットに `vX.Y.Z` のタグを付け、GitHub Release を作る（本文にマイルストーンへのリンク）。公開されたらマイルストーンを閉じる
+
+- 版の付け方: Story を含むリリースは `y` を上げ、修正だけのリリースは `z` を上げる
+- 審査中・公開後も、次の Story は `master` に入れてよい
+- **公開後の修正**: `fix/<slug>` を `master` から切り、`master` へ PR を出す。その後、上の手順でパッチ版（`z` を上げる）を出す。`master` に入っている未公開の Story も一緒に出るので、出したくない Story があるときは、その Story をマージする前に直す
+- EAS Update（`expo-updates`）は使わない。起動のたびに Expo のサーバーへ端末ごとの ID を送るため、「データをどこにも送信しない」というプライバシーポリシーとぶつかる。修正はすべてストア版で出す
+- ビルドと提出は、Expo / Apple の認証が要るので手元で手動で行う。CI はリリースでは何もしない。E2E（Maestro）をどこで必須にするかは S-027 の後に決める
 
 ## Commits
 
