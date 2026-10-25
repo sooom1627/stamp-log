@@ -3,7 +3,7 @@ import type * as FileSystemModule from "expo-file-system";
 import type * as RalliesDbModule from "@/features/rallies/db/rallies-db";
 import type * as StampsDbModule from "@/features/rallies/db/stamps-db";
 
-import { backupSchema } from "../../schemas/backup";
+import { backupSchema, type Backup } from "../../schemas/backup";
 import type * as BackupDbModule from "../backup-db";
 
 jest.useFakeTimers();
@@ -131,5 +131,102 @@ describe("S-041 T-001 ST-003 read every rally and stamp", () => {
         memo: null,
       },
     ]);
+  });
+});
+
+const fileBackup: Backup = {
+  app: "stamp-log",
+  version: 1,
+  exportedAt: "2026-10-24T06:00:00.000Z",
+  rallies: [
+    {
+      id: 12,
+      name: "Edinburgh",
+      emoji: "☕️",
+      isFavorite: true,
+      isArchived: false,
+    },
+    {
+      id: 18,
+      name: "Drinks",
+      emoji: "🍻",
+      isFavorite: false,
+      isArchived: true,
+    },
+  ],
+  stamps: [
+    {
+      id: 68,
+      rallyId: 12,
+      stampedAt: "2026-10-25T03:29:06.662Z",
+      memo: "12:15",
+    },
+    { id: 72, rallyId: 18, stampedAt: "2026-10-24T11:00:00.000Z", memo: null },
+  ],
+};
+
+describe("S-041 T-002 ST-001 replace every rally and stamp", () => {
+  test("reads back the same rallies and stamps after replacing", async () => {
+    const { backupDb, ralliesDb, stampsDb } = loadFreshDb();
+    await ralliesDb.saveRally({ name: "Old rally" });
+    const [old] = await ralliesDb.listRallies();
+    await stampsDb.saveStamp({ rallyId: old.id });
+
+    await backupDb.replaceWithBackup(fileBackup);
+
+    const backup = await backupDb.readBackup();
+    expect(backup.rallies).toEqual(expect.arrayContaining(fileBackup.rallies));
+    expect(backup.rallies).toHaveLength(2);
+    expect(backup.stamps).toEqual(expect.arrayContaining(fileBackup.stamps));
+    expect(backup.stamps).toHaveLength(2);
+  });
+
+  test("keeps the data as it was when replacing fails midway", async () => {
+    const { backupDb, ralliesDb, stampsDb } = loadFreshDb();
+    await ralliesDb.saveRally({ name: "Old rally" });
+    const [old] = await ralliesDb.listRallies();
+    await stampsDb.saveStamp({ rallyId: old.id });
+    const before = await backupDb.readBackup();
+    const [stamp] = fileBackup.stamps;
+
+    await expect(
+      backupDb.replaceWithBackup({
+        ...fileBackup,
+        // The same id twice cannot both be inserted.
+        stamps: [stamp, { ...stamp, rallyId: 18 }],
+      }),
+    ).rejects.toThrow();
+
+    expect(await backupDb.readBackup()).toEqual(before);
+  });
+
+  test("removes this device's photo rows and files", async () => {
+    const { fileSystem, backupDb, ralliesDb, stampsDb } = loadFreshDb();
+    const picked = new fileSystem.File(fileSystem.Paths.cache, "picked.jpg");
+    picked.write("jpeg");
+    await ralliesDb.saveRally({ name: "Old rally" });
+    const [old] = await ralliesDb.listRallies();
+    const stamp = await stampsDb.saveStamp({ rallyId: old.id });
+    await stampsDb.updateStampMemo({
+      id: stamp.id,
+      memo: "",
+      photoUris: [picked.uri],
+    });
+    const photosDirectory = new fileSystem.Directory(
+      fileSystem.Paths.document,
+      "stamp-photos",
+    );
+    expect(photosDirectory.list()).toHaveLength(1);
+
+    await backupDb.replaceWithBackup({
+      ...fileBackup,
+      stamps: [{ ...fileBackup.stamps[0], id: stamp.id }],
+    });
+
+    const stamps = await stampsDb.listStamps();
+    expect(stamps).toEqual([
+      expect.objectContaining({ id: stamp.id, photos: [] }),
+    ]);
+    expect(photosDirectory.list()).toHaveLength(0);
   });
 });
