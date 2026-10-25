@@ -13,6 +13,9 @@
   --color-photo-viewer-foreground: #f1f5f9;
   --color-photo-viewer-muted: #94a3b8;
   --color-photo-viewer-control: #334155;
+  /* The Ato mark (S-049): the sun is the same in both themes. */
+  --color-mark-sun-from: #fdba74;
+  --color-mark-sun-to: #f97316;
 }
 
 /* Semantic colors: use these instead of `dark:` variants. Both variants must
@@ -38,6 +41,9 @@
          canvas so they lift off it. */
       --color-canvas: #f4f4f5;
       --color-surface: #ffffff;
+      /* The bands under the Ato mark's sun. */
+      --color-mark-band-from: #334155;
+      --color-mark-band-to: #1e293b;
     }
     @variant dark {
       --color-background: #0f172a;
@@ -54,6 +60,8 @@
       --color-accent-strong: #fdba74;
       --color-canvas: #0f172a;
       --color-surface: #334155;
+      --color-mark-band-from: #e2e8f0;
+      --color-mark-band-to: #94a3b8;
     }
   }
 }
