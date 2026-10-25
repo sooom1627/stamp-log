@@ -3,8 +3,10 @@ import { Fragment, type ComponentType } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 
 import { useExportData } from "@/features/data-transfer/hooks/use-export-data";
+import { useImportFromFile } from "@/features/data-transfer/hooks/use-import-data";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import {
   ArrowUpRight,
@@ -25,8 +27,8 @@ type SettingsRow = {
   // Opens a web page (↗) rather than going further into the app (›).
   isExternal?: boolean;
   role: "button" | "link";
-  // Rows without one do nothing yet: Import data gets its action in S-041
-  // T-002, the pages once their URLs exist, and Licenses in its own Story.
+  // Rows without one do nothing yet: the pages get theirs once their URLs
+  // exist, and Licenses in its own Story.
   onPress?: () => void;
   // Busy rows cannot be pressed again until their action ends.
   isBusy?: boolean;
@@ -97,7 +99,12 @@ function SettingsGroup({
 
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
+  const { back } = useRouter();
   const { mutate: exportData, isPending: isExporting } = useExportData();
+  // The sheet closes so the tabs show the imported data.
+  const { importFromFile, isImporting } = useImportFromFile({
+    onImported: back,
+  });
   const dataRows: SettingsRow[] = [
     {
       label: "Export data",
@@ -112,6 +119,8 @@ export function SettingsScreen() {
       detail: "Replace this device's data with a file",
       icon: Download,
       role: "button",
+      onPress: () => void importFromFile(),
+      isBusy: isImporting,
     },
   ];
 
