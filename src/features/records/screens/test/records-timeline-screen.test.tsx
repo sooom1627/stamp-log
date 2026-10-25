@@ -1,4 +1,4 @@
-import { Alert, type AlertButton } from "react-native";
+import { Alert, StyleSheet, type AlertButton } from "react-native";
 
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
@@ -791,6 +791,22 @@ describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
     expect(inScroll.getByTestId("logs-calendar")).toBeOnTheScreen();
     expect(inScroll.getByTestId("logs-view-picker")).toBeOnTheScreen();
     expect(inScroll.getByTestId("logs-view-pager")).toBeOnTheScreen();
+  });
+
+  test("S-043 T-004 lets the large title shrink and sticks the switch below the header", async () => {
+    await openLogsWithPhotos();
+
+    // The large title shrinks only when the scroll runs under the header, so
+    // the scroll takes the header's inset itself (as Home does).
+    const scroll = screen.getByLabelText("Logs timeline");
+    expect(scroll).toHaveProp("contentInsetAdjustmentBehavior", "automatic");
+    // A sticky header stops at the scroll's top edge, under the header, so
+    // the stuck part reaches up by the header's height above the switch.
+    const stuck = within(scroll).getByTestId("logs-view-switch");
+    const { marginTop, paddingTop } = StyleSheet.flatten(stuck.props.style);
+    expect(paddingTop).toBeGreaterThan(0);
+    expect(marginTop).toBe(-paddingTop);
+    expect(within(stuck).getByTestId("logs-view-picker")).toBeOnTheScreen();
   });
 
   test("S-043 T-004 shows the pages before they are measured, then takes the shown page's height", async () => {
