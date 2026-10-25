@@ -91,7 +91,7 @@ describe("S-028 RT-002 ST-001 FormSheetLayout", () => {
       </FormSheetLayout>,
     );
 
-    fireEvent.press(screen.getByTestId("sheet"));
+    await fireEvent.press(screen.getByTestId("sheet"));
 
     expect(dismiss).toHaveBeenCalled();
     dismiss.mockRestore();
