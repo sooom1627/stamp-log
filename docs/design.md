@@ -42,11 +42,13 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 - **全画面モーダル**（スタンプの写真）でも出さない
 - アイコンは実装時（iOS は SF Symbol、Android は Material）。色・選択色は Uniwind / システム
 - **タブルートの見出し:** ホームは大見出しが今日の月日（例: `September 20`）、その下に曜日（例: `Sunday`）。記録は大見出しが `Logs`、その下に一言 `Your days, one stamp at a time`（日付は出さない）。挨拶は出さない
-- **タブルートのヘッダー:** 左にロゴ、右に Menu ボタン。Menu ボタンは [設定](./screens/settings.md)（formSheet）を開く
+- **タブルートのヘッダー:** 左にロゴ（アプリアイコンと同じ太陽のマーク。ライトは帯がネイビー、ダークは帯が明るいグレー）、右に Menu ボタン。Menu ボタンは [設定](./screens/settings.md)（formSheet）を開く
 - **ホーム:** 押す場所。今日押したラリーを見せる今日の判子のカード、ラリーの 2 列タイル、ワンタップ、作成（一覧の最後）。収集数。全件はラリー詳細へ。
 - **記録:** 振り返り。上にカレンダー、下にラリー横断のタイムラインと写真のアルバム（`Stamps / Album` で切り替える）。カレンダーの日付から Logs の日（formSheet）、投稿からラリー詳細。UI のラベルは `Logs`。
 
 ラリー詳細はタブではなくスタック。ホームからも記録からも開ける。
+
+初回起動では、ホームの代わりに [オンボーディング](./screens/onboarding.md) を全画面で出す（タブバーは出さない）。終えるとホームになり、以降は出さない。
 
 スタックのヘッダーはネイティブの透明ヘッダーにし、白い帯を出さずに画面の地をそのまま見せる。タブルートの大見出しも同じく透明。
 
@@ -108,10 +110,12 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 | Logs の日        | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012, S-035, S-037                                           |
 | スタンプの写真   | [screens/stamp-photos.md](./screens/stamp-photos.md)         | ワイヤー    | S-037                                                         |
 | 設定             | [screens/settings.md](./screens/settings.md)                 | ワイヤー    | S-044, S-041                                                  |
+| オンボーディング | [screens/onboarding.md](./screens/onboarding.md)             | ワイヤー    | S-047                                                         |
 
 ## ルート案
 
 - `/` — ホーム（タブ）
+- `/onboarding` — オンボーディング（全画面。初回起動だけ、ホームの代わりに開く）
 - `/create-rally` — ラリーを作る（formSheet）
 - `/edit-rally?rallyId=` — ラリーを編集（formSheet）
 - `/add-stamp-memo?stampId=` — メモと写真を追加（formSheet）
