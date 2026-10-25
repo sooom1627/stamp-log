@@ -10,6 +10,10 @@
       "ios": {
         "simulator": true
       }
+    },
+    "preview": {
+      "distribution": "internal",
+      "pnpm": "10.11.0"
     }
   }
 }
