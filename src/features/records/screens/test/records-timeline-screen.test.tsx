@@ -215,8 +215,9 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     await openLogs();
 
     const list = await screen.findByLabelText("Logs timeline");
-    // Headings scroll with their cards instead of sticking over the posts.
-    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
+    // Headings scroll with their cards instead of sticking over the posts:
+    // only the Stamps / Album switch (the second child) sticks (S-043 T-004).
+    expect(list.props.stickyHeaderIndices).toEqual([1]);
     const logs = within(list);
     const todayCard = within(logs.getByTestId("day-card-2026-10-10"));
     expect(todayCard.getByTestId("stamp-post-904")).toBeOnTheScreen();
@@ -757,6 +758,34 @@ describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
     expect(
       albumPage.getByRole("button", { name: /^Open photo, Pager lab, / }),
     ).toBeOnTheScreen();
+  });
+
+  test("S-043 T-004 scrolls the top away with the pages and keeps the switch stuck", async () => {
+    await openLogsWithPhotos();
+
+    // One vertical scroll holds the top, the switch and the pages, and its
+    // second child (the switch) sticks to the top.
+    const scroll = screen.getByLabelText("Logs timeline");
+    expect(scroll.type).toBe("RCTScrollView");
+    expect(scroll).toHaveProp("stickyHeaderIndices", [1]);
+    const inScroll = within(scroll);
+    expect(inScroll.getByTestId("logs-calendar")).toBeOnTheScreen();
+    expect(inScroll.getByTestId("logs-view-picker")).toBeOnTheScreen();
+    expect(inScroll.getByTestId("logs-view-pager")).toBeOnTheScreen();
+  });
+
+  test("S-043 T-004 shows the pages before they are measured, then takes the shown page's height", async () => {
+    await openLogsWithPhotos();
+    const pager = screen.getByTestId("logs-view-pager");
+
+    // Until a page reports its height, the pager is a screen tall rather
+    // than zero, so the pages show and can be measured.
+    expect(pager).toHaveStyle({ height: 1334 });
+
+    await fireEvent(screen.getByTestId("logs-view-page-stamps"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 750, height: 420 } },
+    });
+    expect(pager).toHaveStyle({ height: 420 });
   });
 
   test("turning the page changes the switch", async () => {
