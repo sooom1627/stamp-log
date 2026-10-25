@@ -17,6 +17,7 @@ import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
 import { type Stamp } from "../schemas/stamps";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
+import { stampDatesForRally } from "../utils/stamp-dates-for-rally";
 
 // Matches the screen's px-5 and the grid's gap-2.5.
 const SCREEN_PADDING = 20;
@@ -35,12 +36,6 @@ function isInFilter(rally: Rally, filter: RalliesFilter) {
   if (filter === "archived") return rally.isArchived;
   if (rally.isArchived) return false;
   return filter === "favorites" ? rally.isFavorite : true;
-}
-
-function stampDatesForRally(stamps: Stamp[], rallyId: number) {
-  return stamps
-    .filter((stamp) => stamp.rallyId === rallyId)
-    .map((stamp) => stamp.stampedAt);
 }
 
 export function RalliesListScreen() {

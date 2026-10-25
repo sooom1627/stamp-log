@@ -15,17 +15,12 @@ import { useRallies } from "../hooks/use-rallies";
 import { useSaveStamp, useStamps } from "../hooks/use-stamps";
 import { type Stamp } from "../schemas/stamps";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
+import { stampDatesForRally } from "../utils/stamp-dates-for-rally";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 
 // Matches the tab root's px-5 and the grid's gap-2.5.
 const SCREEN_PADDING = 20;
 const TILE_GAP = 10;
-
-function stampDatesForRally(stamps: Stamp[], rallyId: number) {
-  return stamps
-    .filter((stamp) => stamp.rallyId === rallyId)
-    .map((stamp) => stamp.stampedAt);
-}
 
 export function HomeScreen() {
   const { push } = useRouter();
