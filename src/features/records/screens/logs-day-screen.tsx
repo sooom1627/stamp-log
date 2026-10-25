@@ -5,14 +5,13 @@ import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useStamps } from "@/features/rallies/hooks/use-stamps";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { LoadError } from "@/shared/components/load-error";
+import { formatHeaderDate } from "@/shared/utils/format-header-date";
+import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import {
   localDateKey,
   localDateKeyFromIso,
 } from "@/shared/utils/local-date-key";
-
-const weekdayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "long" });
-const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 
 type LogsDayScreenProps = {
   // Local midnight of the day to show.
@@ -46,8 +45,8 @@ export function LogsDayScreen({ date }: LogsDayScreenProps) {
     <FormSheetLayout
       testID="logs-day-sheet"
       scrollable
-      eyebrow={weekdayFormatter.format(date)}
-      title={dateFormatter.format(date)}
+      eyebrow={formatHeaderDate(date).weekday}
+      title={formatMediumDate(date)}
     >
       {isError ? (
         <LoadError

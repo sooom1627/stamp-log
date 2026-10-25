@@ -1,12 +1,9 @@
 import { Text, View } from "react-native";
 
 import { formatDaysAgo } from "@/shared/utils/format-days-ago";
+import { formatMediumDate } from "@/shared/utils/format-medium-date";
 
 import { type RallySummary } from "../utils/rally-summary";
-
-const firstStampFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-});
 
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
@@ -34,11 +31,7 @@ export function RallySummaryStats({ summary }: RallySummaryStatsProps) {
     <View aria-label="Rally summary" className="mt-3 w-full flex-row gap-2">
       <SummaryStat
         label="First stamp"
-        value={
-          summary
-            ? firstStampFormatter.format(summary.firstStampedAt)
-            : NO_VALUE
-        }
+        value={summary ? formatMediumDate(summary.firstStampedAt) : NO_VALUE}
       />
       <SummaryStat
         label="Per week"

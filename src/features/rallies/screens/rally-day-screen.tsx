@@ -4,6 +4,8 @@ import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
+import { formatHeaderDate } from "@/shared/utils/format-header-date";
+import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import {
   localDateKey,
@@ -15,9 +17,6 @@ import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import { useRally } from "../hooks/use-rallies";
 import { useRallyStamps } from "../hooks/use-stamps";
 import { type Rally } from "../schemas/rallies";
-
-const weekdayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "long" });
-const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 
 type RallyDayScreenProps = {
   rallyId: Rally["id"];
@@ -41,8 +40,8 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
     <FormSheetLayout
       testID="rally-day-sheet"
       scrollable
-      eyebrow={weekdayFormatter.format(date)}
-      title={dateFormatter.format(date)}
+      eyebrow={formatHeaderDate(date).weekday}
+      title={formatMediumDate(date)}
     >
       {rally && rallyStamps && dayStamps.length === 0 ? (
         // A day with a stamp gets no add button: the same rally cannot hold
