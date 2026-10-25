@@ -760,6 +760,25 @@ describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
     ).toBeOnTheScreen();
   });
 
+  test("S-037 T-006 rounds only the outer corners of the album grid", async () => {
+    const { logs } = await openLogsWithPhotos();
+    const albumPage = within(logs.getByTestId("logs-view-pager-album"));
+
+    // The grid is one surface: only its outer corners are rounded.
+    const grid = albumPage.getByTestId("album-grid");
+    expect(grid).toHaveProp(
+      "className",
+      expect.stringMatching(
+        /(?=.*\brounded-2xl\b)(?=.*\boverflow-hidden\b)(?=.*\bborder-continuous\b)/,
+      ),
+    );
+    for (const tile of within(grid).getAllByRole("button", {
+      name: /^Open /,
+    })) {
+      expect(tile.props.className).not.toMatch(/rounded/);
+    }
+  });
+
   test("S-043 T-004 scrolls the top away with the pages and keeps the switch stuck", async () => {
     await openLogsWithPhotos();
 

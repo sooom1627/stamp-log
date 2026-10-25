@@ -17,7 +17,7 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
-import { AlbumRow, albumRows } from "../components/album-row";
+import { AlbumGrid } from "../components/album-grid";
 import { DayCard } from "../components/day-card";
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
@@ -229,24 +229,15 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                         </DayCard>
                       ))}
                     </View>
-                  ) : (
-                    <View className="gap-0.5">
-                      {/* One rally's photos, so the tiles need no emoji. */}
-                      {albumRows(tiles).map((row) => (
-                        <AlbumRow
-                          key={`row-${row[0].key}`}
-                          tiles={row}
-                          showsEmoji={false}
-                        />
-                      ))}
-                      {tiles.length === 0 ? (
-                        <View className="items-center py-12">
-                          <Text className="text-foreground-secondary">
-                            No photos yet
-                          </Text>
-                        </View>
-                      ) : null}
+                  ) : tiles.length === 0 ? (
+                    <View className="items-center py-12">
+                      <Text className="text-foreground-secondary">
+                        No photos yet
+                      </Text>
                     </View>
+                  ) : (
+                    // One rally's photos, so the tiles need no emoji.
+                    <AlbumGrid tiles={tiles} showsEmoji={false} />
                   )}
                 </View>
               )}

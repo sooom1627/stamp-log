@@ -10,9 +10,7 @@ import { type AlbumTile } from "../utils/album-photos";
 
 const COLUMNS = 3;
 
-// The Album grid as rows of three, so it can share one list with the
-// timeline (a list cannot change its column count while shown).
-export function albumRows(tiles: AlbumTile[]) {
+function albumRows(tiles: AlbumTile[]) {
   const rows: AlbumTile[][] = [];
   for (let index = 0; index < tiles.length; index += COLUMNS) {
     rows.push(tiles.slice(index, index + COLUMNS));
@@ -33,7 +31,7 @@ type AlbumRowProps = {
 
 // One tile per day and rally (S-037 T-003): its first photo, opening the
 // viewer there to page through the rest.
-export function AlbumRow({ tiles, showsEmoji }: AlbumRowProps) {
+function AlbumRow({ tiles, showsEmoji }: AlbumRowProps) {
   const { push } = useRouter();
   const emptyCount = COLUMNS - tiles.length;
 
@@ -87,6 +85,25 @@ export function AlbumRow({ tiles, showsEmoji }: AlbumRowProps) {
       {/* Keeps the last row's tiles the same width as the others. */}
       {Array.from({ length: emptyCount }, (_, index) => (
         <View key={`empty-${index}`} className="aspect-square flex-1" />
+      ))}
+    </View>
+  );
+}
+
+// The tiles in rows of three, as one surface: only the grid's outer corners
+// are rounded, not each tile (S-037 T-006).
+export function AlbumGrid({ tiles, showsEmoji }: AlbumRowProps) {
+  return (
+    <View
+      testID="album-grid"
+      className="border-continuous gap-0.5 overflow-hidden rounded-2xl"
+    >
+      {albumRows(tiles).map((row) => (
+        <AlbumRow
+          key={`row-${row[0].key}`}
+          tiles={row}
+          showsEmoji={showsEmoji}
+        />
       ))}
     </View>
   );

@@ -5,7 +5,7 @@ import { ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
-import { AlbumRow, albumRows } from "@/features/rallies/components/album-row";
+import { AlbumGrid } from "@/features/rallies/components/album-grid";
 import { DayCard } from "@/features/rallies/components/day-card";
 import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
 import { StampPost } from "@/features/rallies/components/stamp-post";
@@ -174,23 +174,14 @@ export function RecordsTimelineScreen() {
                         </DayCard>
                       ))}
                     </View>
-                  ) : (
-                    <View className="gap-0.5">
-                      {albumRows(tiles).map((row) => (
-                        <AlbumRow
-                          key={`row-${row[0].key}`}
-                          tiles={row}
-                          showsEmoji
-                        />
-                      ))}
-                      {tiles.length === 0 ? (
-                        <View className="items-center py-12">
-                          <Text className="text-foreground-secondary">
-                            No photos yet
-                          </Text>
-                        </View>
-                      ) : null}
+                  ) : tiles.length === 0 ? (
+                    <View className="items-center py-12">
+                      <Text className="text-foreground-secondary">
+                        No photos yet
+                      </Text>
                     </View>
+                  ) : (
+                    <AlbumGrid tiles={tiles} showsEmoji />
                   )}
                 </View>
               )}
