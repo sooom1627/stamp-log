@@ -11,6 +11,9 @@ type SwipePagesProps<T extends string> = {
   value: T;
   onChange: (value: T) => void;
   renderPage: (value: T) => ReactNode;
+  // Inside an outer scroll the pages do not scroll, so the pager takes the
+  // height it is given instead of filling the screen.
+  height?: number;
 };
 
 // One page per value of a segmented switch (S-043): the page follows the
@@ -21,6 +24,7 @@ export function SwipePages<T extends string>({
   value,
   onChange,
   renderPage,
+  height,
 }: SwipePagesProps<T>) {
   const pagerRef = useRef<PagerView>(null);
   const index = values.indexOf(value);
@@ -35,7 +39,7 @@ export function SwipePages<T extends string>({
     <PagerView
       ref={pagerRef}
       testID={testID}
-      style={{ flex: 1 }}
+      style={height === undefined ? { flex: 1 } : { height }}
       initialPage={index}
       onPageSelected={({ nativeEvent: { position } }) =>
         onChange(values[position])

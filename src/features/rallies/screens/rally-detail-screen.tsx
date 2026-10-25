@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Alert, FlatList, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -79,6 +79,11 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const headerHeight = useHeaderHeight();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
+  // Each page's measured height; the pager takes the shown page's.
+  const [pageHeights, setPageHeights] = useState<Record<StampsView, number>>({
+    stamps: 0,
+    album: 0,
+  });
   const { data: rally } = useRally(rallyId);
   const {
     data: stamps,
@@ -103,6 +108,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
     return null;
   }
 
+  const hasStamps = stamps !== undefined && stamps.length > 0;
   const tiles = albumTiles(stamps ?? [], [rally]);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const confirmDelete = () =>
@@ -117,51 +123,56 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
 
   return (
     <>
-      {/* The header is transparent, so the fixed top starts below it. */}
-      <View
-        aria-label="Rally detail"
-        className="bg-canvas flex-1"
-        style={{ paddingTop: headerHeight }}
-      >
-        <View className="items-center gap-4 px-5 pt-6">
-          <View
-            testID="rally-top-panel"
-            className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
-          >
-            <View className="bg-background size-20 items-center justify-center rounded-full">
-              <Text className="text-5xl">{rally.emoji}</Text>
-            </View>
-            <Text
-              selectable
-              role="heading"
-              className="text-foreground mt-1 text-2xl font-bold"
+      {/* The header is transparent, so the scroll starts below it. */}
+      <View className="bg-canvas flex-1" style={{ paddingTop: headerHeight }}>
+        {/* Like a profile: the top scrolls away and the switch sticks, while
+            the pages below still follow the finger (S-043 T-003). */}
+        <ScrollView
+          aria-label="Rally detail"
+          className="bg-canvas flex-1"
+          contentContainerClassName="pb-6"
+          stickyHeaderIndices={hasStamps ? [1] : undefined}
+        >
+          <View className="items-center gap-4 px-5 pt-6">
+            <View
+              testID="rally-top-panel"
+              className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
             >
-              {rally.name}
-            </Text>
-            {rally.isArchived ? (
-              <Text className="text-foreground-muted text-sm font-medium">
-                Archived
+              <View className="bg-background size-20 items-center justify-center rounded-full">
+                <Text className="text-5xl">{rally.emoji}</Text>
+              </View>
+              <Text
+                selectable
+                role="heading"
+                className="text-foreground mt-1 text-2xl font-bold"
+              >
+                {rally.name}
               </Text>
-            ) : null}
-            {stamps ? (
-              <Text className="text-accent-strong text-base font-semibold">
-                {formatStampCount(stamps.length)}
-              </Text>
-            ) : null}
-            {stamps ? <RallySummaryStats summary={summary} /> : null}
+              {rally.isArchived ? (
+                <Text className="text-foreground-muted text-sm font-medium">
+                  Archived
+                </Text>
+              ) : null}
+              {stamps ? (
+                <Text className="text-accent-strong text-base font-semibold">
+                  {formatStampCount(stamps.length)}
+                </Text>
+              ) : null}
+              {stamps ? <RallySummaryStats summary={summary} /> : null}
+            </View>
+            <RallyMonthCalendar
+              stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
+              emoji={rally.emoji}
+              onPressDay={(date) =>
+                push({
+                  pathname: "/rally-day",
+                  params: { rallyId: rally.id, date },
+                })
+              }
+            />
           </View>
-          <RallyMonthCalendar
-            stampDates={stamps?.map((stamp) => stamp.stampedAt) ?? []}
-            emoji={rally.emoji}
-            onPressDay={(date) =>
-              push({
-                pathname: "/rally-day",
-                params: { rallyId: rally.id, date },
-              })
-            }
-          />
-          {stamps && stamps.length > 0 ? (
-            <View className="w-full pt-4">
+          {hasStamps ? (
+            <View className="bg-canvas px-5 pt-4 pb-2">
               <StampsAlbumPicker
                 testID="rally-view-picker"
                 view={view}
@@ -171,65 +182,74 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               />
             </View>
           ) : null}
-        </View>
-        {stamps && stamps.length > 0 ? (
-          <SwipePages
-            testID="rally-view-pager"
-            values={stampsViews}
-            value={view}
-            onChange={setView}
-            renderPage={(page) =>
-              page === "stamps" ? (
-                <FlatList
-                  contentContainerClassName="gap-6 px-5 py-6"
-                  contentInsetAdjustmentBehavior="automatic"
-                  data={sections}
-                  keyExtractor={({ dateKey }) => dateKey}
-                  renderItem={({ item: { dateKey, data } }) => (
-                    <DayCard
-                      dateKey={dateKey}
-                      date={new Date(data[0].stampedAt)}
-                    >
-                      {data.map((stamp) => (
-                        <StampPost
-                          key={stamp.id}
-                          stamp={stamp}
-                          emoji={rally.emoji}
-                          title={formatStampTime(new Date(stamp.stampedAt))}
+          {hasStamps ? (
+            <SwipePages
+              testID="rally-view-pager"
+              values={stampsViews}
+              value={view}
+              onChange={setView}
+              height={pageHeights[view]}
+              renderPage={(page) => (
+                // The page fills the pager; this measures what it holds.
+                <View
+                  className="px-5 pt-4"
+                  onLayout={({ nativeEvent: { layout } }) =>
+                    setPageHeights((heights) => ({
+                      ...heights,
+                      [page]: layout.height,
+                    }))
+                  }
+                >
+                  {page === "stamps" ? (
+                    <View className="gap-6">
+                      {sections.map(({ dateKey, data }) => (
+                        <DayCard
+                          key={dateKey}
+                          dateKey={dateKey}
+                          date={new Date(data[0].stampedAt)}
+                        >
+                          {data.map((stamp) => (
+                            <StampPost
+                              key={stamp.id}
+                              stamp={stamp}
+                              emoji={rally.emoji}
+                              title={formatStampTime(new Date(stamp.stampedAt))}
+                            />
+                          ))}
+                        </DayCard>
+                      ))}
+                    </View>
+                  ) : (
+                    <View className="gap-0.5">
+                      {/* One rally's photos, so the tiles need no emoji. */}
+                      {albumRows(tiles).map((row) => (
+                        <AlbumRow
+                          key={`row-${row[0].key}`}
+                          tiles={row}
+                          showsEmoji={false}
                         />
                       ))}
-                    </DayCard>
-                  )}
-                />
-              ) : (
-                <FlatList
-                  contentContainerClassName="gap-0.5 px-5 py-6"
-                  contentInsetAdjustmentBehavior="automatic"
-                  data={albumRows(tiles)}
-                  keyExtractor={(row) => `row-${row[0].key}`}
-                  // One rally's photos, so the tiles need no emoji.
-                  renderItem={({ item: row }) => (
-                    <AlbumRow tiles={row} showsEmoji={false} />
-                  )}
-                  ListEmptyComponent={
-                    <View className="items-center py-12">
-                      <Text className="text-foreground-secondary">
-                        No photos yet
-                      </Text>
+                      {tiles.length === 0 ? (
+                        <View className="items-center py-12">
+                          <Text className="text-foreground-secondary">
+                            No photos yet
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
-                  }
-                />
-              )
-            }
-          />
-        ) : (
-          <TimelineEmpty
-            isError={isStampsError}
-            isLoaded={isStampsLoaded}
-            message="No stamps yet"
-            onRetry={() => void refetchStamps()}
-          />
-        )}
+                  )}
+                </View>
+              )}
+            />
+          ) : (
+            <TimelineEmpty
+              isError={isStampsError}
+              isLoaded={isStampsLoaded}
+              message="No stamps yet"
+              onRetry={() => void refetchStamps()}
+            />
+          )}
+        </ScrollView>
       </View>
       <Stack.Title>{rally.name}</Stack.Title>
       <RallyActionsMenu

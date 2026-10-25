@@ -1146,8 +1146,9 @@ describe("S-011 RT-001 ST-007 rally detail day cards", () => {
     });
 
     const list = await screen.findByLabelText("Rally detail");
-    // Headings scroll with their cards instead of sticking over the posts.
-    expect(list.props.stickyHeaderIndices ?? []).toHaveLength(0);
+    // Headings scroll with their cards instead of sticking over the posts;
+    // only the Stamps / Album switch (the second child) sticks (S-043 T-003).
+    expect(list.props.stickyHeaderIndices).toEqual([1]);
     const detail = within(list);
     expect(
       within(detail.getByTestId("day-card-2026-09-18")).getByTestId(
@@ -1651,6 +1652,20 @@ describe("S-043 T-001 ST-003 rally detail pages for Stamps and Album", () => {
     expect(
       albumPage.getByRole("button", { name: /^Open 2 photos, Pager detail, / }),
     ).toBeOnTheScreen();
+  });
+
+  test("S-043 T-003 scrolls the top away with the pages and keeps the switch stuck", async () => {
+    await openWithPhotos("Profile scroll");
+
+    // One vertical scroll holds the top, the switch and the pages, and its
+    // second child (the switch) sticks to the top.
+    const scroll = screen.getByLabelText("Rally detail");
+    expect(scroll.type).toBe("RCTScrollView");
+    expect(scroll).toHaveProp("stickyHeaderIndices", [1]);
+    const inScroll = within(scroll);
+    expect(inScroll.getByTestId("rally-top-panel")).toBeOnTheScreen();
+    expect(inScroll.getByTestId("rally-view-picker")).toBeOnTheScreen();
+    expect(inScroll.getByTestId("rally-view-pager")).toBeOnTheScreen();
   });
 
   test("turning the page changes the switch", async () => {
