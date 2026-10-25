@@ -1,31 +1,23 @@
 import { useState } from "react";
 
-import {
-  Alert,
-  ScrollView,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
-import { SwipePages } from "@/shared/components/swipe-pages";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
-import { AlbumGrid } from "../components/album-grid";
 import { DayCard } from "../components/day-card";
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
 import { StampPost } from "../components/stamp-post";
+import { StampsAlbumPager } from "../components/stamps-album-pager";
 import {
   StampsAlbumPicker,
-  stampsViews,
   type StampsView,
 } from "../components/stamps-album-picker";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
@@ -60,14 +52,8 @@ type RallyDetailScreenProps = {
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
   const headerHeight = useHeaderHeight();
-  const { height: windowHeight } = useWindowDimensions();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
-  // Each page's measured height; the pager takes the shown page's.
-  const [pageHeights, setPageHeights] = useState<Record<StampsView, number>>({
-    stamps: 0,
-    album: 0,
-  });
   const { data: rally } = useRally(rallyId);
   const {
     data: stamps,
@@ -167,57 +153,34 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             </View>
           ) : null}
           {hasStamps ? (
-            <SwipePages
-              testID="rally-view-pager"
-              values={stampsViews}
-              value={view}
-              onChange={setView}
-              // Zero until measured would hide the pages (and keep them from
-              // being measured), so start a screen tall.
-              height={pageHeights[view] || windowHeight}
-              renderPage={(page) => (
-                // The page fills the pager; this measures what it holds.
-                <View
-                  testID={`rally-view-page-${page}`}
-                  className="px-5 pt-4"
-                  onLayout={({ nativeEvent: { layout } }) =>
-                    setPageHeights((heights) => ({
-                      ...heights,
-                      [page]: layout.height,
-                    }))
-                  }
-                >
-                  {page === "stamps" ? (
-                    <View className="gap-6">
-                      {sections.map(({ dateKey, data }) => (
-                        <DayCard
-                          key={dateKey}
-                          dateKey={dateKey}
-                          date={new Date(data[0].stampedAt)}
-                        >
-                          {data.map((stamp) => (
-                            <StampPost
-                              key={stamp.id}
-                              stamp={stamp}
-                              emoji={rally.emoji}
-                              title={formatStampTime(new Date(stamp.stampedAt))}
-                            />
-                          ))}
-                        </DayCard>
+            <StampsAlbumPager
+              testIDPrefix="rally-view"
+              view={view}
+              onChangeView={setView}
+              pageClassName="px-5 pt-4"
+              stamps={
+                <View className="gap-6">
+                  {sections.map(({ dateKey, data }) => (
+                    <DayCard
+                      key={dateKey}
+                      dateKey={dateKey}
+                      date={new Date(data[0].stampedAt)}
+                    >
+                      {data.map((stamp) => (
+                        <StampPost
+                          key={stamp.id}
+                          stamp={stamp}
+                          emoji={rally.emoji}
+                          title={formatStampTime(new Date(stamp.stampedAt))}
+                        />
                       ))}
-                    </View>
-                  ) : tiles.length === 0 ? (
-                    <View className="items-center py-12">
-                      <Text className="text-foreground-secondary">
-                        No photos yet
-                      </Text>
-                    </View>
-                  ) : (
-                    // One rally's photos, so the tiles need no emoji.
-                    <AlbumGrid tiles={tiles} showsEmoji={false} />
-                  )}
+                    </DayCard>
+                  ))}
                 </View>
-              )}
+              }
+              tiles={tiles}
+              // One rally's photos, so the tiles need no emoji.
+              showsEmoji={false}
             />
           ) : (
             <TimelineEmpty

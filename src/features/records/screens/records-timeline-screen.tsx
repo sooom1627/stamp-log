@@ -1,24 +1,22 @@
 import { useState } from "react";
 
-import { ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
-import { AlbumGrid } from "@/features/rallies/components/album-grid";
 import { DayCard } from "@/features/rallies/components/day-card";
 import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
 import { StampPost } from "@/features/rallies/components/stamp-post";
+import { StampsAlbumPager } from "@/features/rallies/components/stamps-album-pager";
 import {
   StampsAlbumPicker,
-  stampsViews,
   type StampsView,
 } from "@/features/rallies/components/stamps-album-picker";
 import { useRallies } from "@/features/rallies/hooks/use-rallies";
 import { useStamps } from "@/features/rallies/hooks/use-stamps";
 import { albumTiles } from "@/features/rallies/utils/album-photos";
 import { stampsWithRallies } from "@/features/rallies/utils/stamps-with-rallies";
-import { SwipePages } from "@/shared/components/swipe-pages";
 import {
   TabRootHeader,
   TabRootSubtitle,
@@ -32,14 +30,8 @@ import { buildDayMarks } from "../utils/day-marks";
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
   const headerHeight = useHeaderHeight();
-  const { height: windowHeight } = useWindowDimensions();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
-  // Each page's measured height; the pager takes the shown page's.
-  const [pageHeights, setPageHeights] = useState<Record<StampsView, number>>({
-    stamps: 0,
-    album: 0,
-  });
   const {
     data: stamps,
     isError: isStampsError,
@@ -108,63 +100,40 @@ export function RecordsTimelineScreen() {
           </View>
         ) : null}
         {hasPosts ? (
-          <SwipePages
-            testID="logs-view-pager"
-            values={stampsViews}
-            value={view}
-            onChange={setView}
-            // Zero until measured would hide the pages (and keep them from
-            // being measured), so start a screen tall.
-            height={pageHeights[view] || windowHeight}
-            renderPage={(page) => (
-              // The page fills the pager; this measures what it holds.
-              <View
-                testID={`logs-view-page-${page}`}
-                className="px-5 pt-2"
-                onLayout={({ nativeEvent: { layout } }) =>
-                  setPageHeights((heights) => ({
-                    ...heights,
-                    [page]: layout.height,
-                  }))
-                }
-              >
-                {page === "stamps" ? (
-                  <View className="gap-4">
-                    {sections.map((section) => (
-                      <DayCard
-                        key={section.dateKey}
-                        dateKey={section.dateKey}
-                        date={new Date(section.data[0].stamp.stampedAt)}
-                      >
-                        {section.data.map(({ stamp, rally }) => (
-                          <StampPost
-                            key={stamp.id}
-                            stamp={stamp}
-                            emoji={rally.emoji}
-                            title={rally.name}
-                            detail={formatStampTime(new Date(stamp.stampedAt))}
-                            onPress={() =>
-                              push({
-                                pathname: "/records/rallies/[id]",
-                                params: { id: rally.id },
-                              })
-                            }
-                          />
-                        ))}
-                      </DayCard>
+          <StampsAlbumPager
+            testIDPrefix="logs-view"
+            view={view}
+            onChangeView={setView}
+            pageClassName="px-5 pt-2"
+            stamps={
+              <View className="gap-4">
+                {sections.map((section) => (
+                  <DayCard
+                    key={section.dateKey}
+                    dateKey={section.dateKey}
+                    date={new Date(section.data[0].stamp.stampedAt)}
+                  >
+                    {section.data.map(({ stamp, rally }) => (
+                      <StampPost
+                        key={stamp.id}
+                        stamp={stamp}
+                        emoji={rally.emoji}
+                        title={rally.name}
+                        detail={formatStampTime(new Date(stamp.stampedAt))}
+                        onPress={() =>
+                          push({
+                            pathname: "/records/rallies/[id]",
+                            params: { id: rally.id },
+                          })
+                        }
+                      />
                     ))}
-                  </View>
-                ) : tiles.length === 0 ? (
-                  <View className="items-center py-12">
-                    <Text className="text-foreground-secondary">
-                      No photos yet
-                    </Text>
-                  </View>
-                ) : (
-                  <AlbumGrid tiles={tiles} showsEmoji />
-                )}
+                  </DayCard>
+                ))}
               </View>
-            )}
+            }
+            tiles={tiles}
+            showsEmoji
           />
         ) : (
           <TimelineEmpty
