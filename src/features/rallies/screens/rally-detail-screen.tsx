@@ -1,6 +1,12 @@
 import { useState } from "react";
 
-import { Alert, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -77,6 +83,7 @@ type RallyDetailScreenProps = {
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
   const headerHeight = useHeaderHeight();
+  const { height: windowHeight } = useWindowDimensions();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
   // Each page's measured height; the pager takes the shown page's.
@@ -188,10 +195,13 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               values={stampsViews}
               value={view}
               onChange={setView}
-              height={pageHeights[view]}
+              // Zero until measured would hide the pages (and keep them from
+              // being measured), so start a screen tall.
+              height={pageHeights[view] || windowHeight}
               renderPage={(page) => (
                 // The page fills the pager; this measures what it holds.
                 <View
+                  testID={`rally-view-page-${page}`}
                   className="px-5 pt-4"
                   onLayout={({ nativeEvent: { layout } }) =>
                     setPageHeights((heights) => ({

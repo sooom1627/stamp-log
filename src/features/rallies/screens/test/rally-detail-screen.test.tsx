@@ -1668,6 +1668,20 @@ describe("S-043 T-001 ST-003 rally detail pages for Stamps and Album", () => {
     expect(inScroll.getByTestId("rally-view-pager")).toBeOnTheScreen();
   });
 
+  test("S-043 T-003 shows the pages before they are measured, then takes the shown page's height", async () => {
+    await openWithPhotos("Profile height");
+    const pager = screen.getByTestId("rally-view-pager");
+
+    // Until a page reports its height, the pager is a screen tall rather
+    // than zero, so the pages show and can be measured.
+    expect(pager).toHaveStyle({ height: 1334 });
+
+    await fireEvent(screen.getByTestId("rally-view-page-stamps"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 750, height: 420 } },
+    });
+    expect(pager).toHaveStyle({ height: 420 });
+  });
+
   test("turning the page changes the switch", async () => {
     const detail = await openWithPhotos("Pager turn");
     const pager = detail.getByTestId("rally-view-pager");
