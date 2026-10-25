@@ -107,7 +107,7 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 | 記録（Logs）     | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010, S-011, S-012, S-035, S-037                             |
 | Logs の日        | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012, S-035, S-037                                           |
 | スタンプの写真   | [screens/stamp-photos.md](./screens/stamp-photos.md)         | ワイヤー    | S-037                                                         |
-| 設定             | [screens/settings.md](./screens/settings.md)                 | ワイヤー    | S-044                                                         |
+| 設定             | [screens/settings.md](./screens/settings.md)                 | ワイヤー    | S-044, S-041                                                  |
 
 ## ルート案
 
