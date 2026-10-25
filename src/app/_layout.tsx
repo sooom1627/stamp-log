@@ -58,6 +58,7 @@ export default function RootLayout() {
             <Stack.Screen name="edit-stamp" options={formSheetOptions} />
             <Stack.Screen name="rally-day" options={formSheetOptions} />
             <Stack.Screen name="logs-day" options={formSheetOptions} />
+            <Stack.Screen name="settings" options={formSheetOptions} />
             <Stack.Screen
               name="stamp-photos"
               options={{
