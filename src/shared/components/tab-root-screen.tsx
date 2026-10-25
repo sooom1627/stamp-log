@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 
 import { ScrollView, Text, View } from "react-native";
 
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 
@@ -22,6 +22,7 @@ export function TabRootSubtitle({ children }: { children: string }) {
 // by tab roots.
 export function TabRootHeader({ title }: { title?: string }) {
   const { monthDay } = formatHeaderDate(new Date());
+  const { push } = useRouter();
 
   return (
     <>
@@ -38,7 +39,7 @@ export function TabRootHeader({ title }: { title?: string }) {
         <Stack.Toolbar.Button
           accessibilityLabel="Menu"
           icon="line.3.horizontal"
-          onPress={() => {}}
+          onPress={() => push("/settings")}
         />
       </Stack.Toolbar>
     </>
