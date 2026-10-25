@@ -68,6 +68,7 @@ export function RallyFormFields({
           onSubmitEditing={onSubmit}
           placeholder="Enter a rally name"
           aria-label="Name"
+          testID="rally-name-input"
           returnKeyType="done"
           submitBehavior="blurAndSubmit"
         />

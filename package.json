@@ -73,6 +73,7 @@
     "lint": "expo lint",
     "lint:fix": "expo lint --fix",
     "test": "jest",
+    "e2e": "maestro test .maestro",
     "check": "pnpm format:fix && pnpm lint && pnpm typecheck && pnpm test",
     "prepare": "husky"
   },

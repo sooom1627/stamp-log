@@ -1,0 +1,18 @@
+# Smoke: create a rally on an empty home, stamp it for today, and see it stamped.
+# Selectors are accessibility labels; on iOS a labeled Pressable hides its inner Text.
+appId: com.sooom1627.stamplog
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Today, .*, no stamps yet"
+- tapOn: "Create rally"
+- tapOn:
+    id: "rally-name-input"
+- inputText: "Smoke rally"
+# A tap outside the field closes the keyboard so it cannot cover Save.
+- tapOn: "Emoji"
+- tapOn: "Save"
+- assertVisible: "View Smoke rally details"
+- tapOn: "Stamp Smoke rally for today"
+- assertVisible: "Smoke rally already stamped today"
+- assertVisible: "Today, .*, 1 stamp: Smoke rally"
