@@ -43,7 +43,7 @@ Stamp what you collect, …        ← 説明（小）
 | 3   | One tap. That's it.                        | ＋ を押すとスタンプが付き、1 週間のドットとトーストが変わるタイル（試せる） |
 | 4   | No streaks to keep.                        | 1 つのラリーのスタンプを日付順に縦に並べる。間隔は不揃いで、間はただの余白  |
 
-- `Next` で次へ、`Back` で前へ。4 枚目の `Next` と、1〜4 枚目の `Skip` は「最初に集めるもの」へ
+- 横にスワイプしてもめくれる。`Next` で次へ、`Back` で前へ。4 枚目の `Next` と、1〜4 枚目の `Skip` は「最初に集めるもの」へ
 - 3 枚目のタイルは試すだけで、何も保存しない
 
 最初に集めるもの:
@@ -64,7 +64,7 @@ Start with one. You can rename it or make your own anytime.
            I'll make my own
 ```
 
-- 初めは 1 つ目のテンプレートを選んだ状態。カードを押しても選べる
+- 初めは 1 つ目のテンプレートを選んだ状態。カードを横にスワイプして止まったものか、押したカードかチップを選ぶ
 - テンプレートは 🏃 Morning run / ☕ Cafés I visited / 🤝 People I met / 📚 Books I read。作ったラリーの名前と絵文字は、後で [edit-rally.md](./edit-rally.md) から変えられる
 
 ## 出すデータ

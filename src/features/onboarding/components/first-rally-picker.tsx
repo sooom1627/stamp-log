@@ -1,12 +1,13 @@
+import { useEffect, useRef } from "react";
+
 import {
   ActivityIndicator,
   Pressable,
+  ScrollView,
   Text,
   useWindowDimensions,
   View,
 } from "react-native";
-
-import Animated from "react-native-reanimated";
 
 import { Check, Plus } from "@/shared/components/icons";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
@@ -23,6 +24,8 @@ type Template = (typeof firstRallyTemplates)[number];
 
 const cardWidth = 250;
 const cardGap = 16;
+// One card and the gap after it: how far a swipe moves to the next card.
+const cardStep = cardWidth + cardGap;
 const previewDots = [false, true, false, false, true, false, true];
 
 type FirstRallyPickerProps = {
@@ -41,10 +44,14 @@ export function FirstRallyPicker({
   isStarting,
 }: FirstRallyPickerProps) {
   const { width } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
   const selected = firstRallyTemplates[selectedIndex];
-  // Centers the chosen card; the others peek in from the sides.
-  const trackX =
-    (width - cardWidth) / 2 - selectedIndex * (cardWidth + cardGap);
+
+  // A chip or card chose a template: bring its card to the middle. After a
+  // swipe the card is already there, so this asks for where it is.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ x: selectedIndex * cardStep });
+  }, [selectedIndex]);
 
   return (
     <View className="flex-1">
@@ -63,13 +70,23 @@ export function FirstRallyPicker({
         </Text>
       </View>
       <View className="mt-6 max-h-98 flex-1 overflow-hidden pt-1.5">
-        <Animated.View
-          className="flex-1 flex-row"
-          style={{
+        <ScrollView
+          ref={scrollRef}
+          testID="first-rally-cards"
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={cardStep}
+          decelerationRate="fast"
+          // Side padding centers the first and last cards; the others peek in.
+          contentContainerStyle={{
             gap: cardGap,
-            transform: [{ translateX: trackX }],
-            transitionProperty: "transform",
-            transitionDuration: 350,
+            paddingHorizontal: (width - cardWidth) / 2,
+          }}
+          onMomentumScrollEnd={({ nativeEvent }) => {
+            const index = Math.round(nativeEvent.contentOffset.x / cardStep);
+            onSelect(
+              Math.min(Math.max(index, 0), firstRallyTemplates.length - 1),
+            );
           }}
         >
           {firstRallyTemplates.map((template, index) => (
@@ -80,7 +97,7 @@ export function FirstRallyPicker({
               onPress={() => onSelect(index)}
             />
           ))}
-        </Animated.View>
+        </ScrollView>
       </View>
       <View className="mt-3.5 flex-row justify-center gap-2.5">
         {firstRallyTemplates.map((template, index) => {

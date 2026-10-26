@@ -1,7 +1,7 @@
 import { renderRouter } from "expo-router/testing-library";
 import Storage from "expo-sqlite/kv-store";
 
-import { screen, userEvent } from "@testing-library/react-native";
+import { fireEvent, screen, userEvent } from "@testing-library/react-native";
 
 import * as ralliesDb from "@/features/rallies/db/rallies-db";
 
@@ -45,6 +45,7 @@ describe("S-047 T-001 ST-003 intro pages on first launch", () => {
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
 
     await user.press(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByLabelText("Page 2 of 4")).toBeOnTheScreen();
     expect(
       screen.getByRole("heading", {
         name: "Collect anything — people, places, moments",
@@ -63,15 +64,25 @@ describe("S-047 T-001 ST-003 intro pages on first launch", () => {
     expect(screen.getByLabelText("Page 4 of 4")).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Back" }));
-    expect(
-      screen.getByRole("heading", { name: "One tap. That's it." }),
-    ).toBeOnTheScreen();
+    expect(screen.getByLabelText("Page 3 of 4")).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Next" }));
     await user.press(screen.getByRole("button", { name: "Next" }));
     expect(
       screen.getByRole("heading", { name: "What will you collect first?" }),
     ).toBeOnTheScreen();
+  });
+
+  test("follows a swipe to another intro page", async () => {
+    await renderRouter("./src/app");
+    await screen.findByLabelText("Page 1 of 4");
+
+    await fireEvent(screen.getByTestId("intro-pages"), "pageSelected", {
+      nativeEvent: { position: 2 },
+    });
+
+    expect(screen.getByLabelText("Page 3 of 4")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
   });
 
   test("skips from any intro page to the first-rally choice", async () => {
@@ -124,6 +135,26 @@ describe("S-047 T-002 ST-001 pick the first rally", () => {
       expect.objectContaining({ name: "Cafés I visited", emoji: "☕" }),
     ]);
     expect(hasOnboarded()).toBe(true);
+  });
+
+  test("chooses the template a swipe stops on", async () => {
+    const user = await openFirstRallyChoice();
+
+    await fireEvent(
+      screen.getByTestId("first-rally-cards"),
+      "momentumScrollEnd",
+      {
+        nativeEvent: { contentOffset: { x: 266, y: 0 } },
+      },
+    );
+
+    expect(
+      screen.getByRole("button", { name: "☕ Cafés I visited" }),
+    ).toBeSelected();
+    await user.press(
+      screen.getByRole("button", { name: "Start with Cafés I visited" }),
+    );
+    expect(await screen.findByText("Cafés I visited")).toBeOnTheScreen();
   });
 
   test("starts with the first template selected", async () => {

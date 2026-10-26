@@ -19,40 +19,45 @@ const stampedCells = new Map([
   [31, { emoji: "⛰️", rotation: "-6deg" }],
 ]);
 const todayCell = 34;
+const gridRows = [0, 1, 2, 3, 4, 5];
 
 function StampedMonthArt() {
   const today = new Date();
 
   return (
     <ArtPanel className="px-[22px] py-7">
-      <View className="flex-1 flex-row flex-wrap">
-        {Array.from({ length: 36 }, (_, cell) => {
-          const stamp = stampedCells.get(cell);
-          return (
-            <View key={cell} className="size-1/6 items-center justify-center">
-              {stamp ? (
-                <View
-                  className="bg-accent-soft size-[42px] items-center justify-center rounded-full"
-                  style={{ transform: [{ rotate: stamp.rotation }] }}
-                >
-                  <Text className="text-[21px]">{stamp.emoji}</Text>
-                </View>
-              ) : cell === todayCell ? (
-                <View className="border-accent size-[42px] items-center justify-center rounded-full border-2 border-dashed">
-                  <Text className="text-accent-strong text-[8px] leading-[9px] font-bold tracking-wider">
-                    {shortMonthFormatter.format(today).toUpperCase()}
-                  </Text>
-                  <Text className="text-accent-strong text-sm leading-4 font-bold">
-                    {today.getDate()}
-                  </Text>
-                </View>
-              ) : (
-                <View className="bg-foreground-muted size-1.5 rounded-full opacity-40" />
-              )}
-            </View>
-          );
-        })}
-      </View>
+      {/* Rows and cells share the space evenly, like the canvas's 6 × 6 grid. */}
+      {gridRows.map((row) => (
+        <View key={row} className="flex-1 flex-row">
+          {gridRows.map((column) => {
+            const cell = row * gridRows.length + column;
+            const stamp = stampedCells.get(cell);
+            return (
+              <View key={cell} className="flex-1 items-center justify-center">
+                {stamp ? (
+                  <View
+                    className="bg-accent-soft size-[42px] items-center justify-center rounded-full"
+                    style={{ transform: [{ rotate: stamp.rotation }] }}
+                  >
+                    <Text className="text-[21px]">{stamp.emoji}</Text>
+                  </View>
+                ) : cell === todayCell ? (
+                  <View className="border-accent size-[42px] items-center justify-center rounded-full border-2 border-dashed">
+                    <Text className="text-accent-strong text-[8px] leading-[9px] font-bold tracking-wider">
+                      {shortMonthFormatter.format(today).toUpperCase()}
+                    </Text>
+                    <Text className="text-accent-strong text-sm leading-4 font-bold">
+                      {today.getDate()}
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="bg-foreground-muted size-1.5 rounded-full opacity-40" />
+                )}
+              </View>
+            );
+          })}
+        </View>
+      ))}
     </ArtPanel>
   );
 }
