@@ -14,6 +14,7 @@
   - `I'll make my own` → ラリーを作らずに [home.md](./home.md) へ
 - どちらかで終えると「終えた」ことを端末に保存し、次からはホームが開く。途中でアプリを閉じたら、次もここから
 - 戻るジェスチャーではホームへ抜けない
+- 設定の `About Ato` からも紹介の 4 枚だけを見直せる（下の「設定から見直す」）
 
 ## レイアウト
 
@@ -66,6 +67,13 @@ Start with one. You can rename it or make your own anytime.
 
 - 初めは 1 つ目のテンプレートを選んだ状態。カードを横にスワイプして止まったものか、押したカードかチップを選ぶ
 - テンプレートは 🏃 Morning run / ☕ Cafés I visited / 🤝 People I met / 📚 Books I read。作ったラリーの名前と絵文字は、後で [edit-rally.md](./edit-rally.md) から変えられる
+
+## 設定から見直す
+
+- 入り: [settings.md](./settings.md) の `About Ato`。ルート `/about-ato`（全画面のモーダル。設定シートの上に出る）
+- 紹介の 4 枚と同じ絵と文言。スワイプ、`Next`、`Back` も同じ
+- 右上は `Skip` の代わりに `Close`。4 枚目の主ボタンは `Next` の代わりに `Done`（矢印なし）。どちらも設定シートに戻る
+- 最初に集めるものは出さない。ラリーは作らず、終えたかどうかの保存も変えない
 
 ## 出すデータ
 

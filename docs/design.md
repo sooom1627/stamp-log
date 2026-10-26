@@ -128,4 +128,5 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 - `/records` — 記録（タブ。カレンダーとタイムライン）
 - `/logs-day?date=` — Logs の日（formSheet）
 - `/settings` — 設定（formSheet。タブルートの Menu ボタンから）
+- `/about-ato` — 紹介の見直し（全画面のモーダル。設定の About Ato から）
 - `/stamp-photos?photoId=` — スタンプの写真（全画面モーダル。開いた写真と同じ日・同じラリーの写真をめくる）

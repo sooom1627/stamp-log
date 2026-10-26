@@ -14,6 +14,7 @@
   - 閉じる（シートを下げる）→ 元のタブ
   - `Export data` → 全データを書き出したファイルを共有シートで出す
   - `Import data` → ファイルを選び、今のデータを置き換える
+  - `About Ato` → オンボーディングの紹介 4 枚を見直す（[onboarding.md](./onboarding.md) の「設定から見直す」）
   - `Help & support` → サポートページ（外部ブラウザ）
   - `Privacy Policy` → プライバシーポリシーのページ（外部ブラウザ）
   - `Licenses` → 使っているオープンソースのライセンスの一覧
@@ -36,6 +37,8 @@ Photos aren't included in the file yet.
 
 ABOUT
 ╭─────────────────────────────────╮
+│ [i] About Ato                ›  │
+├─────────────────────────────────┤
 │ [?] Help & support           ↗  │
 ├─────────────────────────────────┤
 │ [⛉] Privacy Policy           ↗  │

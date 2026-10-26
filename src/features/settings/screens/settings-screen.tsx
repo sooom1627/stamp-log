@@ -14,6 +14,7 @@ import {
   CircleHelp,
   Download,
   FileText,
+  Info,
   Shield,
   Upload,
 } from "@/shared/components/icons";
@@ -34,7 +35,7 @@ type SettingsRow = {
   isBusy?: boolean;
 };
 
-const aboutRows: SettingsRow[] = [
+const linkRows: SettingsRow[] = [
   { label: "Help & support", icon: CircleHelp, isExternal: true, role: "link" },
   { label: "Privacy Policy", icon: Shield, isExternal: true, role: "link" },
   { label: "Licenses", icon: FileText, role: "button" },
@@ -99,7 +100,7 @@ function SettingsGroup({
 
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
-  const { back } = useRouter();
+  const { back, push } = useRouter();
   const { mutate: exportData, isPending: isExporting } = useExportData();
   // The sheet closes so the tabs show the imported data.
   const { importFromFile, isImporting } = useImportFromFile({
@@ -122,6 +123,15 @@ export function SettingsScreen() {
       onPress: () => void importFromFile(),
       isBusy: isImporting,
     },
+  ];
+  const aboutRows: SettingsRow[] = [
+    {
+      label: "About Ato",
+      icon: Info,
+      role: "button",
+      onPress: () => push("/about-ato"),
+    },
+    ...linkRows,
   ];
 
   return (
