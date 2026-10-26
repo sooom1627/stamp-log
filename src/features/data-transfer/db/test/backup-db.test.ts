@@ -111,7 +111,7 @@ describe("S-041 T-001 ST-003 read every rally and stamp", () => {
   test("keeps a stamp with photos but leaves the photos out", async () => {
     const { fileSystem, backupDb, ralliesDb, stampsDb } = loadFreshDb();
     const picked = new fileSystem.File(fileSystem.Paths.cache, "picked.jpg");
-    picked.write("jpeg");
+    picked.writeSync("jpeg");
     await ralliesDb.saveRally({ name: "Kyoto trip" });
     const [kyoto] = await ralliesDb.listRallies();
     const stamp = await stampsDb.saveStamp({ rallyId: kyoto.id });
@@ -203,7 +203,7 @@ describe("S-041 T-002 ST-001 replace every rally and stamp", () => {
   test("removes this device's photo rows and files", async () => {
     const { fileSystem, backupDb, ralliesDb, stampsDb } = loadFreshDb();
     const picked = new fileSystem.File(fileSystem.Paths.cache, "picked.jpg");
-    picked.write("jpeg");
+    picked.writeSync("jpeg");
     await ralliesDb.saveRally({ name: "Old rally" });
     const [old] = await ralliesDb.listRallies();
     const stamp = await stampsDb.saveStamp({ rallyId: old.id });

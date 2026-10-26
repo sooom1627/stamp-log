@@ -23,7 +23,7 @@ let nextPickedId = 1;
 // A photo picked from the library: it carries EXIF until re-encoded.
 const pickPhoto = () => {
   const file = new File(Paths.cache, `picked-${nextPickedId++}.jpg`);
-  file.write("jpeg with exif");
+  file.writeSync("jpeg with exif");
   return file.uri;
 };
 const savedPhotoFiles = () => {

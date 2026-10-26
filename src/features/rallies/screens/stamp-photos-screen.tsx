@@ -92,7 +92,7 @@ function StampPhotosPager({
         <Pressable
           role="button"
           aria-label="Close"
-          onPress={back}
+          onPress={() => back()}
           className="bg-photo-viewer-control size-11 items-center justify-center rounded-full"
         >
           <X

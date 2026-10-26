@@ -47,7 +47,7 @@ let nextFileId = 1;
 // The user picks a file with this content in the system picker.
 function pickFile(content: string) {
   const file = new File(Paths.cache, `picked-${nextFileId++}.json`);
-  file.write(content);
+  file.writeSync(content);
   jest.mocked(getDocumentAsync).mockResolvedValueOnce({
     canceled: false,
     assets: [

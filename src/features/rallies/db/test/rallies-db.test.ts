@@ -114,7 +114,7 @@ describe("S-035 T-002 ST-001 deleting a rally removes its photos", () => {
   let nextPickedId = 1;
   const savePhotoStamp = async (rallyId: number) => {
     const picked = new File(Paths.cache, `rally-picked-${nextPickedId++}.jpg`);
-    picked.write("jpeg with exif");
+    picked.writeSync("jpeg with exif");
     const saved = await saveStamp({ rallyId });
     return updateStampMemo({ id: saved.id, memo: "", photoUris: [picked.uri] });
   };

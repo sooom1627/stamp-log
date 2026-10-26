@@ -79,7 +79,7 @@ describe("S-035 ST-005 pick photos in the memo sheet", () => {
   function pickPhotos(count: number) {
     const assets = Array.from({ length: count }, () => {
       const file = new File(Paths.cache, `sheet-picked-${nextPickedId++}.jpg`);
-      file.write("jpeg with exif");
+      file.writeSync("jpeg with exif");
       return { uri: file.uri, width: 1, height: 1 };
     });
     jest.mocked(launchImageLibraryAsync).mockResolvedValueOnce({

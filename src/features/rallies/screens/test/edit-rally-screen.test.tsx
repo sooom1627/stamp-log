@@ -21,8 +21,7 @@ async function openEditRally(name: string) {
   );
   if (!rally) throw new Error(`Rally ${name} not found`);
 
-  const app = renderRouter("./src/app");
-  await app;
+  const app = await renderRouter("./src/app");
   expect(
     await screen.findByRole("button", { name: `View ${name} details` }),
   ).toBeOnTheScreen();
@@ -106,8 +105,7 @@ describe("S-013 T-001 ST-004 edit rally sheet", () => {
   });
 
   test("closes when the rally does not exist", async () => {
-    const app = renderRouter("./src/app");
-    await app;
+    const app = await renderRouter("./src/app");
 
     await act(() => {
       router.push({ pathname: "/edit-rally", params: { rallyId: 99999 } });

@@ -104,7 +104,7 @@ export function SettingsScreen() {
   const { mutate: exportData, isPending: isExporting } = useExportData();
   // The sheet closes so the tabs show the imported data.
   const { importFromFile, isImporting } = useImportFromFile({
-    onImported: back,
+    onImported: () => back(),
   });
   const dataRows: SettingsRow[] = [
     {

@@ -162,7 +162,7 @@ describe("ST-004 memo update Query hook", () => {
 describe("S-035 ST-004 save memo and photos", () => {
   test("photos saved after stamping show up in the stamp list", async () => {
     const picked = new File(Paths.cache, "hook-picked.jpg");
-    picked.write("jpeg with exif");
+    picked.writeSync("jpeg with exif");
     const { result } = await renderHook(() => useStampsFlow(), {
       wrapper: createWrapper(),
     });

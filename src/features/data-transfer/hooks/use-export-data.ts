@@ -16,7 +16,7 @@ async function exportData() {
     Paths.cache,
     `stamp-log-${localDateKey(new Date())}.json`,
   );
-  file.write(JSON.stringify(backup, null, 2));
+  await file.write(JSON.stringify(backup, null, 2));
   await shareAsync(file.uri, {
     mimeType: "application/json",
     UTI: "public.json",

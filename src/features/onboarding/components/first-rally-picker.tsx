@@ -7,6 +7,7 @@ import {
   Text,
   useWindowDimensions,
   View,
+  type ScrollViewInstance,
 } from "react-native";
 
 import { Check, Plus } from "@/shared/components/icons";
@@ -44,7 +45,7 @@ export function FirstRallyPicker({
   isStarting,
 }: FirstRallyPickerProps) {
   const { width } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const selected = firstRallyTemplates[selectedIndex];
 
   // A chip or card chose a template: bring its card to the middle. After a

@@ -40,7 +40,7 @@ async function attachPhotos(stampId: number, count: number) {
       Paths.cache,
       `post-picked-${nextPickedPhotoId++}.jpg`,
     );
-    file.write("jpeg with exif");
+    file.writeSync("jpeg with exif");
     return file.uri;
   });
   await updateStampMemo({ id: stampId, memo: "", photoUris });

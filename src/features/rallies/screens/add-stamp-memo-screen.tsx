@@ -45,7 +45,10 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   const handleSave = () => {
     if (!canSave) return;
 
-    updateStampMemo({ id: stampId, memo, photoUris }, { onSuccess: back });
+    updateStampMemo(
+      { id: stampId, memo, photoUris },
+      { onSuccess: () => back() },
+    );
   };
 
   return (

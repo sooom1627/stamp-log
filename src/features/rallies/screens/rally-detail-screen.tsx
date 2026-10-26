@@ -83,7 +83,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => deleteRally(rally.id, { onSuccess: back }),
+        onPress: () => deleteRally(rally.id, { onSuccess: () => back() }),
       },
     ]);
 

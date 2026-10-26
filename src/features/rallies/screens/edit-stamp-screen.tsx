@@ -89,7 +89,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
           .map(({ id }) => id),
         newPhotoUris: photoUris.filter((uri) => !savedPhotoUris.includes(uri)),
       },
-      { onSuccess: back },
+      { onSuccess: () => back() },
     );
   };
 

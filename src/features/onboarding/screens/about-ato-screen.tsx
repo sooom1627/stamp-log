@@ -24,9 +24,9 @@ export function AboutAtoScreen() {
         step={step}
         onChangeStep={setStep}
         leaveLabel="Close"
-        onLeave={back}
+        onLeave={() => back()}
         finishLabel="Done"
-        onFinish={back}
+        onFinish={() => back()}
       />
     </View>
   );
