@@ -46,7 +46,7 @@ function EditRallyForm({ rally }: EditRallyFormProps) {
   const handleSave = () => {
     if (!canSave) return;
 
-    updateRally({ id: rally.id, name, emoji }, { onSuccess: back });
+    updateRally({ id: rally.id, name, emoji }, { onSuccess: () => back() });
   };
 
   return (

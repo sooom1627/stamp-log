@@ -32,7 +32,7 @@ function context(source: string, resized?: ResizeSize) {
           const directory = new Directory(Paths.cache, "ImageManipulator");
           directory.create({ intermediates: true, idempotent: true });
           const file = new File(directory, `image-${nextImageId++}.jpg`);
-          file.write(
+          file.writeSync(
             resized
               ? `re-encoded:${source}:resized:${JSON.stringify(resized)}`
               : `re-encoded:${source}`,

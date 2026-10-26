@@ -45,7 +45,7 @@ async function attachPhotos(stampId: number, count: number) {
       Paths.cache,
       `post-picked-${nextPickedPhotoId++}.jpg`,
     );
-    file.write("jpeg with exif");
+    file.writeSync("jpeg with exif");
     return file.uri;
   });
   await updateStampMemo({ id: stampId, memo: "", photoUris });
@@ -391,8 +391,7 @@ describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
   test("opens the rally detail of the pressed post on the Logs tab", async () => {
     const rally = await saveRallyNamed("Open from Logs", "🚪");
     const stamp = await saveStamp({ rallyId: rally.id });
-    const app = renderRouter("./src/app");
-    await app;
+    const app = await renderRouter("./src/app");
     await act(() => {
       router.push("/records");
     });
@@ -414,8 +413,7 @@ describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
   test("opens Edit stamp, not the rally, from the post menu", async () => {
     const rally = await saveRallyNamed("Menu stays in Logs", "🧷");
     const stamp = await saveStamp({ rallyId: rally.id });
-    const app = renderRouter("./src/app");
-    await app;
+    const app = await renderRouter("./src/app");
     await act(() => {
       router.push("/records");
     });
@@ -512,8 +510,7 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
 
 describe("S-018 T-001 ST-001 bottom tabs", () => {
   test("switches between the home and logs tabs", async () => {
-    const app = renderRouter("./src/app");
-    await app;
+    const app = await renderRouter("./src/app");
 
     expect(
       await screen.findByRole("link", { name: "Create rally" }),
@@ -594,8 +591,7 @@ describe("S-037 T-001 ST-003 the photo mark opens the photos", () => {
       stampedAt: daysAgoAt(1, 19),
     });
     await attachPhotos(stamp.id, 2);
-    const app = renderRouter("./src/app");
-    await app;
+    const app = await renderRouter("./src/app");
     await act(() => {
       router.push("/records");
     });

@@ -26,3 +26,12 @@ jest.mock("sonner-native", () => {
     toast,
   };
 });
+// RN 0.88's Jest renderer rejects the test host instance PagerView passes to
+// its native commands (setPage), logging an error on every page change. The
+// commands have no native side in Jest, so dispatch nothing.
+jest.mock("react-native/Libraries/ReactNative/RendererProxy", () => ({
+  ...jest.requireActual<object>(
+    "@react-native/jest-preset/jest/mocks/RendererProxy",
+  ),
+  dispatchCommand: jest.fn(),
+}));

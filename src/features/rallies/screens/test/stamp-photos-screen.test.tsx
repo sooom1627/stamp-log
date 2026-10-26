@@ -43,7 +43,7 @@ async function seedStampWithPhotos(name: string, count: number) {
       Paths.cache,
       `viewer-picked-${nextPickedPhotoId++}.jpg`,
     );
-    file.write("jpeg");
+    file.writeSync("jpeg");
     return file.uri;
   });
   await updateStampMemo({ id: stampId, memo: "", photoUris });
@@ -54,8 +54,7 @@ async function seedStampWithPhotos(name: string, count: number) {
 }
 
 async function openViewer(photoId: number) {
-  const app = renderRouter("./src/app");
-  await app;
+  const app = await renderRouter("./src/app");
   await act(() => {
     router.push({
       pathname: "/stamp-photos",
@@ -106,8 +105,7 @@ describe("S-037 T-001 ST-002 page through a stamp's photos full screen", () => {
 
   test("the close button returns to the screen it was opened from", async () => {
     const { rally, stamp } = await seedStampWithPhotos("Viewer close rally", 2);
-    const app = renderRouter("./src/app");
-    await app;
+    const app = await renderRouter("./src/app");
     await act(() => {
       router.push(`/rallies/${rally.id}`);
     });
@@ -128,8 +126,7 @@ describe("S-037 T-001 ST-002 page through a stamp's photos full screen", () => {
   test.each([["abc"], ["0"], ["999999"]])(
     "photoId %s closes the screen",
     async (photoId) => {
-      const app = renderRouter("./src/app");
-      await app;
+      const app = await renderRouter("./src/app");
 
       await act(() => {
         router.push({ pathname: "/stamp-photos", params: { photoId } });
@@ -149,7 +146,7 @@ describe("S-037 T-003 ST-003 page through the day's photos of the rally", () => 
         Paths.cache,
         `viewer-day-${nextPickedPhotoId++}.jpg`,
       );
-      file.write("jpeg");
+      file.writeSync("jpeg");
       return file.uri;
     });
   }

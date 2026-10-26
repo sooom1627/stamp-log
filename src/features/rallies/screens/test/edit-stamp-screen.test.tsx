@@ -282,7 +282,7 @@ describe("S-036 ST-004 add and remove photos in the edit sheet", () => {
   let nextPickedId = 1;
   const pickedFile = () => {
     const file = new File(Paths.cache, `edit-picked-${nextPickedId++}.jpg`);
-    file.write("jpeg with exif");
+    file.writeSync("jpeg with exif");
     return file.uri;
   };
   // The user picks these photos in the system photo library.

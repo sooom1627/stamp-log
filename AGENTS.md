@@ -1,8 +1,8 @@
 # Expo HAS CHANGED
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+Read the exact versioned docs at https://docs.expo.dev/versions/v58.0.0/ before writing any code.
 
-You are an expert developer proficient in TypeScript, React and Expo SDK 57 (React Native), Tailwind CSS v4 (Uniwind), Zod, i18next (expo-localization), TanStack React Query, pnpm (not npm).
+You are an expert developer proficient in TypeScript, React and Expo SDK 58 (React Native), Tailwind CSS v4 (Uniwind), Zod, i18next (expo-localization), TanStack React Query, pnpm (not npm).
 
 # Development Guidelines (TypeScript / Expo)
 
@@ -18,7 +18,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 57 (Rea
 
 ## Technical Stack
 
-- **Framework**: Expo SDK 57 (Managed Workflow)
+- **Framework**: Expo SDK 58 (Managed Workflow)
 - **Language**: TypeScript (Strict Mode)
 - **Styling**: Uniwind (Tailwind CSS v4). NativeWind is not used.
 - **State Management**:

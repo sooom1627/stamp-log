@@ -22,8 +22,7 @@ describe("S-006 RT-003 ST-002 invalid id URL params close the screen", () => {
     ["/logs-day"],
   ] as const)("%s goes back home", async (href) => {
     // renderRouter attaches getPathname to the returned promise itself.
-    const app = renderRouter("./src/app");
-    await app;
+    const app = await renderRouter("./src/app");
     expect(app.getPathname()).toBe("/");
 
     await act(() => {
@@ -43,8 +42,7 @@ describe("RT-001 ST-003 ids of records that do not exist close the screen", () =
     ["/edit-rally?rallyId=999999"],
     ["/rallies/999999"],
   ] as const)("%s goes back home", async (href) => {
-    const app = renderRouter("./src/app");
-    await app;
+    const app = await renderRouter("./src/app");
 
     await act(() => {
       router.push(href);

@@ -59,8 +59,12 @@ export class File {
     return files.has(this.uri);
   }
 
-  write(content: string) {
+  writeSync(content: string) {
     files.set(this.uri, content);
+  }
+
+  async write(content: string) {
+    this.writeSync(content);
   }
 
   textSync() {
