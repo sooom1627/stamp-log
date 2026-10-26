@@ -16,6 +16,8 @@
   /* The Ato mark (S-049): the sun is the same in both themes. */
   --color-mark-sun-from: #fdba74;
   --color-mark-sun-to: #f97316;
+  /* The action on an inverse (toast-like) surface. */
+  --color-inverse-accent: #fdba74;
 }
 
 /* Semantic colors: use these instead of `dark:` variants. Both variants must
@@ -32,6 +34,7 @@
       --color-primary: #1e293b;
       --color-primary-foreground: #ffffff;
       --color-inverse: #1e293b;
+      --color-inverse-foreground: #ffffff;
       /* Accent tints for flat panels (rally detail): subtle = panel, soft =
          chips on it, strong = text on either (>= 4.5:1). */
       --color-accent-subtle: #fff7ed;
@@ -55,6 +58,7 @@
       --color-primary: #f1f5f9;
       --color-primary-foreground: #0f172a;
       --color-inverse: #334155;
+      --color-inverse-foreground: #f1f5f9;
       --color-accent-subtle: #431407;
       --color-accent-soft: #7c2d12;
       --color-accent-strong: #fdba74;

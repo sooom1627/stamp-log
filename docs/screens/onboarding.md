@@ -36,12 +36,12 @@ Stamp what you collect, …        ← 説明（小）
 ● ━ ● ●                [<] [Next >]   ← ページの点、Back（2〜4 枚目）、Next
 ```
 
-| 枚  | 見出し                                     | 絵                                         |
-| --- | ------------------------------------------ | ------------------------------------------ |
-| 1   | Look back. It's all there.                 | ドットの並びに、ところどころ押したスタンプ |
-| 2   | Collect anything — people, places, moments | ラリーの例のチップ                         |
-| 3   | One tap. That's it.                        | ＋ を押すとスタンプが付くタイル（試せる）  |
-| 4   | No streaks to keep.                        | 1 週間の並び。押していない日はただの余白   |
+| 枚  | 見出し                                     | 絵                                                                          |
+| --- | ------------------------------------------ | --------------------------------------------------------------------------- |
+| 1   | Look back. It's all there.                 | 6 × 6 のドットに、ところどころ傾いたスタンプと、点線の今日                  |
+| 2   | Collect anything — people, places, moments | ラリーの例のチップを、行ごとにずらして並べる                                |
+| 3   | One tap. That's it.                        | ＋ を押すとスタンプが付き、1 週間のドットとトーストが変わるタイル（試せる） |
+| 4   | No streaks to keep.                        | 1 つのラリーのスタンプを日付順に縦に並べる。間隔は不揃いで、間はただの余白  |
 
 - `Next` で次へ、`Back` で前へ。4 枚目の `Next` と、1〜4 枚目の `Skip` は「最初に集めるもの」へ
 - 3 枚目のタイルは試すだけで、何も保存しない
@@ -49,23 +49,22 @@ Stamp what you collect, …        ← 説明（小）
 最初に集めるもの:
 
 ```
-What will you collect first?          ← 見出し（大）
-Start with one. You can rename it anytime.
+            Last step                    ← 小さい補足（アクセント色）
+   What will you collect first?          ← 見出し（大、中央）
+Start with one. You can rename it or make your own anytime.
 
-┌──────────┐ ┌──────────┐
-│ 🏃        │ │ ☕        │
-│ Morning   │ │ Cafés I  │             ← テンプレート 4 つ。1 つだけ選べる
-│ run       │ │ visited  │                （初めは 1 つ目を選んだ状態）
-└──────────┘ └──────────┘
-┌──────────┐ ┌──────────┐
-│ 🤝 People │ │ 📚 Books │
-│ I met     │ │ I read   │
-└──────────┘ └──────────┘
+  ┌──────┐ ┌────────────┐ ┌──────┐
+  │      │ │ October 25 │ │      │     ← テンプレートごとのホームのプレビュー。
+  │ (前) │ │ 今日のカード│ │ (次) │        選んだカードが中央に来て、左右がのぞく
+  │      │ │ タイル + New│ │      │
+  └──────┘ └────────────┘ └──────┘
+        (🏃) ( ☕ ) ( 🤝 ) ( 📚 )         ← 絵文字のチップ。押すとそのテンプレートを選ぶ
 
 [        Start with Morning run      ]
            I'll make my own
 ```
 
+- 初めは 1 つ目のテンプレートを選んだ状態。カードを押しても選べる
 - テンプレートは 🏃 Morning run / ☕ Cafés I visited / 🤝 People I met / 📚 Books I read。作ったラリーの名前と絵文字は、後で [edit-rally.md](./edit-rally.md) から変えられる
 
 ## 出すデータ

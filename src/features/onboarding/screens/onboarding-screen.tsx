@@ -19,19 +19,19 @@ import { markOnboarded } from "../db/onboarding-state";
 
 const introPages = [
   {
-    title: "Look back. It's all there.",
+    title: "Look back.\nIt's all there.",
     body: "Stamp what you collect, when it happens. Your days add up on their own.",
   },
   {
-    title: "Collect anything — people, places, moments",
+    title: "Collect anything —\npeople, places, moments",
     body: "A rally is anything you want to count: cafés, hikes, friends, books.",
   },
   {
-    title: "One tap. That's it.",
+    title: "One tap.\nThat's it.",
     body: "Tap ＋ on a rally to save the date and time. Add a memo or photos later, if you want.",
   },
   {
-    title: "No streaks to keep.",
+    title: "No streaks\nto keep.",
     body: "Skip a day, a week, a month. Nothing breaks, and what you stamped stays.",
   },
 ] as const;
@@ -39,7 +39,8 @@ const introPages = [
 // The step after the intro pages.
 const pickStep = introPages.length;
 
-// First launch only (S-047): four intro pages, then the first rally.
+// First launch only (S-047): four intro pages, then the first rally. Sizes
+// follow the design canvas (390 × 844).
 export function OnboardingScreen() {
   const [step, setStep] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -59,11 +60,11 @@ export function OnboardingScreen() {
 
   return (
     <View
-      className="bg-canvas flex-1 px-6"
-      style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }}
+      className="bg-canvas flex-1"
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
       {step === pickStep ? (
-        <View className="flex-1 pt-12">
+        <View className="flex-1 pt-6 pb-1">
           <FirstRallyPicker
             selectedIndex={selectedIndex}
             onSelect={setSelectedIndex}
@@ -96,57 +97,59 @@ function IntroPage({ step, onBack, onNext, onSkip }: IntroPageProps) {
   const Art = introArt[step];
 
   return (
-    <View className="flex-1">
-      <View className="items-end">
+    <View className="flex-1 pb-1.5">
+      <View className="items-end px-4 pt-2">
         <Pressable
           role="button"
           onPress={onSkip}
-          className="min-h-11 justify-center px-2 active:opacity-70"
+          className="min-h-11 justify-center px-3.5 active:opacity-70"
         >
-          <Text className="text-foreground-secondary text-base font-medium">
+          <Text className="text-foreground-muted text-[15px] font-semibold">
             Skip
           </Text>
         </Pressable>
       </View>
-      <View className="flex-1 items-center justify-center">
+      <View className="mt-2 max-h-100 flex-1 px-4">
         <Art />
       </View>
-      <View className="gap-3 pb-8">
+      <View className="mt-8 gap-3 px-6">
         {step === 0 ? (
-          <View className="flex-row items-center gap-2">
+          <View className="flex-row items-center gap-2.5">
             <AtoMark size={32} />
-            <Text className="text-foreground text-lg font-bold">Ato</Text>
+            <Text className="text-foreground text-[15px] font-bold">Ato</Text>
           </View>
         ) : null}
         <Text
           role="heading"
-          className="text-foreground text-3xl leading-9 font-bold"
+          className="text-foreground text-[32px] leading-9 font-bold"
         >
           {title}
         </Text>
-        <Text className="text-foreground-secondary text-base">{body}</Text>
+        <Text className="text-foreground-muted text-base leading-[23px]">
+          {body}
+        </Text>
         {step === 0 ? (
           <View className="flex-row items-center gap-1.5">
             <Lock colorClassName="accent-foreground-muted" size={14} />
-            <Text className="text-foreground-muted text-sm">
+            <Text className="text-foreground-muted text-[13px]">
               No account. Everything stays on your phone.
             </Text>
           </View>
         ) : null}
       </View>
-      <View className="flex-row items-center justify-between">
+      <View className="mt-auto flex-row items-center justify-between px-6 pt-4">
         <View
           role="img"
           aria-label={`Page ${step + 1} of ${introPages.length}`}
-          className="flex-row gap-1.5"
+          className="flex-row items-center gap-1.5"
         >
           {introPages.map((page, index) => (
             <View
               key={page.title}
               className={
                 index === step
-                  ? "bg-foreground h-1.5 w-5 rounded-full"
-                  : "bg-surface-muted-active size-1.5 rounded-full"
+                  ? "bg-foreground h-1.5 w-[22px] rounded-full"
+                  : "bg-foreground-muted size-1.5 rounded-full opacity-40"
               }
             />
           ))}
@@ -157,7 +160,7 @@ function IntroPage({ step, onBack, onNext, onSkip }: IntroPageProps) {
               role="button"
               aria-label="Back"
               onPress={onBack}
-              className="bg-surface size-12 items-center justify-center rounded-full active:opacity-70"
+              className="bg-surface size-[52px] items-center justify-center rounded-full active:opacity-70"
             >
               <ChevronLeft colorClassName="accent-foreground" size={20} />
             </Pressable>
@@ -166,7 +169,7 @@ function IntroPage({ step, onBack, onNext, onSkip }: IntroPageProps) {
             role="button"
             aria-label="Next"
             onPress={onNext}
-            className="bg-primary active:bg-main-hover h-12 flex-row items-center gap-1 rounded-full pr-4 pl-5"
+            className="bg-primary active:bg-main-hover h-13 flex-row items-center gap-2 rounded-full pr-[22px] pl-[26px]"
           >
             <Text className="text-primary-foreground text-base font-semibold">
               Next
