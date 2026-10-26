@@ -6,6 +6,8 @@ import { Stack, useRouter } from "expo-router";
 
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 
+import { AtoMark } from "./ato-mark";
+
 export const tabRootScreenOptions = {
   headerLargeTitleEnabled: true,
 } as const;
@@ -29,10 +31,7 @@ export function TabRootHeader({ title }: { title?: string }) {
       <Stack.Title large>{title ?? monthDay}</Stack.Title>
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.View>
-          <View
-            aria-label="Logo"
-            className="bg-surface-muted size-8 rounded-full"
-          />
+          <AtoMark size={32} />
         </Stack.Toolbar.View>
       </Stack.Toolbar>
       <Stack.Toolbar placement="right">

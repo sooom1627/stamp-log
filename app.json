@@ -4,11 +4,15 @@
     "slug": "stamp-log",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-light.png",
     "scheme": "stamplog",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": {
+        "light": "./assets/images/icon-light.png",
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
+      },
       "bundleIdentifier": "com.sooom1627.stamplog",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -32,9 +36,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#f4f4f5",
+          "image": "./assets/images/splash-light.png",
+          "imageWidth": 180,
+          "dark": {
+            "backgroundColor": "#0f172a",
+            "image": "./assets/images/splash-dark.png"
+          }
         }
       ],
       "expo-sqlite",

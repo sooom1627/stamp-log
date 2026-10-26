@@ -51,6 +51,16 @@ export default function RootLayout() {
         >
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="onboarding"
+              // Finishing replaces it with Home; there is nothing to go back to.
+              options={{ headerShown: false, gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="about-ato"
+              // Opened over Settings; Close and Done bring it back.
+              options={{ presentation: "fullScreenModal", headerShown: false }}
+            />
             <Stack.Screen name="create-rally" options={formSheetOptions} />
             <Stack.Screen name="edit-rally" options={formSheetOptions} />
             <Stack.Screen name="add-stamp-memo" options={formSheetOptions} />
