@@ -1,5 +1,7 @@
 import "react-native-gesture-handler/jestSetup";
 
+import { markOnboarded } from "@/features/onboarding/db/onboarding-state";
+
 jest.mock("react-native-worklets", () =>
   jest.requireActual("react-native-worklets/src/mock"),
 );
@@ -8,6 +10,7 @@ jest.mock("react-native-reanimated", () => {
 });
 
 jest.mock("expo-sqlite");
+jest.mock("expo-sqlite/kv-store");
 jest.mock("uniwind", () => ({
   withUniwind: <T>(Component: T) => Component,
   useCSSVariable: () => "#f97316",
@@ -35,3 +38,9 @@ jest.mock("react-native/Libraries/ReactNative/RendererProxy", () => ({
   ),
   dispatchCommand: jest.fn(),
 }));
+
+// Tests open the app as someone who already finished onboarding (S-047);
+// onboarding tests clear the storage first.
+beforeEach(() => {
+  markOnboarded();
+});

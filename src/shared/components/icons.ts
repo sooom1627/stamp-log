@@ -7,6 +7,8 @@ import {
   Download as LucideDownload,
   FileText as LucideFileText,
   Image as LucideImage,
+  Info as LucideInfo,
+  Lock as LucideLock,
   Plus as LucidePlus,
   Shield as LucideShield,
   Star as LucideStar,
@@ -26,6 +28,8 @@ export const Download = withUniwind(LucideDownload);
 export const FileText = withUniwind(LucideFileText);
 // Named ImageIcon so it never shadows an image component.
 export const ImageIcon = withUniwind(LucideImage);
+export const Info = withUniwind(LucideInfo);
+export const Lock = withUniwind(LucideLock);
 export const Plus = withUniwind(LucidePlus);
 export const Shield = withUniwind(LucideShield);
 export const Upload = withUniwind(LucideUpload);

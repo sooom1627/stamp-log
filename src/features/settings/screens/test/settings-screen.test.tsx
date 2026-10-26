@@ -53,6 +53,7 @@ describe("S-044 T-001 ST-002 settings sheet", () => {
       screen.getByText("Photos aren't included in the file yet."),
     ).toBeOnTheScreen();
     expect(screen.getByText("About")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: /About Ato/ })).toBeOnTheScreen();
     expect(
       screen.getByRole("link", { name: /Help & support/ }),
     ).toBeOnTheScreen();

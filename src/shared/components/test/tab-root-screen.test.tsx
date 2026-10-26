@@ -82,3 +82,21 @@ describe("S-033 T-001 ST-001 tab root background", () => {
     }
   });
 });
+
+describe("S-049 T-002 ST-002 header logo", () => {
+  beforeEach(() => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+  });
+
+  test("shows the Ato mark at the left of the tab root header", async () => {
+    await renderRouter("./src/app");
+
+    await screen.findByText("Sunday");
+
+    // Header subviews sit outside the accessible tree in tests, and native
+    // tabs keep both tab roots (and their headers) mounted.
+    expect(
+      screen.getAllByLabelText("Ato", { includeHiddenElements: true })[0],
+    ).toBeOnTheScreen();
+  });
+});
