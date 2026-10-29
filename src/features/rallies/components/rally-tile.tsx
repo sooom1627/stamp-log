@@ -105,7 +105,7 @@ export function RallyTile({
           className="flex-1 gap-1 active:opacity-70"
         >
           <Text
-            numberOfLines={2}
+            numberOfLines={1}
             className="text-foreground text-base leading-5 font-semibold"
           >
             {name}
