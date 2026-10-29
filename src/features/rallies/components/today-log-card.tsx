@@ -70,7 +70,7 @@ export function TodayLogCard({ entries, width, position }: TodayLogCardProps) {
           {entries.map((entry) => (
             <View
               key={entry.stampId}
-              className="bg-accent absolute top-2 -ml-1.125 size-2.25 rounded-full"
+              className="bg-accent -ml-1.125 absolute top-2 size-2.25 rounded-full"
               style={{ left: percentOfDay(entry.hour) }}
               testID="today-log-dot"
             />
