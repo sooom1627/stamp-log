@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
 
-import { StampPost } from "@/features/rallies/components/stamp-post";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { LoadError } from "@/shared/components/load-error";
+import { StampPost } from "@/shared/components/stamp-post";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";

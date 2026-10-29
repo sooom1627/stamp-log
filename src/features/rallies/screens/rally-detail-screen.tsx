@@ -5,6 +5,14 @@ import { Alert, ScrollView, Text, View } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
+import { DayCard } from "@/shared/components/day-card";
+import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
+import { StampPost } from "@/shared/components/stamp-post";
+import { StampsAlbumPager } from "@/shared/components/stamps-album-pager";
+import {
+  StampsAlbumPicker,
+  type StampsView,
+} from "@/shared/components/stamps-album-picker";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import {
   useDeleteRally,
@@ -19,16 +27,8 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 
-import { DayCard } from "../components/day-card";
 import { RallyActionsMenu } from "../components/rally-actions-menu";
-import { RallyMonthCalendar } from "../components/rally-month-calendar";
 import { RallySummaryStats } from "../components/rally-summary-stats";
-import { StampPost } from "../components/stamp-post";
-import { StampsAlbumPager } from "../components/stamps-album-pager";
-import {
-  StampsAlbumPicker,
-  type StampsView,
-} from "../components/stamps-album-picker";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import { buildRallySummary } from "../utils/rally-summary";
 

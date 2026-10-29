@@ -2,11 +2,11 @@ import { useState, type ReactNode } from "react";
 
 import { Text, useWindowDimensions, View } from "react-native";
 
-import { SwipePages } from "@/shared/components/swipe-pages";
 import { type AlbumTile } from "@/shared/utils/album-photos";
 
 import { AlbumGrid } from "./album-grid";
 import { stampsViews, type StampsView } from "./stamps-album-picker";
+import { SwipePages } from "./swipe-pages";
 
 type StampsAlbumPagerProps = {
   // The pager is `${testIDPrefix}-pager`, each page `${testIDPrefix}-page-${view}`.

@@ -3,9 +3,10 @@ import { Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 
-import { ImageIcon } from "@/shared/components/icons";
 import { type AlbumTile } from "@/shared/utils/album-photos";
 import { formatStampDate } from "@/shared/utils/format-stamp-date-time";
+
+import { ImageIcon } from "./icons";
 
 const COLUMNS = 3;
 

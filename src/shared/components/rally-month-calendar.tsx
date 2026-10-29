@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import { Pressable, Text, View } from "react-native";
 
-import { ChevronLeft, ChevronRight } from "@/shared/components/icons";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
@@ -15,6 +14,7 @@ import {
   type MonthDay,
 } from "@/shared/utils/month-grid";
 
+import { ChevronLeft, ChevronRight } from "./icons";
 import { MonthPickerSheet } from "./month-picker-sheet";
 
 const monthFormatter = new Intl.DateTimeFormat("en-US", {

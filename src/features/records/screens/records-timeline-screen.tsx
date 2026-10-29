@@ -5,14 +5,14 @@ import { ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
-import { DayCard } from "@/features/rallies/components/day-card";
-import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
-import { StampPost } from "@/features/rallies/components/stamp-post";
-import { StampsAlbumPager } from "@/features/rallies/components/stamps-album-pager";
+import { DayCard } from "@/shared/components/day-card";
+import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
+import { StampPost } from "@/shared/components/stamp-post";
+import { StampsAlbumPager } from "@/shared/components/stamps-album-pager";
 import {
   StampsAlbumPicker,
   type StampsView,
-} from "@/features/rallies/components/stamps-album-picker";
+} from "@/shared/components/stamps-album-picker";
 import {
   TabRootHeader,
   TabRootSubtitle,
