@@ -43,7 +43,7 @@ function renderPost(post: Stamp) {
         stamp={post}
         emoji="🔬"
         title="Researchers I met"
-        detail="7:02 PM"
+        detail="19:02"
       />
     ),
     "edit-stamp": function EditStampRoute() {
@@ -61,7 +61,7 @@ describe("S-011 RT-001 ST-003 StampPost", () => {
       "className",
       expect.stringContaining("font-semibold"),
     );
-    expect(screen.getByText("7:02 PM")).toHaveProp(
+    expect(screen.getByText("19:02")).toHaveProp(
       "className",
       expect.stringContaining("text-foreground-muted"),
     );

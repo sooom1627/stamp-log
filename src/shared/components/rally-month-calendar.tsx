@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { Pressable, Text, View } from "react-native";
 
-import { formatMediumDate } from "@/shared/utils/format-medium-date";
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
@@ -38,7 +38,7 @@ type CalendarDayProps = {
 };
 
 function dayLabel(day: MonthDay, mark: DayMark | undefined) {
-  const date = formatMediumDate(day.date);
+  const date = formatSpokenDate(day.date);
   if (!day.isRecorded) return `${date}, not recorded`;
   if (!mark) return `${date}, recorded`;
   return `${date}, recorded, ${formatStampCount(mark.extraCount + 1)}`;

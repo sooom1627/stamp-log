@@ -126,7 +126,7 @@ const rallyCalendar = () => within(screen.getByTestId("rally-calendar"));
 const findRallyCalendar = async () =>
   within(await screen.findByTestId("rally-calendar"));
 
-const stampDateTimePattern = / (AM|PM)$/;
+const stampDateTimePattern = /^\d{1,2}:\d{2}$/;
 const stampDayPattern = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), /;
 
 describe("S-006 T-001 ST-003 stamp timeline", () => {
@@ -1107,7 +1107,7 @@ describe("S-028 T-004 ST-006 open a day from the calendar", () => {
     expect(
       screen.getByRole("heading", { name: "Sep 14, 2026" }),
     ).toBeOnTheScreen();
-    expect(screen.getByText("9:00 AM")).toBeOnTheScreen();
+    expect(screen.getByText("9:00")).toBeOnTheScreen();
   });
 });
 
@@ -1128,7 +1128,7 @@ describe("S-028 RT-001 ST-003 posts look", () => {
       "stamps",
     );
     expect(pickerSegments(detail)).toEqual(["Stamps · 2", "Album · 0"]);
-    expect(screen.queryByText("Sep 18, 7:02 PM")).not.toBeOnTheScreen();
+    expect(screen.queryByText("Sep 18, 19:02")).not.toBeOnTheScreen();
   });
 });
 
@@ -1174,7 +1174,7 @@ describe("S-011 RT-001 ST-007 rally detail day cards", () => {
     ).toHaveTextContent("Fri, Sep 18");
 
     const post = within(detail.getByTestId(`stamp-row-${pastStampId}`));
-    expect(post.getByText("7:02 PM")).toHaveProp(
+    expect(post.getByText("19:02")).toHaveProp(
       "className",
       expect.stringContaining("font-semibold"),
     );

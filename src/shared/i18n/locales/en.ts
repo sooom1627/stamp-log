@@ -3,6 +3,13 @@ export const en = {
   common: {
     retry: "Retry",
   },
+  dates: {
+    today: "Today",
+    yesterday: "Yesterday",
+    // Not i18next plurals: they need Intl.PluralRules, and Japanese has one form.
+    dayAgo: "{{days}} day ago",
+    daysAgo: "{{days}} days ago",
+  },
 } as const;
 
 type Messages<T> = {
