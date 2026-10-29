@@ -107,7 +107,7 @@ export function TodayCard({ rallies, today }: TodayCardProps) {
     <View
       accessible
       aria-label={spokenLabel(rallies, today)}
-      className="bg-accent-subtle border-continuous mb-4 h-26 flex-row items-center gap-3 rounded-3xl pr-4 pl-2.5"
+      className="bg-surface border-continuous mb-5 h-26 flex-row items-center gap-3.5 rounded-[32px] pr-5 pl-3"
       testID="today-card"
     >
       <TodayStamp rallies={rallies} today={today} />

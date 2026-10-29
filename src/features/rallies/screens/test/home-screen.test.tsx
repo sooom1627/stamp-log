@@ -892,3 +892,62 @@ describe("S-039 T-003 ST-003 View All tap target", () => {
     );
   });
 });
+
+describe("S-050 T-001 ST-002 full-screen gradient", () => {
+  test("lays a top-to-bottom gradient behind the whole home screen", async () => {
+    await renderHomeWithRally("Gradient check");
+
+    const home = await screen.findByLabelText("Home");
+    for (const name of [
+      "bg-linear-to-b",
+      "from-canvas-top",
+      "via-canvas-mid",
+      "to-canvas-bottom",
+    ]) {
+      expect(home).toHaveProp("className", expect.stringContaining(name));
+    }
+  });
+});
+
+describe("S-050 T-001 ST-003 orange only on today's stamp", () => {
+  test("draws the today card and tiles as white surfaces with larger corners", async () => {
+    await renderHomeWithRally("Corner check");
+
+    const todayCard = screen.getByTestId("today-card");
+    for (const name of ["bg-surface ", "rounded-[32px]"]) {
+      expect(todayCard).toHaveProp("className", expect.stringContaining(name));
+    }
+    const tile = screen
+      .getAllByTestId("rally-tile")
+      .find((candidate) => within(candidate).queryByText("Corner check"));
+    for (const name of ["rounded-[28px]", "p-4"]) {
+      expect(tile).toHaveProp("className", expect.stringContaining(name));
+    }
+  });
+
+  test("marks a rally stamped today in orange and its dots in the text color", async () => {
+    const user = await renderHomeWithRally("Mark check");
+
+    await user.press(
+      screen.getByRole("button", { name: "Stamp Mark check for today" }),
+    );
+
+    expect(
+      await screen.findByRole("button", {
+        name: "Mark check already stamped today",
+      }),
+    ).toHaveProp("className", expect.stringContaining("bg-accent "));
+    const tile = screen
+      .getAllByTestId("rally-tile")
+      .find((candidate) => within(candidate).queryByText("Mark check"));
+    if (!tile) throw new Error("tile not found");
+    for (const day of within(tile).getAllByTestId("activity-day")) {
+      const dot = day.children[0];
+      if (typeof dot === "string") continue;
+      expect(dot).toHaveProp(
+        "className",
+        expect.not.stringContaining("bg-accent"),
+      );
+    }
+  });
+});
