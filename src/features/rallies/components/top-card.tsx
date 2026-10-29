@@ -34,7 +34,7 @@ export function TopCard({
       style={{ width }}
       testID={testID}
     >
-      <View className="flex-row items-center gap-2">
+      <View className="mt-0.5 flex-row items-center gap-2">
         <View
           className={
             tone === "today"
