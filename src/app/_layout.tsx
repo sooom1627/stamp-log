@@ -17,6 +17,8 @@ import { useResolveClassNames } from "uniwind";
 import { RenderError } from "@/shared/components/render-error";
 import { createQueryClient } from "@/shared/query/create-query-client";
 
+import "@/shared/i18n";
+
 import "../../tailwind.css";
 
 // Catches a render error in any route; the layout itself is replaced until retry.
