@@ -6,6 +6,13 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
 import { stampEmojiRows } from "../utils/stamp-emoji-rows";
 
+import { CardDisc, TopCard } from "./top-card";
+
+// Dates on screen stay English (docs/design.md 言語).
+const monthDayFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+});
 const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "short" });
 
 function spokenLabel(rallies: Rally[], today: Date) {
@@ -23,15 +30,16 @@ function tiltFor(date: Date) {
 // A small tilt per emoji so overlapping emojis look pressed by hand.
 const EMOJI_TILTS = ["-6deg", "5deg", "-3deg", "7deg", "-5deg"];
 
-// Inked with today's rallies' emojis, overlapping, or a blank ring with the date.
+// Inked with today's rallies' emojis, overlapping, or a blank ring with the
+// date. It sits in the card's disc, inside a thin ring.
 function TodayStamp({ rallies, today }: { rallies: Rally[]; today: Date }) {
   if (rallies.length === 0) {
     return (
       <View
-        className="size-22 items-center justify-center"
+        className="absolute inset-1.25 items-center justify-center"
         testID="today-stamp"
       >
-        <View className="border-foreground-muted absolute inset-0 rounded-full border-[1.5px] border-dashed opacity-40" />
+        <View className="border-foreground-muted absolute inset-0 rounded-full border border-dashed opacity-40" />
         <Text className="text-foreground-muted text-[10px] font-bold tracking-widest">
           {monthFormatter.format(today).toUpperCase()}
         </Text>
@@ -47,13 +55,13 @@ function TodayStamp({ rallies, today }: { rallies: Rally[]; today: Date }) {
   );
   const emojiClassName =
     rallies.length === 1
-      ? "text-4xl"
+      ? "text-[34px]"
       : rows.length === 1
         ? "text-2xl"
         : "text-xl";
   return (
     <View
-      className="border-accent bg-background size-22 items-center justify-center rounded-full border-[1.5px]"
+      className="border-accent/50 absolute inset-1.25 items-center justify-center rounded-full border"
       style={{ transform: [{ rotate: tiltFor(today) }] }}
       testID="today-stamp"
     >
@@ -95,38 +103,52 @@ function TodayStamp({ rallies, today }: { rallies: Rally[]; today: Date }) {
 type TodayCardProps = {
   rallies: Rally[];
   today: Date;
+  width: number;
+  position: string;
 };
 
-// Today's stamp with the rallies stamped today, first stamped first. The
-// card keeps the stamp's height however many rallies there are.
-export function TodayCard({ rallies, today }: TodayCardProps) {
+// The first of home's top cards: how many rallies were stamped today and
+// their names, with today's stamp in the disc. First stamped first; the card
+// keeps its height however many rallies there are.
+export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
   return (
-    <View
-      accessible
-      aria-label={spokenLabel(rallies, today)}
-      className="bg-accent-subtle border-continuous mb-4 h-26 flex-row items-center gap-3 rounded-3xl pr-4 pl-2.5"
+    <TopCard
+      label="Today"
+      detail={monthDayFormatter.format(today)}
+      tone="today"
+      spokenLabel={`${spokenLabel(rallies, today)}, ${position}`}
+      width={width}
       testID="today-card"
     >
-      <TodayStamp rallies={rallies} today={today} />
-      {rallies.length > 0 ? (
+      <View className="flex-1 flex-row items-center gap-3">
         <View className="flex-1 gap-1">
-          <Text className="text-foreground text-base font-semibold">
-            {`${formatStampCount(rallies.length)} today`}
-          </Text>
-          <Text className="text-foreground-secondary text-sm" numberOfLines={2}>
-            {rallies.map((rally) => rally.name).join(" · ")}
-          </Text>
+          {rallies.length > 0 ? (
+            <>
+              <Text className="text-foreground text-lg font-semibold">
+                {`${formatStampCount(rallies.length)} today`}
+              </Text>
+              <Text
+                className="text-foreground-secondary text-sm"
+                numberOfLines={2}
+              >
+                {rallies.map((rally) => rally.name).join(" · ")}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text className="text-foreground text-lg font-semibold">
+                No stamps yet today
+              </Text>
+              <Text className="text-foreground-secondary text-sm">
+                What you stamp today shows up here.
+              </Text>
+            </>
+          )}
         </View>
-      ) : (
-        <View className="flex-1 gap-1">
-          <Text className="text-foreground text-base font-semibold">
-            No stamps yet today
-          </Text>
-          <Text className="text-foreground-secondary text-sm">
-            What you stamp today shows up here.
-          </Text>
-        </View>
-      )}
-    </View>
+        <CardDisc>
+          <TodayStamp rallies={rallies} today={today} />
+        </CardDisc>
+      </View>
+    </TopCard>
   );
 }

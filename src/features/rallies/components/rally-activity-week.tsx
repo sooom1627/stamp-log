@@ -52,7 +52,7 @@ export function RallyActivityWeek({
               <View
                 className={
                   day.isRecorded
-                    ? "bg-accent size-2.5 rounded-full"
+                    ? "bg-foreground size-2 rounded-full"
                     : "bg-foreground-muted size-1.5 rounded-full opacity-40"
                 }
               />

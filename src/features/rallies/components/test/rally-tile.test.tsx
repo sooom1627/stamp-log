@@ -26,7 +26,7 @@ describe("S-029 T-002 ST-001 RallyTile", () => {
     await render(<RallyTile {...defaultProps} />);
 
     expect(screen.getByText("⛩️")).toBeOnTheScreen();
-    expect(screen.getByText("Kyoto trip")).toHaveProp("numberOfLines", 2);
+    expect(screen.getByText("Kyoto trip")).toHaveProp("numberOfLines", 1);
     expect(screen.getByText("0 stamps")).toBeOnTheScreen();
     expect(
       screen.getByRole("button", { name: "Stamp Kyoto trip for today" }),
@@ -131,5 +131,19 @@ describe("RT-003 ST-003 RallyTile count", () => {
     );
 
     expect(screen.getByText("12 stamps")).toBeOnTheScreen();
+  });
+});
+
+describe("S-050 T-001 ST-003 name and count stay together", () => {
+  test("keeps no empty second line under a one-line name and lets the detail area take the spare height", async () => {
+    await render(<RallyTile {...defaultProps} />);
+
+    expect(screen.getByText("Kyoto trip")).toHaveProp(
+      "className",
+      expect.not.stringContaining("min-h-"),
+    );
+    expect(
+      screen.getByRole("button", { name: "View Kyoto trip details" }),
+    ).toHaveProp("className", expect.stringContaining("flex-1"));
   });
 });

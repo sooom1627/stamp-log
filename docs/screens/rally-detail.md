@@ -136,7 +136,7 @@ Album に切り替えたとき（カレンダーまでは同じ）:
 - 「…」の `Archive rally` を押すとその場で保存し、確認は出さない（戻せる操作のため）。画面に留まる。destructive 表示にしない
 - アーカイブ中は名称の下に小さく `Archived` を出し、「…」の項目は `Unarchive rally` になる。押すとその場で解除する
 - アーカイブ中でも、この画面の操作（お気に入り、Past stamp、Edit rally、Delete rally、カレンダー、投稿の編集・削除）はそのまま使える
-- アーカイブしたラリーのスタンプは Logs（[records-timeline.md](./records-timeline.md)）とホームの今日のカードにそのまま出る
+- アーカイブしたラリーのスタンプは Logs（[records-timeline.md](./records-timeline.md)）とホームの今日のカードと今日のログにそのまま出る
 
 ### Delete rally
 
