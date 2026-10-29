@@ -41,6 +41,7 @@ describe("S-050 ST-002 buildTodayLog", () => {
     );
 
     expect(log.map((entry) => entry.emoji)).toEqual(["🏃", "🏃", "📚"]);
+    expect(log[2].name).toBe("Reading");
     expect(log[0].hour).toBeCloseTo(7.2);
     expect(log[2].stampedAt).toEqual(new Date(2026, 8, 20, 19, 6));
   });

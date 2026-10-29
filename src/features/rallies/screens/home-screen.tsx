@@ -8,14 +8,19 @@ import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
-import { useSaveStamp, useStampSummary } from "@/shared/hooks/use-stamps";
+import {
+  useFirstStampedAt,
+  useSaveStamp,
+  useStampSummary,
+} from "@/shared/hooks/use-stamps";
 import { type Rally } from "@/shared/schemas/rallies";
 
+import { HomeTopCards } from "../components/home-top-cards";
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
-import { TodayCard } from "../components/today-card";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
+import { buildTodayLog, countDaysWithAto } from "../utils/today-log";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 
 // Matches the tab root's px-5 and the grid's gap-2.5.
@@ -32,6 +37,7 @@ export function HomeScreen() {
     isError: isListError,
     retry: retryLists,
   } = useRalliesAndStamps(useStampSummary(today));
+  const { data: firstStampedAt } = useFirstStampedAt();
   const { mutate: saveStamp } = useSaveStamp();
 
   // Tiles are ordered by the counts seen when home came into focus, so a
@@ -54,18 +60,32 @@ export function HomeScreen() {
       )
     : undefined;
   const datesByRally = stampDatesByRally(summary?.recentStamps ?? []);
+  // With Ato shows every rally made: home's tiles first, then archived ones.
+  const allRallies =
+    rallies && orderedRallies
+      ? [...orderedRallies, ...rallies.filter((rally) => rally.isArchived)]
+      : [];
 
   return (
     <TabRootScreen label="Home">
       <View className="w-full">
-        {rallies && summary ? (
-          <TodayCard
-            rallies={buildTodayStampedRallies(
+        {rallies && summary && firstStampedAt !== undefined ? (
+          <HomeTopCards
+            windowWidth={windowWidth}
+            today={today}
+            todayRallies={buildTodayStampedRallies(
               summary.recentStamps,
               rallies,
               today,
             )}
-            today={today}
+            todayLog={buildTodayLog(summary.recentStamps, rallies, today)}
+            daysWithAto={countDaysWithAto(firstStampedAt, today)}
+            firstStampedAt={firstStampedAt ? new Date(firstStampedAt) : null}
+            stampCount={[...summary.countsByRally.values()].reduce(
+              (total, count) => total + count,
+              0,
+            )}
+            allRallies={allRallies}
           />
         ) : null}
         {isListError ? <LoadError onRetry={retryLists} /> : null}

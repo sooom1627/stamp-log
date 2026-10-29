@@ -50,7 +50,9 @@ describe("S-002 T-002 RT-003 ST-002 save rally", () => {
     await user.press(screen.getByRole("button", { name: "Save" }));
 
     expect(await screen.findByText("Kyoto trip")).toBeOnTheScreen();
-    expect(screen.getByText("🔬")).toBeOnTheScreen();
+    expect(
+      within(screen.getByTestId("rally-grid")).getByText("🔬"),
+    ).toBeOnTheScreen();
   });
 
   test("hides color selector and closes picker when name field is focused", async () => {

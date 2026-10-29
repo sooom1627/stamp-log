@@ -9,6 +9,7 @@ import {
 export type TodayLogEntry = {
   stampId: Stamp["id"];
   emoji: Rally["emoji"];
+  name: Rally["name"];
   stampedAt: Date;
   // 0 to 24, where the stamp sits on the day's line.
   hour: number;
@@ -23,19 +24,25 @@ export function buildTodayLog(
   today: Date,
 ): TodayLogEntry[] {
   const todayKey = localDateKey(today);
-  const emojiByRallyId = new Map(
-    rallies.map((rally) => [rally.id, rally.emoji]),
-  );
+  const ralliesById = new Map(rallies.map((rally) => [rally.id, rally]));
 
   return stamps
     .filter((stamp) => localDateKeyFromIso(stamp.stampedAt) === todayKey)
     .sort(compareStampsByTime)
     .flatMap((stamp) => {
-      const emoji = emojiByRallyId.get(stamp.rallyId);
-      if (emoji === undefined) return [];
+      const rally = ralliesById.get(stamp.rallyId);
+      if (!rally) return [];
       const stampedAt = new Date(stamp.stampedAt);
       const hour = stampedAt.getHours() + stampedAt.getMinutes() / 60;
-      return [{ stampId: stamp.id, emoji, stampedAt, hour }];
+      return [
+        {
+          stampId: stamp.id,
+          emoji: rally.emoji,
+          name: rally.name,
+          stampedAt,
+          hour,
+        },
+      ];
     });
 }
 

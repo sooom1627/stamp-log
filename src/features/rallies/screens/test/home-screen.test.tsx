@@ -319,7 +319,7 @@ describe("S-029 T-001 ST-004 today card", () => {
     const card = await screen.findByTestId("today-card");
 
     expect(card).toHaveAccessibleName(
-      "Today, Sep 20, 2 stamps: Morning run, Tokyo towers",
+      "Today, Sep 20, 2 stamps: Morning run, Tokyo towers, 1 of 3",
     );
     // The stamp is inked with today's emojis instead of the date.
     expect(
@@ -346,7 +346,7 @@ describe("S-029 T-001 ST-004 today card", () => {
     await renderRouter("./src/app");
     const user = userEvent.setup();
     const card = await screen.findByTestId("today-card");
-    expect(card).toHaveAccessibleName("Today, Sep 20, no stamps yet");
+    expect(card).toHaveAccessibleName("Today, Sep 20, no stamps yet, 1 of 3");
     const emptyStamp = within(card).getByTestId("today-stamp");
     expect(within(emptyStamp).getByText("SEP")).toBeOnTheScreen();
     expect(within(emptyStamp).getByText("20")).toBeOnTheScreen();
@@ -360,7 +360,9 @@ describe("S-029 T-001 ST-004 today card", () => {
     );
 
     expect(
-      await screen.findByLabelText("Today, Sep 20, 1 stamp: Kyoto museums"),
+      await screen.findByLabelText(
+        "Today, Sep 20, 1 stamp: Kyoto museums, 1 of 3",
+      ),
     ).toBeOnTheScreen();
     const stampedCard = screen.getByTestId("today-card");
     expect(within(stampedCard).getByText("1 stamp today")).toBeOnTheScreen();
@@ -409,7 +411,7 @@ describe("S-029 T-001 ST-004 today card", () => {
       ),
     ).toHaveProp("numberOfLines", 2);
     expect(card).toHaveAccessibleName(
-      "Today, Sep 20, 7 stamps: Morning run, Reading, Kyoto museums, Cafe hopping, Tokyo towers, Yoga, Sketching",
+      "Today, Sep 20, 7 stamps: Morning run, Reading, Kyoto museums, Cafe hopping, Tokyo towers, Yoga, Sketching, 1 of 3",
     );
   });
 });
@@ -870,7 +872,7 @@ describe("S-039 T-002 ST-005 archived rallies leave home", () => {
 
     expect(
       await screen.findByLabelText(
-        "Today, Sep 20, 1 stamp: Stamped then archived",
+        "Today, Sep 20, 1 stamp: Stamped then archived, 1 of 3",
       ),
     ).toBeOnTheScreen();
     expect(gridTileNames()).toEqual([]);
@@ -949,5 +951,154 @@ describe("S-050 T-001 ST-003 orange only on today's stamp", () => {
         expect.not.stringContaining("bg-accent"),
       );
     }
+  });
+});
+
+describe("S-050 T-003 ST-003 cards at the top of home", () => {
+  const at = (month: number, day: number, hours = 12, minutes = 0) =>
+    new Date(2026, month, day, hours, minutes).toISOString();
+
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 9, 29, 20, 10));
+    await deleteAllRallies();
+  });
+
+  async function saveRallyWithStamps(
+    name: string,
+    emoji: string,
+    stampedAts: string[],
+  ) {
+    await ralliesDb.saveRally({ name, emoji });
+    const rally = (await ralliesDb.listRallies()).find(
+      (saved) => saved.name === name,
+    );
+    if (!rally) throw new Error(`rally ${name} not saved`);
+    for (const stampedAt of stampedAts) {
+      await stampsDb.saveStamp({ rallyId: rally.id, stampedAt });
+    }
+    return rally;
+  }
+
+  test("lays today, With Ato and today's log side by side and marks the one in view", async () => {
+    await saveRallyWithStamps("Morning run", "🏃", [at(9, 29, 7, 12)]);
+
+    await renderRouter("./src/app");
+    const cards = await screen.findByTestId("top-cards");
+
+    expect(cards).toHaveProp("horizontal", true);
+    expect(
+      within(cards)
+        .getAllByTestId(/^(today-card|with-ato-card|today-log-card)$/)
+        .map((card) => card.props.testID),
+    ).toEqual(["today-card", "with-ato-card", "today-log-card"]);
+    for (const card of within(cards).getAllByTestId(/-card$/)) {
+      expect(card).toHaveProp("className", expect.stringContaining("h-42"));
+      expect(card).toHaveProp(
+        "className",
+        expect.not.stringContaining("shadow"),
+      );
+    }
+    const dotsInView = () =>
+      screen
+        .getAllByTestId("top-card-dot", { includeHiddenElements: true })
+        .map((dot) => dot.props.className.includes("bg-foreground "));
+    expect(dotsInView()).toEqual([true, false, false]);
+
+    const { width } = screen.getByTestId("today-card").props.style;
+    await fireEvent.scroll(cards, {
+      nativeEvent: { contentOffset: { x: width + 10, y: 0 } },
+    });
+
+    expect(dotsInView()).toEqual([false, true, false]);
+  });
+
+  test("counts the days since the first stamp, every stamp and every rally on With Ato", async () => {
+    await saveRallyWithStamps("Morning run", "🏃", [at(3, 3, 23), at(9, 28)]);
+    const reading = await saveRallyWithStamps("Reading", "📚", [at(9, 1)]);
+    await ralliesDb.setRallyArchived({ id: reading.id, isArchived: true });
+
+    await renderRouter("./src/app");
+    const card = await screen.findByTestId("with-ato-card");
+
+    expect(within(card).getByText("since Apr 3, 2026")).toBeOnTheScreen();
+    expect(within(card).getByText("210 days")).toBeOnTheScreen();
+    expect(within(card).getByText("3 stamps")).toBeOnTheScreen();
+    expect(within(card).getByText("2 rallies")).toBeOnTheScreen();
+    // Home's tiles first, then the archived rally.
+    expect(
+      within(within(card).getByTestId("with-ato-emojis"))
+        .getAllByText(/./)
+        .map((t) => t.children[0]),
+    ).toEqual(["🏃", "📚"]);
+    expect(card).toHaveAccessibleName(
+      "With Ato, 210 days since Apr 3, 2026, 3 stamps, 2 rallies, 2 of 3",
+    );
+  });
+
+  test("shows 0 days on With Ato before the first stamp", async () => {
+    await saveRallyWithStamps("Morning run", "🏃", []);
+
+    await renderRouter("./src/app");
+    const card = await screen.findByTestId("with-ato-card");
+
+    expect(within(card).getByText("0 days")).toBeOnTheScreen();
+    expect(within(card).queryByText(/^since/)).not.toBeOnTheScreen();
+    expect(within(card).getByText("0 stamps")).toBeOnTheScreen();
+    expect(within(card).getByText("1 rally")).toBeOnTheScreen();
+  });
+
+  test("puts each of today's stamps on the day's line and lists the latest three by time", async () => {
+    await saveRallyWithStamps("Morning run", "🏃", [
+      at(9, 29, 7, 12),
+      at(9, 28, 9),
+    ]);
+    await saveRallyWithStamps("Reading", "📚", [at(9, 29, 12, 42)]);
+    await saveRallyWithStamps("Walk", "🚶", [at(9, 29, 18, 40)]);
+    await saveRallyWithStamps("Journal", "📓", [at(9, 29, 19, 6)]);
+
+    await renderRouter("./src/app");
+    const card = await screen.findByTestId("today-log-card");
+
+    expect(within(card).getByText("now 8:10 PM")).toBeOnTheScreen();
+    expect(within(card).getAllByTestId("today-log-dot")).toHaveLength(4);
+    expect(within(card).getByTestId("today-log-now")).toHaveProp(
+      "style",
+      expect.objectContaining({ left: `${((20 + 10 / 60) / 24) * 100}%` }),
+    );
+    expect(
+      within(within(card).getByTestId("today-log-times"))
+        .getAllByText(/./)
+        .map((t) => t.children[0]),
+    ).toEqual(["+1", "📚 12:42 PM", "🚶 6:40 PM", "📓 7:06 PM"]);
+    expect(card).toHaveAccessibleName(
+      "Today's log, 4 stamps: 7:12 AM Morning run, 12:42 PM Reading, 6:40 PM Walk, 7:06 PM Journal, 3 of 3",
+    );
+  });
+
+  test("leaves today's line empty with a hint before the first stamp of the day", async () => {
+    await saveRallyWithStamps("Morning run", "🏃", [at(9, 28)]);
+
+    await renderRouter("./src/app");
+    const card = await screen.findByTestId("today-log-card");
+
+    expect(within(card).queryByTestId("today-log-dot")).not.toBeOnTheScreen();
+    expect(within(card).getByTestId("today-log-now")).toBeOnTheScreen();
+    expect(
+      within(card).getByText("Each stamp today lands on this line."),
+    ).toBeOnTheScreen();
+  });
+
+  test("moves the time on today's log as the minutes pass", async () => {
+    await saveRallyWithStamps("Morning run", "🏃", []);
+
+    await renderRouter("./src/app");
+    const card = await screen.findByTestId("today-log-card");
+    expect(within(card).getByText("now 8:10 PM")).toBeOnTheScreen();
+
+    await act(async () => {
+      jest.advanceTimersByTime(60_000);
+    });
+
+    expect(within(card).getByText("now 8:11 PM")).toBeOnTheScreen();
   });
 });
