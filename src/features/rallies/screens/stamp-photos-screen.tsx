@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { X } from "@/shared/components/icons";
 import { useRally } from "@/shared/hooks/use-rallies";
-import { useStamps } from "@/shared/hooks/use-stamps";
+import { usePhotoDayStamps } from "@/shared/hooks/use-stamps";
 import { type Rally } from "@/shared/schemas/rallies";
 import { type StampPhoto } from "@/shared/schemas/stamps";
 import {
@@ -35,7 +35,7 @@ type StampPhotosScreenProps = {
 // The photos of `photoId`'s rally on its local day, opened at that photo
 // (S-037). Usually that is one stamp's photos.
 export function StampPhotosScreen({ photoId }: StampPhotosScreenProps) {
-  const { data: stamps } = useStamps();
+  const { data: stamps } = usePhotoDayStamps(photoId);
   // undefined while loading, empty once loaded without the photo.
   const photos =
     stamps === undefined ? undefined : dayRallyPhotos(stamps, photoId);

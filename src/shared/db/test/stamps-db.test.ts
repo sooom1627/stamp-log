@@ -5,6 +5,8 @@ import { stampPhotoThumbUri, stampPhotoUri } from "../stamp-photo-files";
 import {
   deleteRallyStamps,
   deleteStamp,
+  getStamp,
+  listPhotoDayStamps,
   listStamps,
   saveStamp,
   updateStamp,
@@ -794,5 +796,46 @@ describe("S-037 T-005 ST-002 small copies for the album", () => {
     expect(stampPhotoThumbUri("saved-before-thumbs.jpg")).toBe(
       stampPhotoUri("saved-before-thumbs.jpg"),
     );
+  });
+});
+
+describe("RT-003 ST-001 read one stamp, and one photo's day", () => {
+  test("getStamp returns the stamp with its photos, and null without it", async () => {
+    const saved = await saveStamp({ rallyId: 901 });
+    const withPhoto = await updateStampMemo({
+      id: saved.id,
+      memo: "Kyoto",
+      photoUris: [pickPhoto()],
+    });
+
+    await expect(getStamp(saved.id)).resolves.toEqual(withPhoto);
+    await expect(getStamp(999999)).resolves.toBeNull();
+  });
+
+  test("listPhotoDayStamps returns the stamps of the photo's rally on its local day only", async () => {
+    // Stamped "now" so two stamps can share a day.
+    jest.setSystemTime(new Date(2026, 8, 18, 0, 0));
+    const first = await saveStamp({ rallyId: 902 });
+    jest.setSystemTime(new Date(2026, 8, 18, 23, 59));
+    const second = await saveStamp({ rallyId: 902 });
+    await saveStamp({ rallyId: 903 });
+    jest.setSystemTime(new Date(2026, 8, 19, 0, 0));
+    await saveStamp({ rallyId: 902 });
+    const {
+      photos: [photo],
+    } = await updateStampMemo({
+      id: first.id,
+      memo: "",
+      photoUris: [pickPhoto()],
+    });
+
+    const stamps = await listPhotoDayStamps(photo.id);
+
+    expect(stamps.map(({ id }) => id)).toEqual([second.id, first.id]);
+    expect(stamps[1].photos).toEqual([photo]);
+  });
+
+  test("listPhotoDayStamps returns nothing for a photo that does not exist", async () => {
+    await expect(listPhotoDayStamps(999999)).resolves.toEqual([]);
   });
 });

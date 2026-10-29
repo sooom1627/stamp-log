@@ -8,6 +8,7 @@ import {
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import * as stampsDb from "@/shared/db/stamps-db";
 import { saveStamp } from "@/shared/db/stamps-db";
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 import { type Rally } from "@/shared/schemas/rallies";
@@ -22,6 +23,7 @@ import {
 import {
   stampsQueryKey,
   useDeleteStamp,
+  usePhotoDayStamps,
   useRallyStamps,
   useSaveStamp,
   useStamp,
@@ -569,5 +571,72 @@ describe("RT-001 ST-003 useRally and useStamp read one record by id", () => {
       expect(result.current.found.data).toEqual(stamp);
     });
     expect(result.current.missing.data).toBeNull();
+  });
+});
+
+describe("RT-003 ST-001 useStamp and usePhotoDayStamps read only what they show", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("useStamp reads one stamp without listing every stamp, and reads it again after a change", async () => {
+    const stamp = await saveStamp({ rallyId: 801 });
+    const listStamps = jest.spyOn(stampsDb, "listStamps");
+
+    const { result } = await renderHook(
+      () => ({ query: useStamp(stamp.id), updateMemo: useUpdateStampMemo() }),
+      { wrapper: createWrapper() },
+    );
+    await waitFor(() => {
+      expect(result.current.query.data).toEqual(stamp);
+    });
+
+    await act(async () => {
+      await result.current.updateMemo.mutateAsync({
+        id: stamp.id,
+        memo: "Changed",
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.data?.memo).toBe("Changed");
+    });
+    expect(listStamps).not.toHaveBeenCalled();
+  });
+
+  test("usePhotoDayStamps reads the photo's day and drops a deleted stamp", async () => {
+    const stamp = await saveStamp({ rallyId: 802 });
+    const picked = new File(Paths.cache, "photo-day.jpg");
+    picked.writeSync("jpeg");
+    const {
+      photos: [photo],
+    } = await stampsDb.updateStampMemo({
+      id: stamp.id,
+      memo: "",
+      photoUris: [picked.uri],
+    });
+    const listStamps = jest.spyOn(stampsDb, "listStamps");
+
+    const { result } = await renderHook(
+      () => ({
+        query: usePhotoDayStamps(photo.id),
+        remove: useDeleteStamp(),
+      }),
+      { wrapper: createWrapper() },
+    );
+    await waitFor(() => {
+      expect(result.current.query.data?.map(({ id }) => id)).toEqual([
+        stamp.id,
+      ]);
+    });
+
+    await act(async () => {
+      await result.current.remove.mutateAsync(stamp.id);
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.data).toEqual([]);
+    });
+    expect(listStamps).not.toHaveBeenCalled();
   });
 });

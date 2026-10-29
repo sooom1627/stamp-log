@@ -1,4 +1,4 @@
-import { type SQLiteDatabase } from "expo-sqlite";
+import { type SQLiteBindValue, type SQLiteDatabase } from "expo-sqlite";
 
 import {
   hasStampOnLocalDay,
@@ -14,6 +14,7 @@ import {
   type UpdateStampInput,
   type UpdateStampMemoInput,
 } from "@/shared/schemas/stamps";
+import { addLocalDays } from "@/shared/utils/add-local-days";
 
 import { withAppDb } from "./schema";
 import { deleteStampPhotoFiles, writeStampPhoto } from "./stamp-photo-files";
@@ -24,16 +25,20 @@ type StampRow = Omit<Stamp, "photos">;
 const stampColumns = "id, rally_id AS rallyId, stamped_at AS stampedAt, memo";
 const photoColumns = "id, stamp_id AS stampId, file_name AS fileName, position";
 
-async function listPhotos(db: SQLiteDatabase, stampId?: Stamp["id"]) {
-  if (stampId === undefined) {
-    return db.getAllAsync<StampPhoto>(
-      `SELECT ${photoColumns} FROM stamp_photos ORDER BY stamp_id, position`,
-    );
-  }
+async function listPhotos(db: SQLiteDatabase, stampId: Stamp["id"]) {
   return db.getAllAsync<StampPhoto>(
     `SELECT ${photoColumns} FROM stamp_photos WHERE stamp_id = ? ORDER BY position`,
     stampId,
   );
+}
+
+// The ISO bounds of the local day holding `date`: from its local midnight up
+// to (not including) the next one. Stored times compare as ISO strings.
+function localDayRange(date: Date) {
+  return {
+    start: addLocalDays(date, 0).toISOString(),
+    end: addLocalDays(date, 1).toISOString(),
+  };
 }
 
 // `photos` are this stamp's, in position order.
@@ -87,18 +92,59 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
   });
 }
 
-export async function listStamps(): Promise<Stamp[]> {
-  const db = await withAppDb();
+// The stamps matching `where` (a condition on the stamps table), newest
+// first, each with its photos. Only those stamps' photos are read.
+async function listStampsWhere(
+  db: SQLiteDatabase,
+  where: string,
+  ...params: SQLiteBindValue[]
+): Promise<Stamp[]> {
   const rows = await db.getAllAsync<StampRow>(
-    `SELECT ${stampColumns} FROM stamps ORDER BY stamped_at DESC, id DESC`,
+    `SELECT ${stampColumns} FROM stamps WHERE ${where} ORDER BY stamped_at DESC, id DESC`,
+    ...params,
+  );
+  const photos = await db.getAllAsync<StampPhoto>(
+    `SELECT ${photoColumns} FROM stamp_photos WHERE stamp_id IN (SELECT id FROM stamps WHERE ${where}) ORDER BY stamp_id, position`,
+    ...params,
   );
   const photosByStampId = new Map<Stamp["id"], StampPhoto[]>();
-  for (const photo of await listPhotos(db)) {
-    const photos = photosByStampId.get(photo.stampId);
-    if (photos) photos.push(photo);
+  for (const photo of photos) {
+    const stampPhotos = photosByStampId.get(photo.stampId);
+    if (stampPhotos) stampPhotos.push(photo);
     else photosByStampId.set(photo.stampId, [photo]);
   }
   return rows.map((row) => withPhotos(row, photosByStampId.get(row.id) ?? []));
+}
+
+// Every stamp: only export needs them all.
+export async function listStamps(): Promise<Stamp[]> {
+  return listStampsWhere(await withAppDb(), "1 = 1");
+}
+
+export async function getStamp(id: Stamp["id"]): Promise<Stamp | null> {
+  const [stamp] = await listStampsWhere(await withAppDb(), "id = ?", id);
+  return stamp ?? null;
+}
+
+// The stamps of a photo's rally on the local day of its stamp: what the photo
+// viewer pages through. Empty when the photo does not exist.
+export async function listPhotoDayStamps(
+  photoId: StampPhoto["id"],
+): Promise<Stamp[]> {
+  const db = await withAppDb();
+  const owner = await db.getFirstAsync<Pick<StampRow, "rallyId" | "stampedAt">>(
+    "SELECT rally_id AS rallyId, stamped_at AS stampedAt FROM stamps WHERE id = (SELECT stamp_id FROM stamp_photos WHERE id = ?)",
+    photoId,
+  );
+  if (!owner) return [];
+  const { start, end } = localDayRange(new Date(owner.stampedAt));
+  return listStampsWhere(
+    db,
+    "rally_id = ? AND stamped_at >= ? AND stamped_at < ?",
+    owner.rallyId,
+    start,
+    end,
+  );
 }
 
 // Photos are written before the db so a failed write leaves the stamp as it

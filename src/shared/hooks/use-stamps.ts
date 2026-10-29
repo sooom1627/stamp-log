@@ -7,12 +7,14 @@ import {
 
 import {
   deleteStamp,
+  getStamp,
+  listPhotoDayStamps,
   listStamps,
   saveStamp,
   updateStamp,
   updateStampMemo,
 } from "@/shared/db/stamps-db";
-import { type Stamp } from "@/shared/schemas/stamps";
+import { type Stamp, type StampPhoto } from "@/shared/schemas/stamps";
 
 export const stampsQueryKey = ["stamps"] as const;
 
@@ -35,8 +37,17 @@ export function useRallyStamps(rallyId: Stamp["rallyId"]) {
 // One stamp by id: undefined while loading, null once loaded without it.
 export function useStamp(stampId: Stamp["id"]) {
   return useQuery({
-    ...stampsQuery,
-    select: (stamps) => stamps.find((stamp) => stamp.id === stampId) ?? null,
+    queryKey: [...stampsQueryKey, "byId", stampId],
+    queryFn: () => getStamp(stampId),
+  });
+}
+
+// The stamps of a photo's rally on that photo's local day (the photo viewer).
+// Empty once loaded without the photo.
+export function usePhotoDayStamps(photoId: StampPhoto["id"]) {
+  return useQuery({
+    queryKey: [...stampsQueryKey, "photoDay", photoId],
+    queryFn: () => listPhotoDayStamps(photoId),
   });
 }
 
