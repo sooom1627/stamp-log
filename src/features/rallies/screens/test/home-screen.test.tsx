@@ -900,9 +900,9 @@ describe("S-050 T-001 ST-002 full-screen gradient", () => {
     const home = await screen.findByLabelText("Home");
     for (const name of [
       "bg-linear-to-b",
-      "from-home-top",
-      "via-home-mid",
-      "to-home-bottom",
+      "from-canvas-top",
+      "via-canvas-mid",
+      "to-canvas-bottom",
     ]) {
       expect(home).toHaveProp("className", expect.stringContaining(name));
     }

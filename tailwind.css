@@ -47,11 +47,11 @@
       /* The bands under the Ato mark's sun. */
       --color-mark-band-from: #334155;
       --color-mark-band-to: #1e293b;
-      /* Home's full-screen gradient (S-050): sand at the top fading to a
+      /* Tab roots' full-screen gradient (S-050): sand at the top fading to a
          warm white, bright enough not to look dull on device. */
-      --color-home-top: #f3ead9;
-      --color-home-mid: #f7f3ec;
-      --color-home-bottom: #f6f5f1;
+      --color-canvas-top: #f3ead9;
+      --color-canvas-mid: #f7f3ec;
+      --color-canvas-bottom: #f6f5f1;
     }
     @variant dark {
       --color-background: #0f172a;
@@ -71,9 +71,9 @@
       --color-surface: #334155;
       --color-mark-band-from: #e2e8f0;
       --color-mark-band-to: #94a3b8;
-      --color-home-top: #1a1814;
-      --color-home-mid: #121212;
-      --color-home-bottom: #141414;
+      --color-canvas-top: #1a1814;
+      --color-canvas-mid: #121212;
+      --color-canvas-bottom: #141414;
     }
   }
 }

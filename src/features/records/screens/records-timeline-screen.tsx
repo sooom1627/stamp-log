@@ -61,7 +61,7 @@ export function RecordsTimelineScreen() {
           runs under the large title so the title can shrink. */}
       <ScrollView
         aria-label="Logs timeline"
-        className="bg-canvas flex-1"
+        className="bg-canvas from-canvas-top via-canvas-mid to-canvas-bottom flex-1 bg-linear-to-b"
         contentContainerClassName="pb-32"
         contentInsetAdjustmentBehavior="automatic"
         stickyHeaderIndices={hasPosts ? [1] : undefined}
@@ -93,7 +93,9 @@ export function RecordsTimelineScreen() {
               pointerEvents: "box-none",
             }}
           >
-            <View className="bg-canvas px-5 pt-6 pb-2">
+            {/* Solid so posts scrolling under it stay hidden; the gradient's middle
+                color sits closest to it on screen. */}
+            <View className="bg-canvas-mid px-5 pt-6 pb-2">
               <StampsAlbumPicker
                 testID="logs-view-picker"
                 view={view}
