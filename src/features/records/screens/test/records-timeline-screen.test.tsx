@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, type AlertButton } from "react-native";
+import { Alert, type AlertButton } from "react-native";
 
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
@@ -211,9 +211,9 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     await openLogs();
 
     const list = await screen.findByLabelText("Logs timeline");
-    // Headings scroll with their cards instead of sticking over the posts:
-    // only the Stamps / Album switch (the second child) sticks (S-043 T-004).
-    expect(list.props.stickyHeaderIndices).toEqual([1]);
+    // Headings and the Stamps / Album switch scroll with the posts; nothing
+    // sticks over them (S-050 T-002).
+    expect(list.props.stickyHeaderIndices).toBeUndefined();
     const logs = within(list);
     const todayCard = within(logs.getByTestId("day-card-2026-10-10"));
     expect(todayCard.getByTestId("stamp-post-904")).toBeOnTheScreen();
@@ -794,42 +794,29 @@ describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
     }
   });
 
-  test("S-043 T-004 scrolls the top away with the pages and keeps the switch stuck", async () => {
+  test("S-050 T-002 scrolls the top and the switch away with the pages", async () => {
     await openLogsWithPhotos();
 
-    // One vertical scroll holds the top, the switch and the pages, and its
-    // second child (the switch) sticks to the top.
+    // One vertical scroll holds the top, the switch and the pages. The
+    // switch only changes the pages, so it stays with them and does not
+    // stick to the top.
     const scroll = screen.getByLabelText("Logs timeline");
     expect(scroll.type).toBe("RCTScrollView");
-    expect(scroll).toHaveProp("stickyHeaderIndices", [1]);
+    expect(scroll.props.stickyHeaderIndices).toBeUndefined();
     const inScroll = within(scroll);
     expect(inScroll.getByTestId("logs-calendar")).toBeOnTheScreen();
     expect(inScroll.getByTestId("logs-view-picker")).toBeOnTheScreen();
     expect(inScroll.getByTestId("logs-view-pager")).toBeOnTheScreen();
   });
 
-  test("S-043 T-004 lets the large title shrink and sticks the switch below the header", async () => {
+  test("S-043 T-004 lets the large title shrink", async () => {
     await openLogsWithPhotos();
 
     // The large title shrinks only when the scroll runs under the header, so
     // the scroll takes the header's inset itself (as Home does).
-    const scroll = screen.getByLabelText("Logs timeline");
-    expect(scroll).toHaveProp("contentInsetAdjustmentBehavior", "automatic");
-    // A sticky header stops at the scroll's top edge, under the header, so
-    // the stuck part reaches up by the header's height above the switch.
-    const stuck = within(scroll).getByTestId("logs-view-switch");
-    const { marginTop, paddingTop } = StyleSheet.flatten(stuck.props.style);
-    expect(paddingTop).toBeGreaterThan(0);
-    expect(marginTop).toBe(-paddingTop);
-    expect(within(stuck).getByTestId("logs-view-picker")).toBeOnTheScreen();
-  });
-
-  test("S-050 T-002 leaves the stuck switch's band see-through over the gradient", async () => {
-    await openLogsWithPhotos();
-
-    expect(screen.getByTestId("logs-view-switch-band")).toHaveProp(
-      "className",
-      expect.not.stringMatching(/\bbg-/),
+    expect(screen.getByLabelText("Logs timeline")).toHaveProp(
+      "contentInsetAdjustmentBehavior",
+      "automatic",
     );
   });
 
