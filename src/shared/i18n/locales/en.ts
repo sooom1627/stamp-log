@@ -84,6 +84,12 @@ export const en = {
     photoOf: "Photo {{n}} of {{total}}",
     addMemoToast: "Add a memo or photos?",
   },
+  records: {
+    title: "Logs",
+    subtitle: "Your days, one stamp at a time",
+    timelineLabel: "Logs timeline",
+    noStampsOnDay: "No stamps on this day",
+  },
   calendar: {
     previousMonth: "Previous month",
     nextMonth: "Next month",

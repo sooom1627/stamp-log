@@ -5,6 +5,8 @@ import { ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
+import { useTranslation } from "react-i18next";
+
 import { DayCard } from "@/shared/components/day-card";
 import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
 import { StampPost } from "@/shared/components/stamp-post";
@@ -34,6 +36,7 @@ import { buildDayMarks } from "../utils/day-marks";
 
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
+  const { t } = useTranslation();
   const headerHeight = useHeaderHeight();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
@@ -60,14 +63,14 @@ export function RecordsTimelineScreen() {
           the pages below still follow the finger (S-043 T-004). The scroll
           runs under the large title so the title can shrink. */}
       <ScrollView
-        aria-label="Logs timeline"
+        aria-label={t("records.timelineLabel")}
         className="bg-canvas flex-1"
         contentContainerClassName="pb-32"
         contentInsetAdjustmentBehavior="automatic"
         stickyHeaderIndices={hasPosts ? [1] : undefined}
       >
         <View className="px-5">
-          <TabRootSubtitle>Your days, one stamp at a time</TabRootSubtitle>
+          <TabRootSubtitle>{t("records.subtitle")}</TabRootSubtitle>
           {/* Not linked to the pages: moving it leaves the posts as they are. */}
           <RallyMonthCalendar
             testID="logs-calendar"
@@ -144,12 +147,12 @@ export function RecordsTimelineScreen() {
           <TimelineEmpty
             isError={isError}
             isLoaded={isLoaded}
-            message="No stamps yet"
+            message={t("rallies.noStamps")}
             onRetry={retry}
           />
         )}
       </ScrollView>
-      <TabRootHeader title="Logs" />
+      <TabRootHeader title={t("records.title")} />
     </>
   );
 }

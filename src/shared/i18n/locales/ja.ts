@@ -85,6 +85,12 @@ export const ja: Translation = {
     photoOf: "写真 {{n}} / {{total}}",
     addMemoToast: "メモや写真を追加しますか？",
   },
+  records: {
+    title: "記録",
+    subtitle: "これまでのスタンプ",
+    timelineLabel: "記録の一覧",
+    noStampsOnDay: "この日は押していません",
+  },
   calendar: {
     previousMonth: "前の月",
     nextMonth: "次の月",
