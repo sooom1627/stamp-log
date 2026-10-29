@@ -34,6 +34,17 @@ async function deleteAllRallies() {
   }
 }
 
+// The today card's rows of today's rallies, each as its texts.
+function rallyRowsOf(card: ReturnType<typeof screen.getByTestId>) {
+  return within(card)
+    .getAllByTestId("today-rally-row")
+    .map((row) =>
+      within(row)
+        .getAllByText(/./)
+        .map((text) => text.children[0]),
+    );
+}
+
 function findToastAction(): { label: string; onClick: () => void } {
   const options = jest.mocked(toast).mock.calls.at(-1)?.[1];
   const action = options?.action;
@@ -329,9 +340,14 @@ describe("S-029 T-001 ST-004 today card", () => {
     ).toEqual([["🏃"], ["🗼"]]);
     expect(within(card).queryByText("SEP")).not.toBeOnTheScreen();
     expect(within(card).getByText("2 stamps today")).toBeOnTheScreen();
-    expect(within(card).getByText("Morning run · Tokyo towers")).toHaveProp(
+    // S-053: one row per rally, emoji and name.
+    expect(rallyRowsOf(card)).toEqual([
+      ["🏃", "Morning run"],
+      ["🗼", "Tokyo towers"],
+    ]);
+    expect(within(card).getByText("Tokyo towers")).toHaveProp(
       "numberOfLines",
-      2,
+      1,
     );
     expect(within(card).queryByText("Kyoto museums")).not.toBeOnTheScreen();
     expect(within(card).queryByRole("button")).not.toBeOnTheScreen();
@@ -405,11 +421,12 @@ describe("S-029 T-001 ST-004 today card", () => {
       ["☕", "+3"],
     ]);
     expect(within(card).getByText("7 stamps today")).toBeOnTheScreen();
-    expect(
-      within(card).getByText(
-        "Morning run · Reading · Kyoto museums · Cafe hopping · Tokyo towers · Yoga · Sketching",
-      ),
-    ).toHaveProp("numberOfLines", 2);
+    // S-053: two rows and the rest counted, so the card keeps its height.
+    expect(rallyRowsOf(card)).toEqual([
+      ["🏃", "Morning run"],
+      ["📚", "Reading"],
+      ["+5"],
+    ]);
     expect(card).toHaveAccessibleName(
       "Today, Sep 20, 7 stamps: Morning run, Reading, Kyoto museums, Cafe hopping, Tokyo towers, Yoga, Sketching, 1 of 3",
     );
@@ -1104,5 +1121,78 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
     });
 
     expect(within(card).getByText("now 8:11 PM")).toBeOnTheScreen();
+  });
+});
+
+describe("S-053 T-001 ST-002 a today card that does not look empty", () => {
+  const at = (hours: number) => new Date(2026, 9, 30, hours).toISOString();
+
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 9, 30, 21, 0));
+    await deleteAllRallies();
+  });
+
+  async function stampRallies(rallies: [string, string][]) {
+    for (const [index, [name, emoji]] of rallies.entries()) {
+      await ralliesDb.saveRally({ name, emoji });
+      const rally = (await ralliesDb.listRallies()).find(
+        (saved) => saved.name === name,
+      );
+      if (!rally) throw new Error(`rally ${name} not saved`);
+      await stampsDb.saveStamp({ rallyId: rally.id, stampedAt: at(8 + index) });
+    }
+  }
+
+  const emojiClassNames = (card: ReturnType<typeof screen.getByTestId>) =>
+    within(within(card).getByTestId("today-stamp"))
+      .getAllByText(/./)
+      .map((text) => text.props.className as string);
+
+  test("lists each of a few rallies on its own row and draws the emojis larger the fewer there are", async () => {
+    await stampRallies([
+      ["Edinburgh", "☕"],
+      ["Side project", "🧑‍💻"],
+    ]);
+
+    await renderRouter("./src/app");
+    const card = await screen.findByTestId("today-card");
+
+    expect(rallyRowsOf(card)).toEqual([
+      ["☕", "Edinburgh"],
+      ["🧑‍💻", "Side project"],
+    ]);
+    for (const className of emojiClassNames(card)) {
+      expect(className).toContain("text-[30px]");
+    }
+    expect(card).toHaveProp("className", expect.stringContaining("h-42"));
+  });
+
+  test("draws a single emoji at 40px on its one row", async () => {
+    await stampRallies([["Edinburgh", "☕"]]);
+
+    await renderRouter("./src/app");
+    const single = await screen.findByTestId("today-card");
+    expect(emojiClassNames(single)[0]).toContain("text-[40px]");
+    expect(rallyRowsOf(single)).toEqual([["☕", "Edinburgh"]]);
+  });
+
+  test("keeps three rallies as three rows with 26px emojis", async () => {
+    await stampRallies([
+      ["Edinburgh", "☕"],
+      ["Side project", "🧑‍💻"],
+      ["Reading", "📚"],
+    ]);
+
+    await renderRouter("./src/app");
+    const card = await screen.findByTestId("today-card");
+
+    expect(rallyRowsOf(card)).toEqual([
+      ["☕", "Edinburgh"],
+      ["🧑‍💻", "Side project"],
+      ["📚", "Reading"],
+    ]);
+    for (const className of emojiClassNames(card)) {
+      expect(className).toContain("text-[26px]");
+    }
   });
 });

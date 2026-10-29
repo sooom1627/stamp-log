@@ -51,12 +51,16 @@ function TodayStamp({ rallies, today }: { rallies: Rally[]; today: Date }) {
   const { rows, moreCount } = stampEmojiRows(
     rallies.map((rally) => rally.emoji),
   );
+  // The fewer the emojis, the larger, so a day with one or two stamps still
+  // fills the disc (S-053).
   const emojiClassName =
     rallies.length === 1
-      ? "text-[34px]"
-      : rows.length === 1
-        ? "text-2xl"
-        : "text-xl";
+      ? "text-[40px]"
+      : rallies.length === 2
+        ? "text-[30px]"
+        : rows.length === 1
+          ? "text-[26px]"
+          : "text-xl";
   return (
     <View
       className="border-accent/50 absolute inset-1.25 items-center justify-center rounded-full border"
@@ -98,6 +102,42 @@ function TodayStamp({ rallies, today }: { rallies: Rally[]; today: Date }) {
   );
 }
 
+// Rows shown on the left before the rest are counted as "+N"; three rows keep
+// the card at the other cards' height.
+const MAX_ROWS = 3;
+
+// Today's rallies one per row, emoji and name. Past three, two rows and +N.
+function RallyRows({ rallies }: { rallies: Rally[] }) {
+  const shown =
+    rallies.length > MAX_ROWS ? rallies.slice(0, MAX_ROWS - 1) : rallies;
+  const moreCount = rallies.length - shown.length;
+
+  return (
+    <View className="gap-0.5">
+      {shown.map((rally) => (
+        <View
+          key={rally.id}
+          className="flex-row items-center gap-2"
+          testID="today-rally-row"
+        >
+          <Text className="text-sm">{rally.emoji}</Text>
+          <Text
+            className="text-foreground-secondary flex-1 text-sm"
+            numberOfLines={1}
+          >
+            {rally.name}
+          </Text>
+        </View>
+      ))}
+      {moreCount > 0 ? (
+        <View className="flex-row" testID="today-rally-row">
+          <Text className="text-foreground-muted text-sm">{`+${moreCount}`}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 type TodayCardProps = {
   rallies: Rally[];
   today: Date;
@@ -106,7 +146,7 @@ type TodayCardProps = {
 };
 
 // The first of home's top cards: how many rallies were stamped today and
-// their names, with today's stamp in the disc. First stamped first; the card
+// each of them on a row, with today's stamp in the disc. First stamped first; the card
 // keeps its height however many rallies there are.
 export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
   return (
@@ -125,12 +165,7 @@ export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
               <Text className="text-foreground text-lg font-semibold">
                 {`${formatStampCount(rallies.length)} today`}
               </Text>
-              <Text
-                className="text-foreground-secondary text-sm"
-                numberOfLines={2}
-              >
-                {rallies.map((rally) => rally.name).join(" · ")}
-              </Text>
+              <RallyRows rallies={rallies} />
             </>
           ) : (
             <>
