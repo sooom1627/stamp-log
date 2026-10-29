@@ -46,7 +46,7 @@ ABOUT
 │ [≡] Licenses                 ›  │
 ╰─────────────────────────────────╯
 
-          Stamplog 1.0.0            ← アプリ名とバージョン
+          Ato 1.0.0                 ← アプリ名とバージョン
 ```
 
 - 行はグループごとに角丸の面にまとめ、地（canvas）より明るい面（surface）に置く。グループの上に小さい大文字のラベル
@@ -67,7 +67,7 @@ ABOUT
 
 - 押すとファイルを選ぶ画面を開く。選ばずに閉じたら何も変わらない
 - このアプリが書き出したファイルでない、壊れている、読めない版のときはアラートを出し、何も変えない
-  - `Can't read this file` / `Choose a file exported from Stamplog.` / `OK`
+  - `Can't read this file` / `Choose a file exported from Ato.` / `OK`
 - 端末にラリーかスタンプがあるときは、置き換える前に確認する。端末が空なら確認せずに読み込む
   - `Replace all data?` / `This replaces this device's {n} rallies and {m} stamps with the file's {x} rallies and {y} stamps. Photos on this device are removed.` / `Cancel`・`Replace`（破壊的）
   - `Cancel` なら何も変わらない
