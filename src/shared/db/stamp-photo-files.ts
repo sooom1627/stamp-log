@@ -1,7 +1,7 @@
 import { Directory, File, Paths } from "expo-file-system";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 
-import { type StampPhoto } from "../schemas/stamps";
+import { type StampPhoto } from "@/shared/schemas/stamps";
 
 // Saved photos live under the documents folder. The db keeps only the file
 // name, because the app's absolute path can change on iOS.

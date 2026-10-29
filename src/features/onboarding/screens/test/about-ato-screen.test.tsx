@@ -3,7 +3,7 @@ import { renderRouter } from "expo-router/testing-library";
 
 import { act, screen, userEvent } from "@testing-library/react-native";
 
-import * as ralliesDb from "@/features/rallies/db/rallies-db";
+import * as ralliesDb from "@/shared/db/rallies-db";
 
 jest.useFakeTimers();
 

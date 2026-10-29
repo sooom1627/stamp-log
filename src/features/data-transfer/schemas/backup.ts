@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { rallySchema } from "@/features/rallies/schemas/rallies";
-import { stampSchema } from "@/features/rallies/schemas/stamps";
+import { rallySchema } from "@/shared/schemas/rallies";
+import { stampSchema } from "@/shared/schemas/stamps";
 
 // Photos are not in the file yet (S-042).
 const backupStampSchema = stampSchema.omit({ photos: true });

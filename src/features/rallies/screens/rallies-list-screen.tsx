@@ -9,13 +9,13 @@ import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
 import { LoadError } from "@/shared/components/load-error";
 import { SwipePages } from "@/shared/components/swipe-pages";
+import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
+import { useSaveStamp } from "@/shared/hooks/use-stamps";
+import { type Rally } from "@/shared/schemas/rallies";
+import { type Stamp } from "@/shared/schemas/stamps";
 
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
-import { useRalliesAndStamps } from "../hooks/use-rallies-and-stamps";
-import { useSaveStamp } from "../hooks/use-stamps";
-import { type Rally } from "../schemas/rallies";
-import { type Stamp } from "../schemas/stamps";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 

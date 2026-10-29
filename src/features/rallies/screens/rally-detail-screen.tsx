@@ -6,6 +6,15 @@ import { Stack, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
+import {
+  useDeleteRally,
+  useRally,
+  useSetRallyArchived,
+  useSetRallyFavorite,
+} from "@/shared/hooks/use-rallies";
+import { useRallyStamps } from "@/shared/hooks/use-stamps";
+import { type Rally } from "@/shared/schemas/rallies";
+import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
@@ -21,15 +30,6 @@ import {
   type StampsView,
 } from "../components/stamps-album-picker";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
-import {
-  useDeleteRally,
-  useRally,
-  useSetRallyArchived,
-  useSetRallyFavorite,
-} from "../hooks/use-rallies";
-import { useRallyStamps } from "../hooks/use-stamps";
-import { type Rally } from "../schemas/rallies";
-import { albumTiles } from "../utils/album-photos";
 import { buildRallySummary } from "../utils/rally-summary";
 
 // Stamps that could not be loaded are still deleted with the rally, so the

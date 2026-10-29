@@ -1,5 +1,5 @@
-import { type Rally } from "../schemas/rallies";
-import { type Stamp } from "../schemas/stamps";
+import { type Rally } from "@/shared/schemas/rallies";
+import { type Stamp } from "@/shared/schemas/stamps";
 
 // Each stamp with its rally; stamps whose rally is not loaded are left out.
 export function stampsWithRallies(stamps: Stamp[], rallies: Rally[]) {

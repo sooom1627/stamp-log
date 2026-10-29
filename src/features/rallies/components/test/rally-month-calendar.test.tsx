@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react-native";
 
-import { type DayMark } from "../../utils/month-grid";
+import { type DayMark } from "@/shared/utils/month-grid";
+
 import { RallyMonthCalendar } from "../rally-month-calendar";
 
 jest.useFakeTimers();

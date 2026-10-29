@@ -1,10 +1,9 @@
 import { Text, View } from "react-native";
 
 import { StampPost } from "@/features/rallies/components/stamp-post";
-import { useRalliesAndStamps } from "@/features/rallies/hooks/use-rallies-and-stamps";
-import { stampsWithRallies } from "@/features/rallies/utils/stamps-with-rallies";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { LoadError } from "@/shared/components/load-error";
+import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
@@ -12,6 +11,7 @@ import {
   localDateKey,
   localDateKeyFromIso,
 } from "@/shared/utils/local-date-key";
+import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
 type LogsDayScreenProps = {
   // Local midnight of the day to show.

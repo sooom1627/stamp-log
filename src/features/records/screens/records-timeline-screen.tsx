@@ -13,16 +13,16 @@ import {
   StampsAlbumPicker,
   type StampsView,
 } from "@/features/rallies/components/stamps-album-picker";
-import { useRalliesAndStamps } from "@/features/rallies/hooks/use-rallies-and-stamps";
-import { albumTiles } from "@/features/rallies/utils/album-photos";
-import { stampsWithRallies } from "@/features/rallies/utils/stamps-with-rallies";
 import {
   TabRootHeader,
   TabRootSubtitle,
 } from "@/shared/components/tab-root-screen";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
+import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
+import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
+import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
 import { buildDayMarks } from "../utils/day-marks";
 

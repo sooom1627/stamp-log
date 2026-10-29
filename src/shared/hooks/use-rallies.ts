@@ -12,8 +12,8 @@ import {
   setRallyArchived,
   setRallyFavorite,
   updateRally,
-} from "../db/rallies-db";
-import { type Rally } from "../schemas/rallies";
+} from "@/shared/db/rallies-db";
+import { type Rally } from "@/shared/schemas/rallies";
 
 import { stampsQueryKey } from "./use-stamps";
 

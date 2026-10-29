@@ -12,10 +12,9 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
-
-import { listRallies, saveRally } from "../../db/rallies-db";
-import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
 

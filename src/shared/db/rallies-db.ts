@@ -10,7 +10,7 @@ import {
   type SetRallyArchivedInput,
   type SetRallyFavoriteInput,
   type UpdateRallyInput,
-} from "../schemas/rallies";
+} from "@/shared/schemas/rallies";
 
 import { withAppDb } from "./schema";
 import { deleteStampPhotoFiles } from "./stamp-photo-files";

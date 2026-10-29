@@ -11,8 +11,8 @@ import {
   saveStamp,
   updateStamp,
   updateStampMemo,
-} from "../db/stamps-db";
-import { type Stamp } from "../schemas/stamps";
+} from "@/shared/db/stamps-db";
+import { type Stamp } from "@/shared/schemas/stamps";
 
 export const stampsQueryKey = ["stamps"] as const;
 

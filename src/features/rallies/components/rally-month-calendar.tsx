@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight } from "@/shared/components/icons";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
-
 import {
   buildMonthWeeks,
   buildWeek,
@@ -14,7 +13,7 @@ import {
   weekHeadingMonth,
   type DayMark,
   type MonthDay,
-} from "../utils/month-grid";
+} from "@/shared/utils/month-grid";
 
 import { MonthPickerSheet } from "./month-picker-sheet";
 

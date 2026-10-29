@@ -13,7 +13,7 @@ import {
   type StampPhoto,
   type UpdateStampInput,
   type UpdateStampMemoInput,
-} from "../schemas/stamps";
+} from "@/shared/schemas/stamps";
 
 import { withAppDb } from "./schema";
 import { deleteStampPhotoFiles, writeStampPhoto } from "./stamp-photo-files";

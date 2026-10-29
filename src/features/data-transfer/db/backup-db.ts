@@ -1,7 +1,7 @@
-import { listRallies } from "@/features/rallies/db/rallies-db";
-import { withAppDb } from "@/features/rallies/db/schema";
-import { deleteStampPhotoFiles } from "@/features/rallies/db/stamp-photo-files";
-import { listStamps } from "@/features/rallies/db/stamps-db";
+import { listRallies } from "@/shared/db/rallies-db";
+import { withAppDb } from "@/shared/db/schema";
+import { deleteStampPhotoFiles } from "@/shared/db/stamp-photo-files";
+import { listStamps } from "@/shared/db/stamps-db";
 
 import { backupSchema, type Backup } from "../schemas/backup";
 

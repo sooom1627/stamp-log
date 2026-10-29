@@ -13,9 +13,8 @@ import {
 import { useCSSVariable } from "uniwind";
 
 import { ImageIcon } from "@/shared/components/icons";
-
-import { useDeleteStamp } from "../hooks/use-stamps";
-import { type Stamp } from "../schemas/stamps";
+import { useDeleteStamp } from "@/shared/hooks/use-stamps";
+import { type Stamp } from "@/shared/schemas/stamps";
 
 type StampPostProps = {
   stamp: Stamp;

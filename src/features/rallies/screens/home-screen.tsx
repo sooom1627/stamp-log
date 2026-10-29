@@ -7,13 +7,13 @@ import { Link, useFocusEffect } from "expo-router";
 import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
+import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
+import { useSaveStamp } from "@/shared/hooks/use-stamps";
+import { type Stamp } from "@/shared/schemas/stamps";
 
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
 import { TodayCard } from "../components/today-card";
-import { useRalliesAndStamps } from "../hooks/use-rallies-and-stamps";
-import { useSaveStamp } from "../hooks/use-stamps";
-import { type Stamp } from "../schemas/stamps";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";

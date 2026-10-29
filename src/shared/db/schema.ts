@@ -1,9 +1,8 @@
 import { type SQLiteDatabase } from "expo-sqlite";
 
-import { getDb } from "@/shared/db/get-db";
+import { defaultRallyEmoji } from "@/shared/schemas/rallies";
 
-import { defaultRallyEmoji } from "../schemas/rallies";
-
+import { getDb } from "./get-db";
 import { tableColumnNames } from "./table-columns";
 
 // Adds a column to a table that existed before the column did. A table that

@@ -1,6 +1,7 @@
-import { stampPhotoUri } from "../../db/stamp-photo-files";
-import { type Rally } from "../../schemas/rallies";
-import { type Stamp } from "../../schemas/stamps";
+import { stampPhotoUri } from "@/shared/db/stamp-photo-files";
+import { type Rally } from "@/shared/schemas/rallies";
+import { type Stamp } from "@/shared/schemas/stamps";
+
 import { albumTiles, dayRallyPhotos } from "../album-photos";
 
 const lab: Rally = {

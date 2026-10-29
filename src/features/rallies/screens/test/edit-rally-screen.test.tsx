@@ -4,7 +4,7 @@ import { renderRouter } from "expo-router/testing-library";
 import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
-import * as ralliesDb from "../../db/rallies-db";
+import * as ralliesDb from "@/shared/db/rallies-db";
 
 jest.mock("@softwhere-uz/react-native-emoji-keyboard");
 

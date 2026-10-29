@@ -1,12 +1,15 @@
-import { localDateKeyFromIso } from "@/shared/utils/local-date-key";
-
-import { stampPhotoThumbUri, stampPhotoUri } from "../db/stamp-photo-files";
-import { type Rally } from "../schemas/rallies";
+import {
+  stampPhotoThumbUri,
+  stampPhotoUri,
+} from "@/shared/db/stamp-photo-files";
+import { type Rally } from "@/shared/schemas/rallies";
 import {
   compareStampsByTime,
   type Stamp,
   type StampPhoto,
-} from "../schemas/stamps";
+} from "@/shared/schemas/stamps";
+
+import { localDateKeyFromIso } from "./local-date-key";
 
 export type AlbumTile = {
   key: string;

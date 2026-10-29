@@ -16,14 +16,17 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { X } from "@/shared/components/icons";
+import { useRally } from "@/shared/hooks/use-rallies";
+import { useStamps } from "@/shared/hooks/use-stamps";
+import { type Rally } from "@/shared/schemas/rallies";
+import { type StampPhoto } from "@/shared/schemas/stamps";
+import {
+  dayRallyPhotos,
+  type DayRallyPhoto,
+} from "@/shared/utils/album-photos";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
 
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
-import { useRally } from "../hooks/use-rallies";
-import { useStamps } from "../hooks/use-stamps";
-import { type Rally } from "../schemas/rallies";
-import { type StampPhoto } from "../schemas/stamps";
-import { dayRallyPhotos, type DayRallyPhoto } from "../utils/album-photos";
 
 type StampPhotosScreenProps = {
   photoId: StampPhoto["id"];

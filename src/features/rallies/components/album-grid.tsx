@@ -4,9 +4,8 @@ import { Image } from "expo-image";
 import { Link } from "expo-router";
 
 import { ImageIcon } from "@/shared/components/icons";
+import { type AlbumTile } from "@/shared/utils/album-photos";
 import { formatStampDate } from "@/shared/utils/format-stamp-date-time";
-
-import { type AlbumTile } from "../utils/album-photos";
 
 const COLUMNS = 3;
 

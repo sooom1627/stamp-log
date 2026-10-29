@@ -12,7 +12,7 @@ import {
   replaceWithBackup,
 } from "@/features/data-transfer/db/backup-db";
 import { type Backup } from "@/features/data-transfer/schemas/backup";
-import { saveRally } from "@/features/rallies/db/rallies-db";
+import { saveRally } from "@/shared/db/rallies-db";
 
 const emptyBackup: Backup = {
   app: "stamp-log",

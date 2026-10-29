@@ -6,11 +6,11 @@ import { renderRouter } from "expo-router/testing-library";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import { listStamps, saveStamp } from "@/shared/db/stamps-db";
 import { createTestQueryClient } from "@/shared/query/create-query-client";
+import { type Stamp } from "@/shared/schemas/stamps";
 
-import { listRallies, saveRally } from "../../db/rallies-db";
-import { listStamps, saveStamp } from "../../db/stamps-db";
-import { type Stamp } from "../../schemas/stamps";
 import { StampPost } from "../stamp-post";
 
 const stamp: Stamp = {

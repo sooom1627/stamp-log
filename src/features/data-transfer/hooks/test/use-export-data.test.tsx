@@ -4,8 +4,8 @@ import { shareAsync } from "expo-sharing";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
-import * as ralliesDb from "@/features/rallies/db/rallies-db";
-import { saveStamp } from "@/features/rallies/db/stamps-db";
+import * as ralliesDb from "@/shared/db/rallies-db";
+import { saveStamp } from "@/shared/db/stamps-db";
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 
 import { backupSchema } from "../../schemas/backup";

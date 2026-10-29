@@ -7,12 +7,12 @@ import {
 } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import { saveStamp } from "@/shared/db/stamps-db";
 import { createTestQueryClient } from "@/shared/query/create-query-client";
+import { type Rally } from "@/shared/schemas/rallies";
+import { type Stamp } from "@/shared/schemas/stamps";
 
-import { listRallies, saveRally } from "../../db/rallies-db";
-import { saveStamp } from "../../db/stamps-db";
-import { type Rally } from "../../schemas/rallies";
-import { type Stamp } from "../../schemas/stamps";
 import {
   ralliesQueryKey,
   useDeleteRally,

@@ -1,5 +1,4 @@
-import type * as GetDbModule from "@/shared/db/get-db";
-
+import type * as GetDbModule from "../get-db";
 import type * as RalliesDbModule from "../rallies-db";
 import type * as SchemaModule from "../schema";
 import type * as StampsDbModule from "../stamps-db";
@@ -17,7 +16,7 @@ export function loadFreshDb(): FreshDb {
   let modules: FreshDb | undefined;
 
   jest.isolateModules(() => {
-    const getDbModule = require("@/shared/db/get-db") as typeof GetDbModule;
+    const getDbModule = require("../get-db") as typeof GetDbModule;
     modules = {
       getDb: getDbModule.getDb,
       ralliesDb: require("../rallies-db") as typeof RalliesDbModule,

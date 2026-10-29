@@ -1,7 +1,7 @@
 import type * as FileSystemModule from "expo-file-system";
 
-import type * as RalliesDbModule from "@/features/rallies/db/rallies-db";
-import type * as StampsDbModule from "@/features/rallies/db/stamps-db";
+import type * as RalliesDbModule from "@/shared/db/rallies-db";
+import type * as StampsDbModule from "@/shared/db/stamps-db";
 
 import { backupSchema, type Backup } from "../../schemas/backup";
 import type * as BackupDbModule from "../backup-db";
@@ -27,10 +27,8 @@ function loadFreshDb(): FreshDb {
     modules = {
       fileSystem: require("expo-file-system") as typeof FileSystemModule,
       backupDb: require("../backup-db") as typeof BackupDbModule,
-      ralliesDb:
-        require("@/features/rallies/db/rallies-db") as typeof RalliesDbModule,
-      stampsDb:
-        require("@/features/rallies/db/stamps-db") as typeof StampsDbModule,
+      ralliesDb: require("@/shared/db/rallies-db") as typeof RalliesDbModule,
+      stampsDb: require("@/shared/db/stamps-db") as typeof StampsDbModule,
     };
   });
   if (!modules) throw new Error("db modules did not load");

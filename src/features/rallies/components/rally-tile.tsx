@@ -3,10 +3,9 @@ import { Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
 
 import { Check, Plus, Star } from "@/shared/components/icons";
+import { type Rally } from "@/shared/schemas/rallies";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-
-import { type Rally } from "../schemas/rallies";
-import { buildLastDays } from "../utils/month-grid";
+import { buildLastDays } from "@/shared/utils/month-grid";
 
 import { RallyActivityWeek } from "./rally-activity-week";
 

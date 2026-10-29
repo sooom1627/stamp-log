@@ -8,18 +8,18 @@ import {
   FormSheetLayout,
   FormTextInput,
 } from "@/shared/components/form-sheet";
+import { stampPhotoUri } from "@/shared/db/stamp-photo-files";
+import { useRally } from "@/shared/hooks/use-rallies";
+import { useStamp, useStamps, useUpdateStamp } from "@/shared/hooks/use-stamps";
+import { type Rally } from "@/shared/schemas/rallies";
+import { hasStampOnLocalDay, type Stamp } from "@/shared/schemas/stamps";
 
 import {
   StampDateTimeErrors,
   StampDateTimeFields,
 } from "../components/stamp-date-time-fields";
 import { StampPhotoField } from "../components/stamp-photo-field";
-import { stampPhotoUri } from "../db/stamp-photo-files";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
-import { useRally } from "../hooks/use-rallies";
-import { useStamp, useStamps, useUpdateStamp } from "../hooks/use-stamps";
-import { type Rally } from "../schemas/rallies";
-import { hasStampOnLocalDay, type Stamp } from "../schemas/stamps";
 
 // Pickers set seconds to 0, so compare at minute precision.
 const toMinutes = (date: Date) => Math.floor(date.getTime() / 60_000);

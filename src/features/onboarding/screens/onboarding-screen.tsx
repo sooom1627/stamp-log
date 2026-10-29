@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useSaveRally } from "@/features/rallies/hooks/use-rallies";
+import { useSaveRally } from "@/shared/hooks/use-rallies";
 
 import {
   FirstRallyPicker,

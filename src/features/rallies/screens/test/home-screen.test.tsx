@@ -13,8 +13,8 @@ import {
 } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
-import * as ralliesDb from "../../db/rallies-db";
-import * as stampsDb from "../../db/stamps-db";
+import * as ralliesDb from "@/shared/db/rallies-db";
+import * as stampsDb from "@/shared/db/stamps-db";
 
 jest.useFakeTimers();
 

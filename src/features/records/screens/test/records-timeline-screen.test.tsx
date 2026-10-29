@@ -13,15 +13,11 @@ import {
   within,
 } from "@testing-library/react-native";
 
-import * as ralliesDb from "@/features/rallies/db/rallies-db";
-import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
-import { stampPhotoThumbUri } from "@/features/rallies/db/stamp-photo-files";
-import * as stampsDb from "@/features/rallies/db/stamps-db";
-import {
-  listStamps,
-  saveStamp,
-  updateStampMemo,
-} from "@/features/rallies/db/stamps-db";
+import * as ralliesDb from "@/shared/db/rallies-db";
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import { stampPhotoThumbUri } from "@/shared/db/stamp-photo-files";
+import * as stampsDb from "@/shared/db/stamps-db";
+import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 import {
   formatStampDate,
   formatStampDay,

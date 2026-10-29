@@ -1,9 +1,9 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
-import { saveRally } from "@/features/rallies/db/rallies-db";
-import { useRallies } from "@/features/rallies/hooks/use-rallies";
-import { useStamps } from "@/features/rallies/hooks/use-stamps";
+import { saveRally } from "@/shared/db/rallies-db";
+import { useRallies } from "@/shared/hooks/use-rallies";
+import { useStamps } from "@/shared/hooks/use-stamps";
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 
 import { type Backup } from "../../schemas/backup";

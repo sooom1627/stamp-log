@@ -3,8 +3,7 @@ import { useState, type ReactNode } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
 
 import { SwipePages } from "@/shared/components/swipe-pages";
-
-import { type AlbumTile } from "../utils/album-photos";
+import { type AlbumTile } from "@/shared/utils/album-photos";
 
 import { AlbumGrid } from "./album-grid";
 import { stampsViews, type StampsView } from "./stamps-album-picker";

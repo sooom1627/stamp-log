@@ -6,8 +6,7 @@ import { launchImageLibraryAsync } from "expo-image-picker";
 import { withUniwind } from "uniwind";
 
 import { Plus, X } from "@/shared/components/icons";
-
-import { maxStampPhotos } from "../schemas/stamps";
+import { maxStampPhotos } from "@/shared/schemas/stamps";
 
 const StyledImage = withUniwind(Image);
 

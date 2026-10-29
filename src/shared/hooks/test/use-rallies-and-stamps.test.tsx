@@ -1,10 +1,10 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
+import * as ralliesDb from "@/shared/db/rallies-db";
+import * as stampsDb from "@/shared/db/stamps-db";
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 
-import * as ralliesDb from "../../db/rallies-db";
-import * as stampsDb from "../../db/stamps-db";
 import { useRalliesAndStamps } from "../use-rallies-and-stamps";
 
 let queryClient: QueryClient;

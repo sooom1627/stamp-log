@@ -14,15 +14,14 @@ import {
 } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
+import * as ralliesDb from "@/shared/db/rallies-db";
+import * as stampsDb from "@/shared/db/stamps-db";
+import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 import {
   formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
-
-import * as ralliesDb from "../../db/rallies-db";
-import * as stampsDb from "../../db/stamps-db";
-import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
 

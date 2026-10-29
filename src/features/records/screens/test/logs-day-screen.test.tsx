@@ -11,13 +11,9 @@ import {
   within,
 } from "@testing-library/react-native";
 
-import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
-import * as stampsDb from "@/features/rallies/db/stamps-db";
-import {
-  listStamps,
-  saveStamp,
-  updateStampMemo,
-} from "@/features/rallies/db/stamps-db";
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import * as stampsDb from "@/shared/db/stamps-db";
+import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 
 jest.useFakeTimers();
 

@@ -1,5 +1,6 @@
-import { type Rally } from "../../schemas/rallies";
-import { type Stamp } from "../../schemas/stamps";
+import { type Rally } from "@/shared/schemas/rallies";
+import { type Stamp } from "@/shared/schemas/stamps";
+
 import { stampsWithRallies } from "../stamps-with-rallies";
 
 const rally = (id: number, name: string): Rally => ({

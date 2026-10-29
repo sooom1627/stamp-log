@@ -1,8 +1,5 @@
-import { addLocalDays } from "@/shared/utils/add-local-days";
-import {
-  localDateKey,
-  localDateKeyFromIso,
-} from "@/shared/utils/local-date-key";
+import { addLocalDays } from "./add-local-days";
+import { localDateKey, localDateKeyFromIso } from "./local-date-key";
 
 export type MonthDay = {
   date: Date;
