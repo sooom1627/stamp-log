@@ -1,8 +1,7 @@
 import { Text, View } from "react-native";
 
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
-
-import { type MonthDay } from "../utils/month-grid";
+import { type MonthDay } from "@/shared/utils/month-grid";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",

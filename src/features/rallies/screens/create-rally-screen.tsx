@@ -4,14 +4,14 @@ import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
-
-import { RallyFormFields } from "../components/rally-form-fields";
-import { useSaveRally } from "../hooks/use-rallies";
+import { useSaveRally } from "@/shared/hooks/use-rallies";
 import {
   defaultRallyEmoji,
   rallyEmojiSchema,
   rallyNameSchema,
-} from "../schemas/rallies";
+} from "@/shared/schemas/rallies";
+
+import { RallyFormFields } from "../components/rally-form-fields";
 
 export function CreateRallyScreen() {
   const [emoji, setEmoji] = useState(defaultRallyEmoji);

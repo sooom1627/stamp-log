@@ -4,6 +4,9 @@ import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
+import { useRally } from "@/shared/hooks/use-rallies";
+import { useRallyStamps, useSaveStamp } from "@/shared/hooks/use-stamps";
+import { hasStampOnLocalDay } from "@/shared/schemas/stamps";
 import { addLocalDays } from "@/shared/utils/add-local-days";
 import { localDateKey } from "@/shared/utils/local-date-key";
 
@@ -13,9 +16,6 @@ import {
   StampDateTimeFields,
 } from "../components/stamp-date-time-fields";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
-import { useRally } from "../hooks/use-rallies";
-import { useRallyStamps, useSaveStamp } from "../hooks/use-stamps";
-import { hasStampOnLocalDay } from "../schemas/stamps";
 
 type AddPastStampScreenProps = {
   rallyId: number;

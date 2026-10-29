@@ -3,10 +3,9 @@ import { Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
 
 import { Check, Plus, Star } from "@/shared/components/icons";
+import { type Rally } from "@/shared/schemas/rallies";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-
-import { type Rally } from "../schemas/rallies";
-import { buildLastDays } from "../utils/month-grid";
+import { buildLastDays } from "@/shared/utils/month-grid";
 
 import { RallyActivityWeek } from "./rally-activity-week";
 
@@ -15,7 +14,10 @@ type RallyTileProps = {
   name: string;
   emoji: string;
   isFavorite?: boolean;
+  // At least the last 7 days; older ones are not needed.
   stampDates: string[];
+  // Every stamp of the rally.
+  stampCount: number;
   width?: number;
   // Without it, the tile has no stamp button.
   onPressStamp?: () => void;
@@ -27,6 +29,7 @@ export function RallyTile({
   emoji,
   isFavorite = false,
   stampDates,
+  stampCount,
   width,
   onPressStamp,
 }: RallyTileProps) {
@@ -106,7 +109,7 @@ export function RallyTile({
             {name}
           </Text>
           <Text className="text-foreground-muted text-sm font-medium">
-            {formatStampCount(stampDates.length)}
+            {formatStampCount(stampCount)}
           </Text>
         </Pressable>
       </Link>

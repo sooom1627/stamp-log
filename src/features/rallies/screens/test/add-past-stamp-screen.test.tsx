@@ -10,8 +10,8 @@ import {
 } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
-import { listRallies, saveRally } from "../../db/rallies-db";
-import { listStamps, saveStamp } from "../../db/stamps-db";
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import { listStamps, saveStamp } from "@/shared/db/stamps-db";
 
 jest.useFakeTimers();
 

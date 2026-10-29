@@ -7,7 +7,7 @@ import {
   within,
 } from "@testing-library/react-native";
 
-import * as ralliesDb from "../../db/rallies-db";
+import * as ralliesDb from "@/shared/db/rallies-db";
 
 jest.mock("@softwhere-uz/react-native-emoji-keyboard");
 

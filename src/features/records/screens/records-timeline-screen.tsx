@@ -5,24 +5,30 @@ import { ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
-import { DayCard } from "@/features/rallies/components/day-card";
-import { RallyMonthCalendar } from "@/features/rallies/components/rally-month-calendar";
-import { StampPost } from "@/features/rallies/components/stamp-post";
-import { StampsAlbumPager } from "@/features/rallies/components/stamps-album-pager";
+import { DayCard } from "@/shared/components/day-card";
+import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
+import { StampPost } from "@/shared/components/stamp-post";
+import { StampsAlbumPager } from "@/shared/components/stamps-album-pager";
 import {
   StampsAlbumPicker,
   type StampsView,
-} from "@/features/rallies/components/stamps-album-picker";
-import { useRalliesAndStamps } from "@/features/rallies/hooks/use-rallies-and-stamps";
-import { albumTiles } from "@/features/rallies/utils/album-photos";
-import { stampsWithRallies } from "@/features/rallies/utils/stamps-with-rallies";
+} from "@/shared/components/stamps-album-picker";
 import {
   TabRootHeader,
   TabRootSubtitle,
 } from "@/shared/components/tab-root-screen";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
+import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
+import {
+  useFirstStampedAt,
+  useStamps,
+  useStampsBetween,
+} from "@/shared/hooks/use-stamps";
+import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
+import { initialCalendarRange } from "@/shared/utils/month-grid";
+import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
 import { buildDayMarks } from "../utils/day-marks";
 
@@ -31,13 +37,22 @@ export function RecordsTimelineScreen() {
   const headerHeight = useHeaderHeight();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
-  const { rallies, stamps, isLoaded, isError, retry } = useRalliesAndStamps();
+  const { rallies, stamps, isLoaded, isError, retry } =
+    useRalliesAndStamps(useStamps());
   // A stamp is shown once its rally is loaded, so every post has its name.
   const posts = stampsWithRallies(stamps ?? [], rallies ?? []);
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
   const tiles = albumTiles(stamps ?? [], rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const hasPosts = posts.length > 0;
+  // The calendar reads only the week or month it shows.
+  const [calendarRange, setCalendarRange] = useState(initialCalendarRange);
+  const { data: calendarStamps } = useStampsBetween(
+    calendarRange.start,
+    calendarRange.end,
+  );
+  const { data: firstStampedAt } = useFirstStampedAt();
+  const calendarPosts = stampsWithRallies(calendarStamps ?? [], rallies ?? []);
 
   return (
     <>
@@ -56,8 +71,10 @@ export function RecordsTimelineScreen() {
           {/* Not linked to the pages: moving it leaves the posts as they are. */}
           <RallyMonthCalendar
             testID="logs-calendar"
-            stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
-            dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
+            stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
+            dayMarks={buildDayMarks(calendarStamps ?? [], rallies ?? [])}
+            firstStampedAt={firstStampedAt}
+            onVisibleRangeChange={setCalendarRange}
             isRecordedOnly
             onPressDay={(date) =>
               push({ pathname: "/logs-day", params: { date } })

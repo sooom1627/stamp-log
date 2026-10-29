@@ -4,6 +4,10 @@ import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
+import { StampPost } from "@/shared/components/stamp-post";
+import { useRally } from "@/shared/hooks/use-rallies";
+import { useRallyStamps } from "@/shared/hooks/use-stamps";
+import { type Rally } from "@/shared/schemas/rallies";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
@@ -12,11 +16,7 @@ import {
   localDateKeyFromIso,
 } from "@/shared/utils/local-date-key";
 
-import { StampPost } from "../components/stamp-post";
 import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
-import { useRally } from "../hooks/use-rallies";
-import { useRallyStamps } from "../hooks/use-stamps";
-import { type Rally } from "../schemas/rallies";
 
 type RallyDayScreenProps = {
   rallyId: Rally["id"];

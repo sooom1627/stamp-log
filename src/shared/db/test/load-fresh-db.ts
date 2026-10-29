@@ -1,0 +1,34 @@
+import type * as GetDbModule from "../get-db";
+import type * as RalliesDbModule from "../rallies-db";
+import type * as SchemaModule from "../schema";
+import type * as StampSummaryDbModule from "../stamp-summary-db";
+import type * as StampsDbModule from "../stamps-db";
+
+type FreshDb = {
+  getDb: typeof GetDbModule.getDb;
+  ralliesDb: typeof RalliesDbModule;
+  schema: typeof SchemaModule;
+  stampsDb: typeof StampsDbModule;
+  stampSummaryDb: typeof StampSummaryDbModule;
+};
+
+// Loads the db modules in a fresh module registry: a new in-memory database
+// whose tables are not set up yet, like a cold app start.
+export function loadFreshDb(): FreshDb {
+  let modules: FreshDb | undefined;
+
+  jest.isolateModules(() => {
+    const getDbModule = require("../get-db") as typeof GetDbModule;
+    modules = {
+      getDb: getDbModule.getDb,
+      ralliesDb: require("../rallies-db") as typeof RalliesDbModule,
+      schema: require("../schema") as typeof SchemaModule,
+      stampsDb: require("../stamps-db") as typeof StampsDbModule,
+      stampSummaryDb:
+        require("../stamp-summary-db") as typeof StampSummaryDbModule,
+    };
+  });
+
+  if (!modules) throw new Error("db modules did not load");
+  return modules;
+}

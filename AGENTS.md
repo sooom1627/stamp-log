@@ -37,7 +37,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 58 (Rea
 - **TDD**: Classical TDD with minimal mocking. Confirm Red → minimal implementation → confirm Green → refactor. Follow `.cursor/rules/tdd-cycle.mdc`.
 - **Work units**: Epic (table in `docs/product.md`; not a milestone) / Story / Task (GitHub Issues) / Sub (checklist in the Task issue). A release is a GitHub milestone holding the Stories and Tasks that ship in it. Story branch once → plan → Task branch → Sub 完了まで実装 → Task PR into the Story branch → Story PR to `master` (closes the Story and Task issues). Branch names, PR titles and merges (merge commit only) follow the tables in `agile-workflow.mdc`; never use a `claude/…` branch. `docs/` holds the current spec only; Story-scoped notes go in Issues. **Sub (`ST-###`) is the implementation unit** and may be a horizontal layer (docs / schema / db / hooks / UI). When a Story changes the spec or screens, ST-001 of its first Task updates `docs/`. Docs Subs need no tests; schema / db / hooks Subs get layer tests; UI Subs cover acceptance with RNTL. **Do not commit unless the user asks** (then one Sub = one commit). Follow `.cursor/rules/agile-workflow.mdc`.
 - **Simplicity**: YAGNI, SOLID at feature granularity, no speculative abstraction. Follow `.cursor/rules/simplicity-first.mdc`.
-- **Features / data**: Domain in `src/features/<name>/` (screens, feature components). Cross-feature code in `src/shared/`. Persisted state (local SQLite or remote) uses TanStack Query. Follow `.cursor/rules/feature-query.mdc`.
+- **Features / data**: Domain in `src/features/<name>/` (screens, feature components). Cross-feature code in `src/shared/`, including the rallies and stamps types, db, Query hooks and the UI that more than one feature shows. Imports go one way, `shared` → `features` → `app`; features never import each other. Persisted state (local SQLite or remote) uses TanStack Query. Follow `.cursor/rules/feature-query.mdc`.
 - **Quality gate**: Run `pnpm run check` at each Sub completion. Fix critical issues immediately; defer minor ones for batch refactor.
 - **Package Manager**: Use pnpm.
 
@@ -46,7 +46,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 58 (Rea
 ## Code Style & Structure
 
 - **Functional Programming**: Use functional and declarative patterns; strictly avoid classes.
-- **File Organization**: Organize by **Feature** under `src/features/<kebab-name>/` (`screens/`, `components/`, `hooks/`, `db/`, `schemas/`). Put cross-feature UI, hooks, theme, db connection, QueryClient factory, and utils under `src/shared/`. Keep `src/app/` as routes only. Tests go in each layer’s `test/` (e.g. `hooks/test/`), not next to the source file.
+- **File Organization**: Organize by **Feature** under `src/features/<kebab-name>/` (`screens/`, `components/`, `hooks/`, `db/`, `schemas/`). Put cross-feature UI, schemas, db (connection, table setup, rallies / stamps tables), hooks, theme, QueryClient factory, and utils under `src/shared/`. Keep `src/app/` as routes only. Tests go in each layer’s `test/` (e.g. `hooks/test/`), not next to the source file.
 - **Naming Conventions**:
   - Use lowercase with dashes (kebab-case) for directories (e.g., `features/stamps`, `shared/theme`).
   - Favor **named exports** for components and functions.

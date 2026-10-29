@@ -1,10 +1,7 @@
-import { type Rally } from "@/features/rallies/schemas/rallies";
-import {
-  compareStampsByTime,
-  type Stamp,
-} from "@/features/rallies/schemas/stamps";
-import { type DayMark } from "@/features/rallies/utils/month-grid";
+import { type Rally } from "@/shared/schemas/rallies";
+import { compareStampsByTime, type Stamp } from "@/shared/schemas/stamps";
 import { localDateKeyFromIso } from "@/shared/utils/local-date-key";
+import { type DayMark } from "@/shared/utils/month-grid";
 
 // Marks keyed by local YYYY-MM-DD for days with stamps of loaded rallies.
 export function buildDayMarks(

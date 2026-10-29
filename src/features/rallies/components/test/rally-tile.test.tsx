@@ -13,6 +13,7 @@ const defaultProps = {
   name: "Kyoto trip",
   emoji: "⛩️",
   stampDates: [] as string[],
+  stampCount: 0,
   onPressStamp: () => {},
 };
 
@@ -51,7 +52,11 @@ describe("S-029 T-002 ST-001 RallyTile", () => {
 
   test("marks recorded days only; multiple stamps on one day become one dot", async () => {
     await render(
-      <RallyTile {...defaultProps} stampDates={[at(19, 2), at(19, 10)]} />,
+      <RallyTile
+        {...defaultProps}
+        stampDates={[at(19, 2), at(19, 10)]}
+        stampCount={2}
+      />,
     );
 
     expect(screen.getByText("2 stamps")).toBeOnTheScreen();
@@ -62,7 +67,9 @@ describe("S-029 T-002 ST-001 RallyTile", () => {
   });
 
   test("uses the singular for one stamp", async () => {
-    await render(<RallyTile {...defaultProps} stampDates={[at(19)]} />);
+    await render(
+      <RallyTile {...defaultProps} stampDates={[at(19)]} stampCount={1} />,
+    );
 
     expect(screen.getByText("1 stamp")).toBeOnTheScreen();
   });
@@ -110,5 +117,19 @@ describe("S-029 T-002 ST-001 RallyTile", () => {
     );
 
     expect(onPressStamp).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("RT-003 ST-003 RallyTile count", () => {
+  beforeEach(() => {
+    jest.setSystemTime(NOW);
+  });
+
+  test("shows every stamp in the count, not only the last 7 days", async () => {
+    await render(
+      <RallyTile {...defaultProps} stampDates={[at(19)]} stampCount={12} />,
+    );
+
+    expect(screen.getByText("12 stamps")).toBeOnTheScreen();
   });
 });

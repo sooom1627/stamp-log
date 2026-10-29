@@ -18,11 +18,12 @@ src/
       db/                      # SQLite helpers only — no Query (+ db/test/)
       schemas/                 # Zod + inferred types (+ schemas/test/)
   shared/
-    components/                # cross-feature UI (when needed)
-    db/                        # SQLite connection only (getDb). Table DDL stays in the feature
+    components/                # UI used by more than one feature (StampPost, RallyMonthCalendar, …)
+    db/                        # connection (getDb), table setup, and the rallies / stamps tables
     query/                     # QueryClient factory (local default: staleTime Infinity)
+    schemas/                   # rallies / stamps Zod + inferred types
     utils/                     # cross-feature helpers (datetime, …)
-    hooks/
+    hooks/                     # rallies / stamps Query hooks, other cross-feature hooks
     theme/
 ```
 
@@ -30,9 +31,11 @@ src/
 
 - Domain code lives in `src/features/<kebab-name>/`
 - Keep `src/app/` routes thin: read params, render the feature screen
-- Cross-feature code lives in `src/shared/` (not top-level `components/` / `hooks/`)
+- Cross-feature code lives in `src/shared/` (not top-level `components/` / `hooks/`). The rallies and stamps types, tables, Query hooks and the UI that more than one feature shows live there
+- Imports go one way: `shared` → `features` → `app`. `shared` never imports `features` or `app`; a feature never imports another feature or `app`. When a second feature needs something, move it to `shared`. ESLint (`import/no-restricted-paths`) enforces this
+- Code only one feature uses stays in that feature, even when it reads rallies or stamps (e.g. the home sort in `features/rallies/utils/`)
 - Cut the feature folders above even when they hold one file. Do **not** add `api/` `types/` `repository/` `docs/`, or barrel `index.ts` for integration
-- Query lives in `hooks/`. Feature `db/` talks to SQLite only (table DDL + CRUD). The connection singleton is `shared/db`. Screens import Query hooks, not `db/`
+- Query lives in `hooks/`. `db/` talks to SQLite only (table DDL + CRUD). The connection singleton and the one table setup (`withAppDb`) are in `shared/db`. Screens import Query hooks, not `db/`
 - Do **not** put a generic `useQuery` wrapper in `shared`. Feature hooks keep their own queryKey and `queryFn`
 - Inline display strings at the call site. Type-keyed label maps (e.g. `RallyType` → 「場所 / 行動 / 人」) live next to the schema. Do **not** add a `constants/` folder for one-off copy
 - Tests live in that layer’s `test/` (e.g. `hooks/test/`, `db/test/`). Do **not** colocate `*.test.ts(x)` next to the source file, and do **not** put a feature-root `test/`

@@ -3,7 +3,7 @@ import Storage from "expo-sqlite/kv-store";
 
 import { fireEvent, screen, userEvent } from "@testing-library/react-native";
 
-import * as ralliesDb from "@/features/rallies/db/rallies-db";
+import * as ralliesDb from "@/shared/db/rallies-db";
 
 import { hasOnboarded, markOnboarded } from "../../db/onboarding-state";
 

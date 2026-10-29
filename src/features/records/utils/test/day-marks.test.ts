@@ -1,5 +1,5 @@
-import { type Rally } from "@/features/rallies/schemas/rallies";
-import { type Stamp } from "@/features/rallies/schemas/stamps";
+import { type Rally } from "@/shared/schemas/rallies";
+import { type Stamp } from "@/shared/schemas/stamps";
 
 import { buildDayMarks } from "../day-marks";
 

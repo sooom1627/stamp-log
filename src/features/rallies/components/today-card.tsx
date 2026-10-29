@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
 
+import { type Rally } from "@/shared/schemas/rallies";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
-import { type Rally } from "../schemas/rallies";
 import { stampEmojiRows } from "../utils/stamp-emoji-rows";
 
 const spokenDateFormatter = new Intl.DateTimeFormat("en-US", {

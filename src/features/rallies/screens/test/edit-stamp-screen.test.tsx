@@ -11,13 +11,12 @@ import {
   within,
 } from "@testing-library/react-native";
 
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 import {
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
-
-import { listRallies, saveRally } from "../../db/rallies-db";
-import { listStamps, saveStamp, updateStampMemo } from "../../db/stamps-db";
 
 jest.useFakeTimers();
 
@@ -57,7 +56,7 @@ async function openEdit(
   });
   // Logs also lists every stamp, so press Edit inside rally detail.
   await fireEvent(
-    within(await screen.findByLabelText("Rally detail")).getByTestId(
+    await within(await screen.findByLabelText("Rally detail")).findByTestId(
       `stamp-edit-${stampId}`,
     ),
     "buttonPress",

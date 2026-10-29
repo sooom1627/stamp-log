@@ -10,9 +10,9 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import {
   readBackup,
   replaceWithBackup,
-} from "@/features/data-transfer/db/backup-db";
-import { type Backup } from "@/features/data-transfer/schemas/backup";
-import { saveRally } from "@/features/rallies/db/rallies-db";
+} from "@/features/settings/db/backup-db";
+import { type Backup } from "@/features/settings/schemas/backup";
+import { saveRally } from "@/shared/db/rallies-db";
 
 const emptyBackup: Backup = {
   app: "stamp-log",

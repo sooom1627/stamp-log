@@ -1,4 +1,5 @@
-import { type Stamp } from "../../schemas/stamps";
+import { type Stamp } from "@/shared/schemas/stamps";
+
 import { stampDatesByRally } from "../stamp-dates-by-rally";
 
 const stamp = (id: number, rallyId: number, stampedAt: string): Stamp => ({

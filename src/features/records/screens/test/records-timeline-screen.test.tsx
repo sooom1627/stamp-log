@@ -13,15 +13,11 @@ import {
   within,
 } from "@testing-library/react-native";
 
-import * as ralliesDb from "@/features/rallies/db/rallies-db";
-import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
-import { stampPhotoThumbUri } from "@/features/rallies/db/stamp-photo-files";
-import * as stampsDb from "@/features/rallies/db/stamps-db";
-import {
-  listStamps,
-  saveStamp,
-  updateStampMemo,
-} from "@/features/rallies/db/stamps-db";
+import * as ralliesDb from "@/shared/db/rallies-db";
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import { stampPhotoThumbUri } from "@/shared/db/stamp-photo-files";
+import * as stampsDb from "@/shared/db/stamps-db";
+import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 import {
   formatStampDate,
   formatStampDay,
@@ -455,6 +451,28 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     ).toBeOnTheScreen();
   });
 
+  test("RT-003 ST-004 marks a stamped day of an earlier month once the calendar shows it", async () => {
+    jest.setSystemTime(new Date(2026, 9, 10, 12));
+    const rally = await saveRallyNamed("Calendar earlier", "🦉");
+    await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 7, 31, 23, 30).toISOString(),
+    });
+    const { calendar } = await openLogsCalendar();
+    const user = userEvent.setup();
+
+    await user.press(calendar.getByRole("button", { name: "Show month" }));
+    await user.press(calendar.getByRole("button", { name: "Previous month" }));
+    await user.press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(
+      await calendar.findByLabelText("Aug 31, 2026, recorded, 1 stamp"),
+    ).toBeOnTheScreen();
+    expect(
+      calendar.getByLabelText("Aug 30, 2026, not recorded"),
+    ).toBeOnTheScreen();
+  });
+
   test("does not change the list when the calendar moves", async () => {
     const rally = await saveRallyNamed("Calendar list", "🪁");
     await saveStamp({ rallyId: rally.id });
@@ -476,6 +494,7 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     const stamp = await saveStamp({ rallyId: rally.id });
     // Only today is recorded, so every other day of the week has no stamp.
     jest.spyOn(stampsDb, "listStamps").mockResolvedValue([stamp]);
+    jest.spyOn(stampsDb, "listStampsBetween").mockResolvedValue([stamp]);
     const { calendar } = await openLogsCalendar();
     const todayKey = localDateKey(new Date());
 

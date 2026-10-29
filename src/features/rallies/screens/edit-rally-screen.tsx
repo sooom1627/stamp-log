@@ -4,15 +4,15 @@ import { useRouter } from "expo-router";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
-
-import { RallyFormFields } from "../components/rally-form-fields";
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
-import { useRally, useUpdateRally } from "../hooks/use-rallies";
+import { useRally, useUpdateRally } from "@/shared/hooks/use-rallies";
 import {
   rallyEmojiSchema,
   rallyNameSchema,
   type Rally,
-} from "../schemas/rallies";
+} from "@/shared/schemas/rallies";
+
+import { RallyFormFields } from "../components/rally-form-fields";
+import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 
 type EditRallyScreenProps = {
   rallyId: number;

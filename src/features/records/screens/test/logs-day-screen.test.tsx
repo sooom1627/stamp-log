@@ -11,13 +11,9 @@ import {
   within,
 } from "@testing-library/react-native";
 
-import { listRallies, saveRally } from "@/features/rallies/db/rallies-db";
-import * as stampsDb from "@/features/rallies/db/stamps-db";
-import {
-  listStamps,
-  saveStamp,
-  updateStampMemo,
-} from "@/features/rallies/db/stamps-db";
+import { listRallies, saveRally } from "@/shared/db/rallies-db";
+import * as stampsDb from "@/shared/db/stamps-db";
+import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 
 jest.useFakeTimers();
 
@@ -89,7 +85,7 @@ describe("S-012 T-001 ST-002 Logs day sheet", () => {
 
   test("shows an error with Retry when the stamps cannot be read", async () => {
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listStampsBetween")
       .mockRejectedValue(new Error("disk full"));
 
     await openLogsDay("2026-09-18");
@@ -105,11 +101,13 @@ describe("S-012 T-001 ST-004 Logs day edit and delete", () => {
     const rally = await saveRallyNamed(name, "📚");
     const stamp = await saveStamp({ rallyId: rally.id, stampedAt: at(15, 10) });
     // Only this stamp exists, so deleting it empties the day.
-    const realListStamps = stampsDb.listStamps;
+    const realListStampsBetween = stampsDb.listStampsBetween;
     jest
-      .spyOn(stampsDb, "listStamps")
-      .mockImplementation(async () =>
-        (await realListStamps()).filter((s) => s.rallyId === rally.id),
+      .spyOn(stampsDb, "listStampsBetween")
+      .mockImplementation(async (start, end) =>
+        (await realListStampsBetween(start, end)).filter(
+          (s) => s.rallyId === rally.id,
+        ),
       );
     await openLogsDay("2026-09-15");
     const sheet = within(await screen.findByTestId("logs-day-sheet"));
