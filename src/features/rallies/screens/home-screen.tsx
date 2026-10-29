@@ -4,6 +4,8 @@ import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
 import { Link, useFocusEffect } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
@@ -28,6 +30,7 @@ const SCREEN_PADDING = 20;
 const TILE_GAP = 10;
 
 export function HomeScreen() {
+  const { t } = useTranslation();
   const { width: windowWidth } = useWindowDimensions();
   const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
   const today = new Date();
@@ -67,7 +70,7 @@ export function HomeScreen() {
       : [];
 
   return (
-    <TabRootScreen label="Home">
+    <TabRootScreen label={t("tabs.home")}>
       <View className="w-full">
         {rallies && summary && firstStampedAt !== undefined ? (
           <HomeTopCards
@@ -101,7 +104,7 @@ export function HomeScreen() {
                 className="-my-2 -mr-2 min-h-11 justify-center px-2 active:opacity-70"
               >
                 <Text className="text-foreground text-base font-medium">
-                  View All
+                  {t("home.viewAll")}
                 </Text>
               </Pressable>
             </Link>
@@ -129,7 +132,7 @@ export function HomeScreen() {
             ))}
             <Link href="/create-rally" asChild>
               <Pressable
-                aria-label="Create rally"
+                aria-label={t("rallies.createRally")}
                 className="border-border border-continuous min-h-44 items-center justify-center gap-2 rounded-3xl border-2 border-dashed active:opacity-70"
                 style={{ width: tileWidth }}
               >
@@ -144,7 +147,7 @@ export function HomeScreen() {
                   />
                 </View>
                 <Text className="text-foreground text-sm font-semibold">
-                  New rally
+                  {t("home.newRally")}
                 </Text>
               </Pressable>
             </Link>

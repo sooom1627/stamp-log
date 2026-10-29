@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 
 import { Text, View } from "react-native";
 
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 
@@ -25,12 +28,18 @@ function useNow() {
   return now;
 }
 
-function spokenLabel(entries: TodayLogEntry[], position: string) {
-  if (entries.length === 0) return `Today's log, no stamps yet, ${position}`;
-  const stamps = entries
+function spokenLabel(t: TFunction, entries: TodayLogEntry[], position: string) {
+  if (entries.length === 0) {
+    return t("home.todayLogSpokenEmpty", { position });
+  }
+  const list = entries
     .map((entry) => `${formatStampTime(entry.stampedAt)} ${entry.name}`)
     .join(", ");
-  return `Today's log, ${formatStampCount(entries.length)}: ${stamps}, ${position}`;
+  return t("home.todayLogSpoken", {
+    stamps: formatStampCount(entries.length),
+    list,
+    position,
+  });
 }
 
 type TodayLogCardProps = {
@@ -46,16 +55,17 @@ type TodayLogCardProps = {
 // time do not pile their emojis on each other.
 export function TodayLogCard({ entries, width, position }: TodayLogCardProps) {
   const now = useNow();
+  const { t } = useTranslation();
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const latest = entries.slice(-MAX_TIMES);
   const earlierCount = entries.length - latest.length;
 
   return (
     <TopCard
-      label="Today's log"
-      detail={`now ${formatStampTime(now)}`}
+      label={t("home.todayLog")}
+      detail={t("home.now", { time: formatStampTime(now) })}
       tone="today"
-      spokenLabel={spokenLabel(entries, position)}
+      spokenLabel={spokenLabel(t, entries, position)}
       width={width}
       testID="today-log-card"
     >
@@ -103,7 +113,7 @@ export function TodayLogCard({ entries, width, position }: TodayLogCardProps) {
           </View>
         ) : (
           <Text className="text-foreground-muted text-sm">
-            Each stamp today lands on this line.
+            {t("home.todayLogEmpty")}
           </Text>
         )}
       </View>
