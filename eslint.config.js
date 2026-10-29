@@ -8,6 +8,13 @@ const react = require("eslint-plugin-react");
 const importPlugin = require("eslint-plugin-import");
 const tailwindcss = require("eslint-plugin-tailwindcss");
 const jest = require("eslint-plugin-jest");
+const fs = require("node:fs");
+
+// src/features の直下のフォルダ（feature）ごとに、ほかの feature を import させない
+const features = fs
+  .readdirSync(`${__dirname}/src/features`, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
 
 module.exports = [
   // グローバルな無視パターン
@@ -244,6 +251,26 @@ module.exports = [
       "import/order": "off",
       // import文の重複を警告
       "import/no-duplicates": "error",
+      // 依存は shared → features → app の一方向（feature-query.mdc）
+      "import/no-restricted-paths": [
+        "error",
+        {
+          zones: [
+            {
+              target: "./src/shared",
+              from: ["./src/features", "./src/app"],
+              message: "shared は features と app を import しない",
+            },
+            ...features.map((feature) => ({
+              target: `./src/features/${feature}`,
+              from: ["./src/features", "./src/app"],
+              except: [`./${feature}`],
+              message:
+                "features どうしと app は import しない。複数の feature が使うものは shared へ",
+            })),
+          ],
+        },
+      ],
 
       // ===== Tailwind CSS (Uniwind) 関連 =====
       // クラス名の順序はPrettierで自動整形されるため無効化
