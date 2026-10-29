@@ -38,7 +38,7 @@ Figma は使わない。色・余白・トークンはコード（Uniwind）側�
 - ラベルと順はこの 2 つで固定。カレンダーは記録の中に置き、タブにしない
 - **タブルート**（ホーム / 記録）に出す
 - **スタック**（ラリー詳細）でも残す。戻ると元のタブ
-- **formSheet**（ラリーを作る / ラリーを編集 / メモと写真を追加 / 過去のスタンプ / スタンプを編集 / ラリーの日 / Logs の日 / 設定）では出さない
+- **formSheet**（ラリーを作る / ラリーを編集 / メモと写真を追加 / 過去のスタンプ / スタンプを編集 / ラリーの日 / Logs の日 / 設定 / 言語）では出さない
 - **全画面モーダル**（スタンプの写真）でも出さない
 - アイコンは実装時（iOS は SF Symbol、Android は Material）。色・選択色は Uniwind / システム
 - **タブルートの見出し:** ホームは大見出しが今日の月日（例: `September 20`）、その下に曜日（例: `Sunday`）。記録は大見出しが `Logs`、その下に一言 `Your days, one stamp at a time`（日付は出さない）。挨拶は出さない
@@ -61,7 +61,7 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 記録 ──タップ（投稿）──► ラリー詳細
 記録 ──日付（カレンダー）──► Logs の日（formSheet）
 投稿の写真マーク / Album のマス ──► スタンプの写真（全画面モーダル）
-タブルートの Menu ボタン ──► 設定（formSheet）
+タブルートの Menu ボタン ──► 設定（formSheet）──► 言語（formSheet）
 ```
 
 ### ラリーの絵文字
@@ -70,7 +70,7 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 
 ### 言語
 
-アプリは英語と日本語で出す。端末の言語が `ja` なら日本語、それ以外は英語。用語と文体は [brand.md](./brand.md)「2.3 日本語の用語と文体」に従う。
+アプリは英語と日本語で出す。既定は端末に合わせ、端末の言語が `ja` なら日本語、それ以外は英語。[言語](./screens/language.md)のシートで English か日本語に固定できる。用語と文体は [brand.md](./brand.md)「2.3 日本語の用語と文体」に従う。
 
 日本語で出すときも、次は英語のまま出す。
 
@@ -125,7 +125,8 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 | 記録（Logs）     | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010, S-011, S-012, S-035, S-037                             |
 | Logs の日        | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012, S-035, S-037                                           |
 | スタンプの写真   | [screens/stamp-photos.md](./screens/stamp-photos.md)         | ワイヤー    | S-037                                                         |
-| 設定             | [screens/settings.md](./screens/settings.md)                 | ワイヤー    | S-044, S-041                                                  |
+| 設定             | [screens/settings.md](./screens/settings.md)                 | ワイヤー    | S-044, S-041, S-045                                           |
+| 言語             | [screens/language.md](./screens/language.md)                 | ワイヤー    | S-045                                                         |
 | オンボーディング | [screens/onboarding.md](./screens/onboarding.md)             | ワイヤー    | S-047                                                         |
 
 ## ルート案
@@ -144,5 +145,6 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 - `/records` — 記録（タブ。カレンダーとタイムライン）
 - `/logs-day?date=` — Logs の日（formSheet）
 - `/settings` — 設定（formSheet。タブルートの Menu ボタンから）
+- `/language` — 言語（formSheet。設定の Language 行から）
 - `/about-ato` — 紹介の見直し（全画面のモーダル。設定の About Ato から）
 - `/stamp-photos?photoId=` — スタンプの写真（全画面モーダル。開いた写真と同じ日・同じラリーの写真をめくる）
