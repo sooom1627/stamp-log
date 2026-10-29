@@ -92,6 +92,29 @@ async function ensureStampPhotos(db: SQLiteDatabase) {
   `);
 }
 
+// Brings a database to the current tables. `PRAGMA user_version` records
+// how far it got, so each step runs once per device. To change a table, add
+// the next `if (version < N)` step at the end; never edit a step that shipped.
+async function migrate(db: SQLiteDatabase) {
+  const row = await db.getFirstAsync<{ user_version: number }>(
+    "PRAGMA user_version",
+  );
+  const version = row?.user_version ?? 0;
+
+  // Version 0 is every database made before versions: new, or any older
+  // shape. The column checks bring each of them to version 1.
+  if (version < 1) {
+    // One transaction: a failed step leaves the tables and the version as
+    // they were.
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await ensureRallies(txn);
+      await ensureStamps(txn);
+      await ensureStampPhotos(txn);
+      await txn.execAsync("PRAGMA user_version = 1");
+    });
+  }
+}
+
 let appDbReady: Promise<SQLiteDatabase> | undefined;
 
 // Sets up every table once per app start, in one place, so no query can reach
@@ -99,9 +122,7 @@ let appDbReady: Promise<SQLiteDatabase> | undefined;
 export function withAppDb() {
   appDbReady ??= getDb()
     .then(async (db) => {
-      await ensureRallies(db);
-      await ensureStamps(db);
-      await ensureStampPhotos(db);
+      await migrate(db);
       return db;
     })
     .catch((error: unknown) => {
