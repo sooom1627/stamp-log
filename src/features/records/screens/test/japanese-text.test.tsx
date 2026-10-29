@@ -19,6 +19,18 @@ async function openRoute(path: string) {
   });
 }
 
+describe("S-045 T-002 ST-006 tabs in Japanese", () => {
+  test("names the tabs ホーム and 記録", async () => {
+    await renderRouter("./src/app");
+    await screen.findByLabelText("記録の一覧");
+
+    const tabs = screen.container
+      .queryAll((instance) => instance.type === "RNSTabsScreenIOS")
+      .map((instance) => instance.props.title);
+    expect(tabs).toEqual(["ホーム", "記録"]);
+  });
+});
+
 describe("S-045 T-002 ST-003 Logs in Japanese", () => {
   test("the Logs timeline is in Japanese", async () => {
     await openRoute("/records");

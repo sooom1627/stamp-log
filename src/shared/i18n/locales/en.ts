@@ -84,6 +84,10 @@ export const en = {
     photoOf: "Photo {{n}} of {{total}}",
     addMemoToast: "Add a memo or photos?",
   },
+  tabs: {
+    home: "Home",
+    logs: "Logs",
+  },
   records: {
     title: "Logs",
     subtitle: "Your days, one stamp at a time",

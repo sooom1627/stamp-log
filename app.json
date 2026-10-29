@@ -54,8 +54,13 @@
           "microphonePermission": false
         }
       ],
-      "expo-image"
+      "expo-image",
+      ["expo-localization", { "supportedLocales": ["en", "ja"] }]
     ],
+    "locales": {
+      "en": "./locales/en.json",
+      "ja": "./locales/ja.json"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

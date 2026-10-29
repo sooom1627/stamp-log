@@ -85,6 +85,10 @@ export const ja: Translation = {
     photoOf: "写真 {{n}} / {{total}}",
     addMemoToast: "メモや写真を追加しますか？",
   },
+  tabs: {
+    home: "ホーム",
+    logs: "記録",
+  },
   records: {
     title: "記録",
     subtitle: "これまでのスタンプ",
