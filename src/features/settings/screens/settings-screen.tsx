@@ -5,6 +5,8 @@ import { Pressable, Text, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { useExportData } from "@/features/settings/hooks/use-export-data";
 import { useImportFromFile } from "@/features/settings/hooks/use-import-data";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
@@ -34,12 +36,6 @@ type SettingsRow = {
   // Busy rows cannot be pressed again until their action ends.
   isBusy?: boolean;
 };
-
-const linkRows: SettingsRow[] = [
-  { label: "Help & support", icon: CircleHelp, isExternal: true, role: "link" },
-  { label: "Privacy Policy", icon: Shield, isExternal: true, role: "link" },
-  { label: "Licenses", icon: FileText, role: "button" },
-];
 
 function SettingsRowItem({ row }: { row: SettingsRow }) {
   const { label, detail, isExternal, role, onPress, isBusy } = row;
@@ -101,6 +97,7 @@ function SettingsGroup({
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
   const { back, push } = useRouter();
+  const { t } = useTranslation();
   const { mutate: exportData, isPending: isExporting } = useExportData();
   // The sheet closes so the tabs show the imported data.
   const { importFromFile, isImporting } = useImportFromFile({
@@ -108,16 +105,16 @@ export function SettingsScreen() {
   });
   const dataRows: SettingsRow[] = [
     {
-      label: "Export data",
-      detail: "Save rallies and stamps to a file",
+      label: t("settings.exportData"),
+      detail: t("settings.exportDetail"),
       icon: Upload,
       role: "button",
       onPress: () => exportData(),
       isBusy: isExporting,
     },
     {
-      label: "Import data",
-      detail: "Replace this device's data with a file",
+      label: t("settings.importData"),
+      detail: t("settings.importDetail"),
       icon: Download,
       role: "button",
       onPress: () => void importFromFile(),
@@ -126,25 +123,41 @@ export function SettingsScreen() {
   ];
   const aboutRows: SettingsRow[] = [
     {
-      label: "About Ato",
+      label: t("settings.aboutAto"),
       icon: Info,
       role: "button",
       onPress: () => push("/about-ato"),
     },
-    ...linkRows,
+    {
+      label: t("settings.help"),
+      icon: CircleHelp,
+      isExternal: true,
+      role: "link",
+    },
+    {
+      label: t("settings.privacy"),
+      icon: Shield,
+      isExternal: true,
+      role: "link",
+    },
+    { label: t("settings.licenses"), icon: FileText, role: "button" },
   ];
 
   return (
-    <FormSheetLayout testID="settings-sheet" title="Settings" className="gap-7">
+    <FormSheetLayout
+      testID="settings-sheet"
+      title={t("settings.title")}
+      className="gap-7"
+    >
       <View className="gap-2">
-        <SettingsGroup title="Data" rows={dataRows} />
+        <SettingsGroup title={t("settings.data")} rows={dataRows} />
         <Text className="text-foreground-muted px-4 text-sm">
-          Photos aren't included in the file yet.
+          {t("settings.photosNotIncluded")}
         </Text>
       </View>
-      <SettingsGroup title="About" rows={aboutRows} />
+      <SettingsGroup title={t("settings.about")} rows={aboutRows} />
       <Text className="text-foreground-muted text-center text-sm">
-        {version ? `Stamplog ${version}` : "Stamplog"}
+        {version ? `Ato ${version}` : "Ato"}
       </Text>
     </FormSheetLayout>
   );

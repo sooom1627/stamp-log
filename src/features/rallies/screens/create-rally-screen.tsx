@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { useSaveRally } from "@/shared/hooks/use-rallies";
@@ -17,6 +19,7 @@ export function CreateRallyScreen() {
   const [emoji, setEmoji] = useState(defaultRallyEmoji);
   const [name, setName] = useState("");
   const { back } = useRouter();
+  const { t } = useTranslation();
   const { mutate: saveRally, isPending: isSaving } = useSaveRally();
 
   const isNameValid = rallyNameSchema.safeParse(name).success;
@@ -30,7 +33,10 @@ export function CreateRallyScreen() {
   };
 
   return (
-    <FormSheetLayout testID="create-rally-form" title="Create rally">
+    <FormSheetLayout
+      testID="create-rally-form"
+      title={t("rallies.createRally")}
+    >
       <RallyFormFields
         emoji={emoji}
         name={name}
@@ -40,8 +46,8 @@ export function CreateRallyScreen() {
       />
 
       <Button
-        label="Save"
-        loadingLabel="Saving…"
+        label={t("common.save")}
+        loadingLabel={t("common.saving")}
         onPress={handleSave}
         disabled={!canSave}
         isLoading={isSaving}

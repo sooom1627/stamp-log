@@ -10,6 +10,7 @@ import {
   shapes,
 } from "@expo/ui/swift-ui/modifiers";
 
+import { useTranslation } from "react-i18next";
 import { useCSSVariable } from "uniwind";
 
 import { useDeleteStamp } from "@/shared/hooks/use-stamps";
@@ -43,11 +44,16 @@ export function StampPost({
   const { push } = useRouter();
   const { mutate: deleteStamp } = useDeleteStamp();
   const menuColor = useCSSVariable("--color-foreground-muted") as string;
+  const { t } = useTranslation();
 
   const confirmDelete = () =>
-    Alert.alert("Delete stamp?", "This action cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deleteStamp(id) },
+    Alert.alert(t("stamps.deleteTitle"), t("common.cannotUndo"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: () => deleteStamp(id),
+      },
     ]);
 
   const content = (
@@ -79,7 +85,9 @@ export function StampPost({
             >
               <Pressable
                 role="button"
-                aria-label={`${photoCount} ${photoCount === 1 ? "photo" : "photos"}. Show photos`}
+                aria-label={t("stamps.showPhotos", {
+                  photos: `${photoCount} ${photoCount === 1 ? "photo" : "photos"}`,
+                })}
                 hitSlop={10}
                 className="bg-surface-muted flex-row items-center gap-1 self-center rounded-full px-2 py-0.5"
               >
@@ -100,7 +108,9 @@ export function StampPost({
             {memo}
           </Text>
         ) : (
-          <Text className="text-foreground-muted text-base">no memo</Text>
+          <Text className="text-foreground-muted text-base">
+            {t("stamps.noMemo")}
+          </Text>
         )}
       </View>
     </>
@@ -134,14 +144,14 @@ export function StampPost({
                 imageScale("small"),
                 frame({ width: 36, height: 36 }),
                 contentShape(shapes.circle()),
-                accessibilityLabel("More"),
+                accessibilityLabel(t("common.more")),
               ]}
             />
           }
         >
           <Button
             testID={`stamp-edit-${id}`}
-            label="Edit"
+            label={t("common.edit")}
             systemImage="pencil"
             onPress={() =>
               push({ pathname: "/edit-stamp", params: { stampId: id } })
@@ -149,7 +159,7 @@ export function StampPost({
           />
           <Button
             testID={`stamp-delete-${id}`}
-            label="Delete"
+            label={t("common.delete")}
             systemImage="trash"
             role="destructive"
             onPress={confirmDelete}

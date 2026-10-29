@@ -1,0 +1,95 @@
+import { Text, View } from "react-native";
+
+import { useTranslation } from "react-i18next";
+
+import { type Rally } from "@/shared/schemas/rallies";
+import { formatMediumDate } from "@/shared/utils/format-medium-date";
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
+import { formatStampCount } from "@/shared/utils/format-stamp-count";
+
+import { CardDisc, TopCard } from "./top-card";
+
+const MAX_EMOJIS = 6;
+
+type WithAtoCardProps = {
+  days: number;
+  firstStampedAt: Date | null;
+  stampCount: number;
+  // Every rally made, in home's tile order, archived ones after.
+  rallies: Rally[];
+  width: number;
+  position: string;
+};
+
+function formatRallyCount(count: number) {
+  return `${count} ${count === 1 ? "rally" : "rallies"}`;
+}
+
+// The second of home's top cards: the days since the first stamp and what
+// has been collected so far. Not about today, so it keeps off the accent.
+export function WithAtoCard({
+  days,
+  firstStampedAt,
+  stampCount,
+  rallies,
+  width,
+  position,
+}: WithAtoCardProps) {
+  const { t } = useTranslation();
+  // The date on the card stays English; the spoken one follows the language.
+  const since = firstStampedAt
+    ? t("home.since", { date: formatMediumDate(firstStampedAt) })
+    : undefined;
+  const dayText = `${days} ${days === 1 ? "day" : "days"}`;
+  const counts = {
+    days: dayText,
+    stamps: formatStampCount(stampCount),
+    rallies: formatRallyCount(rallies.length),
+    position,
+  };
+  const spoken = firstStampedAt
+    ? t("home.withAtoSpokenSince", {
+        ...counts,
+        date: formatSpokenDate(firstStampedAt),
+      })
+    : t("home.withAtoSpoken", counts);
+
+  return (
+    <TopCard
+      label={t("home.withAto")}
+      detail={since}
+      tone="plain"
+      spokenLabel={spoken}
+      width={width}
+      testID="with-ato-card"
+    >
+      <View className="flex-1 flex-row items-center gap-3">
+        <View className="flex-1 gap-1">
+          <Text className="text-foreground text-lg font-semibold">
+            {dayText}
+          </Text>
+          <View className="flex-row gap-3">
+            <Text className="text-foreground-secondary text-sm">
+              {formatStampCount(stampCount)}
+            </Text>
+            <Text className="text-foreground-secondary text-sm">
+              {formatRallyCount(rallies.length)}
+            </Text>
+          </View>
+        </View>
+        <CardDisc>
+          <View
+            className="w-16 flex-row flex-wrap justify-center gap-0.5"
+            testID="with-ato-emojis"
+          >
+            {rallies.slice(0, MAX_EMOJIS).map((rally) => (
+              <Text key={rally.id} className="w-5 text-center text-base">
+                {rally.emoji}
+              </Text>
+            ))}
+          </View>
+        </CardDisc>
+      </View>
+    </TopCard>
+  );
+}

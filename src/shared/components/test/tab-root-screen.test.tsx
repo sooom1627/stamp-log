@@ -83,6 +83,28 @@ describe("S-033 T-001 ST-001 tab root background", () => {
   });
 });
 
+describe("S-050 T-002 ST-002 tab root gradient", () => {
+  test("lays the same top-to-bottom gradient behind Home and Logs", async () => {
+    await renderRouter("./src/app");
+
+    await screen.findByLabelText("Home");
+    const backgrounds = [
+      screen.getByLabelText("Home"),
+      screen.getByLabelText("Logs timeline"),
+    ].map((root) => root.props.className);
+    for (const className of backgrounds) {
+      for (const name of [
+        "bg-linear-to-b",
+        "from-canvas-top",
+        "via-canvas-mid",
+        "to-canvas-bottom",
+      ]) {
+        expect(className).toEqual(expect.stringContaining(name));
+      }
+    }
+  });
+});
+
 describe("S-049 T-002 ST-002 header logo", () => {
   beforeEach(() => {
     jest.setSystemTime(new Date(2026, 8, 20, 9, 0));

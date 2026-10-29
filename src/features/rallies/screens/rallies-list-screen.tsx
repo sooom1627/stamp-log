@@ -7,6 +7,8 @@ import { useHeaderHeight } from "expo-router/react-navigation";
 import { Button, Host, Picker, Text as SwiftText } from "@expo/ui/swift-ui";
 import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
+import { useTranslation } from "react-i18next";
+
 import { LoadError } from "@/shared/components/load-error";
 import { SwipePages } from "@/shared/components/swipe-pages";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
@@ -24,11 +26,19 @@ const TILE_GAP = 10;
 
 type RalliesFilter = "all" | "favorites" | "archived";
 
-const filters: { value: RalliesFilter; label: string; empty: string }[] = [
-  { value: "all", label: "All", empty: "No rallies" },
-  { value: "favorites", label: "Favorites", empty: "No favorites yet" },
-  { value: "archived", label: "Archived", empty: "No archived rallies" },
-];
+const filters = [
+  { value: "all", label: "rallies.all", empty: "rallies.noRallies" },
+  {
+    value: "favorites",
+    label: "rallies.favorites",
+    empty: "rallies.noFavorites",
+  },
+  { value: "archived", label: "rallies.archived", empty: "rallies.noArchived" },
+] as const satisfies {
+  value: RalliesFilter;
+  label: string;
+  empty: string;
+}[];
 const filterValues = filters.map(({ value }) => value);
 
 function isInFilter(rally: Rally, filter: RalliesFilter) {
@@ -39,6 +49,7 @@ function isInFilter(rally: Rally, filter: RalliesFilter) {
 
 export function RalliesListScreen() {
   const { push } = useRouter();
+  const { t } = useTranslation();
   const headerHeight = useHeaderHeight();
   const { width: windowWidth } = useWindowDimensions();
   const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
@@ -69,14 +80,14 @@ export function RalliesListScreen() {
     <>
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
-          accessibilityLabel="Create rally"
+          accessibilityLabel={t("rallies.createRally")}
           icon="plus"
           onPress={openCreateRally}
         />
       </Stack.Toolbar>
       {/* The header is transparent, so the fixed top starts below it. */}
       <View
-        aria-label="Rallies list"
+        aria-label={t("rallies.listLabel")}
         className="bg-canvas flex-1"
         style={{ paddingTop: headerHeight }}
       >
@@ -86,7 +97,7 @@ export function RalliesListScreen() {
             <Host matchContents>
               <Button
                 testID="rallies-list-create"
-                label="Create rally"
+                label={t("rallies.createRally")}
                 systemImage="plus"
                 onPress={openCreateRally}
               />
@@ -104,7 +115,7 @@ export function RalliesListScreen() {
             >
               {filters.map(({ value, label }) => (
                 <SwiftText key={value} modifiers={[tag(value)]}>
-                  {label}
+                  {t(label)}
                 </SwiftText>
               ))}
             </Picker>
@@ -130,7 +141,10 @@ export function RalliesListScreen() {
               >
                 {shownRallies?.length === 0 ? (
                   <Text className="text-foreground-muted py-12 text-center text-sm">
-                    {filters.find(({ value }) => value === page)?.empty}
+                    {t(
+                      filters.find(({ value }) => value === page)?.empty ??
+                        "rallies.noRallies",
+                    )}
                   </Text>
                 ) : null}
                 {shownRallies?.length ? (

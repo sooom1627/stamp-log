@@ -1,5 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { AtoMark } from "@/shared/components/ato-mark";
 import { ChevronLeft, ChevronRight, Lock } from "@/shared/components/icons";
 import { SwipePages } from "@/shared/components/swipe-pages";
@@ -11,23 +13,23 @@ import { introArt } from "./intro-art";
 export const introPages = [
   {
     key: "look-back",
-    title: "Look back.\nIt's all there.",
-    body: "Stamp what you collect, when it happens. Your days add up on their own.",
+    title: "onboarding.lookBackTitle",
+    body: "onboarding.lookBackBody",
   },
   {
     key: "collect",
-    title: "Collect anything —\npeople, places, moments",
-    body: "A rally is anything you want to count: cafés, hikes, friends, books.",
+    title: "onboarding.collectTitle",
+    body: "onboarding.collectBody",
   },
   {
     key: "one-tap",
-    title: "One tap.\nThat's it.",
-    body: "Tap ＋ on a rally to save the date and time. Add a memo or photos later, if you want.",
+    title: "onboarding.oneTapTitle",
+    body: "onboarding.oneTapBody",
   },
   {
     key: "no-streaks",
-    title: "No streaks\nto keep.",
-    body: "Skip a day, a week, a month. Nothing breaks, and what you stamped stays.",
+    title: "onboarding.noStreaksTitle",
+    body: "onboarding.noStreaksBody",
   },
 ] as const;
 
@@ -55,8 +57,9 @@ export function IntroPages({
   finishLabel,
   onFinish,
 }: IntroPagesProps) {
+  const { t } = useTranslation();
   const isLastPage = step === introPages.length - 1;
-  const nextLabel = isLastPage ? finishLabel : "Next";
+  const nextLabel = isLastPage ? finishLabel : t("onboarding.next");
 
   return (
     <View className="flex-1 pb-1.5">
@@ -81,7 +84,10 @@ export function IntroPages({
       <View className="flex-row items-center justify-between px-6 pt-4">
         <View
           role="img"
-          aria-label={`Page ${step + 1} of ${introPages.length}`}
+          aria-label={t("onboarding.page", {
+            n: step + 1,
+            total: introPages.length,
+          })}
           className="flex-row items-center gap-1.5"
         >
           {introPages.map((page, index) => (
@@ -99,7 +105,7 @@ export function IntroPages({
           {step > 0 ? (
             <Pressable
               role="button"
-              aria-label="Back"
+              aria-label={t("onboarding.back")}
               onPress={() => onChangeStep(step - 1)}
               className="bg-surface size-[52px] items-center justify-center rounded-full active:opacity-70"
             >
@@ -115,7 +121,7 @@ export function IntroPages({
             <Text className="text-primary-foreground text-base font-semibold">
               {nextLabel}
             </Text>
-            {nextLabel === "Next" ? (
+            {!isLastPage ? (
               <ChevronRight
                 colorClassName="accent-primary-foreground"
                 size={18}
@@ -131,6 +137,7 @@ export function IntroPages({
 function IntroPage({ pageKey }: { pageKey: IntroPageKey }) {
   const index = introPageKeys.indexOf(pageKey);
   const { title, body } = introPages[index];
+  const { t } = useTranslation();
   const Art = introArt[index];
 
   return (
@@ -149,16 +156,16 @@ function IntroPage({ pageKey }: { pageKey: IntroPageKey }) {
           role="heading"
           className="text-foreground text-[32px] leading-9 font-bold"
         >
-          {title}
+          {t(title)}
         </Text>
         <Text className="text-foreground-muted text-base leading-[23px]">
-          {body}
+          {t(body)}
         </Text>
         {index === 0 ? (
           <View className="flex-row items-center gap-1.5">
             <Lock colorClassName="accent-foreground-muted" size={14} />
             <Text className="text-foreground-muted text-[13px]">
-              No account. Everything stays on your phone.
+              {t("onboarding.noAccount")}
             </Text>
           </View>
         ) : null}

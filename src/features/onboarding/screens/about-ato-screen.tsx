@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IntroPages } from "../components/intro-pages";
@@ -14,6 +15,7 @@ export function AboutAtoScreen() {
   const [step, setStep] = useState(0);
   const { back } = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <View
@@ -23,9 +25,9 @@ export function AboutAtoScreen() {
       <IntroPages
         step={step}
         onChangeStep={setStep}
-        leaveLabel="Close"
+        leaveLabel={t("common.close")}
         onLeave={() => back()}
-        finishLabel="Done"
+        finishLabel={t("common.done")}
         onFinish={() => back()}
       />
     </View>

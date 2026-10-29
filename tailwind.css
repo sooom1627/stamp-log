@@ -40,6 +40,8 @@
       --color-accent-subtle: #fff7ed;
       --color-accent-soft: #ffedd5;
       --color-accent-strong: #9a3412;
+      /* The disc on home's top cards (S-050): nearly white, a touch of cream. */
+      --color-card-disc: #fdfcf9;
       /* Tab screens sit on canvas; tiles on it use surface, lighter than
          canvas so they lift off it. */
       --color-canvas: #f4f4f5;
@@ -47,6 +49,11 @@
       /* The bands under the Ato mark's sun. */
       --color-mark-band-from: #334155;
       --color-mark-band-to: #1e293b;
+      /* Tab roots' full-screen gradient (S-050): sand at the top fading to a
+         warm white, bright enough not to look dull on device. */
+      --color-canvas-top: #f3ead9;
+      --color-canvas-mid: #f7f3ec;
+      --color-canvas-bottom: #f6f5f1;
     }
     @variant dark {
       --color-background: #0f172a;
@@ -62,10 +69,14 @@
       --color-accent-subtle: #431407;
       --color-accent-soft: #7c2d12;
       --color-accent-strong: #fdba74;
+      --color-card-disc: #3d4a5c;
       --color-canvas: #0f172a;
       --color-surface: #334155;
       --color-mark-band-from: #e2e8f0;
       --color-mark-band-to: #94a3b8;
+      --color-canvas-top: #1a1814;
+      --color-canvas-mid: #121212;
+      --color-canvas-bottom: #141414;
     }
   }
 }

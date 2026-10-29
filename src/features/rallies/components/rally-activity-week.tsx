@@ -1,5 +1,7 @@
 import { Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { type MonthDay } from "@/shared/utils/month-grid";
 
@@ -18,6 +20,8 @@ export function RallyActivityWeek({
 }: {
   activityDays: MonthDay[];
 }) {
+  const { t } = useTranslation();
+
   return (
     <View className="w-full gap-1.5" testID="activity-week">
       <View className="flex-row">
@@ -42,9 +46,11 @@ export function RallyActivityWeek({
             <View
               key={day.key}
               accessible
-              aria-label={`${formattedDate}, ${
-                day.isRecorded ? "recorded" : "not recorded"
-              }`}
+              aria-label={
+                day.isRecorded
+                  ? t("home.dayRecorded", { date: formattedDate })
+                  : t("home.dayNotRecorded", { date: formattedDate })
+              }
               aria-selected={day.isRecorded}
               className="h-3 flex-1 items-center justify-center"
               testID="activity-day"
@@ -52,7 +58,7 @@ export function RallyActivityWeek({
               <View
                 className={
                   day.isRecorded
-                    ? "bg-accent size-2.5 rounded-full"
+                    ? "bg-foreground size-2 rounded-full"
                     : "bg-foreground-muted size-1.5 rounded-full opacity-40"
                 }
               />

@@ -17,8 +17,8 @@ import { toast } from "sonner-native";
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampsDb from "@/shared/db/stamps-db";
 import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import {
-  formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
@@ -1592,10 +1592,10 @@ describe("S-037 T-002 ST-003 / T-003 ST-004 rally detail Album", () => {
     });
     expect(tiles).toHaveLength(2);
     expect(tiles[0]).toHaveAccessibleName(
-      `Open photo, Detail album, ${formatStampDate(new Date(newerStampedAt))}`,
+      `Open photo, Detail album, ${formatSpokenDate(new Date(newerStampedAt))}`,
     );
     expect(tiles[1]).toHaveAccessibleName(
-      `Open 2 photos, Detail album, ${formatStampDate(new Date(olderStampedAt))}`,
+      `Open 2 photos, Detail album, ${formatSpokenDate(new Date(olderStampedAt))}`,
     );
     const hidden = { includeHiddenElements: true };
     expect(within(tiles[1]).getByText("2", hidden)).toBeOnTheScreen();

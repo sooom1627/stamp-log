@@ -4,18 +4,25 @@ import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
 import { Link, useFocusEffect } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { Plus } from "@/shared/components/icons";
 import { LoadError } from "@/shared/components/load-error";
 import { TabRootScreen } from "@/shared/components/tab-root-screen";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
-import { useSaveStamp, useStampSummary } from "@/shared/hooks/use-stamps";
+import {
+  useFirstStampedAt,
+  useSaveStamp,
+  useStampSummary,
+} from "@/shared/hooks/use-stamps";
 import { type Rally } from "@/shared/schemas/rallies";
 
+import { HomeTopCards } from "../components/home-top-cards";
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
-import { TodayCard } from "../components/today-card";
 import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
+import { buildTodayLog, countDaysWithAto } from "../utils/today-log";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 
 // Matches the tab root's px-5 and the grid's gap-2.5.
@@ -23,6 +30,7 @@ const SCREEN_PADDING = 20;
 const TILE_GAP = 10;
 
 export function HomeScreen() {
+  const { t } = useTranslation();
   const { width: windowWidth } = useWindowDimensions();
   const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
   const today = new Date();
@@ -32,6 +40,7 @@ export function HomeScreen() {
     isError: isListError,
     retry: retryLists,
   } = useRalliesAndStamps(useStampSummary(today));
+  const { data: firstStampedAt } = useFirstStampedAt();
   const { mutate: saveStamp } = useSaveStamp();
 
   // Tiles are ordered by the counts seen when home came into focus, so a
@@ -54,18 +63,32 @@ export function HomeScreen() {
       )
     : undefined;
   const datesByRally = stampDatesByRally(summary?.recentStamps ?? []);
+  // With Ato shows every rally made: home's tiles first, then archived ones.
+  const allRallies =
+    rallies && orderedRallies
+      ? [...orderedRallies, ...rallies.filter((rally) => rally.isArchived)]
+      : [];
 
   return (
-    <TabRootScreen label="Home">
+    <TabRootScreen label={t("tabs.home")}>
       <View className="w-full">
-        {rallies && summary ? (
-          <TodayCard
-            rallies={buildTodayStampedRallies(
+        {rallies && summary && firstStampedAt !== undefined ? (
+          <HomeTopCards
+            windowWidth={windowWidth}
+            today={today}
+            todayRallies={buildTodayStampedRallies(
               summary.recentStamps,
               rallies,
               today,
             )}
-            today={today}
+            todayLog={buildTodayLog(summary.recentStamps, rallies, today)}
+            daysWithAto={countDaysWithAto(firstStampedAt, today)}
+            firstStampedAt={firstStampedAt ? new Date(firstStampedAt) : null}
+            stampCount={[...summary.countsByRally.values()].reduce(
+              (total, count) => total + count,
+              0,
+            )}
+            allRallies={allRallies}
           />
         ) : null}
         {isListError ? <LoadError onRetry={retryLists} /> : null}
@@ -81,7 +104,7 @@ export function HomeScreen() {
                 className="-my-2 -mr-2 min-h-11 justify-center px-2 active:opacity-70"
               >
                 <Text className="text-foreground text-base font-medium">
-                  View All
+                  {t("home.viewAll")}
                 </Text>
               </Pressable>
             </Link>
@@ -109,7 +132,7 @@ export function HomeScreen() {
             ))}
             <Link href="/create-rally" asChild>
               <Pressable
-                aria-label="Create rally"
+                aria-label={t("rallies.createRally")}
                 className="border-border border-continuous min-h-44 items-center justify-center gap-2 rounded-3xl border-2 border-dashed active:opacity-70"
                 style={{ width: tileWidth }}
               >
@@ -124,7 +147,7 @@ export function HomeScreen() {
                   />
                 </View>
                 <Text className="text-foreground text-sm font-semibold">
-                  New rally
+                  {t("home.newRally")}
                 </Text>
               </Pressable>
             </Link>

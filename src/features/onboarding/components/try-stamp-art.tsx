@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { Pressable, Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { Check, Plus } from "@/shared/components/icons";
 
 import { ArtPanel } from "./art-panel";
@@ -13,6 +15,8 @@ const stampedBefore = [false, true, false, true, true, false];
 
 export function TryStampArt() {
   const [isStamped, setIsStamped] = useState(false);
+  const { t } = useTranslation();
+  const name = t("onboarding.samples.morningRun");
   const days = [...stampedBefore, isStamped];
 
   return (
@@ -24,7 +28,11 @@ export function TryStampArt() {
           </View>
           <Pressable
             role="button"
-            aria-label={isStamped ? "Stamped today" : "Try stamping"}
+            aria-label={
+              isStamped
+                ? t("onboarding.stampedToday")
+                : t("onboarding.tryStamping")
+            }
             onPress={() => setIsStamped(!isStamped)}
             className={
               isStamped
@@ -45,7 +53,7 @@ export function TryStampArt() {
         </View>
         <View>
           <Text className="text-foreground text-[17px] font-semibold">
-            Morning run
+            {name}
           </Text>
           <Text className="text-foreground-muted text-sm">
             {isStamped ? "6 stamps" : "5 stamps"}
@@ -84,16 +92,16 @@ export function TryStampArt() {
       {isStamped ? (
         <View className="bg-inverse h-10 flex-row items-center gap-3 rounded-full px-4">
           <Text className="text-inverse-foreground text-sm">
-            Stamped Morning run
+            {t("onboarding.stampedToast", { name })}
           </Text>
           <Text className="text-inverse-accent text-sm font-bold">
-            Add memo
+            {t("onboarding.addMemo")}
           </Text>
         </View>
       ) : (
         <View className="h-10 justify-center">
           <Text className="text-foreground-muted text-[13px]">
-            Try it: tap ＋
+            {t("onboarding.tryIt")}
           </Text>
         </View>
       )}

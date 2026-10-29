@@ -13,6 +13,7 @@ import {
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { X } from "@/shared/components/icons";
@@ -78,6 +79,7 @@ function StampPhotosPager({
   const { width } = useWindowDimensions();
   const { top, bottom } = useSafeAreaInsets();
   const { back } = useRouter();
+  const { t } = useTranslation();
   const hasSeveral = photos.length > 1;
 
   const handleMomentumScrollEnd = ({
@@ -94,7 +96,7 @@ function StampPhotosPager({
       <View className="flex-row items-center px-4 py-2">
         <Pressable
           role="button"
-          aria-label="Close"
+          aria-label={t("common.close")}
           onPress={() => back()}
           className="bg-photo-viewer-control size-11 items-center justify-center rounded-full"
         >
@@ -132,7 +134,10 @@ function StampPhotosPager({
         renderItem={({ item, index: itemIndex }) => (
           <View
             role="img"
-            aria-label={`Photo ${itemIndex + 1} of ${photos.length}`}
+            aria-label={t("stampForm.photoOf", {
+              n: itemIndex + 1,
+              total: photos.length,
+            })}
             style={{ width }}
           >
             <Image
