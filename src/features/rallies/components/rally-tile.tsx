@@ -100,11 +100,13 @@ export function RallyTile({
         <Pressable
           role="button"
           aria-label={`View ${name} details`}
-          className="gap-1 active:opacity-70"
+          // Takes the spare height so the name and count stay together and
+          // the dots sit at the bottom of every tile in the row.
+          className="flex-1 gap-1 active:opacity-70"
         >
           <Text
             numberOfLines={2}
-            className="text-foreground min-h-10 text-base leading-5 font-semibold"
+            className="text-foreground text-base leading-5 font-semibold"
           >
             {name}
           </Text>
