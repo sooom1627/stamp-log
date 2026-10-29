@@ -4,6 +4,8 @@ import { ScrollView, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 
 import { AtoMark } from "./ato-mark";
@@ -25,6 +27,7 @@ export function TabRootSubtitle({ children }: { children: string }) {
 export function TabRootHeader({ title }: { title?: string }) {
   const { monthDay } = formatHeaderDate(new Date());
   const { push } = useRouter();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -36,7 +39,7 @@ export function TabRootHeader({ title }: { title?: string }) {
       </Stack.Toolbar>
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
-          accessibilityLabel="Menu"
+          accessibilityLabel={t("common.menu")}
           icon="line.3.horizontal"
           onPress={() => push("/settings")}
         />

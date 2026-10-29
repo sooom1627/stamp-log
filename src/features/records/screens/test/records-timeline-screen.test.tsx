@@ -18,8 +18,8 @@ import { listRallies, saveRally } from "@/shared/db/rallies-db";
 import { stampPhotoThumbUri } from "@/shared/db/stamp-photo-files";
 import * as stampsDb from "@/shared/db/stamps-db";
 import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import {
-  formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
@@ -689,7 +689,7 @@ describe("S-037 T-002 ST-002 / T-003 ST-004 Logs Album", () => {
     const tiles = album.getAllByRole("button", {
       name: /^Open (\d+ )?photos?, /,
     });
-    const day = (iso: string) => formatStampDate(new Date(iso));
+    const day = (iso: string) => formatSpokenDate(new Date(iso));
     expect(tiles).toHaveLength(3);
     expect(tiles[0]).toHaveAccessibleName(
       `Open photo, Album cafe, ${day(cafeDay.stampedAt)}`,

@@ -10,6 +10,7 @@ import {
 } from "expo-router/react-navigation";
 
 import { QueryClientProvider } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { toast, Toaster } from "sonner-native";
 import { useResolveClassNames } from "uniwind";
@@ -28,6 +29,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const sheetBackgroundStyle = useResolveClassNames("bg-background");
+  const { t } = useTranslation();
   const formSheetOptions = {
     presentation: "formSheet",
     sheetGrabberVisible: true,
@@ -39,7 +41,7 @@ export default function RootLayout() {
   const [queryClient] = useState(() =>
     createQueryClient({
       onMutationError: () => {
-        toast.error("Something went wrong. Please try again.");
+        toast.error(t("common.errorTryAgain"));
       },
     }),
   );

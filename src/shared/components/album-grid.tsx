@@ -3,8 +3,11 @@ import { Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+
 import { type AlbumTile } from "@/shared/utils/album-photos";
-import { formatStampDate } from "@/shared/utils/format-stamp-date-time";
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 
 import { ImageIcon } from "./icons";
 
@@ -18,9 +21,18 @@ function albumRows(tiles: AlbumTile[]) {
   return rows;
 }
 
-function tileLabel({ photoCount, rallyName, stampedAt }: AlbumTile) {
-  const photos = photoCount === 1 ? "photo" : `${photoCount} photos`;
-  return `Open ${photos}, ${rallyName}, ${formatStampDate(new Date(stampedAt))}`;
+function tileLabel(
+  t: TFunction,
+  { photoCount, rallyName, stampedAt }: AlbumTile,
+) {
+  const rally = rallyName;
+  const date = formatSpokenDate(new Date(stampedAt));
+  if (photoCount === 1) return t("stamps.openPhoto", { rally, date });
+  return t("stamps.openPhotos", {
+    photos: `${photoCount} photos`,
+    rally,
+    date,
+  });
 }
 
 type AlbumRowProps = {
@@ -33,6 +45,7 @@ type AlbumRowProps = {
 // viewer there to page through the rest.
 function AlbumRow({ tiles, showsEmoji }: AlbumRowProps) {
   const emptyCount = COLUMNS - tiles.length;
+  const { t } = useTranslation();
 
   return (
     <View className="flex-row gap-0.5">
@@ -47,7 +60,7 @@ function AlbumRow({ tiles, showsEmoji }: AlbumRowProps) {
         >
           <Pressable
             role="button"
-            aria-label={tileLabel(tile)}
+            aria-label={tileLabel(t, tile)}
             className="bg-surface-muted aspect-square flex-1"
           >
             <Image
