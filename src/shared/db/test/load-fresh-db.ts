@@ -1,6 +1,7 @@
 import type * as GetDbModule from "../get-db";
 import type * as RalliesDbModule from "../rallies-db";
 import type * as SchemaModule from "../schema";
+import type * as StampSummaryDbModule from "../stamp-summary-db";
 import type * as StampsDbModule from "../stamps-db";
 
 type FreshDb = {
@@ -8,6 +9,7 @@ type FreshDb = {
   ralliesDb: typeof RalliesDbModule;
   schema: typeof SchemaModule;
   stampsDb: typeof StampsDbModule;
+  stampSummaryDb: typeof StampSummaryDbModule;
 };
 
 // Loads the db modules in a fresh module registry: a new in-memory database
@@ -22,6 +24,8 @@ export function loadFreshDb(): FreshDb {
       ralliesDb: require("../rallies-db") as typeof RalliesDbModule,
       schema: require("../schema") as typeof SchemaModule,
       stampsDb: require("../stamps-db") as typeof StampsDbModule,
+      stampSummaryDb:
+        require("../stamp-summary-db") as typeof StampSummaryDbModule,
     };
   });
 

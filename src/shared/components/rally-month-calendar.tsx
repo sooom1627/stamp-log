@@ -2,15 +2,19 @@ import { useState } from "react";
 
 import { Pressable, Text, View } from "react-native";
 
-import { addLocalDays } from "@/shared/utils/add-local-days";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
   buildMonthWeeks,
   buildWeek,
+  initialCalendarView,
+  pickerYears,
   shiftWeek,
+  visibleCalendarRange,
   weekHeadingMonth,
+  type CalendarRange,
+  type CalendarView,
   type DayMark,
   type MonthDay,
 } from "@/shared/utils/month-grid";
@@ -128,62 +132,12 @@ type RallyMonthCalendarProps = {
   // Logs opens only days with stamps; rally detail opens empty days too.
   isRecordedOnly?: boolean;
   // Called when the shown week or month changes, so a screen can read only
-  // the stamps of that range (Logs). Starts at `initialCalendarRange()`.
+  // the stamps of that range (Logs). Starts at `initialCalendarRange()`
+  // (month-grid).
   onVisibleRangeChange?: (range: CalendarRange) => void;
   // The oldest stamp's time, when `stampDates` holds only the shown range.
   firstStampedAt?: string | null;
 };
-
-// Local midnights; `end` is the day after the last shown day.
-export type CalendarRange = { start: Date; end: Date };
-
-type CalendarView = { isMonthView: boolean; month: Date; weekAnchor: Date };
-
-function firstDayOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-// Opens on the week holding today every time; the view is not remembered.
-function initialView(): CalendarView {
-  const today = new Date();
-  return {
-    isMonthView: false,
-    month: firstDayOfMonth(today),
-    weekAnchor: today,
-  };
-}
-
-function visibleRange({
-  isMonthView,
-  month,
-  weekAnchor,
-}: CalendarView): CalendarRange {
-  if (isMonthView) {
-    return {
-      start: month,
-      end: new Date(month.getFullYear(), month.getMonth() + 1, 1),
-    };
-  }
-  const [monday] = buildWeek(weekAnchor, []);
-  return { start: monday.date, end: addLocalDays(monday.date, 7) };
-}
-
-// The range the calendar shows when it opens.
-export function initialCalendarRange() {
-  return visibleRange(initialView());
-}
-
-// From the first stamp's year (or this year) to next year, always including
-// the shown month's year so the wheel can select it.
-function pickerYears(stampDates: string[], shownMonth: Date) {
-  const thisYear = new Date().getFullYear();
-  const stampYears = stampDates.map((stampDate) =>
-    new Date(stampDate).getFullYear(),
-  );
-  const from = Math.min(thisYear, shownMonth.getFullYear(), ...stampYears);
-  const to = Math.max(thisYear + 1, shownMonth.getFullYear());
-  return Array.from({ length: to - from + 1 }, (_, index) => from + index);
-}
 
 export function RallyMonthCalendar({
   testID = "rally-calendar",
@@ -196,7 +150,7 @@ export function RallyMonthCalendar({
   firstStampedAt,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
-  const [view, setView] = useState(initialView);
+  const [view, setView] = useState(initialCalendarView);
   const { isMonthView, month, weekAnchor } = view;
   const weeks = isMonthView
     ? buildMonthWeeks(month, stampDates)
@@ -205,11 +159,11 @@ export function RallyMonthCalendar({
   // Every change of the shown days goes through here.
   const changeView = (next: CalendarView) => {
     setView(next);
-    onVisibleRangeChange?.(visibleRange(next));
+    onVisibleRangeChange?.(visibleCalendarRange(next));
   };
 
   const showMonth = () => changeView({ ...view, isMonthView: true });
-  const showWeek = () => changeView(initialView());
+  const showWeek = () => changeView(initialCalendarView());
 
   // ‹ › step by the unit on screen: a week in the week view, a month otherwise.
   const step = (delta: number) => {

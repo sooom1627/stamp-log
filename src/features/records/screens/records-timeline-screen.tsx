@@ -6,10 +6,7 @@ import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
 import { DayCard } from "@/shared/components/day-card";
-import {
-  initialCalendarRange,
-  RallyMonthCalendar,
-} from "@/shared/components/rally-month-calendar";
+import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
 import { StampPost } from "@/shared/components/stamp-post";
 import { StampsAlbumPager } from "@/shared/components/stamps-album-pager";
 import {
@@ -30,6 +27,7 @@ import {
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
+import { initialCalendarRange } from "@/shared/utils/month-grid";
 import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
 import { buildDayMarks } from "../utils/day-marks";

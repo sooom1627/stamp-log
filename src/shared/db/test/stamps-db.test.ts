@@ -860,38 +860,7 @@ describe("RT-003 ST-002 read one rally's stamps", () => {
   });
 });
 
-describe("RT-003 ST-003 tile summary", () => {
-  test("counts every stamp by rally and returns only the stamps since the given time", async () => {
-    const { stampsDb } = loadFreshDb();
-    const old = "2026-09-01T09:00:00.000Z";
-    const since = "2026-09-13T15:00:00.000Z";
-    await stampsDb.saveStamp({ rallyId: 1, stampedAt: old });
-    const onSince = await stampsDb.saveStamp({ rallyId: 1, stampedAt: since });
-    const recent = await stampsDb.saveStamp({ rallyId: 2 });
-
-    const { countsByRally, recentStamps } =
-      await stampsDb.getStampSummary(since);
-
-    expect([...countsByRally]).toEqual([
-      [1, 2],
-      [2, 1],
-    ]);
-    expect(recentStamps).toEqual([recent, onSince]);
-  });
-
-  test("returns no counts and no stamps when nothing is stamped", async () => {
-    const { stampsDb } = loadFreshDb();
-
-    const { countsByRally, recentStamps } = await stampsDb.getStampSummary(
-      "2026-09-13T15:00:00.000Z",
-    );
-
-    expect(countsByRally.size).toBe(0);
-    expect(recentStamps).toEqual([]);
-  });
-});
-
-describe("RT-003 ST-004 read a time range, and the first stamp", () => {
+describe("RT-003 ST-004 read a time range", () => {
   test("listStampsBetween includes the start and leaves out the end, however precise the stored time", async () => {
     const { stampsDb } = loadFreshDb();
     const start = "2026-09-09T15:00:00.000Z";
@@ -915,18 +884,5 @@ describe("RT-003 ST-004 read a time range, and the first stamp", () => {
       inside,
       atStart,
     ]);
-  });
-
-  test("getFirstStampedAt returns the oldest stamp's time, and null without stamps", async () => {
-    const { stampsDb } = loadFreshDb();
-    await expect(stampsDb.getFirstStampedAt()).resolves.toBeNull();
-
-    await stampsDb.saveStamp({ rallyId: 1 });
-    const oldest = await stampsDb.saveStamp({
-      rallyId: 2,
-      stampedAt: "2024-03-01T09:00:00.000Z",
-    });
-
-    await expect(stampsDb.getFirstStampedAt()).resolves.toBe(oldest.stampedAt);
   });
 });

@@ -8,10 +8,12 @@ import {
 } from "@tanstack/react-query";
 
 import {
-  deleteStamp,
   getFirstStampedAt,
-  getStamp,
   getStampSummary,
+} from "@/shared/db/stamp-summary-db";
+import {
+  deleteStamp,
+  getStamp,
   listPhotoDayStamps,
   listRallyStamps,
   listStamps,

@@ -94,7 +94,7 @@ export async function saveStamp(input: SaveStampInput): Promise<Stamp> {
 
 // The stamps matching `where` (a condition on the stamps table), newest
 // first, each with its photos. Only those stamps' photos are read.
-async function listStampsWhere(
+export async function listStampsWhere(
   db: SQLiteDatabase,
   where: string,
   ...params: SQLiteBindValue[]
@@ -126,28 +126,6 @@ export async function getStamp(id: Stamp["id"]): Promise<Stamp | null> {
   return stamp ?? null;
 }
 
-export type StampSummary = {
-  // Every stamp, counted by rally.
-  countsByRally: Map<Stamp["rallyId"], number>;
-  // The stamps at or after `since`, newest first.
-  recentStamps: Stamp[];
-};
-
-// What rally tiles show: each rally's count over all time, and only the
-// recent stamps for the days they draw.
-export async function getStampSummary(since: string): Promise<StampSummary> {
-  const db = await withAppDb();
-  const counts = await db.getAllAsync<{ rallyId: number; count: number }>(
-    "SELECT rally_id AS rallyId, COUNT(*) AS count FROM stamps GROUP BY rally_id ORDER BY rally_id",
-  );
-  return {
-    countsByRally: new Map(
-      counts.map(({ rallyId, count }) => [rallyId, count]),
-    ),
-    recentStamps: await listStampsWhere(db, "stamped_at >= ?", since),
-  };
-}
-
 // The stamps from `start` up to (not including) `end`, both ISO times.
 export async function listStampsBetween(
   start: string,
@@ -159,15 +137,6 @@ export async function listStampsBetween(
     start,
     end,
   );
-}
-
-// The oldest stamp's time, or null without stamps.
-export async function getFirstStampedAt(): Promise<Stamp["stampedAt"] | null> {
-  const db = await withAppDb();
-  const row = await db.getFirstAsync<{ stampedAt: string | null }>(
-    "SELECT MIN(stamped_at) AS stampedAt FROM stamps",
-  );
-  return row?.stampedAt ?? null;
 }
 
 export async function listRallyStamps(

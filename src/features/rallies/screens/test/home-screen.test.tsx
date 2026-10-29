@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
+import * as stampSummaryDb from "@/shared/db/stamp-summary-db";
 import * as stampsDb from "@/shared/db/stamps-db";
 
 jest.useFakeTimers();
@@ -602,7 +603,7 @@ describe("S-002 T-002 RT-002 error display", () => {
 
   test("shows load error and retry when stamp list fails", async () => {
     jest
-      .spyOn(stampsDb, "getStampSummary")
+      .spyOn(stampSummaryDb, "getStampSummary")
       .mockRejectedValue(new Error("disk full"));
 
     await renderRouter("./src/app");

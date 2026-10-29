@@ -86,3 +86,59 @@ export function weekHeadingMonth(currentMonth: Date, weekDays: MonthDay[]) {
   const month = keepsMonth ? currentMonth : weekDays[0].date;
   return new Date(month.getFullYear(), month.getMonth(), 1);
 }
+
+// Local midnights; `end` is the day after the last shown day.
+export type CalendarRange = { start: Date; end: Date };
+
+// What the calendar shows: a week around `weekAnchor`, or all of `month`.
+export type CalendarView = {
+  isMonthView: boolean;
+  month: Date;
+  weekAnchor: Date;
+};
+
+function firstDayOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+// Opens on the week holding today every time; the view is not remembered.
+export function initialCalendarView(): CalendarView {
+  const today = new Date();
+  return {
+    isMonthView: false,
+    month: firstDayOfMonth(today),
+    weekAnchor: today,
+  };
+}
+
+export function visibleCalendarRange({
+  isMonthView,
+  month,
+  weekAnchor,
+}: CalendarView): CalendarRange {
+  if (isMonthView) {
+    return {
+      start: month,
+      end: new Date(month.getFullYear(), month.getMonth() + 1, 1),
+    };
+  }
+  const [monday] = buildWeek(weekAnchor, []);
+  return { start: monday.date, end: addLocalDays(monday.date, DAYS_PER_WEEK) };
+}
+
+// The range the calendar shows when it opens.
+export function initialCalendarRange() {
+  return visibleCalendarRange(initialCalendarView());
+}
+
+// From the first stamp's year (or this year) to next year, always including
+// the shown month's year so the wheel can select it.
+export function pickerYears(stampDates: string[], shownMonth: Date) {
+  const thisYear = new Date().getFullYear();
+  const stampYears = stampDates.map((stampDate) =>
+    new Date(stampDate).getFullYear(),
+  );
+  const from = Math.min(thisYear, shownMonth.getFullYear(), ...stampYears);
+  const to = Math.max(thisYear + 1, shownMonth.getFullYear());
+  return Array.from({ length: to - from + 1 }, (_, index) => from + index);
+}
