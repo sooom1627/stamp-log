@@ -824,6 +824,15 @@ describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
     expect(within(stuck).getByTestId("logs-view-picker")).toBeOnTheScreen();
   });
 
+  test("S-050 T-002 leaves the stuck switch's band see-through over the gradient", async () => {
+    await openLogsWithPhotos();
+
+    expect(screen.getByTestId("logs-view-switch-band")).toHaveProp(
+      "className",
+      expect.not.stringMatching(/\bbg-/),
+    );
+  });
+
   test("S-043 T-004 shows the pages before they are measured, then takes the shown page's height", async () => {
     await openLogsWithPhotos();
     const pager = screen.getByTestId("logs-view-pager");

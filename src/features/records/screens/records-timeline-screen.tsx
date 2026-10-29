@@ -93,9 +93,9 @@ export function RecordsTimelineScreen() {
               pointerEvents: "box-none",
             }}
           >
-            {/* Solid so posts scrolling under it stay hidden; the gradient's middle
-                color sits closest to it on screen. */}
-            <View className="bg-canvas-mid px-5 pt-6 pb-2">
+            {/* See-through so the screen's gradient shows; only the switch
+                itself has a fill. */}
+            <View className="px-5 pt-6 pb-2" testID="logs-view-switch-band">
               <StampsAlbumPicker
                 testID="logs-view-picker"
                 view={view}
