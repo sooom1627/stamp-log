@@ -26,7 +26,7 @@ describe("S-029 T-002 ST-001 RallyTile", () => {
     await render(<RallyTile {...defaultProps} />);
 
     expect(screen.getByText("⛩️")).toBeOnTheScreen();
-    expect(screen.getByText("Kyoto trip")).toHaveProp("numberOfLines", 2);
+    expect(screen.getByText("Kyoto trip")).toHaveProp("numberOfLines", 1);
     expect(screen.getByText("0 stamps")).toBeOnTheScreen();
     expect(
       screen.getByRole("button", { name: "Stamp Kyoto trip for today" }),
