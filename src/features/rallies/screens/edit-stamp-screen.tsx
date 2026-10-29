@@ -10,7 +10,11 @@ import {
 } from "@/shared/components/form-sheet";
 import { stampPhotoUri } from "@/shared/db/stamp-photo-files";
 import { useRally } from "@/shared/hooks/use-rallies";
-import { useStamp, useStamps, useUpdateStamp } from "@/shared/hooks/use-stamps";
+import {
+  useRallyStamps,
+  useStamp,
+  useUpdateStamp,
+} from "@/shared/hooks/use-stamps";
 import { type Rally } from "@/shared/schemas/rallies";
 import { hasStampOnLocalDay, type Stamp } from "@/shared/schemas/stamps";
 
@@ -31,7 +35,8 @@ type EditStampScreenProps = {
 export function EditStampScreen({ stampId }: EditStampScreenProps) {
   const { data: stamp } = useStamp(stampId);
   const { data: rally } = useRally(stamp?.rallyId);
-  const { data: stamps } = useStamps();
+  // The same-day check needs only this stamp's rally.
+  const { data: stamps } = useRallyStamps(stamp?.rallyId);
 
   // A stamp that does not exist closes the sheet, like an invalid id.
   useCloseWhenMissing(

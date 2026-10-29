@@ -126,6 +126,12 @@ export async function getStamp(id: Stamp["id"]): Promise<Stamp | null> {
   return stamp ?? null;
 }
 
+export async function listRallyStamps(
+  rallyId: Stamp["rallyId"],
+): Promise<Stamp[]> {
+  return listStampsWhere(await withAppDb(), "rally_id = ?", rallyId);
+}
+
 // The stamps of a photo's rally on the local day of its stamp: what the photo
 // viewer pages through. Empty when the photo does not exist.
 export async function listPhotoDayStamps(

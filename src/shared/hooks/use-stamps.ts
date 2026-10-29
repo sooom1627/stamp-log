@@ -1,5 +1,6 @@
 import {
   queryOptions,
+  skipToken,
   useMutation,
   useQuery,
   useQueryClient,
@@ -9,6 +10,7 @@ import {
   deleteStamp,
   getStamp,
   listPhotoDayStamps,
+  listRallyStamps,
   listStamps,
   saveStamp,
   updateStamp,
@@ -27,10 +29,11 @@ export function useStamps() {
   return useQuery(stampsQuery);
 }
 
-export function useRallyStamps(rallyId: Stamp["rallyId"]) {
+// Without a rally (its stamp is still loading) nothing is read yet.
+export function useRallyStamps(rallyId: Stamp["rallyId"] | undefined) {
   return useQuery({
-    ...stampsQuery,
-    select: (stamps) => stamps.filter((stamp) => stamp.rallyId === rallyId),
+    queryKey: [...stampsQueryKey, "byRally", rallyId],
+    queryFn: rallyId === undefined ? skipToken : () => listRallyStamps(rallyId),
   });
 }
 

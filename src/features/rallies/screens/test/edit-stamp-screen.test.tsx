@@ -56,7 +56,7 @@ async function openEdit(
   });
   // Logs also lists every stamp, so press Edit inside rally detail.
   await fireEvent(
-    within(await screen.findByLabelText("Rally detail")).getByTestId(
+    await within(await screen.findByLabelText("Rally detail")).findByTestId(
       `stamp-edit-${stampId}`,
     ),
     "buttonPress",

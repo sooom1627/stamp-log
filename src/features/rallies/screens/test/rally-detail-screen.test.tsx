@@ -76,6 +76,10 @@ async function openRallyDetail(
   await act(() => {
     router.push(`/rallies/${rally.id}`);
   });
+  // The rally's stamps are read when the screen opens.
+  await within(await screen.findByLabelText("Rally detail")).findByText(
+    /^\d+ stamps?$/,
+  );
 
   return { rally, user: userEvent.setup() };
 }
@@ -280,7 +284,7 @@ describe("S-006 T-001 ST-009 empty and error states", () => {
 
   test("shows a load error with Retry instead of the empty state", async () => {
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listRallyStamps")
       .mockRejectedValue(new Error("disk full"));
     const { detail } = await openWithoutStamps("Timeline load fails");
 
@@ -293,15 +297,15 @@ describe("S-006 T-001 ST-009 empty and error states", () => {
   });
 
   test("shows the stamps after retrying a failed load", async () => {
-    const realListStamps = stampsDb.listStamps;
+    const realListRallyStamps = stampsDb.listRallyStamps;
     const listSpy = jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listRallyStamps")
       .mockRejectedValue(new Error("disk full"));
     const { rally, detail } = await openWithoutStamps("Timeline retry");
     await saveStamp({ rallyId: rally.id });
     expect(await within(detail).findByText("Couldn't load")).toBeOnTheScreen();
 
-    listSpy.mockImplementation(realListStamps);
+    listSpy.mockImplementation(realListRallyStamps);
     const user = userEvent.setup();
     await user.press(within(detail).getByRole("button", { name: "Retry" }));
 
@@ -834,7 +838,7 @@ describe("S-028 T-002 ST-004 rally summary without stamps", () => {
 
   test("hides the summary when the stamps cannot be loaded", async () => {
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listRallyStamps")
       .mockRejectedValue(new Error("disk full"));
     const detail = await openEmptyRally("Summary load fails");
 
@@ -1733,8 +1737,9 @@ describe("S-043 T-001 ST-003 rally detail pages for Stamps and Album", () => {
   });
 
   test("has no pages without stamps", async () => {
-    await openRallyDetail("Pager empty", async () => {
-      jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    await openRallyDetail("Pager empty", async (rallyId) => {
+      const [stamp] = await stampsDb.listRallyStamps(rallyId);
+      await stampsDb.deleteStamp(stamp.id);
     });
     const detail = within(await screen.findByLabelText("Rally detail"));
 

@@ -640,3 +640,36 @@ describe("RT-003 ST-001 useStamp and usePhotoDayStamps read only what they show"
     expect(listStamps).not.toHaveBeenCalled();
   });
 });
+
+describe("RT-003 ST-002 useRallyStamps reads only one rally", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("reads the rally's stamps without listing every stamp", async () => {
+    const stamp = await saveStamp({ rallyId: 811 });
+    await saveStamp({ rallyId: 812 });
+    const listStamps = jest.spyOn(stampsDb, "listStamps");
+
+    const { result } = await renderHook(() => useRallyStamps(811), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([stamp]);
+    });
+    expect(listStamps).not.toHaveBeenCalled();
+  });
+
+  test("reads nothing until the rally is known", async () => {
+    const listRallyStamps = jest.spyOn(stampsDb, "listRallyStamps");
+
+    const { result } = await renderHook(() => useRallyStamps(undefined), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.fetchStatus).toBe("idle");
+    expect(listRallyStamps).not.toHaveBeenCalled();
+  });
+});

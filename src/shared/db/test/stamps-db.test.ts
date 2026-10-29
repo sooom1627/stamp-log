@@ -7,6 +7,7 @@ import {
   deleteStamp,
   getStamp,
   listPhotoDayStamps,
+  listRallyStamps,
   listStamps,
   saveStamp,
   updateStamp,
@@ -837,5 +838,24 @@ describe("RT-003 ST-001 read one stamp, and one photo's day", () => {
 
   test("listPhotoDayStamps returns nothing for a photo that does not exist", async () => {
     await expect(listPhotoDayStamps(999999)).resolves.toEqual([]);
+  });
+});
+
+describe("RT-003 ST-002 read one rally's stamps", () => {
+  test("listRallyStamps returns only that rally's stamps, newest first, with their photos", async () => {
+    const older = await saveStamp({
+      rallyId: 911,
+      stampedAt: "2026-09-10T09:00:00.000Z",
+    });
+    const newer = await saveStamp({ rallyId: 911 });
+    await saveStamp({ rallyId: 912 });
+    const withPhoto = await updateStampMemo({
+      id: older.id,
+      memo: "",
+      photoUris: [pickPhoto()],
+    });
+
+    await expect(listRallyStamps(911)).resolves.toEqual([newer, withPhoto]);
+    await expect(listRallyStamps(913)).resolves.toEqual([]);
   });
 });

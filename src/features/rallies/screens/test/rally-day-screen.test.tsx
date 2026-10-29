@@ -62,7 +62,7 @@ describe("S-028 T-004 ST-003 rally day sheet", () => {
     expect(
       screen.getByRole("heading", { name: "Sep 18, 2026" }),
     ).toBeOnTheScreen();
-    expect(screen.getByText("7:02 PM")).toBeOnTheScreen();
+    expect(await screen.findByText("7:02 PM")).toBeOnTheScreen();
     expect(screen.getByText("Talked in the lab")).toBeOnTheScreen();
     // The Sep 17 stamp and the other rally's Sep 18 stamp stay out.
     expect(screen.queryByText("9:00 AM")).not.toBeOnTheScreen();
@@ -145,7 +145,7 @@ describe("S-028 RT-001 ST-006 rally day look", () => {
       "className",
       expect.stringContaining("text-accent-strong"),
     );
-    const empty = screen.getByTestId("rally-day-empty");
+    const empty = await screen.findByTestId("rally-day-empty");
     expect(empty).toHaveProp(
       "className",
       expect.stringContaining("bg-accent-subtle"),
