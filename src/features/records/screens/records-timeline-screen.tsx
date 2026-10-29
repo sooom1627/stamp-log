@@ -6,7 +6,10 @@ import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
 import { DayCard } from "@/shared/components/day-card";
-import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
+import {
+  initialCalendarRange,
+  RallyMonthCalendar,
+} from "@/shared/components/rally-month-calendar";
 import { StampPost } from "@/shared/components/stamp-post";
 import { StampsAlbumPager } from "@/shared/components/stamps-album-pager";
 import {
@@ -19,7 +22,11 @@ import {
 } from "@/shared/components/tab-root-screen";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
-import { useStamps } from "@/shared/hooks/use-stamps";
+import {
+  useFirstStampedAt,
+  useStamps,
+  useStampsBetween,
+} from "@/shared/hooks/use-stamps";
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
@@ -40,6 +47,14 @@ export function RecordsTimelineScreen() {
   const tiles = albumTiles(stamps ?? [], rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const hasPosts = posts.length > 0;
+  // The calendar reads only the week or month it shows.
+  const [calendarRange, setCalendarRange] = useState(initialCalendarRange);
+  const { data: calendarStamps } = useStampsBetween(
+    calendarRange.start,
+    calendarRange.end,
+  );
+  const { data: firstStampedAt } = useFirstStampedAt();
+  const calendarPosts = stampsWithRallies(calendarStamps ?? [], rallies ?? []);
 
   return (
     <>
@@ -58,8 +73,10 @@ export function RecordsTimelineScreen() {
           {/* Not linked to the pages: moving it leaves the posts as they are. */}
           <RallyMonthCalendar
             testID="logs-calendar"
-            stampDates={posts.map(({ stamp }) => stamp.stampedAt)}
-            dayMarks={buildDayMarks(stamps ?? [], rallies ?? [])}
+            stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
+            dayMarks={buildDayMarks(calendarStamps ?? [], rallies ?? [])}
+            firstStampedAt={firstStampedAt}
+            onVisibleRangeChange={setCalendarRange}
             isRecordedOnly
             onPressDay={(date) =>
               push({ pathname: "/logs-day", params: { date } })

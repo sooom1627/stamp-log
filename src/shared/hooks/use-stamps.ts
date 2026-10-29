@@ -1,4 +1,5 @@
 import {
+  keepPreviousData,
   queryOptions,
   skipToken,
   useMutation,
@@ -8,11 +9,13 @@ import {
 
 import {
   deleteStamp,
+  getFirstStampedAt,
   getStamp,
   getStampSummary,
   listPhotoDayStamps,
   listRallyStamps,
   listStamps,
+  listStampsBetween,
   saveStamp,
   updateStamp,
   updateStampMemo,
@@ -54,6 +57,26 @@ export function useStampSummary(today: Date) {
   return useQuery({
     queryKey: [...stampsQueryKey, "summary", since],
     queryFn: () => getStampSummary(since),
+  });
+}
+
+// The stamps from `start` up to (not including) `end`. While a new range
+// loads, the last one stays, so a calendar does not blink empty.
+export function useStampsBetween(start: Date, end: Date) {
+  const startIso = start.toISOString();
+  const endIso = end.toISOString();
+  return useQuery({
+    queryKey: [...stampsQueryKey, "between", startIso, endIso],
+    queryFn: () => listStampsBetween(startIso, endIso),
+    placeholderData: keepPreviousData,
+  });
+}
+
+// The oldest stamp's time (null without stamps), for the calendar's years.
+export function useFirstStampedAt() {
+  return useQuery({
+    queryKey: [...stampsQueryKey, "first"],
+    queryFn: () => getFirstStampedAt(),
   });
 }
 

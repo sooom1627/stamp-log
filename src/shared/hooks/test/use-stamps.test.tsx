@@ -23,11 +23,13 @@ import {
 import {
   stampsQueryKey,
   useDeleteStamp,
+  useFirstStampedAt,
   usePhotoDayStamps,
   useRallyStamps,
   useSaveStamp,
   useStamp,
   useStamps,
+  useStampsBetween,
   useStampSummary,
   useUpdateStamp,
   useUpdateStampMemo,
@@ -724,5 +726,61 @@ describe("RT-003 ST-003 useStampSummary reads counts and the last 7 days", () =>
       expect(result.current.query.data?.countsByRally.get(821)).toBe(3);
     });
     expect(listStamps).not.toHaveBeenCalled();
+  });
+});
+
+describe("RT-003 ST-004 useStampsBetween and useFirstStampedAt", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("reads only the range and reads it again after a stamp is saved", async () => {
+    const start = new Date(Date.now() - 60 * 60 * 1000);
+    const end = new Date(Date.now() + 60 * 60 * 1000);
+    await saveStamp({
+      rallyId: 831,
+      stampedAt: new Date(start.getTime() - 1).toISOString(),
+    });
+    const listStamps = jest.spyOn(stampsDb, "listStamps");
+
+    const { result } = await renderHook(
+      () => ({ query: useStampsBetween(start, end), save: useSaveStamp() }),
+      { wrapper: createWrapper() },
+    );
+    await waitFor(() => {
+      expect(result.current.query.isSuccess).toBe(true);
+    });
+    const before = result.current.query.data?.length ?? 0;
+
+    let savedId = 0;
+    await act(async () => {
+      savedId = (await result.current.save.mutateAsync({ rallyId: 831 })).id;
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.data?.length).toBe(before + 1);
+    });
+    expect(result.current.query.data?.[0].id).toBe(savedId);
+    expect(
+      result.current.query.data?.every(
+        ({ stampedAt }) => stampedAt >= start.toISOString(),
+      ),
+    ).toBe(true);
+    expect(listStamps).not.toHaveBeenCalled();
+  });
+
+  test("useFirstStampedAt returns the oldest stamp's time", async () => {
+    const oldest = await saveStamp({
+      rallyId: 832,
+      stampedAt: "2001-01-01T00:00:00.000Z",
+    });
+
+    const { result } = await renderHook(() => useFirstStampedAt(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toBe(oldest.stampedAt);
+    });
   });
 });

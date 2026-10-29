@@ -1,4 +1,9 @@
-import { render, screen, within } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  userEvent,
+  within,
+} from "@testing-library/react-native";
 
 import { type DayMark } from "@/shared/utils/month-grid";
 
@@ -68,5 +73,63 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
     expect(
       screen.getByRole("button", { name: "Oct 9, 2026, not recorded" }),
     ).toBeDisabled();
+  });
+});
+
+describe("RT-003 ST-004 calendar tells the range it shows", () => {
+  test("reports the shown week or month as local midnights, end left out", async () => {
+    const onVisibleRangeChange = jest.fn();
+    await render(
+      <RallyMonthCalendar
+        stampDates={[]}
+        onVisibleRangeChange={onVisibleRangeChange}
+      />,
+    );
+    const user = userEvent.setup();
+
+    await user.press(screen.getByRole("button", { name: "Next week" }));
+    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
+      start: new Date(2026, 9, 12),
+      end: new Date(2026, 9, 19),
+    });
+
+    await user.press(screen.getByRole("button", { name: "Show month" }));
+    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
+      start: new Date(2026, 9, 1),
+      end: new Date(2026, 10, 1),
+    });
+
+    await user.press(screen.getByRole("button", { name: "Next month" }));
+    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
+      start: new Date(2026, 10, 1),
+      end: new Date(2026, 11, 1),
+    });
+
+    await user.press(screen.getByRole("button", { name: "Show week" }));
+    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
+      start: new Date(2026, 9, 5),
+      end: new Date(2026, 9, 12),
+    });
+  });
+
+  test("starts the year wheel at the first stamp's year when only some stamps are given", async () => {
+    await render(
+      <RallyMonthCalendar
+        stampDates={[at(7, 9)]}
+        firstStampedAt={new Date(2023, 4, 1).toISOString()}
+      />,
+    );
+    const user = userEvent.setup();
+
+    await user.press(
+      screen.getByRole("button", { name: "Choose month, October 2026" }),
+    );
+
+    const yearWheel = screen.getByTestId("month-picker-year");
+    expect(yearWheel).toHaveProp("selection", 2026);
+    // The wheel's rows are native views without text, so count them:
+    // 2023 to next year (2027).
+    const [rows] = yearWheel.children;
+    expect(typeof rows === "string" ? [] : rows.children).toHaveLength(5);
   });
 });

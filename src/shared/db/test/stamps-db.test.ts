@@ -890,3 +890,43 @@ describe("RT-003 ST-003 tile summary", () => {
     expect(recentStamps).toEqual([]);
   });
 });
+
+describe("RT-003 ST-004 read a time range, and the first stamp", () => {
+  test("listStampsBetween includes the start and leaves out the end, however precise the stored time", async () => {
+    const { stampsDb } = loadFreshDb();
+    const start = "2026-09-09T15:00:00.000Z";
+    const end = "2026-09-10T15:00:00.000Z";
+    await stampsDb.saveStamp({
+      rallyId: 1,
+      stampedAt: "2026-09-09T14:59:59.999Z",
+    });
+    const atStart = await stampsDb.saveStamp({
+      rallyId: 2,
+      stampedAt: "2026-09-09T15:00:00Z",
+    });
+    const inside = await stampsDb.saveStamp({
+      rallyId: 3,
+      stampedAt: "2026-09-10T14:59:59Z",
+    });
+    await stampsDb.saveStamp({ rallyId: 4, stampedAt: "2026-09-10T15:00:00Z" });
+    await stampsDb.saveStamp({ rallyId: 5, stampedAt: end });
+
+    await expect(stampsDb.listStampsBetween(start, end)).resolves.toEqual([
+      inside,
+      atStart,
+    ]);
+  });
+
+  test("getFirstStampedAt returns the oldest stamp's time, and null without stamps", async () => {
+    const { stampsDb } = loadFreshDb();
+    await expect(stampsDb.getFirstStampedAt()).resolves.toBeNull();
+
+    await stampsDb.saveStamp({ rallyId: 1 });
+    const oldest = await stampsDb.saveStamp({
+      rallyId: 2,
+      stampedAt: "2024-03-01T09:00:00.000Z",
+    });
+
+    await expect(stampsDb.getFirstStampedAt()).resolves.toBe(oldest.stampedAt);
+  });
+});

@@ -148,6 +148,28 @@ export async function getStampSummary(since: string): Promise<StampSummary> {
   };
 }
 
+// The stamps from `start` up to (not including) `end`, both ISO times.
+export async function listStampsBetween(
+  start: string,
+  end: string,
+): Promise<Stamp[]> {
+  return listStampsWhere(
+    await withAppDb(),
+    "stamped_at >= ? AND stamped_at < ?",
+    start,
+    end,
+  );
+}
+
+// The oldest stamp's time, or null without stamps.
+export async function getFirstStampedAt(): Promise<Stamp["stampedAt"] | null> {
+  const db = await withAppDb();
+  const row = await db.getFirstAsync<{ stampedAt: string | null }>(
+    "SELECT MIN(stamped_at) AS stampedAt FROM stamps",
+  );
+  return row?.stampedAt ?? null;
+}
+
 export async function listRallyStamps(
   rallyId: Stamp["rallyId"],
 ): Promise<Stamp[]> {
