@@ -98,7 +98,7 @@ async function openLogs() {
   });
 }
 
-const stampTimePattern = / (AM|PM)$/;
+const stampTimePattern = /^\d{1,2}:\d{2}$/;
 
 describe("S-010 T-001 ST-003 Logs timeline", () => {
   test("shows stamps from every rally newest first with the rally name", async () => {
@@ -237,7 +237,7 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     ).toHaveTextContent("Today");
     expect(
       logs.getAllByText(stampTimePattern).map((time) => time.props.children),
-    ).toEqual(["8:00 PM", "8:00 AM", "7:00 PM", "6:00 AM"]);
+    ).toEqual(["20:00", "8:00", "19:00", "6:00"]);
   });
 });
 

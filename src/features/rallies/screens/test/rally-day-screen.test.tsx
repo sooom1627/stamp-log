@@ -62,11 +62,11 @@ describe("S-028 T-004 ST-003 rally day sheet", () => {
     expect(
       screen.getByRole("heading", { name: "Sep 18, 2026" }),
     ).toBeOnTheScreen();
-    expect(await screen.findByText("7:02 PM")).toBeOnTheScreen();
+    expect(await screen.findByText("19:02")).toBeOnTheScreen();
     expect(screen.getByText("Talked in the lab")).toBeOnTheScreen();
     // The Sep 17 stamp and the other rally's Sep 18 stamp stay out.
-    expect(screen.queryByText("9:00 AM")).not.toBeOnTheScreen();
-    expect(screen.queryByText("8:00 AM")).not.toBeOnTheScreen();
+    expect(screen.queryByText("9:00")).not.toBeOnTheScreen();
+    expect(screen.queryByText("8:00")).not.toBeOnTheScreen();
     expect(sheet).toBeOnTheScreen();
   });
 
@@ -98,7 +98,7 @@ describe("S-028 T-004 ST-003 rally day sheet", () => {
 
     // The list refetches after the deletion invalidates the stamps query.
     await waitFor(() => {
-      expect(screen.queryByText("7:02 PM")).not.toBeOnTheScreen();
+      expect(screen.queryByText("19:02")).not.toBeOnTheScreen();
     });
     expect(screen.getByTestId("rally-day-sheet")).toBeOnTheScreen();
     expect((await listStamps()).some((stamp) => stamp.id === lab.id)).toBe(
@@ -119,7 +119,7 @@ describe("S-028 T-004 ST-005 empty rally day", () => {
     expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(await screen.findByText("12:00 PM")).toBeOnTheScreen();
+    expect(await screen.findByText("12:00")).toBeOnTheScreen();
     expect(screen.getByTestId("rally-day-sheet")).toBeOnTheScreen();
     expect(screen.queryByText("No stamp on this day")).not.toBeOnTheScreen();
     expect(
@@ -130,7 +130,7 @@ describe("S-028 T-004 ST-005 empty rally day", () => {
   test("does not offer Stamp this day on a day that already has a stamp", async () => {
     await openRallyDay("Recorded day", "2026-09-18");
 
-    expect(await screen.findByText("7:02 PM")).toBeOnTheScreen();
+    expect(await screen.findByText("19:02")).toBeOnTheScreen();
     expect(
       screen.queryByRole("button", { name: "Stamp this day" }),
     ).not.toBeOnTheScreen();

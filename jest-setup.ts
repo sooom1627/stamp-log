@@ -1,6 +1,7 @@
 import "react-native-gesture-handler/jestSetup";
 
 import { markOnboarded } from "@/features/onboarding/db/onboarding-state";
+import { i18n } from "@/shared/i18n";
 
 jest.mock("react-native-worklets", () =>
   jest.requireActual("react-native-worklets/src/mock"),
@@ -40,7 +41,9 @@ jest.mock("react-native/Libraries/ReactNative/RendererProxy", () => ({
 }));
 
 // Tests open the app as someone who already finished onboarding (S-047);
-// onboarding tests clear the storage first.
-beforeEach(() => {
+// onboarding tests clear the storage first. They read English text, so a test
+// that switches to Japanese does not leak into the next one.
+beforeEach(async () => {
   markOnboarded();
+  await i18n.changeLanguage("en");
 });

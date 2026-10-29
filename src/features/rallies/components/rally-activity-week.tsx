@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 
-import { formatMediumDate } from "@/shared/utils/format-medium-date";
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { type MonthDay } from "@/shared/utils/month-grid";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
@@ -37,7 +37,7 @@ export function RallyActivityWeek({
       </View>
       <View className="flex-row">
         {activityDays.map((day) => {
-          const formattedDate = formatMediumDate(day.date);
+          const formattedDate = formatSpokenDate(day.date);
           return (
             <View
               key={day.key}

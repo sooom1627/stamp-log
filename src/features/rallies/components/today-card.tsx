@@ -1,18 +1,15 @@
 import { Text, View } from "react-native";
 
 import { type Rally } from "@/shared/schemas/rallies";
+import { formatSpokenMonthDay } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
 import { stampEmojiRows } from "../utils/stamp-emoji-rows";
 
-const spokenDateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-});
 const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "short" });
 
 function spokenLabel(rallies: Rally[], today: Date) {
-  const date = `Today, ${spokenDateFormatter.format(today)}`;
+  const date = `Today, ${formatSpokenMonthDay(today)}`;
   if (rallies.length === 0) return `${date}, no stamps yet`;
   const names = rallies.map((rally) => rally.name).join(", ");
   return `${date}, ${formatStampCount(rallies.length)}: ${names}`;
