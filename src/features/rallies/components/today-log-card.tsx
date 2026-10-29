@@ -40,9 +40,10 @@ type TodayLogCardProps = {
   position: string;
 };
 
-// The third of home's top cards: today's stamps as dots on a line from
+// The second of home's top cards: today's stamps as dots on a line from
 // midnight to midnight, with a line at the current time, and the latest
-// times below.
+// emojis and times below. The line carries dots only, so stamps close in
+// time do not pile their emojis on each other.
 export function TodayLogCard({ entries, width, position }: TodayLogCardProps) {
   const now = useNow();
   const nowHour = now.getHours() + now.getMinutes() / 60;
@@ -59,30 +60,25 @@ export function TodayLogCard({ entries, width, position }: TodayLogCardProps) {
       testID="today-log-card"
     >
       <View className="flex-1 justify-center gap-5 pt-2">
-        <View className="mx-1 h-10">
-          <View className="bg-border absolute inset-x-0 top-5 h-px" />
+        <View className="mx-1 h-9" testID="today-log-line">
+          <View className="bg-border absolute inset-x-0 top-3 h-px" />
           <View
-            className="bg-accent absolute top-3 h-5.5 w-px opacity-70"
+            className="bg-accent absolute top-0.5 h-5 w-px opacity-70"
             style={{ left: percentOfDay(nowHour) }}
             testID="today-log-now"
           />
           {entries.map((entry) => (
             <View
               key={entry.stampId}
-              className="absolute top-0 -ml-2 w-4 items-center"
+              className="bg-accent absolute top-2 -ml-1.125 size-2.25 rounded-full"
               style={{ left: percentOfDay(entry.hour) }}
-            >
-              <Text className="text-[13px] leading-4">{entry.emoji}</Text>
-              <View
-                className="bg-accent mt-0.25 size-2.25 rounded-full"
-                testID="today-log-dot"
-              />
-            </View>
+              testID="today-log-dot"
+            />
           ))}
           {TICKS.map((hour) => (
             <Text
               key={hour}
-              className="text-foreground-muted absolute top-7 -ml-2 w-4 text-center text-[10px]"
+              className="text-foreground-muted absolute top-5 -ml-2 w-4 text-center text-[10px]"
               style={{ left: percentOfDay(hour) }}
             >
               {hour}

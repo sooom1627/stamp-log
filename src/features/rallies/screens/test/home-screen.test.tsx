@@ -1061,6 +1061,10 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
 
     expect(within(card).getByText("now 8:10 PM")).toBeOnTheScreen();
     expect(within(card).getAllByTestId("today-log-dot")).toHaveLength(4);
+    // Dots only on the line, so stamps close in time do not stack emojis.
+    expect(
+      within(within(card).getByTestId("today-log-line")).queryByText("🏃"),
+    ).not.toBeOnTheScreen();
     expect(within(card).getByTestId("today-log-now")).toHaveProp(
       "style",
       expect.objectContaining({ left: `${((20 + 10 / 60) / 24) * 100}%` }),

@@ -41,7 +41,7 @@
       --color-accent-soft: #ffedd5;
       --color-accent-strong: #9a3412;
       /* The disc on home's top cards (S-050): nearly white, a touch of cream. */
-      --color-card-disc: #fbf8f2;
+      --color-card-disc: #fdfcf9;
       /* Tab screens sit on canvas; tiles on it use surface, lighter than
          canvas so they lift off it. */
       --color-canvas: #f4f4f5;
