@@ -925,27 +925,21 @@ describe("S-050 T-001 ST-003 orange only on today's stamp", () => {
     }
   });
 
-  test("marks a rally stamped today in navy, not orange", async () => {
-    const user = await renderHomeWithRally("Navy check");
+  test("marks a rally stamped today in orange and its dots in the text color", async () => {
+    const user = await renderHomeWithRally("Mark check");
 
     await user.press(
-      screen.getByRole("button", { name: "Stamp Navy check for today" }),
+      screen.getByRole("button", { name: "Stamp Mark check for today" }),
     );
 
-    const stamped = await screen.findByRole("button", {
-      name: "Navy check already stamped today",
-    });
-    expect(stamped).toHaveProp(
-      "className",
-      expect.stringContaining("bg-primary"),
-    );
-    expect(stamped).toHaveProp(
-      "className",
-      expect.not.stringContaining("accent"),
-    );
+    expect(
+      await screen.findByRole("button", {
+        name: "Mark check already stamped today",
+      }),
+    ).toHaveProp("className", expect.stringContaining("bg-accent "));
     const tile = screen
       .getAllByTestId("rally-tile")
-      .find((candidate) => within(candidate).queryByText("Navy check"));
+      .find((candidate) => within(candidate).queryByText("Mark check"));
     if (!tile) throw new Error("tile not found");
     for (const day of within(tile).getAllByTestId("activity-day")) {
       const dot = day.children[0];

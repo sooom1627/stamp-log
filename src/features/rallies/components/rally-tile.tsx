@@ -76,17 +76,13 @@ export function RallyTile({
             hitSlop={6}
             className={
               isStampedToday
-                ? "bg-primary size-8 items-center justify-center rounded-full"
+                ? "bg-accent size-8 items-center justify-center rounded-full"
                 : "bg-surface-muted size-8 items-center justify-center rounded-full active:opacity-70"
             }
             onPress={onPressStamp}
           >
             {isStampedToday ? (
-              <Check
-                colorClassName="accent-primary-foreground"
-                size={16}
-                strokeWidth={3}
-              />
+              <Check colorClassName="accent-white" size={16} strokeWidth={3} />
             ) : (
               <Plus
                 colorClassName="accent-foreground"

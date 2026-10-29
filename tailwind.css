@@ -48,10 +48,10 @@
       --color-mark-band-from: #334155;
       --color-mark-band-to: #1e293b;
       /* Home's full-screen gradient (S-050): sand at the top fading to a
-         light grey. */
-      --color-home-top: #ece5d6;
-      --color-home-mid: #efede8;
-      --color-home-bottom: #ebebea;
+         warm white, bright enough not to look dull on device. */
+      --color-home-top: #f3ead9;
+      --color-home-mid: #f7f3ec;
+      --color-home-bottom: #f6f5f1;
     }
     @variant dark {
       --color-background: #0f172a;
