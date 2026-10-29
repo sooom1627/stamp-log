@@ -56,11 +56,10 @@ export function TopCard({
   );
 }
 
-// The 96px disc on the right of a top card, the same muted fill as a tile's
-// emoji badge.
+// The 96px disc on the right of a top card: a flat, nearly white cream.
 export function CardDisc({ children }: { children: ReactNode }) {
   return (
-    <View className="bg-surface-muted size-24 items-center justify-center rounded-full">
+    <View className="bg-card-disc size-24 items-center justify-center rounded-full">
       {children}
     </View>
   );

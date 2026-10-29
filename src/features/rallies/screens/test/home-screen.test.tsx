@@ -979,7 +979,7 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
     return rally;
   }
 
-  test("lays today, With Ato and today's log side by side and marks the one in view", async () => {
+  test("lays today, today's log and With Ato side by side and marks the one in view", async () => {
     await saveRallyWithStamps("Morning run", "🏃", [at(9, 29, 7, 12)]);
 
     await renderRouter("./src/app");
@@ -990,7 +990,7 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
       within(cards)
         .getAllByTestId(/^(today-card|with-ato-card|today-log-card)$/)
         .map((card) => card.props.testID),
-    ).toEqual(["today-card", "with-ato-card", "today-log-card"]);
+    ).toEqual(["today-card", "today-log-card", "with-ato-card"]);
     for (const card of within(cards).getAllByTestId(/-card$/)) {
       expect(card).toHaveProp("className", expect.stringContaining("h-42"));
       expect(card).toHaveProp(
@@ -1031,7 +1031,7 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
         .map((t) => t.children[0]),
     ).toEqual(["🏃", "📚"]);
     expect(card).toHaveAccessibleName(
-      "With Ato, 210 days since Apr 3, 2026, 3 stamps, 2 rallies, 2 of 3",
+      "With Ato, 210 days since Apr 3, 2026, 3 stamps, 2 rallies, 3 of 3",
     );
   });
 
@@ -1071,7 +1071,7 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
         .map((t) => t.children[0]),
     ).toEqual(["+1", "📚 12:42 PM", "🚶 6:40 PM", "📓 7:06 PM"]);
     expect(card).toHaveAccessibleName(
-      "Today's log, 4 stamps: 7:12 AM Morning run, 12:42 PM Reading, 6:40 PM Walk, 7:06 PM Journal, 3 of 3",
+      "Today's log, 4 stamps: 7:12 AM Morning run, 12:42 PM Reading, 6:40 PM Walk, 7:06 PM Journal, 2 of 3",
     );
   });
 

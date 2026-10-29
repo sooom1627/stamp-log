@@ -33,7 +33,7 @@ type HomeTopCardsProps = {
 };
 
 // Home's top cards (S-050), one card wide, swiped one at a time: today,
-// With Ato and today's log. The dots below mark the card in view.
+// today's log and With Ato. The dots below mark the card in view.
 export function HomeTopCards({
   windowWidth,
   today,
@@ -75,16 +75,16 @@ export function HomeTopCards({
           width={cardWidth}
           position={positionOf(0)}
         />
+        <TodayLogCard
+          entries={todayLog}
+          width={cardWidth}
+          position={positionOf(1)}
+        />
         <WithAtoCard
           days={daysWithAto}
           firstStampedAt={firstStampedAt}
           stampCount={stampCount}
           rallies={allRallies}
-          width={cardWidth}
-          position={positionOf(1)}
-        />
-        <TodayLogCard
-          entries={todayLog}
           width={cardWidth}
           position={positionOf(2)}
         />
