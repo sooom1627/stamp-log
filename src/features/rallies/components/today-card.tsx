@@ -55,11 +55,11 @@ function TodayStamp({ rallies, today }: { rallies: Rally[]; today: Date }) {
   // fills the disc (S-053).
   const emojiClassName =
     rallies.length === 1
-      ? "text-[40px]"
+      ? "text-[52px]"
       : rallies.length === 2
-        ? "text-[30px]"
+        ? "text-[38px]"
         : rows.length === 1
-          ? "text-[26px]"
+          ? "text-[30px]"
           : "text-xl";
   return (
     <View

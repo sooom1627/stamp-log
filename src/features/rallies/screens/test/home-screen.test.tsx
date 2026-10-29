@@ -1162,21 +1162,21 @@ describe("S-053 T-001 ST-002 a today card that does not look empty", () => {
       ["🧑‍💻", "Side project"],
     ]);
     for (const className of emojiClassNames(card)) {
-      expect(className).toContain("text-[30px]");
+      expect(className).toContain("text-[38px]");
     }
     expect(card).toHaveProp("className", expect.stringContaining("h-42"));
   });
 
-  test("draws a single emoji at 40px on its one row", async () => {
+  test("draws a single emoji at 52px on its one row", async () => {
     await stampRallies([["Edinburgh", "☕"]]);
 
     await renderRouter("./src/app");
     const single = await screen.findByTestId("today-card");
-    expect(emojiClassNames(single)[0]).toContain("text-[40px]");
+    expect(emojiClassNames(single)[0]).toContain("text-[52px]");
     expect(rallyRowsOf(single)).toEqual([["☕", "Edinburgh"]]);
   });
 
-  test("keeps three rallies as three rows with 26px emojis", async () => {
+  test("keeps three rallies as three rows with 30px emojis", async () => {
     await stampRallies([
       ["Edinburgh", "☕"],
       ["Side project", "🧑‍💻"],
@@ -1192,7 +1192,7 @@ describe("S-053 T-001 ST-002 a today card that does not look empty", () => {
       ["📚", "Reading"],
     ]);
     for (const className of emojiClassNames(card)) {
-      expect(className).toContain("text-[26px]");
+      expect(className).toContain("text-[30px]");
     }
   });
 });
