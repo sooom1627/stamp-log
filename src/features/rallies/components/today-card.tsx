@@ -5,7 +5,7 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
 import { stampEmojiRows } from "../utils/stamp-emoji-rows";
 
-import { CardDisc, CardNumber, TopCard } from "./top-card";
+import { CardDisc, TopCard } from "./top-card";
 
 const spokenDateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -119,15 +119,14 @@ export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
       testID="today-card"
     >
       <View className="flex-1 flex-row items-center gap-3">
-        <View className="flex-1 gap-1.5">
+        <View className="flex-1 gap-1">
           {rallies.length > 0 ? (
             <>
-              <CardNumber
-                value={String(rallies.length)}
-                unit={rallies.length === 1 ? "stamp today" : "stamps today"}
-              />
+              <Text className="text-foreground text-base font-semibold">
+                {`${formatStampCount(rallies.length)} today`}
+              </Text>
               <Text
-                className="text-foreground-secondary text-[13px] leading-[18px]"
+                className="text-foreground-secondary text-sm"
                 numberOfLines={2}
               >
                 {rallies.map((rally) => rally.name).join(" · ")}
@@ -138,7 +137,7 @@ export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
               <Text className="text-foreground text-base font-semibold">
                 No stamps yet today
               </Text>
-              <Text className="text-foreground-secondary text-[13px] leading-[18px]">
+              <Text className="text-foreground-secondary text-sm">
                 What you stamp today shows up here.
               </Text>
             </>

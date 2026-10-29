@@ -92,21 +92,21 @@ export function TodayLogCard({ entries, width, position }: TodayLogCardProps) {
         {entries.length > 0 ? (
           <View className="flex-row gap-3.5" testID="today-log-times">
             {earlierCount > 0 ? (
-              <Text className="text-foreground-muted text-[13px]">
+              <Text className="text-foreground-muted text-sm">
                 {`+${earlierCount}`}
               </Text>
             ) : null}
             {latest.map((entry) => (
               <Text
                 key={entry.stampId}
-                className="text-foreground-secondary text-[13px]"
+                className="text-foreground-secondary text-sm"
               >
                 {`${entry.emoji} ${formatStampTime(entry.stampedAt)}`}
               </Text>
             ))}
           </View>
         ) : (
-          <Text className="text-foreground-muted text-[13px]">
+          <Text className="text-foreground-muted text-sm">
             Each stamp today lands on this line.
           </Text>
         )}

@@ -4,7 +4,7 @@ import { type Rally } from "@/shared/schemas/rallies";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
-import { CardDisc, CardNumber, TopCard } from "./top-card";
+import { CardDisc, TopCard } from "./top-card";
 
 const MAX_EMOJIS = 6;
 
@@ -48,19 +48,21 @@ export function WithAtoCard({
     <TopCard
       label="With Ato"
       detail={since}
-      tone="sand"
+      tone="plain"
       spokenLabel={spoken}
       width={width}
       testID="with-ato-card"
     >
       <View className="flex-1 flex-row items-center gap-3">
-        <View className="flex-1 gap-2">
-          <CardNumber value={String(days)} unit={days === 1 ? "day" : "days"} />
-          <View className="flex-row gap-3.5">
-            <Text className="text-foreground-secondary text-[13px]">
+        <View className="flex-1 gap-1">
+          <Text className="text-foreground text-base font-semibold">
+            {dayText}
+          </Text>
+          <View className="flex-row gap-3">
+            <Text className="text-foreground-secondary text-sm">
               {formatStampCount(stampCount)}
             </Text>
-            <Text className="text-foreground-secondary text-[13px]">
+            <Text className="text-foreground-secondary text-sm">
               {formatRallyCount(rallies.length)}
             </Text>
           </View>
