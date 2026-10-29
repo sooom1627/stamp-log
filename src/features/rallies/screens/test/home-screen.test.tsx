@@ -892,3 +892,19 @@ describe("S-039 T-003 ST-003 View All tap target", () => {
     );
   });
 });
+
+describe("S-050 T-001 ST-002 full-screen gradient", () => {
+  test("lays a top-to-bottom gradient behind the whole home screen", async () => {
+    await renderHomeWithRally("Gradient check");
+
+    const home = await screen.findByLabelText("Home");
+    for (const name of [
+      "bg-linear-to-b",
+      "from-home-top",
+      "via-home-mid",
+      "to-home-bottom",
+    ]) {
+      expect(home).toHaveProp("className", expect.stringContaining(name));
+    }
+  });
+});

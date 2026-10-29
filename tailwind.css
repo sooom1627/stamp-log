@@ -47,6 +47,11 @@
       /* The bands under the Ato mark's sun. */
       --color-mark-band-from: #334155;
       --color-mark-band-to: #1e293b;
+      /* Home's full-screen gradient (S-050): sand at the top fading to a
+         light grey. */
+      --color-home-top: #ece5d6;
+      --color-home-mid: #efede8;
+      --color-home-bottom: #ebebea;
     }
     @variant dark {
       --color-background: #0f172a;
@@ -66,6 +71,9 @@
       --color-surface: #334155;
       --color-mark-band-from: #e2e8f0;
       --color-mark-band-to: #94a3b8;
+      --color-home-top: #1a1814;
+      --color-home-mid: #121212;
+      --color-home-bottom: #141414;
     }
   }
 }

@@ -57,7 +57,7 @@ export function TabRootScreen({ label, children }: TabRootScreenProps) {
     <>
       <ScrollView
         aria-label={label}
-        className="bg-canvas flex-1"
+        className="bg-canvas from-home-top via-home-mid to-home-bottom flex-1 bg-linear-to-b"
         contentContainerClassName="px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
       >
