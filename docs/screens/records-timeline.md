@@ -25,6 +25,8 @@
 
 ## レイアウト
 
+- 背景は [home.md](./home.md) と同じ、画面全体の上から下へのグラデーション（`canvas-top` → `canvas-mid` → `canvas-bottom`）。スクロールしても背景は動かない。上に止まる Stamps / Album の切り替えの帯は、下を流れる投稿を隠すため中間色（`canvas-mid`）の単色にする
+
 ```
 Logs                                ← 大見出し
 Your days, one stamp at a time      ← その下に一言（日付は出さない）

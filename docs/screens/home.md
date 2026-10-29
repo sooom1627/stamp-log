@@ -56,7 +56,7 @@ Your Days                  View All
 
 ### 背景
 
-- 画面全体に、上から下へのグラデーションを敷く（`home-top` → `home-mid` → `home-bottom`）。ライトは上の淡い砂色から下の白に近い色へ、ダークは上のわずかに暖かい黒から下の黒へ。スクロールしても背景は動かない。値は [tailwind.css](../../tailwind.css)
+- 画面全体に、上から下へのグラデーションを敷く（`canvas-top` → `canvas-mid` → `canvas-bottom`。[records-timeline.md](./records-timeline.md) と同じ）。ライトは上の淡い砂色から下の白に近い色へ、ダークは上のわずかに暖かい黒から下の黒へ。スクロールしても背景は動かない。値は [tailwind.css](../../tailwind.css)
 
 ### 見出し
 
