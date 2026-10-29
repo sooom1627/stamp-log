@@ -908,3 +908,52 @@ describe("S-050 T-001 ST-002 full-screen gradient", () => {
     }
   });
 });
+
+describe("S-050 T-001 ST-003 orange only on today's stamp", () => {
+  test("draws the today card and tiles as white surfaces with larger corners", async () => {
+    await renderHomeWithRally("Corner check");
+
+    const todayCard = screen.getByTestId("today-card");
+    for (const name of ["bg-surface ", "rounded-[32px]"]) {
+      expect(todayCard).toHaveProp("className", expect.stringContaining(name));
+    }
+    const tile = screen
+      .getAllByTestId("rally-tile")
+      .find((candidate) => within(candidate).queryByText("Corner check"));
+    for (const name of ["rounded-[28px]", "p-4"]) {
+      expect(tile).toHaveProp("className", expect.stringContaining(name));
+    }
+  });
+
+  test("marks a rally stamped today in navy, not orange", async () => {
+    const user = await renderHomeWithRally("Navy check");
+
+    await user.press(
+      screen.getByRole("button", { name: "Stamp Navy check for today" }),
+    );
+
+    const stamped = await screen.findByRole("button", {
+      name: "Navy check already stamped today",
+    });
+    expect(stamped).toHaveProp(
+      "className",
+      expect.stringContaining("bg-primary"),
+    );
+    expect(stamped).toHaveProp(
+      "className",
+      expect.not.stringContaining("accent"),
+    );
+    const tile = screen
+      .getAllByTestId("rally-tile")
+      .find((candidate) => within(candidate).queryByText("Navy check"));
+    if (!tile) throw new Error("tile not found");
+    for (const day of within(tile).getAllByTestId("activity-day")) {
+      const dot = day.children[0];
+      if (typeof dot === "string") continue;
+      expect(dot).toHaveProp(
+        "className",
+        expect.not.stringContaining("bg-accent"),
+      );
+    }
+  });
+});

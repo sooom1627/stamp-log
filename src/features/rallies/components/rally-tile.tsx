@@ -39,12 +39,12 @@ export function RallyTile({
 
   return (
     <View
-      className="bg-surface border-continuous gap-3 rounded-3xl p-3.5"
+      className="bg-surface border-continuous gap-3 rounded-[28px] p-4"
       style={{ width }}
       testID="rally-tile"
     >
       <View className="flex-row items-start justify-between">
-        <View className="bg-accent-soft border-continuous size-11 items-center justify-center rounded-2xl">
+        <View className="bg-surface-muted border-continuous size-11 items-center justify-center rounded-2xl">
           <Text className="text-2xl">{emoji}</Text>
           {isFavorite ? (
             // Quiet on purpose: people know their favorites; the mark only
@@ -76,16 +76,20 @@ export function RallyTile({
             hitSlop={6}
             className={
               isStampedToday
-                ? "bg-accent size-8 items-center justify-center rounded-full"
-                : "border-accent size-8 items-center justify-center rounded-full border-[1.5px] active:opacity-70"
+                ? "bg-primary size-8 items-center justify-center rounded-full"
+                : "bg-surface-muted size-8 items-center justify-center rounded-full active:opacity-70"
             }
             onPress={onPressStamp}
           >
             {isStampedToday ? (
-              <Check colorClassName="accent-white" size={16} strokeWidth={3} />
+              <Check
+                colorClassName="accent-primary-foreground"
+                size={16}
+                strokeWidth={3}
+              />
             ) : (
               <Plus
-                colorClassName="accent-accent"
+                colorClassName="accent-foreground"
                 size={16}
                 strokeWidth={2.5}
               />
