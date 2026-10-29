@@ -6,7 +6,7 @@ import { shareAsync } from "expo-sharing";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import { toast } from "sonner-native";
 
-import { backupSchema } from "@/features/data-transfer/schemas/backup";
+import { backupSchema } from "@/features/settings/schemas/backup";
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { saveRally } from "@/shared/db/rallies-db";
 

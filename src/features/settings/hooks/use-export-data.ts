@@ -3,9 +3,8 @@ import { shareAsync } from "expo-sharing";
 
 import { useMutation } from "@tanstack/react-query";
 
+import { readBackup } from "@/features/settings/db/backup-db";
 import { localDateKey } from "@/shared/utils/local-date-key";
-
-import { readBackup } from "../db/backup-db";
 
 // Writes every rally and stamp to a JSON file and opens the share sheet, from
 // which it can be saved to Files or sent by AirDrop. The share sheet resolves

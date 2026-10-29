@@ -5,8 +5,8 @@ import { Pressable, Text, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 
-import { useExportData } from "@/features/data-transfer/hooks/use-export-data";
-import { useImportFromFile } from "@/features/data-transfer/hooks/use-import-data";
+import { useExportData } from "@/features/settings/hooks/use-export-data";
+import { useImportFromFile } from "@/features/settings/hooks/use-import-data";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import {
   ArrowUpRight,

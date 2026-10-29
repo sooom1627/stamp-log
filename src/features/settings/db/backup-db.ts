@@ -1,9 +1,8 @@
+import { backupSchema, type Backup } from "@/features/settings/schemas/backup";
 import { listRallies } from "@/shared/db/rallies-db";
 import { withAppDb } from "@/shared/db/schema";
 import { deleteStampPhotoFiles } from "@/shared/db/stamp-photo-files";
 import { listStamps } from "@/shared/db/stamps-db";
-
-import { backupSchema, type Backup } from "../schemas/backup";
 
 // Every rally (archived ones too) and every stamp, as Export data writes them.
 // The schema leaves the stamps' photos out (S-042).

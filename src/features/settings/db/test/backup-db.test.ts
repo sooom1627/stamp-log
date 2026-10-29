@@ -1,9 +1,9 @@
 import type * as FileSystemModule from "expo-file-system";
 
+import { backupSchema, type Backup } from "@/features/settings/schemas/backup";
 import type * as RalliesDbModule from "@/shared/db/rallies-db";
 import type * as StampsDbModule from "@/shared/db/stamps-db";
 
-import { backupSchema, type Backup } from "../../schemas/backup";
 import type * as BackupDbModule from "../backup-db";
 
 jest.useFakeTimers();

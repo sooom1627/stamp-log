@@ -1,12 +1,12 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
+import { type Backup } from "@/features/settings/schemas/backup";
 import { saveRally } from "@/shared/db/rallies-db";
 import { useRallies } from "@/shared/hooks/use-rallies";
 import { useStamps } from "@/shared/hooks/use-stamps";
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 
-import { type Backup } from "../../schemas/backup";
 import { useImportData } from "../use-import-data";
 
 const queryClients: QueryClient[] = [];

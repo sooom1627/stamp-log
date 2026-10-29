@@ -6,10 +6,12 @@ import { File } from "expo-file-system";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner-native";
 
+import {
+  readBackup,
+  replaceWithBackup,
+} from "@/features/settings/db/backup-db";
+import { backupSchema, type Backup } from "@/features/settings/schemas/backup";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-
-import { readBackup, replaceWithBackup } from "../db/backup-db";
-import { backupSchema, type Backup } from "../schemas/backup";
 
 // Every screen's data comes from the replaced tables, so every query reloads.
 export function useImportData() {
