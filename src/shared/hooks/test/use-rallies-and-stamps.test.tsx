@@ -6,6 +6,7 @@ import * as stampsDb from "@/shared/db/stamps-db";
 import { createTestQueryClient } from "@/shared/query/create-query-client";
 
 import { useRalliesAndStamps } from "../use-rallies-and-stamps";
+import { useStamps } from "../use-stamps";
 
 let queryClient: QueryClient;
 
@@ -29,9 +30,12 @@ describe("RT ST-006 useRalliesAndStamps", () => {
     await ralliesDb.saveRally({ name: "Walk", emoji: "🚶" });
     const saved = await stampsDb.saveStamp({ rallyId: 1 });
 
-    const { result } = await renderHook(() => useRalliesAndStamps(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = await renderHook(
+      () => useRalliesAndStamps(useStamps()),
+      {
+        wrapper: createWrapper(),
+      },
+    );
 
     expect(result.current.isLoaded).toBe(false);
     await waitFor(() => {
@@ -48,9 +52,12 @@ describe("RT ST-006 useRalliesAndStamps", () => {
       .mockRejectedValueOnce(new Error("disk full"));
     const listRallies = jest.spyOn(ralliesDb, "listRallies");
 
-    const { result } = await renderHook(() => useRalliesAndStamps(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = await renderHook(
+      () => useRalliesAndStamps(useStamps()),
+      {
+        wrapper: createWrapper(),
+      },
+    );
     await waitFor(() => {
       expect(result.current.isError).toBe(true);
     });

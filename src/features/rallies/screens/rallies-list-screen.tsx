@@ -10,9 +10,8 @@ import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 import { LoadError } from "@/shared/components/load-error";
 import { SwipePages } from "@/shared/components/swipe-pages";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
-import { useSaveStamp } from "@/shared/hooks/use-stamps";
+import { useSaveStamp, useStampSummary } from "@/shared/hooks/use-stamps";
 import { type Rally } from "@/shared/schemas/rallies";
-import { type Stamp } from "@/shared/schemas/stamps";
 
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
@@ -46,22 +45,25 @@ export function RalliesListScreen() {
   const [filter, setFilter] = useState<RalliesFilter>("all");
   const {
     rallies,
-    stamps,
+    stamps: summary,
     isError: isListError,
     retry: retryLists,
-  } = useRalliesAndStamps();
+  } = useRalliesAndStamps(useStampSummary(new Date()));
   const { mutate: saveStamp } = useSaveStamp();
 
   // Same as home: the order is fixed while the list is open, so a tile does
   // not jump away while it is being stamped.
-  const [orderStamps, setOrderStamps] = useState<Stamp[] | null>(null);
+  const [orderCounts, setOrderCounts] = useState<ReadonlyMap<
+    Rally["id"],
+    number
+  > | null>(null);
   const [shouldResort, setShouldResort] = useState(true);
   useFocusEffect(useCallback(() => setShouldResort(true), []));
-  if (shouldResort && stamps) {
+  if (shouldResort && summary) {
     setShouldResort(false);
-    setOrderStamps(stamps);
+    setOrderCounts(summary.countsByRally);
   }
-  const datesByRally = stampDatesByRally(stamps ?? []);
+  const datesByRally = stampDatesByRally(summary?.recentStamps ?? []);
   const openCreateRally = () => push("/create-rally");
   return (
     <>
@@ -118,7 +120,7 @@ export function RalliesListScreen() {
             const shownRallies = rallies
               ? sortRalliesForHome(
                   rallies.filter((rally) => isInFilter(rally, page)),
-                  orderStamps ?? stamps ?? [],
+                  orderCounts ?? summary?.countsByRally ?? new Map(),
                 )
               : undefined;
             return (
@@ -144,6 +146,7 @@ export function RalliesListScreen() {
                         emoji={rally.emoji}
                         isFavorite={rally.isFavorite}
                         stampDates={datesByRally.get(rally.id) ?? []}
+                        stampCount={summary?.countsByRally.get(rally.id) ?? 0}
                         width={tileWidth}
                         // Archived rallies are looked back on, not stamped.
                         onPressStamp={

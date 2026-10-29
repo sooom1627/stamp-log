@@ -28,6 +28,7 @@ import {
   useSaveStamp,
   useStamp,
   useStamps,
+  useStampSummary,
   useUpdateStamp,
   useUpdateStampMemo,
 } from "../use-stamps";
@@ -671,5 +672,57 @@ describe("RT-003 ST-002 useRallyStamps reads only one rally", () => {
     expect(result.current.data).toBeUndefined();
     expect(result.current.fetchStatus).toBe("idle");
     expect(listRallyStamps).not.toHaveBeenCalled();
+  });
+});
+
+describe("RT-003 ST-003 useStampSummary reads counts and the last 7 days", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("returns the stamps of the 7 local days ending today, and counts a new stamp", async () => {
+    const today = new Date();
+    const localDay = (daysAgo: number, hours: number, minutes: number) =>
+      new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - daysAgo,
+        hours,
+        minutes,
+      ).toISOString();
+    const weekAgo = await saveStamp({
+      rallyId: 821,
+      stampedAt: localDay(7, 23, 59),
+    });
+    const firstDay = await saveStamp({
+      rallyId: 821,
+      stampedAt: localDay(6, 0, 0),
+    });
+    const listStamps = jest.spyOn(stampsDb, "listStamps");
+
+    const { result } = await renderHook(
+      () => ({
+        query: useStampSummary(today),
+        save: useSaveStamp(),
+      }),
+      { wrapper: createWrapper() },
+    );
+    await waitFor(() => {
+      expect(result.current.query.data?.countsByRally.get(821)).toBe(2);
+    });
+    const recentIds = result.current.query.data?.recentStamps.map(
+      ({ id }) => id,
+    );
+    expect(recentIds).toContain(firstDay.id);
+    expect(recentIds).not.toContain(weekAgo.id);
+
+    await act(async () => {
+      await result.current.save.mutateAsync({ rallyId: 821 });
+    });
+
+    await waitFor(() => {
+      expect(result.current.query.data?.countsByRally.get(821)).toBe(3);
+    });
+    expect(listStamps).not.toHaveBeenCalled();
   });
 });

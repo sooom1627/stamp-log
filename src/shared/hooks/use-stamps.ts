@@ -9,6 +9,7 @@ import {
 import {
   deleteStamp,
   getStamp,
+  getStampSummary,
   listPhotoDayStamps,
   listRallyStamps,
   listStamps,
@@ -17,6 +18,7 @@ import {
   updateStampMemo,
 } from "@/shared/db/stamps-db";
 import { type Stamp, type StampPhoto } from "@/shared/schemas/stamps";
+import { addLocalDays } from "@/shared/utils/add-local-days";
 
 export const stampsQueryKey = ["stamps"] as const;
 
@@ -42,6 +44,16 @@ export function useStamp(stampId: Stamp["id"]) {
   return useQuery({
     queryKey: [...stampsQueryKey, "byId", stampId],
     queryFn: () => getStamp(stampId),
+  });
+}
+
+// What rally tiles and the today card show: every rally's count, and the
+// stamps of the 7 local days ending `today`.
+export function useStampSummary(today: Date) {
+  const since = addLocalDays(today, -6).toISOString();
+  return useQuery({
+    queryKey: [...stampsQueryKey, "summary", since],
+    queryFn: () => getStampSummary(since),
   });
 }
 

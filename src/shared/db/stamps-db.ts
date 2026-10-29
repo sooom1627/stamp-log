@@ -126,6 +126,28 @@ export async function getStamp(id: Stamp["id"]): Promise<Stamp | null> {
   return stamp ?? null;
 }
 
+export type StampSummary = {
+  // Every stamp, counted by rally.
+  countsByRally: Map<Stamp["rallyId"], number>;
+  // The stamps at or after `since`, newest first.
+  recentStamps: Stamp[];
+};
+
+// What rally tiles show: each rally's count over all time, and only the
+// recent stamps for the days they draw.
+export async function getStampSummary(since: string): Promise<StampSummary> {
+  const db = await withAppDb();
+  const counts = await db.getAllAsync<{ rallyId: number; count: number }>(
+    "SELECT rally_id AS rallyId, COUNT(*) AS count FROM stamps GROUP BY rally_id ORDER BY rally_id",
+  );
+  return {
+    countsByRally: new Map(
+      counts.map(({ rallyId, count }) => [rallyId, count]),
+    ),
+    recentStamps: await listStampsWhere(db, "stamped_at >= ?", since),
+  };
+}
+
 export async function listRallyStamps(
   rallyId: Stamp["rallyId"],
 ): Promise<Stamp[]> {

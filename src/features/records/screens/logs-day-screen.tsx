@@ -4,6 +4,7 @@ import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { LoadError } from "@/shared/components/load-error";
 import { StampPost } from "@/shared/components/stamp-post";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
+import { useStamps } from "@/shared/hooks/use-stamps";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
@@ -19,7 +20,8 @@ type LogsDayScreenProps = {
 };
 
 export function LogsDayScreen({ date }: LogsDayScreenProps) {
-  const { rallies, stamps, isLoaded, isError, retry } = useRalliesAndStamps();
+  const { rallies, stamps, isLoaded, isError, retry } =
+    useRalliesAndStamps(useStamps());
   const dayKey = localDateKey(date);
   // Newest first, as listStamps returns them. A stamp shows once its rally is
   // loaded, so every post has its name.

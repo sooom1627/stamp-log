@@ -21,6 +21,15 @@ const stampsFor = (rallyId: number, count: number): Stamp[] =>
     photos: [],
   }));
 
+// Stamp counts by rally, as the stamp summary returns them.
+const countsOf = (stamps: Stamp[]) => {
+  const counts = new Map<number, number>();
+  for (const { rallyId } of stamps) {
+    counts.set(rallyId, (counts.get(rallyId) ?? 0) + 1);
+  }
+  return counts;
+};
+
 const idsOf = (rallies: Rally[]) => rallies.map((sorted) => sorted.id);
 
 describe("S-029 T-003 ST-001 sortRalliesForHome by stamp count", () => {
@@ -28,36 +37,40 @@ describe("S-029 T-003 ST-001 sortRalliesForHome by stamp count", () => {
     const rallies = [rally(1), rally(2), rally(3)];
     const stamps = [...stampsFor(1, 1), ...stampsFor(2, 3), ...stampsFor(3, 2)];
 
-    expect(idsOf(sortRalliesForHome(rallies, stamps))).toEqual([2, 3, 1]);
+    expect(idsOf(sortRalliesForHome(rallies, countsOf(stamps)))).toEqual([
+      2, 3, 1,
+    ]);
   });
 
   test("puts the newer rally first when the counts are the same", () => {
     const rallies = [rally(1), rally(3), rally(2)];
     const stamps = [...stampsFor(1, 2), ...stampsFor(2, 2), ...stampsFor(3, 2)];
 
-    expect(idsOf(sortRalliesForHome(rallies, stamps))).toEqual([3, 2, 1]);
+    expect(idsOf(sortRalliesForHome(rallies, countsOf(stamps)))).toEqual([
+      3, 2, 1,
+    ]);
   });
 
   test("keeps rallies without stamps, after the stamped ones", () => {
     const rallies = [rally(1), rally(2), rally(3)];
 
-    expect(idsOf(sortRalliesForHome(rallies, stampsFor(1, 1)))).toEqual([
-      1, 3, 2,
-    ]);
+    expect(
+      idsOf(sortRalliesForHome(rallies, countsOf(stampsFor(1, 1)))),
+    ).toEqual([1, 3, 2]);
   });
 
   test("ignores stamps of rallies that are not in the list", () => {
     const rallies = [rally(1), rally(2)];
 
-    expect(idsOf(sortRalliesForHome(rallies, [...stampsFor(99, 5)]))).toEqual([
-      2, 1,
-    ]);
+    expect(
+      idsOf(sortRalliesForHome(rallies, countsOf(stampsFor(99, 5)))),
+    ).toEqual([2, 1]);
   });
 
   test("does not change the given rallies", () => {
     const rallies = [rally(1), rally(2)];
 
-    sortRalliesForHome(rallies, stampsFor(2, 1));
+    sortRalliesForHome(rallies, countsOf(stampsFor(2, 1)));
 
     expect(idsOf(rallies)).toEqual([1, 2]);
   });
@@ -68,7 +81,9 @@ describe("S-032 T-001 ST-005 sortRalliesForHome with favorites", () => {
     const rallies = [rally(1), rally(2, true)];
     const stamps = [...stampsFor(1, 5), ...stampsFor(2, 1)];
 
-    expect(idsOf(sortRalliesForHome(rallies, stamps))).toEqual([2, 1]);
+    expect(idsOf(sortRalliesForHome(rallies, countsOf(stamps)))).toEqual([
+      2, 1,
+    ]);
   });
 
   test("orders favorites, then non-favorites, each by stamp count", () => {
@@ -86,19 +101,21 @@ describe("S-032 T-001 ST-005 sortRalliesForHome with favorites", () => {
       ...stampsFor(4, 3),
     ];
 
-    expect(idsOf(sortRalliesForHome(rallies, stamps))).toEqual([4, 2, 1, 3, 5]);
+    expect(idsOf(sortRalliesForHome(rallies, countsOf(stamps)))).toEqual([
+      4, 2, 1, 3, 5,
+    ]);
   });
 
   test("puts the newer favorite first when the counts are the same", () => {
     const rallies = [rally(1, true), rally(2, true)];
 
-    expect(idsOf(sortRalliesForHome(rallies, []))).toEqual([2, 1]);
+    expect(idsOf(sortRalliesForHome(rallies, new Map()))).toEqual([2, 1]);
   });
 
   test("does not change the given rallies", () => {
     const rallies = [rally(1), rally(2, true)];
 
-    sortRalliesForHome(rallies, []);
+    sortRalliesForHome(rallies, new Map());
 
     expect(idsOf(rallies)).toEqual([1, 2]);
   });

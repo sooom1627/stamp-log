@@ -14,7 +14,10 @@ type RallyTileProps = {
   name: string;
   emoji: string;
   isFavorite?: boolean;
+  // At least the last 7 days; older ones are not needed.
   stampDates: string[];
+  // Every stamp of the rally.
+  stampCount: number;
   width?: number;
   // Without it, the tile has no stamp button.
   onPressStamp?: () => void;
@@ -26,6 +29,7 @@ export function RallyTile({
   emoji,
   isFavorite = false,
   stampDates,
+  stampCount,
   width,
   onPressStamp,
 }: RallyTileProps) {
@@ -105,7 +109,7 @@ export function RallyTile({
             {name}
           </Text>
           <Text className="text-foreground-muted text-sm font-medium">
-            {formatStampCount(stampDates.length)}
+            {formatStampCount(stampCount)}
           </Text>
         </Pressable>
       </Link>

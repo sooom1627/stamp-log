@@ -19,6 +19,7 @@ import {
 } from "@/shared/components/tab-root-screen";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
+import { useStamps } from "@/shared/hooks/use-stamps";
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
@@ -31,7 +32,8 @@ export function RecordsTimelineScreen() {
   const headerHeight = useHeaderHeight();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
-  const { rallies, stamps, isLoaded, isError, retry } = useRalliesAndStamps();
+  const { rallies, stamps, isLoaded, isError, retry } =
+    useRalliesAndStamps(useStamps());
   // A stamp is shown once its rally is loaded, so every post has its name.
   const posts = stampsWithRallies(stamps ?? [], rallies ?? []);
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);

@@ -859,3 +859,34 @@ describe("RT-003 ST-002 read one rally's stamps", () => {
     await expect(listRallyStamps(913)).resolves.toEqual([]);
   });
 });
+
+describe("RT-003 ST-003 tile summary", () => {
+  test("counts every stamp by rally and returns only the stamps since the given time", async () => {
+    const { stampsDb } = loadFreshDb();
+    const old = "2026-09-01T09:00:00.000Z";
+    const since = "2026-09-13T15:00:00.000Z";
+    await stampsDb.saveStamp({ rallyId: 1, stampedAt: old });
+    const onSince = await stampsDb.saveStamp({ rallyId: 1, stampedAt: since });
+    const recent = await stampsDb.saveStamp({ rallyId: 2 });
+
+    const { countsByRally, recentStamps } =
+      await stampsDb.getStampSummary(since);
+
+    expect([...countsByRally]).toEqual([
+      [1, 2],
+      [2, 1],
+    ]);
+    expect(recentStamps).toEqual([recent, onSince]);
+  });
+
+  test("returns no counts and no stamps when nothing is stamped", async () => {
+    const { stampsDb } = loadFreshDb();
+
+    const { countsByRally, recentStamps } = await stampsDb.getStampSummary(
+      "2026-09-13T15:00:00.000Z",
+    );
+
+    expect(countsByRally.size).toBe(0);
+    expect(recentStamps).toEqual([]);
+  });
+});

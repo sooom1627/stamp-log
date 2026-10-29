@@ -461,6 +461,22 @@ describe("S-029 T-003 ST-002 rally order", () => {
     ]);
   });
 
+  test("RT-003 ST-003 counts stamps older than the last 7 days", async () => {
+    await saveRallyWithStamps("Old and new", 10);
+    await saveRallyWithStamps("Recent", 3);
+
+    await renderRouter("./src/app");
+    await screen.findByRole("button", { name: "View Old and new details" });
+
+    expect(tileNames()).toEqual([
+      "View Old and new details",
+      "View Recent details",
+    ]);
+    expect(
+      within(screen.getByTestId("rally-grid")).getByText("10 stamps"),
+    ).toBeOnTheScreen();
+  });
+
   test("keeps the order while home is open and sorts again on return", async () => {
     const older = await saveRallyWithStamps("Older", 1);
     await saveRallyWithStamps("Newer", 1);
@@ -586,7 +602,7 @@ describe("S-002 T-002 RT-002 error display", () => {
 
   test("shows load error and retry when stamp list fails", async () => {
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "getStampSummary")
       .mockRejectedValue(new Error("disk full"));
 
     await renderRouter("./src/app");

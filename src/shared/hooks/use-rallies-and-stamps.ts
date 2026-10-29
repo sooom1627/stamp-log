@@ -1,9 +1,12 @@
-import { useRallies } from "./use-rallies";
-import { useStamps } from "./use-stamps";
+import { type UseQueryResult } from "@tanstack/react-query";
 
-// Screens that show stamps with their rallies load, fail and retry both lists
-// together.
-export function useRalliesAndStamps() {
+import { useRallies } from "./use-rallies";
+
+// Screens that show stamps with their rallies load, fail and retry both
+// together. `stampsQuery` is the stamps query the screen reads.
+export function useRalliesAndStamps<TStamps>(
+  stampsQuery: UseQueryResult<TStamps>,
+) {
   const {
     data: rallies,
     isError: isRalliesError,
@@ -13,7 +16,7 @@ export function useRalliesAndStamps() {
     data: stamps,
     isError: isStampsError,
     refetch: refetchStamps,
-  } = useStamps();
+  } = stampsQuery;
 
   const retry = () => {
     void refetchRallies();
