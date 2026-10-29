@@ -122,7 +122,7 @@ export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
         <View className="flex-1 gap-1">
           {rallies.length > 0 ? (
             <>
-              <Text className="text-foreground text-base font-semibold">
+              <Text className="text-foreground text-lg font-semibold">
                 {`${formatStampCount(rallies.length)} today`}
               </Text>
               <Text
@@ -134,7 +134,7 @@ export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
             </>
           ) : (
             <>
-              <Text className="text-foreground text-base font-semibold">
+              <Text className="text-foreground text-lg font-semibold">
                 No stamps yet today
               </Text>
               <Text className="text-foreground-secondary text-sm">

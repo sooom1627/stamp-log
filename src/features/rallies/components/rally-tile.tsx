@@ -106,11 +106,11 @@ export function RallyTile({
         >
           <Text
             numberOfLines={1}
-            className="text-foreground text-base leading-5 font-semibold"
+            className="text-foreground text-[15px] leading-5 font-semibold"
           >
             {name}
           </Text>
-          <Text className="text-foreground-muted text-sm font-medium">
+          <Text className="text-foreground-muted text-[13px] font-medium">
             {formatStampCount(stampCount)}
           </Text>
         </Pressable>
