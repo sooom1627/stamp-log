@@ -172,7 +172,7 @@ describe("S-041 T-002 ST-003 import data from the settings sheet", () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         "Can't read this file",
-        "Choose a file exported from Stamplog.",
+        "Choose a file exported from Ato.",
       );
     });
     expect((await readBackup()).rallies).toEqual(before.rallies);

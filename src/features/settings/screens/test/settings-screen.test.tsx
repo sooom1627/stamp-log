@@ -67,7 +67,7 @@ describe("S-044 T-001 ST-002 settings sheet", () => {
     await openSettings();
 
     expect(
-      await screen.findByText(`Stamplog ${appJson.expo.version}`),
+      await screen.findByText(`Ato ${appJson.expo.version}`),
     ).toBeOnTheScreen();
   });
 
