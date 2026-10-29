@@ -2,6 +2,8 @@ import { Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { StampPost } from "@/shared/components/stamp-post";
@@ -26,6 +28,7 @@ type RallyDayScreenProps = {
 
 export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
   const { push } = useRouter();
+  const { t } = useTranslation();
   const { data: rally } = useRally(rallyId);
   const { data: rallyStamps } = useRallyStamps(rallyId);
 
@@ -57,11 +60,11 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
               </Text>
             </View>
             <Text className="text-accent-strong text-base font-semibold">
-              No stamp on this day
+              {t("rallies.noStampOnDay")}
             </Text>
           </View>
           <Button
-            label="Stamp this day"
+            label={t("rallies.stampThisDay")}
             onPress={() =>
               push({
                 pathname: "/add-past-stamp",

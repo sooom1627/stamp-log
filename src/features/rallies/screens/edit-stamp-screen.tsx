@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/shared/components/button";
 import {
   FormField,
@@ -67,6 +69,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
   );
   const [photoUris, setPhotoUris] = useState(savedPhotoUris);
   const { back } = useRouter();
+  const { t } = useTranslation();
   const { mutate: updateStamp, isPending: isSaving } = useUpdateStamp();
 
   const isFuture = stampedAt.getTime() > Date.now();
@@ -102,7 +105,7 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
     <FormSheetLayout
       testID="edit-stamp-form"
       eyebrow={`${rally.emoji} ${rally.name}`}
-      title="Edit stamp"
+      title={t("stampForm.editStamp")}
     >
       <StampDateTimeFields
         value={stampedAt}
@@ -110,12 +113,12 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
         testIDPrefix="edit-stamp"
       />
 
-      <FormField label="Memo">
+      <FormField label={t("stampForm.memo")}>
         <FormTextInput
           value={memo}
           onChangeText={setMemo}
-          placeholder="Enter memo"
-          aria-label="Memo"
+          placeholder={t("stampForm.memoPlaceholder")}
+          aria-label={t("stampForm.memo")}
           multiline
           textAlignVertical="top"
           className="max-h-48 min-h-32"
@@ -127,8 +130,8 @@ function EditStampForm({ stamp, rally, stamps }: EditStampFormProps) {
       <StampDateTimeErrors isFuture={isFuture} hasStampOnDay={hasStampOnDay} />
 
       <Button
-        label="Save"
-        loadingLabel="Saving…"
+        label={t("common.save")}
+        loadingLabel={t("common.saving")}
         onPress={handleSave}
         disabled={!canSave}
         isLoading={isSaving}

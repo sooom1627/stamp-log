@@ -3,6 +3,8 @@ import { Text } from "react-native";
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { tint } from "@expo/ui/swift-ui/modifiers";
 
+import { useTranslation } from "react-i18next";
+
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
 
 type StampDateTimeFieldsProps = {
@@ -19,6 +21,7 @@ export function StampDateTimeFields({
   testIDPrefix,
 }: StampDateTimeFieldsProps) {
   const accentColor = useAccentColor();
+  const { t } = useTranslation();
 
   const handleDateChange = (date: Date) => {
     const next = new Date(value);
@@ -37,7 +40,7 @@ export function StampDateTimeFields({
       <Host matchContents={{ vertical: true }}>
         <DatePicker
           testID={`${testIDPrefix}-date`}
-          title="Date"
+          title={t("stampForm.date")}
           selection={value}
           displayedComponents={["date"]}
           range={{ end: new Date() }}
@@ -49,7 +52,7 @@ export function StampDateTimeFields({
       <Host matchContents={{ vertical: true }}>
         <DatePicker
           testID={`${testIDPrefix}-time`}
-          title="Time"
+          title={t("stampForm.time")}
           selection={value}
           displayedComponents={["hourAndMinute"]}
           onDateChange={handleTimeChange}
@@ -69,17 +72,15 @@ export function StampDateTimeErrors({
   isFuture,
   hasStampOnDay,
 }: StampDateTimeErrorsProps) {
+  const { t } = useTranslation();
+
   return (
     <>
       {isFuture ? (
-        <Text className="text-danger text-sm">
-          Future times can't be saved.
-        </Text>
+        <Text className="text-danger text-sm">{t("stampForm.futureTime")}</Text>
       ) : null}
       {hasStampOnDay ? (
-        <Text className="text-danger text-sm">
-          This rally already has a stamp on this day.
-        </Text>
+        <Text className="text-danger text-sm">{t("stampForm.sameDay")}</Text>
       ) : null}
     </>
   );

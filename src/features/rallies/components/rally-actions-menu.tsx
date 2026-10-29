@@ -2,6 +2,8 @@ import { Stack } from "expo-router";
 import { Button, Host, Image, Menu } from "@expo/ui/swift-ui";
 import { accessibilityLabel, frame } from "@expo/ui/swift-ui/modifiers";
 
+import { useTranslation } from "react-i18next";
+
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
 
 type RallyActionsMenuProps = {
@@ -28,11 +30,14 @@ export function RallyActionsMenu({
   onDelete,
 }: RallyActionsMenuProps) {
   const accentColor = useAccentColor();
+  const { t } = useTranslation();
   const favoriteLabel = isFavorite
-    ? "Remove from favorites"
-    : "Add to favorites";
+    ? t("rallies.removeFavorite")
+    : t("rallies.addFavorite");
   const favoriteIcon = isFavorite ? "star.fill" : "star";
-  const archiveLabel = isArchived ? "Unarchive rally" : "Archive rally";
+  const archiveLabel = isArchived
+    ? t("rallies.unarchive")
+    : t("rallies.archive");
   const archiveIcon = isArchived ? "arrow.uturn.backward" : "archivebox";
 
   return (
@@ -44,15 +49,18 @@ export function RallyActionsMenu({
           tintColor={isFavorite ? accentColor : undefined}
           onPress={onToggleFavorite}
         />
-        <Stack.Toolbar.Menu accessibilityLabel="Rally actions" icon="ellipsis">
+        <Stack.Toolbar.Menu
+          accessibilityLabel={t("rallies.actions")}
+          icon="ellipsis"
+        >
           <Stack.Toolbar.MenuAction
             icon="calendar.badge.plus"
             onPress={onPastStamp}
           >
-            Past stamp
+            {t("rallies.pastStamp")}
           </Stack.Toolbar.MenuAction>
           <Stack.Toolbar.MenuAction icon="pencil" onPress={onEdit}>
-            Edit rally
+            {t("rallies.editRally")}
           </Stack.Toolbar.MenuAction>
           <Stack.Toolbar.MenuAction
             icon={archiveIcon}
@@ -61,7 +69,7 @@ export function RallyActionsMenu({
             {archiveLabel}
           </Stack.Toolbar.MenuAction>
           <Stack.Toolbar.MenuAction icon="trash" destructive onPress={onDelete}>
-            Delete rally
+            {t("rallies.deleteRally")}
           </Stack.Toolbar.MenuAction>
         </Stack.Toolbar.Menu>
       </Stack.Toolbar>
@@ -81,20 +89,20 @@ export function RallyActionsMenu({
                 systemName="ellipsis"
                 modifiers={[
                   frame({ width: 44, height: 44 }),
-                  accessibilityLabel("Rally actions"),
+                  accessibilityLabel(t("rallies.actions")),
                 ]}
               />
             }
           >
             <Button
               testID="rally-action-past-stamp"
-              label="Past stamp"
+              label={t("rallies.pastStamp")}
               systemImage="calendar.badge.plus"
               onPress={onPastStamp}
             />
             <Button
               testID="rally-action-edit"
-              label="Edit rally"
+              label={t("rallies.editRally")}
               systemImage="pencil"
               onPress={onEdit}
             />
@@ -106,7 +114,7 @@ export function RallyActionsMenu({
             />
             <Button
               testID="rally-action-delete"
-              label="Delete rally"
+              label={t("rallies.deleteRally")}
               systemImage="trash"
               role="destructive"
               onPress={onDelete}
