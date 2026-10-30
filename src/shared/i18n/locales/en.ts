@@ -123,6 +123,8 @@ export const en = {
   },
   settings: {
     title: "Settings",
+    general: "General",
+    language: "Language",
     data: "Data",
     exportData: "Export data",
     exportDetail: "Save rallies and stamps to a file",
@@ -141,6 +143,12 @@ export const en = {
       "This replaces this device's {{current}} with the file's {{file}}. Photos on this device are removed.",
     counts: "{{rallies}} and {{stamps}}",
     replace: "Replace",
+  },
+  language: {
+    title: "Language",
+    device: "Device language",
+    deviceNote:
+      "The app follows your device's language: Japanese for Japanese, English otherwise.",
   },
   onboarding: {
     lookBackTitle: "Look back.\nIt's all there.",

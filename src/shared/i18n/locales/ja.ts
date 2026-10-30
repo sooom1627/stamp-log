@@ -125,6 +125,8 @@ export const ja: Translation = {
   },
   settings: {
     title: "設定",
+    general: "一般",
+    language: "言語",
     data: "データ",
     exportData: "データを書き出す",
     exportDetail: "ラリーとスタンプをファイルに保存します",
@@ -143,6 +145,12 @@ export const ja: Translation = {
       "この iPhone のデータ（{{current}}）を、ファイルのデータ（{{file}}）に置き換えます。この iPhone の写真は削除されます。",
     counts: "{{rallies}}、{{stamps}}",
     replace: "置き換える",
+  },
+  language: {
+    title: "言語",
+    device: "端末の言語",
+    deviceNote:
+      "端末の言語が日本語なら日本語で、それ以外なら英語で表示します。",
   },
   onboarding: {
     lookBackTitle: "振り返ると、\nちゃんと残っている。",

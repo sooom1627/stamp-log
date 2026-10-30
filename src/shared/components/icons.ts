@@ -8,6 +8,7 @@ import {
   FileText as LucideFileText,
   Image as LucideImage,
   Info as LucideInfo,
+  Languages as LucideLanguages,
   Lock as LucideLock,
   Plus as LucidePlus,
   Shield as LucideShield,
@@ -29,6 +30,7 @@ export const FileText = withUniwind(LucideFileText);
 // Named ImageIcon so it never shadows an image component.
 export const ImageIcon = withUniwind(LucideImage);
 export const Info = withUniwind(LucideInfo);
+export const Languages = withUniwind(LucideLanguages);
 export const Lock = withUniwind(LucideLock);
 export const Plus = withUniwind(LucidePlus);
 export const Shield = withUniwind(LucideShield);

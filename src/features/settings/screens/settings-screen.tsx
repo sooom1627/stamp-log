@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import { useExportData } from "@/features/settings/hooks/use-export-data";
 import { useImportFromFile } from "@/features/settings/hooks/use-import-data";
+import { useLanguagePreference } from "@/features/settings/hooks/use-language-preference";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import {
   ArrowUpRight,
@@ -17,6 +18,7 @@ import {
   Download,
   FileText,
   Info,
+  Languages,
   Shield,
   Upload,
 } from "@/shared/components/icons";
@@ -26,6 +28,8 @@ type IconProps = { size?: number; colorClassName?: string };
 type SettingsRow = {
   label: string;
   detail?: string;
+  // The current choice, shown on the right before the ›.
+  value?: string;
   icon: ComponentType<IconProps>;
   // Opens a web page (↗) rather than going further into the app (›).
   isExternal?: boolean;
@@ -38,7 +42,7 @@ type SettingsRow = {
 };
 
 function SettingsRowItem({ row }: { row: SettingsRow }) {
-  const { label, detail, isExternal, role, onPress, isBusy } = row;
+  const { label, detail, value, isExternal, role, onPress, isBusy } = row;
   const RowIcon = row.icon;
 
   return (
@@ -58,6 +62,9 @@ function SettingsRowItem({ row }: { row: SettingsRow }) {
           <Text className="text-foreground-secondary text-sm">{detail}</Text>
         ) : null}
       </View>
+      {value ? (
+        <Text className="text-foreground-secondary text-base">{value}</Text>
+      ) : null}
       {isExternal ? (
         <ArrowUpRight size={16} colorClassName="accent-foreground-muted" />
       ) : null}
@@ -103,6 +110,21 @@ export function SettingsScreen() {
   const { importFromFile, isImporting } = useImportFromFile({
     onImported: () => back(),
   });
+  const { data: languagePreference } = useLanguagePreference();
+  const languageNames = {
+    system: t("language.device"),
+    en: "English",
+    ja: "日本語",
+  };
+  const generalRows: SettingsRow[] = [
+    {
+      label: t("settings.language"),
+      value: languagePreference ? languageNames[languagePreference] : undefined,
+      icon: Languages,
+      role: "button",
+      onPress: () => push("/language"),
+    },
+  ];
   const dataRows: SettingsRow[] = [
     {
       label: t("settings.exportData"),
@@ -149,6 +171,7 @@ export function SettingsScreen() {
       title={t("settings.title")}
       className="gap-7"
     >
+      <SettingsGroup title={t("settings.general")} rows={generalRows} />
       <View className="gap-2">
         <SettingsGroup title={t("settings.data")} rows={dataRows} />
         <Text className="text-foreground-muted px-4 text-sm">
