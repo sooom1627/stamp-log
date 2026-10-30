@@ -1,5 +1,7 @@
 import "react-native-gesture-handler/jestSetup";
 
+import Storage from "expo-sqlite/kv-store";
+
 import { markOnboarded } from "@/features/onboarding/db/onboarding-state";
 import { i18n } from "@/shared/i18n";
 
@@ -44,6 +46,8 @@ jest.mock("react-native/Libraries/ReactNative/RendererProxy", () => ({
 // onboarding tests clear the storage first. They read English text, so a test
 // that switches to Japanese does not leak into the next one.
 beforeEach(async () => {
+  // Device settings (onboarding, language) start empty in every test.
+  Storage.clearSync();
   markOnboarded();
   await i18n.changeLanguage("en");
 });
