@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useSaveRally } from "@/shared/hooks/use-rallies";
@@ -25,6 +26,7 @@ export function OnboardingScreen() {
   const { mutate: saveRally, isPending: isSaving } = useSaveRally();
   const { replace } = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   function finish() {
     markOnboarded();
@@ -33,7 +35,8 @@ export function OnboardingScreen() {
 
   function startWithTemplate() {
     // On failure the shared toast shows and onboarding stays open.
-    saveRally(firstRallyTemplates[selectedIndex], { onSuccess: finish });
+    const { emoji, name } = firstRallyTemplates[selectedIndex];
+    saveRally({ emoji, name: t(name) }, { onSuccess: finish });
   }
 
   return (
@@ -55,9 +58,9 @@ export function OnboardingScreen() {
         <IntroPages
           step={step}
           onChangeStep={setStep}
-          leaveLabel="Skip"
+          leaveLabel={t("onboarding.skip")}
           onLeave={() => setStep(pickStep)}
-          finishLabel="Next"
+          finishLabel={t("onboarding.next")}
           onFinish={() => setStep(pickStep)}
         />
       )}

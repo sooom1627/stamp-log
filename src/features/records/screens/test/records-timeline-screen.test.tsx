@@ -18,8 +18,8 @@ import { listRallies, saveRally } from "@/shared/db/rallies-db";
 import { stampPhotoThumbUri } from "@/shared/db/stamp-photo-files";
 import * as stampsDb from "@/shared/db/stamps-db";
 import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import {
-  formatStampDate,
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
@@ -98,7 +98,7 @@ async function openLogs() {
   });
 }
 
-const stampTimePattern = / (AM|PM)$/;
+const stampTimePattern = /^\d{1,2}:\d{2}$/;
 
 describe("S-010 T-001 ST-003 Logs timeline", () => {
   test("shows stamps from every rally newest first with the rally name", async () => {
@@ -237,7 +237,7 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     ).toHaveTextContent("Today");
     expect(
       logs.getAllByText(stampTimePattern).map((time) => time.props.children),
-    ).toEqual(["8:00 PM", "8:00 AM", "7:00 PM", "6:00 AM"]);
+    ).toEqual(["20:00", "8:00", "19:00", "6:00"]);
   });
 });
 
@@ -689,7 +689,7 @@ describe("S-037 T-002 ST-002 / T-003 ST-004 Logs Album", () => {
     const tiles = album.getAllByRole("button", {
       name: /^Open (\d+ )?photos?, /,
     });
-    const day = (iso: string) => formatStampDate(new Date(iso));
+    const day = (iso: string) => formatSpokenDate(new Date(iso));
     expect(tiles).toHaveLength(3);
     expect(tiles[0]).toHaveAccessibleName(
       `Open photo, Album cafe, ${day(cafeDay.stampedAt)}`,

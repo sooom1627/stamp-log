@@ -6,6 +6,7 @@ import {
   EmojiKeyboard,
   type EmojiType,
 } from "@softwhere-uz/react-native-emoji-keyboard";
+import { useTranslation } from "react-i18next";
 
 import { FormField, FormTextInput } from "@/shared/components/form-sheet";
 
@@ -26,6 +27,7 @@ export function RallyFormFields({
   onSubmit,
 }: RallyFormFieldsProps) {
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const { t } = useTranslation();
 
   const handleEmojiSelect = (selectedEmoji: EmojiType) => {
     onChangeEmoji(selectedEmoji.emoji);
@@ -34,16 +36,16 @@ export function RallyFormFields({
 
   return (
     <View className="gap-6">
-      <FormField label="Emoji">
+      <FormField label={t("rallies.emoji")}>
         <Pressable
           role="button"
-          aria-label={`Select emoji (currently ${emoji})`}
+          aria-label={t("rallies.selectEmoji", { emoji })}
           onPress={() => setIsEmojiPickerOpen((isOpen) => !isOpen)}
           className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active flex-row items-center gap-3 rounded-2xl border px-4 py-3"
         >
           <Text className="text-3xl">{emoji}</Text>
           <Text className="text-foreground-muted flex-1 text-sm">
-            Tap to change
+            {t("rallies.tapToChange")}
           </Text>
         </Pressable>
         {isEmojiPickerOpen ? (
@@ -60,14 +62,14 @@ export function RallyFormFields({
         ) : null}
       </FormField>
 
-      <FormField label="Name">
+      <FormField label={t("rallies.name")}>
         <FormTextInput
           value={name}
           onChangeText={onChangeName}
           onFocus={() => setIsEmojiPickerOpen(false)}
           onSubmitEditing={onSubmit}
-          placeholder="Enter a rally name"
-          aria-label="Name"
+          placeholder={t("rallies.namePlaceholder")}
+          aria-label={t("rallies.name")}
           returnKeyType="done"
           submitBehavior="blurAndSubmit"
         />

@@ -2,6 +2,8 @@ import { useState, type ReactNode } from "react";
 
 import { Text, useWindowDimensions, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { type AlbumTile } from "@/shared/utils/album-photos";
 
 import { AlbumGrid } from "./album-grid";
@@ -32,6 +34,7 @@ export function StampsAlbumPager({
   showsEmoji,
 }: StampsAlbumPagerProps) {
   const { height: windowHeight } = useWindowDimensions();
+  const { t } = useTranslation();
   const [pageHeights, setPageHeights] = useState<Record<StampsView, number>>({
     stamps: 0,
     album: 0,
@@ -62,7 +65,9 @@ export function StampsAlbumPager({
             stamps
           ) : tiles.length === 0 ? (
             <View className="items-center py-12">
-              <Text className="text-foreground-secondary">No photos yet</Text>
+              <Text className="text-foreground-secondary">
+                {t("stamps.noPhotos")}
+              </Text>
             </View>
           ) : (
             <AlbumGrid tiles={tiles} showsEmoji={showsEmoji} />

@@ -7,6 +7,8 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { type Rally } from "@/shared/schemas/rallies";
 
 import { type TodayLogEntry } from "../utils/today-log";
@@ -46,7 +48,9 @@ export function HomeTopCards({
 }: HomeTopCardsProps) {
   const cardWidth = windowWidth - SCREEN_PADDING * 2;
   const [pageIndex, setPageIndex] = useState(0);
-  const positionOf = (index: number) => `${index + 1} of ${CARD_COUNT}`;
+  const { t } = useTranslation();
+  const positionOf = (index: number) =>
+    t("home.position", { n: index + 1, total: CARD_COUNT });
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(

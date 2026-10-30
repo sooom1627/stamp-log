@@ -1,23 +1,39 @@
 import { Text, View } from "react-native";
 
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+
 import { type Rally } from "@/shared/schemas/rallies";
+import { formatSpokenMonthDay } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
 import { stampEmojiRows } from "../utils/stamp-emoji-rows";
 
 import { CardDisc, TopCard } from "./top-card";
 
-const spokenDateFormatter = new Intl.DateTimeFormat("en-US", {
+// Dates on screen stay English (docs/design.md 言語).
+const monthDayFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
 });
 const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "short" });
 
-function spokenLabel(rallies: Rally[], today: Date) {
-  const date = `Today, ${spokenDateFormatter.format(today)}`;
-  if (rallies.length === 0) return `${date}, no stamps yet`;
-  const names = rallies.map((rally) => rally.name).join(", ");
-  return `${date}, ${formatStampCount(rallies.length)}: ${names}`;
+function spokenLabel(
+  t: TFunction,
+  rallies: Rally[],
+  today: Date,
+  position: string,
+) {
+  const date = formatSpokenMonthDay(today);
+  if (rallies.length === 0) {
+    return t("home.todaySpokenEmpty", { date, position });
+  }
+  return t("home.todaySpoken", {
+    date,
+    stamps: formatStampCount(rallies.length),
+    names: rallies.map((rally) => rally.name).join(", "),
+    position,
+  });
 }
 
 // A fixed tilt per date (-4° to 4°) so a day keeps its angle across renders.
@@ -149,12 +165,14 @@ type TodayCardProps = {
 // each of them on a row, with today's stamp in the disc. First stamped first; the card
 // keeps its height however many rallies there are.
 export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
+  const { t } = useTranslation();
+
   return (
     <TopCard
-      label="Today"
-      detail={spokenDateFormatter.format(today)}
+      label={t("home.today")}
+      detail={monthDayFormatter.format(today)}
       tone="today"
-      spokenLabel={`${spokenLabel(rallies, today)}, ${position}`}
+      spokenLabel={spokenLabel(t, rallies, today, position)}
       width={width}
       testID="today-card"
     >
@@ -163,17 +181,19 @@ export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
           {rallies.length > 0 ? (
             <>
               <Text className="text-foreground text-lg font-semibold">
-                {`${formatStampCount(rallies.length)} today`}
+                {t("home.todayCount", {
+                  stamps: formatStampCount(rallies.length),
+                })}
               </Text>
               <RallyRows rallies={rallies} />
             </>
           ) : (
             <>
               <Text className="text-foreground text-lg font-semibold">
-                No stamps yet today
+                {t("home.noStampsToday")}
               </Text>
               <Text className="text-foreground-secondary text-sm">
-                What you stamp today shows up here.
+                {t("home.noStampsTodayBody")}
               </Text>
             </>
           )}

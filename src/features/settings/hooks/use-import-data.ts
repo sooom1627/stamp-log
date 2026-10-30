@@ -4,6 +4,8 @@ import { getDocumentAsync } from "expo-document-picker";
 import { File } from "expo-file-system";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner-native";
 
 import {
@@ -27,8 +29,11 @@ function formatRallyCount(count: number) {
   return `${count} ${count === 1 ? "rally" : "rallies"}`;
 }
 
-function formatCounts({ rallies, stamps }: Backup) {
-  return `${formatRallyCount(rallies.length)} and ${formatStampCount(stamps.length)}`;
+function formatCounts(t: TFunction, { rallies, stamps }: Backup) {
+  return t("settings.counts", {
+    rallies: formatRallyCount(rallies.length),
+    stamps: formatStampCount(stamps.length),
+  });
 }
 
 // The picked file's backup; null when nothing was picked. A file this app
@@ -44,16 +49,14 @@ async function pickBackup() {
 // A device with data asks first, with both counts.
 export function useImportFromFile({ onImported }: { onImported: () => void }) {
   const { mutate: importData, isPending: isImporting } = useImportData();
+  const { t } = useTranslation();
 
   async function importFromFile() {
     let backup: Backup | null;
     try {
       backup = await pickBackup();
     } catch {
-      Alert.alert(
-        "Can't read this file",
-        "Choose a file exported from Stamplog.",
-      );
+      Alert.alert(t("settings.cannotReadTitle"), t("settings.cannotReadBody"));
       return;
     }
     if (!backup) return;
@@ -65,7 +68,7 @@ export function useImportFromFile({ onImported }: { onImported: () => void }) {
       current = await readBackup();
     } catch {
       // Like a failed save (the root layout's mutation error toast).
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t("common.errorTryAgain"));
       return;
     }
     if (current.rallies.length === 0 && current.stamps.length === 0) {
@@ -73,11 +76,14 @@ export function useImportFromFile({ onImported }: { onImported: () => void }) {
       return;
     }
     Alert.alert(
-      "Replace all data?",
-      `This replaces this device's ${formatCounts(current)} with the file's ${formatCounts(fileBackup)}. Photos on this device are removed.`,
+      t("settings.replaceTitle"),
+      t("settings.replaceBody", {
+        current: formatCounts(t, current),
+        file: formatCounts(t, fileBackup),
+      }),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Replace", style: "destructive", onPress: replace },
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("settings.replace"), style: "destructive", onPress: replace },
       ],
     );
   }

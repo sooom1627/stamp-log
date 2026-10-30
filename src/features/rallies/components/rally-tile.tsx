@@ -2,6 +2,8 @@ import { Pressable, Text, View } from "react-native";
 
 import { Link } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { Check, Plus, Star } from "@/shared/components/icons";
 import { type Rally } from "@/shared/schemas/rallies";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
@@ -34,6 +36,7 @@ export function RallyTile({
   onPressStamp,
 }: RallyTileProps) {
   const activityDays = buildLastDays(stampDates, new Date());
+  const { t } = useTranslation();
   // The last of the 7 days is today.
   const isStampedToday = activityDays[activityDays.length - 1].isRecorded;
 
@@ -51,7 +54,7 @@ export function RallyTile({
             // explains why the tile sits first.
             <View
               role="img"
-              aria-label="Favorite"
+              aria-label={t("home.favorite")}
               className="bg-surface absolute -right-1 -bottom-1 size-[18px] items-center justify-center rounded-full"
             >
               <Star
@@ -67,8 +70,8 @@ export function RallyTile({
             role="button"
             aria-label={
               isStampedToday
-                ? `${name} already stamped today`
-                : `Stamp ${name} for today`
+                ? t("home.stampedToday", { name })
+                : t("home.stampToday", { name })
             }
             aria-disabled={isStampedToday}
             disabled={isStampedToday}
@@ -99,7 +102,7 @@ export function RallyTile({
       >
         <Pressable
           role="button"
-          aria-label={`View ${name} details`}
+          aria-label={t("home.viewDetails", { name })}
           // Takes the spare height so the name and count stay together and
           // the dots sit at the bottom of every tile in the row.
           className="flex-1 gap-1 active:opacity-70"

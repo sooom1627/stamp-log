@@ -11,6 +11,8 @@ import {
 } from "@expo/ui/swift-ui";
 import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
+import { useTranslation } from "react-i18next";
+
 const MONTH_NAMES = Array.from({ length: 12 }, (_, monthIndex) =>
   new Intl.DateTimeFormat("en-US", { month: "long" }).format(
     new Date(2026, monthIndex, 1),
@@ -37,6 +39,7 @@ export function MonthPickerSheet({
   const [monthIndex, setMonthIndex] = useState(month.getMonth());
   const [year, setYear] = useState(month.getFullYear());
   const [wasPresented, setWasPresented] = useState(isPresented);
+  const { t } = useTranslation();
 
   // Start from the shown month every time the sheet opens, so wheels turned
   // and then dismissed without Done do not linger.
@@ -62,7 +65,7 @@ export function MonthPickerSheet({
           <HStack>
             <Picker
               testID="month-picker-month"
-              label="Month"
+              label={t("calendar.month")}
               selection={monthIndex}
               onSelectionChange={setMonthIndex}
               modifiers={[pickerStyle("wheel")]}
@@ -75,7 +78,7 @@ export function MonthPickerSheet({
             </Picker>
             <Picker
               testID="month-picker-year"
-              label="Year"
+              label={t("calendar.year")}
               selection={year}
               onSelectionChange={setYear}
               modifiers={[pickerStyle("wheel")]}
@@ -89,7 +92,7 @@ export function MonthPickerSheet({
           </HStack>
           <Button
             testID="month-picker-done"
-            label="Done"
+            label={t("common.done")}
             onPress={() => onDone(new Date(year, monthIndex, 1))}
           />
         </VStack>

@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { launchImageLibraryAsync } from "expo-image-picker";
 
+import { useTranslation } from "react-i18next";
 import { withUniwind } from "uniwind";
 
 import { Plus, X } from "@/shared/components/icons";
@@ -23,6 +24,7 @@ export function StampPhotoField({
   const remaining = maxStampPhotos - photoUris.length;
   // Four slots so the tiles keep their width whatever the count.
   const emptySlots = Math.max(remaining - 1, 0);
+  const { t } = useTranslation();
 
   const handleAdd = async () => {
     const result = await launchImageLibraryAsync({
@@ -45,7 +47,9 @@ export function StampPhotoField({
   return (
     <View className="gap-2">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-foreground text-sm font-semibold">Photos</Text>
+        <Text className="text-foreground text-sm font-semibold">
+          {t("stampForm.photos")}
+        </Text>
         <Text className="text-foreground-muted text-sm">
           {`${photoUris.length} / ${maxStampPhotos}`}
         </Text>
@@ -60,7 +64,7 @@ export function StampPhotoField({
             />
             <Pressable
               role="button"
-              aria-label={`Remove photo ${index + 1}`}
+              aria-label={t("stampForm.removePhoto", { n: index + 1 })}
               hitSlop={8}
               className="bg-inverse border-background absolute -top-1.5 -right-1.5 size-6 items-center justify-center rounded-full border-2 active:opacity-70"
               onPress={() => handleRemove(index)}
@@ -72,7 +76,7 @@ export function StampPhotoField({
         {remaining > 0 ? (
           <Pressable
             role="button"
-            aria-label="Add photos"
+            aria-label={t("stampForm.addPhotos")}
             className="border-continuous border-border aspect-square flex-1 items-center justify-center gap-0.5 rounded-xl border-[1.5px] border-dashed active:opacity-70"
             onPress={handleAdd}
           >
@@ -81,7 +85,9 @@ export function StampPhotoField({
               size={20}
               strokeWidth={2}
             />
-            <Text className="text-foreground-secondary text-xs">Add</Text>
+            <Text className="text-foreground-secondary text-xs">
+              {t("stampForm.add")}
+            </Text>
           </Pressable>
         ) : null}
         {Array.from({ length: emptySlots }, (_, index) => (

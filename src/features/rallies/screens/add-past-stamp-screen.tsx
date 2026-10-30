@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { useRally } from "@/shared/hooks/use-rallies";
@@ -40,6 +42,7 @@ function initialStampedAt(day?: Date) {
 export function AddPastStampScreen({ rallyId, day }: AddPastStampScreenProps) {
   const [stampedAt, setStampedAt] = useState(() => initialStampedAt(day));
   const { back } = useRouter();
+  const { t } = useTranslation();
   const { data: rally } = useRally(rallyId);
   const { data: rallyStamps } = useRallyStamps(rallyId);
   const { mutate: saveStamp, isPending: isSaving } = useSaveStamp();
@@ -71,7 +74,7 @@ export function AddPastStampScreen({ rallyId, day }: AddPastStampScreenProps) {
     <FormSheetLayout
       testID="add-past-stamp-form"
       eyebrow={rally ? `${rally.emoji} ${rally.name}` : undefined}
-      title="Past stamp"
+      title={t("rallies.pastStamp")}
     >
       <StampDateTimeFields
         value={stampedAt}
@@ -82,8 +85,8 @@ export function AddPastStampScreen({ rallyId, day }: AddPastStampScreenProps) {
       <StampDateTimeErrors isFuture={isFuture} hasStampOnDay={hasStampOnDay} />
 
       <Button
-        label="Save"
-        loadingLabel="Saving…"
+        label={t("common.save")}
+        loadingLabel={t("common.saving")}
         onPress={handleSave}
         disabled={!canSave}
         isLoading={isSaving}

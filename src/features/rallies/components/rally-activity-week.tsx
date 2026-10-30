@@ -1,6 +1,8 @@
 import { Text, View } from "react-native";
 
-import { formatMediumDate } from "@/shared/utils/format-medium-date";
+import { useTranslation } from "react-i18next";
+
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { type MonthDay } from "@/shared/utils/month-grid";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
@@ -18,6 +20,8 @@ export function RallyActivityWeek({
 }: {
   activityDays: MonthDay[];
 }) {
+  const { t } = useTranslation();
+
   return (
     <View className="w-full gap-1.5" testID="activity-week">
       <View className="flex-row">
@@ -37,14 +41,16 @@ export function RallyActivityWeek({
       </View>
       <View className="flex-row">
         {activityDays.map((day) => {
-          const formattedDate = formatMediumDate(day.date);
+          const formattedDate = formatSpokenDate(day.date);
           return (
             <View
               key={day.key}
               accessible
-              aria-label={`${formattedDate}, ${
-                day.isRecorded ? "recorded" : "not recorded"
-              }`}
+              aria-label={
+                day.isRecorded
+                  ? t("home.dayRecorded", { date: formattedDate })
+                  : t("home.dayNotRecorded", { date: formattedDate })
+              }
               aria-selected={day.isRecorded}
               className="h-3 flex-1 items-center justify-center"
               testID="activity-day"

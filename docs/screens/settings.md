@@ -6,12 +6,14 @@
 
 - S-044 タブルートの Menu から設定シートを開ける
 - S-041 データを JSON で書き出し、新しい端末で読み込んで引き継ぐ
+- S-045 アプリの言語を選ぶ
 
 ## 入りと出
 
 - 入り: タブルート（ホーム / Logs）のヘッダー右の Menu ボタン。ルート `/settings`（formSheet）
 - 出:
   - 閉じる（シートを下げる）→ 元のタブ
+  - `Language` → [言語](./language.md)のシート（formSheet）
   - `Export data` → 全データを書き出したファイルを共有シートで出す
   - `Import data` → ファイルを選び、今のデータを置き換える
   - `About Ato` → オンボーディングの紹介 4 枚を見直す（[onboarding.md](./onboarding.md) の「設定から見直す」）
@@ -24,6 +26,11 @@
 ```
             ───                     ← グラバー（ネイティブのヘッダーは出さない）
 Settings                            ← 見出し（大）。補足行は出さない
+
+GENERAL
+╭─────────────────────────────────╮
+│ [文A] Language  Device language › │  ← 右に今の選択
+╰─────────────────────────────────╯
 
 DATA
 ╭─────────────────────────────────╮
@@ -46,11 +53,12 @@ ABOUT
 │ [≡] Licenses                 ›  │
 ╰─────────────────────────────────╯
 
-          Stamplog 1.0.0            ← アプリ名とバージョン
+          Ato 1.0.0                 ← アプリ名とバージョン
 ```
 
 - 行はグループごとに角丸の面にまとめ、地（canvas）より明るい面（surface）に置く。グループの上に小さい大文字のラベル
 - 各行の左にアクセントの淡い下地のアイコン。外部ページを開く行は右に ↗、アプリ内で進む行は右に ›
+- `General` の `Language` 行は、右に今の選択（`Device language` / `English` / `日本語`）を出す
 - `Data` の下に、書き出しに写真が含まれないことを小さく出す
 - バージョンは `app.json` の `version`
 - formSheet なのでタブバーは出さない
@@ -67,7 +75,7 @@ ABOUT
 
 - 押すとファイルを選ぶ画面を開く。選ばずに閉じたら何も変わらない
 - このアプリが書き出したファイルでない、壊れている、読めない版のときはアラートを出し、何も変えない
-  - `Can't read this file` / `Choose a file exported from Stamplog.` / `OK`
+  - `Can't read this file` / `Choose a file exported from Ato.` / `OK`
 - 端末にラリーかスタンプがあるときは、置き換える前に確認する。端末が空なら確認せずに読み込む
   - `Replace all data?` / `This replaces this device's {n} rallies and {m} stamps with the file's {x} rallies and {y} stamps. Photos on this device are removed.` / `Cancel`・`Replace`（破壊的）
   - `Cancel` なら何も変わらない
@@ -77,6 +85,7 @@ ABOUT
 ## 出すデータ
 
 - アプリのバージョン
+- 今の言語の選択
 - 読み込みの確認で、端末とファイルのラリー数・スタンプ数
 
 ## 空 / 読込 / エラー

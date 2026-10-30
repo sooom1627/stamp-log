@@ -5,6 +5,9 @@ import { Alert, ScrollView, Text, View } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+
 import { DayCard } from "@/shared/components/day-card";
 import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
 import { StampPost } from "@/shared/components/stamp-post";
@@ -34,15 +37,16 @@ import { buildRallySummary } from "../utils/rally-summary";
 
 // Stamps that could not be loaded are still deleted with the rally, so the
 // message says so without a count.
-function deleteRallyMessage(stampCount: number | undefined) {
-  const undoNote = "This action cannot be undone.";
+function deleteRallyMessage(t: TFunction, stampCount: number | undefined) {
   if (stampCount === 0) {
-    return undoNote;
+    return t("common.cannotUndo");
   }
   if (stampCount === undefined) {
-    return `Its stamps will also be deleted. ${undoNote}`;
+    return t("rallies.deleteWithSomeStamps");
   }
-  return `Its ${formatStampCount(stampCount)} will also be deleted. ${undoNote}`;
+  return t("rallies.deleteWithStamps", {
+    stamps: formatStampCount(stampCount),
+  });
 }
 
 type RallyDetailScreenProps = {
@@ -51,6 +55,7 @@ type RallyDetailScreenProps = {
 
 export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { back, push } = useRouter();
+  const { t } = useTranslation();
   const headerHeight = useHeaderHeight();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
@@ -78,14 +83,18 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const tiles = albumTiles(stamps ?? [], [rally]);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const confirmDelete = () =>
-    Alert.alert("Delete rally?", deleteRallyMessage(stamps?.length), [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => deleteRally(rally.id, { onSuccess: () => back() }),
-      },
-    ]);
+    Alert.alert(
+      t("rallies.deleteTitle"),
+      deleteRallyMessage(t, stamps?.length),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: () => deleteRally(rally.id, { onSuccess: () => back() }),
+        },
+      ],
+    );
 
   return (
     <>
@@ -94,7 +103,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
         {/* Like a profile: the top scrolls away and the switch sticks, while
             the pages below still follow the finger (S-043 T-003). */}
         <ScrollView
-          aria-label="Rally detail"
+          aria-label={t("rallies.detailLabel")}
           className="bg-canvas flex-1"
           contentContainerClassName="pb-6"
           stickyHeaderIndices={hasStamps ? [1] : undefined}
@@ -116,7 +125,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               </Text>
               {rally.isArchived ? (
                 <Text className="text-foreground-muted text-sm font-medium">
-                  Archived
+                  {t("rallies.archived")}
                 </Text>
               ) : null}
               {stamps ? (
@@ -182,7 +191,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             <TimelineEmpty
               isError={isStampsError}
               isLoaded={isStampsLoaded}
-              message="No stamps yet"
+              message={t("rallies.noStamps")}
               onRetry={() => void refetchStamps()}
             />
           )}

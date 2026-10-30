@@ -77,8 +77,8 @@ describe("S-012 T-001 ST-002 Logs day sheet", () => {
         .map((name) => name.props.children),
     ).toEqual(["Cafes", "Researchers"]);
     expect(
-      sheet.getAllByText(/ (AM|PM)$/).map((time) => time.props.children),
-    ).toEqual(["4:20 PM", "1:05 PM"]);
+      sheet.getAllByText(/^\d{1,2}:\d{2}$/).map((time) => time.props.children),
+    ).toEqual(["16:20", "13:05"]);
     expect(sheet.getByText("Crowded new place")).toBeOnTheScreen();
     expect(sheet.getByText("no memo")).toBeOnTheScreen();
   });

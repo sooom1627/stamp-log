@@ -1076,7 +1076,7 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
     await renderRouter("./src/app");
     const card = await screen.findByTestId("today-log-card");
 
-    expect(within(card).getByText("now 8:10 PM")).toBeOnTheScreen();
+    expect(within(card).getByText("now 20:10")).toBeOnTheScreen();
     expect(within(card).getAllByTestId("today-log-dot")).toHaveLength(4);
     // Dots only on the line, so stamps close in time do not stack emojis.
     expect(
@@ -1090,9 +1090,9 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
       within(within(card).getByTestId("today-log-times"))
         .getAllByText(/./)
         .map((t) => t.children[0]),
-    ).toEqual(["+1", "📚 12:42 PM", "🚶 6:40 PM", "📓 7:06 PM"]);
+    ).toEqual(["+1", "📚 12:42", "🚶 18:40", "📓 19:06"]);
     expect(card).toHaveAccessibleName(
-      "Today's log, 4 stamps: 7:12 AM Morning run, 12:42 PM Reading, 6:40 PM Walk, 7:06 PM Journal, 2 of 3",
+      "Today's log, 4 stamps: 7:12 Morning run, 12:42 Reading, 18:40 Walk, 19:06 Journal, 2 of 3",
     );
   });
 
@@ -1114,13 +1114,13 @@ describe("S-050 T-003 ST-003 cards at the top of home", () => {
 
     await renderRouter("./src/app");
     const card = await screen.findByTestId("today-log-card");
-    expect(within(card).getByText("now 8:10 PM")).toBeOnTheScreen();
+    expect(within(card).getByText("now 20:10")).toBeOnTheScreen();
 
     await act(async () => {
       jest.advanceTimersByTime(60_000);
     });
 
-    expect(within(card).getByText("now 8:11 PM")).toBeOnTheScreen();
+    expect(within(card).getByText("now 20:11")).toBeOnTheScreen();
   });
 });
 

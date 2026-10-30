@@ -1,5 +1,7 @@
 import { Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { formatDaysAgo } from "@/shared/utils/format-days-ago";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
 
@@ -27,18 +29,23 @@ type RallySummaryStatsProps = {
 };
 
 export function RallySummaryStats({ summary }: RallySummaryStatsProps) {
+  const { t } = useTranslation();
+
   return (
-    <View aria-label="Rally summary" className="mt-3 w-full flex-row gap-2">
+    <View
+      aria-label={t("rallies.summaryLabel")}
+      className="mt-3 w-full flex-row gap-2"
+    >
       <SummaryStat
-        label="First stamp"
+        label={t("rallies.firstStamp")}
         value={summary ? formatMediumDate(summary.firstStampedAt) : NO_VALUE}
       />
       <SummaryStat
-        label="Per week"
+        label={t("rallies.perWeek")}
         value={summary ? summary.perWeek.toFixed(1) : NO_VALUE}
       />
       <SummaryStat
-        label="Last stamp"
+        label={t("rallies.lastStamp")}
         value={summary ? formatDaysAgo(summary.daysSinceLast) : NO_VALUE}
       />
     </View>

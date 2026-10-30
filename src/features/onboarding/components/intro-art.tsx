@@ -1,5 +1,7 @@
 import { Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { ArtPanel } from "./art-panel";
 import { TryStampArt } from "./try-stamp-art";
 
@@ -67,38 +69,40 @@ const chipRows = [
   {
     offset: -40,
     chips: [
-      ["🔬", "Researchers I met"],
-      ["☕", "Cafés", true],
-      ["🗼", "Towers"],
+      ["🔬", "onboarding.samples.researchersMet"],
+      ["☕", "onboarding.samples.cafes", true],
+      ["🗼", "onboarding.samples.towers"],
     ],
   },
   {
     offset: 10,
     chips: [
-      ["🏃", "Morning run"],
-      ["📚", "Books I read"],
-      ["🍜", "Ramen"],
+      ["🏃", "onboarding.samples.morningRun"],
+      ["📚", "onboarding.samples.booksRead"],
+      ["🍜", "onboarding.samples.ramen"],
     ],
   },
   {
     offset: -70,
     chips: [
-      ["🤝", "Old friends"],
-      ["⛰️", "Hikes", true],
-      ["🎬", "Movies"],
+      ["🤝", "onboarding.samples.oldFriends"],
+      ["⛰️", "onboarding.samples.hikes", true],
+      ["🎬", "onboarding.samples.movies"],
     ],
   },
   {
     offset: -18,
     chips: [
-      ["🌊", "Beaches"],
-      ["🎨", "Museums"],
-      ["✈️", "Trips"],
+      ["🌊", "onboarding.samples.beaches"],
+      ["🎨", "onboarding.samples.museums"],
+      ["✈️", "onboarding.samples.trips"],
     ],
   },
 ] as const;
 
 function ExampleRalliesArt() {
+  const { t } = useTranslation();
+
   return (
     <ArtPanel className="justify-center gap-3.5">
       {chipRows.map((row) => (
@@ -118,7 +122,7 @@ function ExampleRalliesArt() {
                 <Text className="text-lg">{emoji}</Text>
               </View>
               <Text className="text-foreground text-[15px] font-semibold">
-                {name}
+                {t(name)}
               </Text>
             </View>
           ))}
@@ -131,11 +135,11 @@ function ExampleRalliesArt() {
 // One rally's stamps by date. The gaps between them are only space: no
 // streak, no count of missed days.
 const hikes = [
-  { date: "Aug 3", memo: "First climb of the summer." },
-  { date: "Aug 17", memo: "Rain. Turned back halfway.", gapBefore: 10 },
-  { date: "Sep 28", memo: "Clear view from the top.", gapBefore: 44 },
-  { date: "Oct 25", memo: "A short walk. Still counts.", gapBefore: 22 },
-];
+  { date: "Aug 3", memo: "onboarding.samples.hikeMemo1", gapBefore: 0 },
+  { date: "Aug 17", memo: "onboarding.samples.hikeMemo2", gapBefore: 10 },
+  { date: "Sep 28", memo: "onboarding.samples.hikeMemo3", gapBefore: 44 },
+  { date: "Oct 25", memo: "onboarding.samples.hikeMemo4", gapBefore: 22 },
+] as const;
 
 function StampTrail({
   isFirst,
@@ -156,6 +160,8 @@ function StampTrail({
 }
 
 function QuietTrailArt() {
+  const { t } = useTranslation();
+
   return (
     <ArtPanel className="gap-4 px-5 py-[22px]">
       <View className="flex-row items-center gap-3">
@@ -164,7 +170,7 @@ function QuietTrailArt() {
         </View>
         <View>
           <Text className="text-foreground text-[17px] font-semibold">
-            Hikes
+            {t("onboarding.samples.hikes")}
           </Text>
           <Text className="text-foreground-muted text-sm">4 stamps</Text>
         </View>
@@ -190,7 +196,7 @@ function QuietTrailArt() {
                 isLast={index === hikes.length - 1}
               />
               <Text className="text-foreground-secondary flex-1 pt-[17px] pl-3 text-sm">
-                {hike.memo}
+                {t(hike.memo)}
               </Text>
             </View>
           </View>

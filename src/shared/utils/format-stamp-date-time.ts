@@ -1,3 +1,5 @@
+import { i18n } from "@/shared/i18n";
+
 import { addLocalDays } from "./add-local-days";
 import { localDateKey } from "./local-date-key";
 
@@ -10,16 +12,15 @@ function yearSuffix(date: Date, now: Date) {
     : `, ${date.getFullYear()}`;
 }
 
-// Built by hand: Intl's time output varies by ICU version (e.g. a narrow
-// no-break space before AM/PM).
+// 24-hour H:mm in every language, whatever the device's 12/24-hour setting.
+// Built by hand: Intl's time output varies by ICU version.
 export function formatStampTime(date: Date) {
-  const hours = date.getHours() % 12 || 12;
   const minutes = String(date.getMinutes()).padStart(2, "0");
-  const period = date.getHours() < 12 ? "AM" : "PM";
-  return `${hours}:${minutes} ${period}`;
+  return `${date.getHours()}:${minutes}`;
 }
 
-// The day line of a rally detail post, e.g. "Fri, Sep 18".
+// The day line of a rally detail post, e.g. "Fri, Sep 18". Dates stay English
+// in every language (docs/design.md 言語).
 export function formatStampDay(date: Date, now = new Date()) {
   return `${weekdayFormatter.format(date)}, ${monthFormatter.format(date)} ${date.getDate()}${yearSuffix(date, now)}`;
 }
@@ -29,9 +30,11 @@ export function formatStampDay(date: Date, now = new Date()) {
 export function formatDayHeading(date: Date, now = new Date()) {
   const day = formatStampDay(date, now);
   const dayKey = localDateKey(date);
-  if (dayKey === localDateKey(now)) return { title: "Today", detail: day };
+  if (dayKey === localDateKey(now)) {
+    return { title: i18n.t("dates.today"), detail: day };
+  }
   if (dayKey === localDateKey(addLocalDays(now, -1))) {
-    return { title: "Yesterday", detail: day };
+    return { title: i18n.t("dates.yesterday"), detail: day };
   }
   return { title: day };
 }

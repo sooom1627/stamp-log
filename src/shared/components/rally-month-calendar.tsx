@@ -2,7 +2,10 @@ import { useState } from "react";
 
 import { Pressable, Text, View } from "react-native";
 
-import { formatMediumDate } from "@/shared/utils/format-medium-date";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
@@ -37,11 +40,12 @@ type CalendarDayProps = {
   isRecordedOnly: boolean;
 };
 
-function dayLabel(day: MonthDay, mark: DayMark | undefined) {
-  const date = formatMediumDate(day.date);
-  if (!day.isRecorded) return `${date}, not recorded`;
-  if (!mark) return `${date}, recorded`;
-  return `${date}, recorded, ${formatStampCount(mark.extraCount + 1)}`;
+function dayLabel(t: TFunction, day: MonthDay, mark: DayMark | undefined) {
+  const date = formatSpokenDate(day.date);
+  if (!day.isRecorded) return t("calendar.dayNotRecorded", { date });
+  if (!mark) return t("calendar.dayRecorded", { date });
+  const stamps = formatStampCount(mark.extraCount + 1);
+  return t("calendar.dayRecordedCount", { date, stamps });
 }
 
 // Complete class strings per state (no interpolation, see AGENTS.md).
@@ -66,6 +70,7 @@ function CalendarDay({
   onPress,
   isRecordedOnly,
 }: CalendarDayProps) {
+  const { t } = useTranslation();
   if (!day) return <View className="flex-1" />;
 
   // Keys are YYYY-MM-DD, so string order is date order.
@@ -78,7 +83,7 @@ function CalendarDay({
   return (
     <Pressable
       role="button"
-      aria-label={dayLabel(day, mark)}
+      aria-label={dayLabel(t, day, mark)}
       aria-disabled={isDisabled}
       disabled={isDisabled}
       className="flex-1 items-center py-1"
@@ -151,6 +156,7 @@ export function RallyMonthCalendar({
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
   const [view, setView] = useState(initialCalendarView);
+  const { t } = useTranslation();
   const { isMonthView, month, weekAnchor } = view;
   const weeks = isMonthView
     ? buildMonthWeeks(month, stampDates)
@@ -181,7 +187,6 @@ export function RallyMonthCalendar({
       month: weekHeadingMonth(month, buildWeek(nextAnchor, [])),
     });
   };
-  const unit = isMonthView ? "month" : "week";
   const heading = monthFormatter.format(month);
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -198,7 +203,11 @@ export function RallyMonthCalendar({
       <View className="flex-row items-center justify-between">
         <Pressable
           role="button"
-          aria-label={`Previous ${unit}`}
+          aria-label={
+            isMonthView
+              ? t("calendar.previousMonth")
+              : t("calendar.previousWeek")
+          }
           className="size-11 items-center justify-center"
           onPress={() => step(-1)}
         >
@@ -206,7 +215,7 @@ export function RallyMonthCalendar({
         </Pressable>
         <Pressable
           role="button"
-          aria-label={`Choose month, ${heading}`}
+          aria-label={t("calendar.chooseMonth", { month: heading })}
           className="min-h-11 justify-center px-2"
           onPress={() => setIsPickerOpen(true)}
         >
@@ -216,7 +225,9 @@ export function RallyMonthCalendar({
         </Pressable>
         <Pressable
           role="button"
-          aria-label={`Next ${unit}`}
+          aria-label={
+            isMonthView ? t("calendar.nextMonth") : t("calendar.nextWeek")
+          }
           className="size-11 items-center justify-center"
           onPress={() => step(1)}
         >
@@ -255,7 +266,7 @@ export function RallyMonthCalendar({
         onPress={isMonthView ? showWeek : showMonth}
       >
         <Text className="text-foreground-secondary text-sm font-semibold">
-          {isMonthView ? "Show week" : "Show month"}
+          {isMonthView ? t("calendar.showWeek") : t("calendar.showMonth")}
         </Text>
       </Pressable>
       <MonthPickerSheet

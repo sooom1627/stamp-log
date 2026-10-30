@@ -4,6 +4,8 @@ import { Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/shared/components/button";
 import {
   FormField,
@@ -27,6 +29,7 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
   const [memo, setMemo] = useState("");
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const { back } = useRouter();
+  const { t } = useTranslation();
   const { data: stamp } = useStamp(stampId);
   const { data: rally } = useRally(stamp?.rallyId);
   const { mutate: updateStampMemo, isPending: isSaving } = useUpdateStampMemo();
@@ -55,15 +58,15 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
     <FormSheetLayout
       testID="add-stamp-memo-form"
       eyebrow={rally ? `${rally.emoji} ${rally.name}` : undefined}
-      title="Memo & photos"
+      title={t("stampForm.memoAndPhotos")}
     >
-      <FormField label="Memo">
+      <FormField label={t("stampForm.memo")}>
         <FormTextInput
           value={memo}
           onChangeText={setMemo}
           onSubmitEditing={handleSave}
-          placeholder="Enter memo"
-          aria-label="Memo"
+          placeholder={t("stampForm.memoPlaceholder")}
+          aria-label={t("stampForm.memo")}
           autoFocus
           multiline
           returnKeyType="done"
@@ -79,13 +82,13 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
           onChangePhotoUris={setPhotoUris}
         />
         <Text className="text-foreground-muted text-xs">
-          Save with a memo, photos, or both
+          {t("stampForm.memoOrPhotos")}
         </Text>
       </View>
 
       <Button
-        label="Save"
-        loadingLabel="Saving…"
+        label={t("common.save")}
+        loadingLabel={t("common.saving")}
         onPress={handleSave}
         disabled={!canSave}
         isLoading={isSaving}

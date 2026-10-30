@@ -1,7 +1,10 @@
 import { Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { type Rally } from "@/shared/schemas/rallies";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
+import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
 import { CardDisc, TopCard } from "./top-card";
@@ -32,21 +35,28 @@ export function WithAtoCard({
   width,
   position,
 }: WithAtoCardProps) {
+  const { t } = useTranslation();
+  // The date on the card stays English; the spoken one follows the language.
   const since = firstStampedAt
-    ? `since ${formatMediumDate(firstStampedAt)}`
+    ? t("home.since", { date: formatMediumDate(firstStampedAt) })
     : undefined;
   const dayText = `${days} ${days === 1 ? "day" : "days"}`;
-  const spoken = [
-    "With Ato",
-    since ? `${dayText} ${since}` : dayText,
-    formatStampCount(stampCount),
-    formatRallyCount(rallies.length),
+  const counts = {
+    days: dayText,
+    stamps: formatStampCount(stampCount),
+    rallies: formatRallyCount(rallies.length),
     position,
-  ].join(", ");
+  };
+  const spoken = firstStampedAt
+    ? t("home.withAtoSpokenSince", {
+        ...counts,
+        date: formatSpokenDate(firstStampedAt),
+      })
+    : t("home.withAtoSpoken", counts);
 
   return (
     <TopCard
-      label="With Ato"
+      label={t("home.withAto")}
       detail={since}
       tone="plain"
       spokenLabel={spoken}

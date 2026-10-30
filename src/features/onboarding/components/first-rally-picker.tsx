@@ -10,15 +10,18 @@ import {
   type ScrollViewInstance,
 } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { Check, Plus } from "@/shared/components/icons";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 
 // The first rally to start with (S-047). Renamed later like any rally.
+// Names are translation keys: the rally is saved in the app's language.
 export const firstRallyTemplates = [
-  { emoji: "🏃", name: "Morning run" },
-  { emoji: "☕", name: "Cafés I visited" },
-  { emoji: "🤝", name: "People I met" },
-  { emoji: "📚", name: "Books I read" },
+  { emoji: "🏃", name: "onboarding.samples.morningRun" },
+  { emoji: "☕", name: "onboarding.samples.cafesVisited" },
+  { emoji: "🤝", name: "onboarding.samples.peopleMet" },
+  { emoji: "📚", name: "onboarding.samples.booksRead" },
 ] as const;
 
 type Template = (typeof firstRallyTemplates)[number];
@@ -47,6 +50,7 @@ export function FirstRallyPicker({
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollViewInstance>(null);
   const selected = firstRallyTemplates[selectedIndex];
+  const { t } = useTranslation();
 
   // A chip or card chose a template: bring its card to the middle. After a
   // swipe the card is already there, so this asks for where it is.
@@ -58,16 +62,16 @@ export function FirstRallyPicker({
     <View className="flex-1">
       <View className="items-center gap-2.5 px-6">
         <Text className="text-accent-strong text-[13px] font-semibold">
-          Last step
+          {t("onboarding.lastStep")}
         </Text>
         <Text
           role="heading"
           className="text-foreground text-center text-[32px] leading-9 font-bold"
         >
-          What will you collect first?
+          {t("onboarding.whatFirst")}
         </Text>
         <Text className="text-foreground-muted text-center text-base leading-[23px]">
-          Start with one. You can rename it or make your own anytime.
+          {t("onboarding.startWithOne")}
         </Text>
       </View>
       <View className="mt-6 max-h-98 flex-1 overflow-hidden pt-1.5">
@@ -92,7 +96,7 @@ export function FirstRallyPicker({
         >
           {firstRallyTemplates.map((template, index) => (
             <TemplateCard
-              key={template.name}
+              key={template.emoji}
               template={template}
               isSelected={index === selectedIndex}
               onPress={() => onSelect(index)}
@@ -105,9 +109,9 @@ export function FirstRallyPicker({
           const isSelected = index === selectedIndex;
           return (
             <Pressable
-              key={template.name}
+              key={template.emoji}
               role="button"
-              aria-label={`${template.emoji} ${template.name}`}
+              aria-label={`${template.emoji} ${t(template.name)}`}
               aria-selected={isSelected}
               onPress={() => onSelect(index)}
               className={
@@ -124,7 +128,7 @@ export function FirstRallyPicker({
       <View className="mt-auto gap-1 px-6 pt-4">
         <Pressable
           role="button"
-          aria-label={`Start with ${selected.name}`}
+          aria-label={t("onboarding.startWith", { name: t(selected.name) })}
           aria-busy={isStarting}
           disabled={isStarting}
           onPress={onStart}
@@ -137,7 +141,7 @@ export function FirstRallyPicker({
             />
           ) : null}
           <Text className="text-primary-foreground text-base font-semibold">
-            Start with {selected.name}
+            {t("onboarding.startWith", { name: t(selected.name) })}
           </Text>
         </Pressable>
         <Pressable
@@ -147,7 +151,7 @@ export function FirstRallyPicker({
           className="h-11 items-center justify-center active:opacity-70"
         >
           <Text className="text-foreground-muted text-[15px] font-semibold">
-            I&apos;ll make my own
+            {t("onboarding.makeOwn")}
           </Text>
         </Pressable>
       </View>
@@ -164,11 +168,13 @@ type TemplateCardProps = {
 // A preview of Home on the first day with this rally.
 function TemplateCard({ template, isSelected, onPress }: TemplateCardProps) {
   const { monthDay, weekday } = formatHeaderDate(new Date());
+  const { t } = useTranslation();
+  const name = t(template.name);
 
   return (
     <Pressable
       role="button"
-      aria-label={`Preview of ${template.name}`}
+      aria-label={t("onboarding.previewOf", { name })}
       onPress={onPress}
       className={`bg-surface border-continuous gap-3 rounded-[30px] p-3.5 ${
         isSelected ? "shadow-fab" : ""
@@ -192,11 +198,9 @@ function TemplateCard({ template, isSelected, onPress }: TemplateCardProps) {
         </View>
         <View className="flex-1 gap-0.5">
           <Text className="text-foreground text-[13px] font-bold">
-            1 stamp today
+            {t("onboarding.oneStampToday")}
           </Text>
-          <Text className="text-foreground-secondary text-xs">
-            {template.name}
-          </Text>
+          <Text className="text-foreground-secondary text-xs">{name}</Text>
         </View>
       </View>
       <View className="flex-row gap-2">
@@ -214,7 +218,7 @@ function TemplateCard({ template, isSelected, onPress }: TemplateCardProps) {
             </View>
           </View>
           <Text className="text-foreground text-xs leading-[14px] font-semibold">
-            {template.name}
+            {name}
           </Text>
           <View className="flex-row justify-between">
             {previewDots.map((isStamped, index) => (
@@ -236,7 +240,7 @@ function TemplateCard({ template, isSelected, onPress }: TemplateCardProps) {
             strokeWidth={2.5}
           />
           <Text className="text-foreground-muted text-xs font-semibold">
-            New rally
+            {t("onboarding.newRally")}
           </Text>
         </View>
       </View>

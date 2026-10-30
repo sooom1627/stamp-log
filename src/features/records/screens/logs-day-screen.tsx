@@ -1,5 +1,7 @@
 import { Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { LoadError } from "@/shared/components/load-error";
 import { StampPost } from "@/shared/components/stamp-post";
@@ -17,6 +19,7 @@ type LogsDayScreenProps = {
 };
 
 export function LogsDayScreen({ date }: LogsDayScreenProps) {
+  const { t } = useTranslation();
   // Only this local day's stamps, newest first.
   const { rallies, stamps, isLoaded, isError, retry } = useRalliesAndStamps(
     useStampsBetween(date, addLocalDays(date, 1)),
@@ -37,7 +40,7 @@ export function LogsDayScreen({ date }: LogsDayScreenProps) {
       {isLoaded && !isError && posts.length === 0 ? (
         <View className="items-center py-8">
           <Text className="text-foreground-secondary">
-            No stamps on this day
+            {t("records.noStampsOnDay")}
           </Text>
         </View>
       ) : null}

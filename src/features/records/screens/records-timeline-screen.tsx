@@ -4,6 +4,8 @@ import { ScrollView, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
+
 import { DayCard } from "@/shared/components/day-card";
 import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
 import { StampPost } from "@/shared/components/stamp-post";
@@ -33,6 +35,7 @@ import { buildDayMarks } from "../utils/day-marks";
 
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
+  const { t } = useTranslation();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
   const { rallies, stamps, isLoaded, isError, retry } =
@@ -59,13 +62,13 @@ export function RecordsTimelineScreen() {
           the pages, so it does not stick (S-050). The scroll runs under the
           large title so the title can shrink. */}
       <ScrollView
-        aria-label="Logs timeline"
+        aria-label={t("records.timelineLabel")}
         className="bg-canvas from-canvas-top via-canvas-mid to-canvas-bottom flex-1 bg-linear-to-b"
         contentContainerClassName="pb-32"
         contentInsetAdjustmentBehavior="automatic"
       >
         <View className="px-5">
-          <TabRootSubtitle>Your days, one stamp at a time</TabRootSubtitle>
+          <TabRootSubtitle>{t("records.subtitle")}</TabRootSubtitle>
           {/* Not linked to the pages: moving it leaves the posts as they are. */}
           <RallyMonthCalendar
             testID="logs-calendar"
@@ -134,12 +137,12 @@ export function RecordsTimelineScreen() {
           <TimelineEmpty
             isError={isError}
             isLoaded={isLoaded}
-            message="No stamps yet"
+            message={t("rallies.noStamps")}
             onRetry={retry}
           />
         )}
       </ScrollView>
-      <TabRootHeader title="Logs" />
+      <TabRootHeader title={t("records.title")} />
     </>
   );
 }
