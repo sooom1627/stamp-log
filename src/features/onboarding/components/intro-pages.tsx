@@ -91,7 +91,9 @@ export function IntroPages({
         values={introPageKeys}
         value={introPageKeys[step]}
         onChange={(key) => onChangeStep(introPageKeys.indexOf(key))}
-        renderPage={(key) => <IntroPage pageKey={key} />}
+        renderPage={(key) => (
+          <IntroPage pageKey={key} isActive={key === introPageKeys[step]} />
+        )}
       />
       <View className="flex-row items-center justify-between px-6 pt-4">
         <View
@@ -164,7 +166,14 @@ function PageDot({ isCurrent }: { isCurrent: boolean }) {
   return <Animated.View className="h-1.5 rounded-full" style={dotStyle} />;
 }
 
-function IntroPage({ pageKey }: { pageKey: IntroPageKey }) {
+function IntroPage({
+  pageKey,
+  isActive,
+}: {
+  pageKey: IntroPageKey;
+  // The page on screen: its picture plays the first time this is true.
+  isActive: boolean;
+}) {
   const index = introPageKeys.indexOf(pageKey);
   const { title, body } = introPages[index];
   const { t } = useTranslation();
@@ -173,7 +182,7 @@ function IntroPage({ pageKey }: { pageKey: IntroPageKey }) {
   return (
     <View className="flex-1">
       <View className="mt-1 max-h-100 flex-1 px-4">
-        <Art />
+        <Art isActive={isActive} />
       </View>
       <View className="mt-8 gap-3 px-6">
         {index === 0 ? (

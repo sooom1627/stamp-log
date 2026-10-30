@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Animated, {
   FadeInDown,
+  interpolate,
   Keyframe,
   useAnimatedStyle,
   useSharedValue,
@@ -14,6 +15,7 @@ import Animated, {
 
 import { Check, Plus } from "@/shared/components/icons";
 
+import { useEntrance } from "../hooks/use-entrance";
 import { easeOut } from "../utils/motion";
 
 import { ArtPanel } from "./art-panel";
@@ -30,11 +32,16 @@ const dotPop = new Keyframe({
   100: { transform: [{ scale: 1 }], easing: easeOut },
 }).duration(360);
 
-export function TryStampArt() {
+export function TryStampArt({ isActive }: { isActive: boolean }) {
   const [isStamped, setIsStamped] = useState(false);
   const { t } = useTranslation();
   const name = t("onboarding.samples.morningRun");
   const days = [...stampedBefore, isStamped];
+  const entrance = useEntrance(isActive, 320, 400);
+  const tileStyle = useAnimatedStyle(() => ({
+    opacity: entrance.get(),
+    transform: [{ translateY: interpolate(entrance.get(), [0, 1], [8, 0]) }],
+  }));
   const buttonScale = useSharedValue(1);
   const buttonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.get() }],
@@ -55,7 +62,10 @@ export function TryStampArt() {
 
   return (
     <ArtPanel className="items-center justify-center gap-[18px]">
-      <View className="bg-canvas border-continuous w-[230px] gap-3 rounded-3xl p-4">
+      <Animated.View
+        className="bg-canvas border-continuous w-[230px] gap-3 rounded-3xl p-4"
+        style={tileStyle}
+      >
         <View className="flex-row items-start justify-between">
           <View className="bg-accent-soft border-continuous size-12 items-center justify-center rounded-[14px]">
             <Text className="text-[26px]">🏃</Text>
@@ -129,7 +139,7 @@ export function TryStampArt() {
             ))}
           </View>
         </View>
-      </View>
+      </Animated.View>
       {isStamped ? (
         <Animated.View
           entering={FadeInDown.duration(240)
