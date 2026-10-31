@@ -205,11 +205,7 @@ export const en = {
   calendar: {
     previousMonth: "Previous month",
     nextMonth: "Next month",
-    previousWeek: "Previous week",
-    nextWeek: "Next week",
     chooseMonth: "Choose month, {{month}}",
-    showWeek: "Show week",
-    showMonth: "Show month",
     month: "Month",
     year: "Year",
     dayNotRecorded: "{{date}}, not recorded",

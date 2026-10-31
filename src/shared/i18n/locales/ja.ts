@@ -208,11 +208,7 @@ export const ja: Translation = {
   calendar: {
     previousMonth: "前の月",
     nextMonth: "次の月",
-    previousWeek: "前の週",
-    nextWeek: "次の週",
     chooseMonth: "月を選ぶ、{{month}}",
-    showWeek: "週で見る",
-    showMonth: "月で見る",
     month: "月",
     year: "年",
     dayNotRecorded: "{{date}}、押していない日",

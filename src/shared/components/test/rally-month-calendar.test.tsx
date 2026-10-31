@@ -12,7 +12,7 @@ import { RallyMonthCalendar } from "../rally-month-calendar";
 jest.useFakeTimers();
 
 beforeEach(() => {
-  // Saturday, October 10, 2026: the week shown is Oct 5–11.
+  // Saturday, October 10, 2026: the month shown is October 2026.
   jest.setSystemTime(new Date(2026, 9, 10, 12));
 });
 
@@ -77,7 +77,7 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
 });
 
 describe("RT-003 ST-004 calendar tells the range it shows", () => {
-  test("reports the shown week or month as local midnights, end left out", async () => {
+  test("reports the shown month as local midnights, end left out", async () => {
     const onVisibleRangeChange = jest.fn();
     await render(
       <RallyMonthCalendar
@@ -87,28 +87,16 @@ describe("RT-003 ST-004 calendar tells the range it shows", () => {
     );
     const user = userEvent.setup();
 
-    await user.press(screen.getByRole("button", { name: "Next week" }));
-    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
-      start: new Date(2026, 9, 12),
-      end: new Date(2026, 9, 19),
-    });
-
-    await user.press(screen.getByRole("button", { name: "Show month" }));
-    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
-      start: new Date(2026, 9, 1),
-      end: new Date(2026, 10, 1),
-    });
-
     await user.press(screen.getByRole("button", { name: "Next month" }));
     expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
       start: new Date(2026, 10, 1),
       end: new Date(2026, 11, 1),
     });
 
-    await user.press(screen.getByRole("button", { name: "Show week" }));
+    await user.press(screen.getByRole("button", { name: "Previous month" }));
     expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
-      start: new Date(2026, 9, 5),
-      end: new Date(2026, 9, 12),
+      start: new Date(2026, 9, 1),
+      end: new Date(2026, 10, 1),
     });
   });
 

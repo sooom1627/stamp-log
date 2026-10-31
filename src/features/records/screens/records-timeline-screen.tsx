@@ -28,7 +28,7 @@ import {
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
-import { initialCalendarRange } from "@/shared/utils/month-grid";
+import { currentMonth, monthRange } from "@/shared/utils/month-grid";
 import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
 import { buildDayMarks } from "../utils/day-marks";
@@ -46,8 +46,10 @@ export function RecordsTimelineScreen() {
   const tiles = albumTiles(stamps ?? [], rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const hasPosts = posts.length > 0;
-  // The calendar reads only the week or month it shows.
-  const [calendarRange, setCalendarRange] = useState(initialCalendarRange);
+  // The calendar reads only the month it shows.
+  const [calendarRange, setCalendarRange] = useState(() =>
+    monthRange(currentMonth()),
+  );
   const { data: calendarStamps } = useStampsBetween(
     calendarRange.start,
     calendarRange.end,

@@ -10,14 +10,10 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
   buildMonthWeeks,
-  buildWeek,
-  initialCalendarView,
+  currentMonth,
+  monthRange,
   pickerYears,
-  shiftWeek,
-  visibleCalendarRange,
-  weekHeadingMonth,
   type CalendarRange,
-  type CalendarView,
   type DayMark,
   type MonthDay,
 } from "@/shared/utils/month-grid";
@@ -136,9 +132,8 @@ type RallyMonthCalendarProps = {
   onPressDay?: (key: string) => void;
   // Logs opens only days with stamps; rally detail opens empty days too.
   isRecordedOnly?: boolean;
-  // Called when the shown week or month changes, so a screen can read only
-  // the stamps of that range (Logs). Starts at `initialCalendarRange()`
-  // (month-grid).
+  // Called when the shown month changes, so a screen can read only the stamps
+  // of that month (Logs). Starts at this month.
   onVisibleRangeChange?: (range: CalendarRange) => void;
   // The oldest stamp's time, when `stampDates` holds only the shown range.
   firstStampedAt?: string | null;
@@ -155,43 +150,23 @@ export function RallyMonthCalendar({
   firstStampedAt,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
-  const [view, setView] = useState(initialCalendarView);
+  // Opens on this month every time; the month is not remembered.
+  const [month, setMonth] = useState(currentMonth);
   const { t } = useTranslation();
-  const { isMonthView, month, weekAnchor } = view;
-  const weeks = isMonthView
-    ? buildMonthWeeks(month, stampDates)
-    : [buildWeek(weekAnchor, stampDates)];
-
-  // Every change of the shown days goes through here.
-  const changeView = (next: CalendarView) => {
-    setView(next);
-    onVisibleRangeChange?.(visibleCalendarRange(next));
-  };
-
-  const showMonth = () => changeView({ ...view, isMonthView: true });
-  const showWeek = () => changeView(initialCalendarView());
-
-  // ‹ › step by the unit on screen: a week in the week view, a month otherwise.
-  const step = (delta: number) => {
-    if (isMonthView) {
-      changeView({
-        ...view,
-        month: new Date(month.getFullYear(), month.getMonth() + delta, 1),
-      });
-      return;
-    }
-    const nextAnchor = shiftWeek(weekAnchor, delta);
-    changeView({
-      isMonthView,
-      weekAnchor: nextAnchor,
-      month: weekHeadingMonth(month, buildWeek(nextAnchor, [])),
-    });
-  };
+  const weeks = buildMonthWeeks(month, stampDates);
   const heading = monthFormatter.format(month);
+
+  // Every change of the shown month goes through here.
+  const changeMonth = (next: Date) => {
+    setMonth(next);
+    onVisibleRangeChange?.(monthRange(next));
+  };
+  const step = (delta: number) =>
+    changeMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const pickMonth = (picked: Date) => {
-    changeView({ ...view, month: picked, isMonthView: true });
+    changeMonth(picked);
     setIsPickerOpen(false);
   };
 
@@ -203,11 +178,7 @@ export function RallyMonthCalendar({
       <View className="flex-row items-center justify-between">
         <Pressable
           role="button"
-          aria-label={
-            isMonthView
-              ? t("calendar.previousMonth")
-              : t("calendar.previousWeek")
-          }
+          aria-label={t("calendar.previousMonth")}
           className="size-11 items-center justify-center"
           onPress={() => step(-1)}
         >
@@ -225,9 +196,7 @@ export function RallyMonthCalendar({
         </Pressable>
         <Pressable
           role="button"
-          aria-label={
-            isMonthView ? t("calendar.nextMonth") : t("calendar.nextWeek")
-          }
+          aria-label={t("calendar.nextMonth")}
           className="size-11 items-center justify-center"
           onPress={() => step(1)}
         >
@@ -259,16 +228,6 @@ export function RallyMonthCalendar({
           ))}
         </View>
       ))}
-      <Pressable
-        role="button"
-        aria-expanded={isMonthView}
-        className="min-h-11 items-center justify-center self-center px-4"
-        onPress={isMonthView ? showWeek : showMonth}
-      >
-        <Text className="text-foreground-secondary text-sm font-semibold">
-          {isMonthView ? t("calendar.showWeek") : t("calendar.showMonth")}
-        </Text>
-      </Pressable>
       <MonthPickerSheet
         isPresented={isPickerOpen}
         month={month}

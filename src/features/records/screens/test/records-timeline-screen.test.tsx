@@ -429,7 +429,7 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     return { logs, calendar: within(logs.getByTestId("logs-calendar")) };
   }
 
-  test("opens on this week and marks stamped days with the last rally's emoji and +N", async () => {
+  test("opens on this month and marks stamped days with the last rally's emoji and +N", async () => {
     const cafes = await saveRallyNamed("Calendar cafes", "🧋");
     const runs = await saveRallyNamed("Calendar runs", "🛼");
     // Stamped now, so today (always in the week shown first) ends on cafes.
@@ -443,12 +443,18 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     const hidden = { includeHiddenElements: true };
     expect(within(today).getByText("🧋")).toBeOnTheScreen();
     expect(within(today).getByText(/^\+\d+$/, hidden)).toBeOnTheScreen();
+    const now = new Date();
+    const daysInMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+    ).getDate();
     expect(
       calendar.getAllByRole("button", { name: /, 20\d\d, / }),
-    ).toHaveLength(7);
+    ).toHaveLength(daysInMonth);
     expect(
-      calendar.getByRole("button", { name: "Show month" }),
-    ).toBeOnTheScreen();
+      calendar.queryByRole("button", { name: "Show month" }),
+    ).not.toBeOnTheScreen();
   });
 
   test("RT-003 ST-004 marks a stamped day of an earlier month once the calendar shows it", async () => {
@@ -461,7 +467,6 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     const { calendar } = await openLogsCalendar();
     const user = userEvent.setup();
 
-    await user.press(calendar.getByRole("button", { name: "Show month" }));
     await user.press(calendar.getByRole("button", { name: "Previous month" }));
     await user.press(calendar.getByRole("button", { name: "Previous month" }));
 
@@ -481,8 +486,6 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     const before = firstPost().props.children;
     const user = userEvent.setup();
 
-    await user.press(calendar.getByRole("button", { name: "Previous week" }));
-    await user.press(calendar.getByRole("button", { name: "Show month" }));
     await user.press(calendar.getByRole("button", { name: "Previous month" }));
 
     expect(firstPost().props.children).toEqual(before);

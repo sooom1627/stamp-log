@@ -47,19 +47,6 @@ export function buildMonthWeeks(month: Date, stampDates: string[]) {
   );
 }
 
-// The Monday-first week holding `anchor`. Unlike a month row it has no blanks:
-// days from the next or previous month fill it.
-export function buildWeek(anchor: Date, stampDates: string[]): MonthDay[] {
-  const recordedDateKeys = toRecordedDateKeys(stampDates);
-  const mondayOffset = (anchor.getDay() + 6) % 7;
-
-  return Array.from({ length: DAYS_PER_WEEK }, (_, index) => {
-    const date = addLocalDays(anchor, index - mondayOffset);
-    const key = localDateKey(date);
-    return { date, key, isRecorded: recordedDateKeys.has(key) };
-  });
-}
-
 // The 7 days ending today, oldest first.
 export function buildLastDays(stampDates: string[], today: Date): MonthDay[] {
   const recordedDateKeys = toRecordedDateKeys(stampDates);
@@ -71,64 +58,21 @@ export function buildLastDays(stampDates: string[], today: Date): MonthDay[] {
   });
 }
 
-export function shiftWeek(anchor: Date, delta: number) {
-  return addLocalDays(anchor, delta * DAYS_PER_WEEK);
-}
-
-// Keep the heading month while the shown week still has one of its days, so
-// stepping across a month boundary does not flip the heading back and forth.
-export function weekHeadingMonth(currentMonth: Date, weekDays: MonthDay[]) {
-  const year = currentMonth.getFullYear();
-  const monthIndex = currentMonth.getMonth();
-  const keepsMonth = weekDays.some(
-    ({ date }) => date.getFullYear() === year && date.getMonth() === monthIndex,
-  );
-  const month = keepsMonth ? currentMonth : weekDays[0].date;
-  return new Date(month.getFullYear(), month.getMonth(), 1);
-}
-
 // Local midnights; `end` is the day after the last shown day.
 export type CalendarRange = { start: Date; end: Date };
 
-// What the calendar shows: a week around `weekAnchor`, or all of `month`.
-export type CalendarView = {
-  isMonthView: boolean;
-  month: Date;
-  weekAnchor: Date;
-};
-
-function firstDayOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-// Opens on the week holding today every time; the view is not remembered.
-export function initialCalendarView(): CalendarView {
+// The first local day of this month, where the calendar opens.
+export function currentMonth() {
   const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), 1);
+}
+
+// All of `month` (its first day) as local midnights.
+export function monthRange(month: Date): CalendarRange {
   return {
-    isMonthView: false,
-    month: firstDayOfMonth(today),
-    weekAnchor: today,
+    start: month,
+    end: new Date(month.getFullYear(), month.getMonth() + 1, 1),
   };
-}
-
-export function visibleCalendarRange({
-  isMonthView,
-  month,
-  weekAnchor,
-}: CalendarView): CalendarRange {
-  if (isMonthView) {
-    return {
-      start: month,
-      end: new Date(month.getFullYear(), month.getMonth() + 1, 1),
-    };
-  }
-  const [monday] = buildWeek(weekAnchor, []);
-  return { start: monday.date, end: addLocalDays(monday.date, DAYS_PER_WEEK) };
-}
-
-// The range the calendar shows when it opens.
-export function initialCalendarRange() {
-  return visibleCalendarRange(initialCalendarView());
 }
 
 // From the first stamp's year (or this year) to next year, always including
