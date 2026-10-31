@@ -20,11 +20,7 @@ import {
 } from "@/shared/components/tab-root-screen";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
-import {
-  useFirstStampedAt,
-  useStamps,
-  useStampsBetween,
-} from "@/shared/hooks/use-stamps";
+import { useFirstStampedAt, useStampsBetween } from "@/shared/hooks/use-stamps";
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
@@ -47,39 +43,52 @@ export function RecordsTimelineScreen() {
   // and the album below show only the calendar's month (S-051).
   const [month, setMonth] = useState(currentMonth);
   const { start, end } = monthRange(month);
-  const { rallies, stamps, isLoaded, isError, retry } =
-    useRalliesAndStamps(useStamps());
-  const monthStamps = (stamps ?? []).filter((stamp) => {
-    const stampedAt = new Date(stamp.stampedAt);
-    return stampedAt >= start && stampedAt < end;
-  });
+  const previousMonth = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+  // One read of the shown month and the months beside it: the calendar's
+  // pages beside it come into view while it is swiped, the stamps below are
+  // the shown month's, and the button at the bottom counts the previous one.
+  const {
+    rallies,
+    stamps: nearStamps,
+    isLoaded: isNearLoaded,
+    isError,
+    retry,
+  } = useRalliesAndStamps(
+    useStampsBetween(
+      previousMonth,
+      new Date(month.getFullYear(), month.getMonth() + 2, 1),
+    ),
+  );
+  const stampsIn = (from: Date, to: Date) =>
+    (nearStamps ?? []).filter((stamp) => {
+      const stampedAt = new Date(stamp.stampedAt);
+      return stampedAt >= from && stampedAt < to;
+    });
+  const monthStamps = stampsIn(start, end);
+  const previousMonthCount = stampsIn(previousMonth, start).length;
   // A stamp is shown once its rally is loaded, so every post has its name.
   const posts = stampsWithRallies(monthStamps, rallies ?? []);
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
   const tiles = albumTiles(monthStamps, rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const hasPosts = posts.length > 0;
-  const { data: firstStampedAt } = useFirstStampedAt();
-  // Earlier months have stamps, so the bottom can step back one month.
+  // The oldest stamp tells whether there are any stamps, and any before
+  // this month.
+  const { data: firstStampedAt, isError: isFirstError } = useFirstStampedAt();
+  const isLoaded = isNearLoaded && firstStampedAt !== undefined;
   const hasEarlierStamps =
     typeof firstStampedAt === "string" && new Date(firstStampedAt) < start;
-  const previousMonth = new Date(month.getFullYear(), month.getMonth() - 1, 1);
   const previousMonthButton = hasEarlierStamps ? (
     <PreviousMonthButton
       month={previousMonth}
+      count={previousMonthCount}
       onPress={() => setMonth(previousMonth)}
     />
   ) : null;
   // Stamps exist, only not in this month.
   const isEmptyMonth =
-    isLoaded && !isError && !hasPosts && (stamps ?? []).length > 0;
-  // The calendar reads the month it shows and the months beside it, whose
-  // pages come into view while it is swiped.
-  const { data: calendarStamps } = useStampsBetween(
-    new Date(month.getFullYear(), month.getMonth() - 1, 1),
-    new Date(month.getFullYear(), month.getMonth() + 2, 1),
-  );
-  const calendarPosts = stampsWithRallies(calendarStamps ?? [], rallies ?? []);
+    isLoaded && !isError && !hasPosts && typeof firstStampedAt === "string";
+  const calendarPosts = stampsWithRallies(nearStamps ?? [], rallies ?? []);
 
   return (
     <>
@@ -100,7 +109,7 @@ export function RecordsTimelineScreen() {
             month={month}
             onChangeMonth={setMonth}
             stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
-            dayMarks={buildDayMarks(calendarStamps ?? [], rallies ?? [])}
+            dayMarks={buildDayMarks(nearStamps ?? [], rallies ?? [])}
             firstStampedAt={firstStampedAt}
             isHeadingAbove
             isRecordedOnly
@@ -174,7 +183,7 @@ export function RecordsTimelineScreen() {
         ) : null}
         {!hasPosts && !isEmptyMonth ? (
           <TimelineEmpty
-            isError={isError}
+            isError={isError || isFirstError}
             isLoaded={isLoaded}
             message={t("rallies.noStamps")}
             onRetry={retry}

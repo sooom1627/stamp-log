@@ -123,7 +123,7 @@ export const ja: Translation = {
     timelineLabel: "記録の一覧",
     noStampsOnDay: "この日は押していません",
     noStampsInMonth: "{{month}} は押していません",
-    showPreviousMonth: "{{month}} を見る",
+    showPreviousMonth: "{{month}} を見る、{{stamps}}",
   },
   settings: {
     title: "設定",

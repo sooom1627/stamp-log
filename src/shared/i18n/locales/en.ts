@@ -121,7 +121,7 @@ export const en = {
     timelineLabel: "Logs timeline",
     noStampsOnDay: "No stamps on this day",
     noStampsInMonth: "No stamps in {{month}}",
-    showPreviousMonth: "Show {{month}}",
+    showPreviousMonth: "Show {{month}}, {{stamps}}",
   },
   settings: {
     title: "Settings",

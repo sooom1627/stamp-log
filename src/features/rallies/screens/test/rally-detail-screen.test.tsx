@@ -623,8 +623,9 @@ describe("S-017 T-001 ST-003 confirm names the stamps deleted with the rally", (
   });
 
   test("still says its stamps will be deleted when they could not be loaded", async () => {
+    // Rally detail reads only this rally's stamps.
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listRallyStamps")
       .mockRejectedValue(new Error("disk full"));
     await openEmptyRally("Delete unknown stamps");
     expect(await screen.findByText("Couldn't load")).toBeOnTheScreen();
