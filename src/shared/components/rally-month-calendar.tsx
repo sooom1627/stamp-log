@@ -4,8 +4,10 @@ import { Pressable, Text, View } from "react-native";
 
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
-import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
+import { GestureDetector } from "react-native-gesture-handler";
+import Animated from "react-native-reanimated";
 
+import { useMonthSwipe } from "@/shared/hooks/use-month-swipe";
 import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
@@ -21,12 +23,6 @@ import { ChevronLeft, ChevronRight } from "./icons";
 import { MonthPickerSheet } from "./month-picker-sheet";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-// A swipe starts once the finger moves this far sideways, and gives way to
-// the screen's vertical scroll when it moves this far up or down first.
-const SWIPE_START_X = 20;
-const SWIPE_FAIL_Y = 15;
-// How far the finger has to travel before a swipe turns the month.
-const SWIPE_TURN_X = 40;
 
 type CalendarDayProps = {
   day: MonthDay | null;
@@ -163,16 +159,11 @@ export function RallyMonthCalendar({
     onChangeMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
 
   // Left shows the next month, right the previous one (‹ ›).
-  const swipe = usePanGesture({
-    testID: `${testID}-swipe`,
-    runOnJS: true,
-    activeOffsetX: [-SWIPE_START_X, SWIPE_START_X],
-    failOffsetY: [-SWIPE_FAIL_Y, SWIPE_FAIL_Y],
-    onDeactivate: ({ canceled, translationX }) => {
-      if (canceled || Math.abs(translationX) < SWIPE_TURN_X) return;
-      step(translationX < 0 ? 1 : -1);
-    },
-  });
+  const {
+    gesture: swipe,
+    daysStyle,
+    onDaysLayout,
+  } = useMonthSwipe({ testID, month, onStep: step });
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const pickMonth = (picked: Date) => {
@@ -224,21 +215,27 @@ export function RallyMonthCalendar({
             </Text>
           ))}
         </View>
-        {weeks.map((week, weekIndex) => (
-          <View key={weekIndex} className="flex-row">
-            {week.map((day, dayIndex) => (
-              <CalendarDay
-                key={day?.key ?? `blank-${dayIndex}`}
-                day={day}
-                emoji={emoji}
-                mark={day ? dayMarks?.get(day.key) : undefined}
-                todayKey={todayKey}
-                onPress={onPressDay}
-                isRecordedOnly={isRecordedOnly}
-              />
+        {/* Only the days move with the finger; the clip keeps them inside
+            the card while they slide. */}
+        <View className="overflow-hidden" onLayout={onDaysLayout}>
+          <Animated.View style={daysStyle} className="gap-2">
+            {weeks.map((week, weekIndex) => (
+              <View key={weekIndex} className="flex-row">
+                {week.map((day, dayIndex) => (
+                  <CalendarDay
+                    key={day?.key ?? `blank-${dayIndex}`}
+                    day={day}
+                    emoji={emoji}
+                    mark={day ? dayMarks?.get(day.key) : undefined}
+                    todayKey={todayKey}
+                    onPress={onPressDay}
+                    isRecordedOnly={isRecordedOnly}
+                  />
+                ))}
+              </View>
             ))}
-          </View>
-        ))}
+          </Animated.View>
+        </View>
         <MonthPickerSheet
           isPresented={isPickerOpen}
           month={month}

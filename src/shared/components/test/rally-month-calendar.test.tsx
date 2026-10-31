@@ -166,18 +166,47 @@ describe("S-051 T-001 ST-003 swipe the calendar to change months", () => {
     );
 
     await act(() => swipe(-80));
-    expect(screen.getByText("November 2026")).toBeOnTheScreen();
+    // The month turns once the days have slid out.
+    expect(await screen.findByText("November 2026")).toBeOnTheScreen();
     expect(onChangeMonth).toHaveBeenLastCalledWith(new Date(2026, 10, 1));
 
     await act(() => swipe(80));
+    expect(await screen.findByText("October 2026")).toBeOnTheScreen();
     await act(() => swipe(80));
-    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
   });
 
   test("stays on the month after a short drag", async () => {
     await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
 
     await act(() => swipe(-20));
+    await act(() => jest.runAllTicks());
+
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+  });
+});
+
+describe("S-051 T-002 ST-002 the calendar follows the finger", () => {
+  const drag = (translationX: number, velocityX: number) =>
+    fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE, translationX, velocityX },
+      { state: State.END, translationX, velocityX },
+    ]);
+
+  test("turns the month on a quick flick even when the finger moved little", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+
+    await act(() => drag(-25, -800));
+
+    expect(await screen.findByText("November 2026")).toBeOnTheScreen();
+  });
+
+  test("stays on the month after a short slow drag", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+
+    await act(() => drag(25, 100));
+    await act(() => jest.runAllTicks());
 
     expect(screen.getByText("October 2026")).toBeOnTheScreen();
   });
