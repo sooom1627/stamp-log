@@ -4,6 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
+import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
 
 import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
@@ -26,6 +27,12 @@ const monthFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+// A swipe starts once the finger moves this far sideways, and gives way to
+// the screen's vertical scroll when it moves this far up or down first.
+const SWIPE_START_X = 20;
+const SWIPE_FAIL_Y = 15;
+// How far the finger has to travel before a swipe turns the month.
+const SWIPE_TURN_X = 40;
 
 type CalendarDayProps = {
   day: MonthDay | null;
@@ -164,6 +171,18 @@ export function RallyMonthCalendar({
   const step = (delta: number) =>
     changeMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
 
+  // Left shows the next month, right the previous one (‹ ›).
+  const swipe = usePanGesture({
+    testID: `${testID}-swipe`,
+    runOnJS: true,
+    activeOffsetX: [-SWIPE_START_X, SWIPE_START_X],
+    failOffsetY: [-SWIPE_FAIL_Y, SWIPE_FAIL_Y],
+    onDeactivate: ({ canceled, translationX }) => {
+      if (canceled || Math.abs(translationX) < SWIPE_TURN_X) return;
+      step(translationX < 0 ? 1 : -1);
+    },
+  });
+
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const pickMonth = (picked: Date) => {
     changeMonth(picked);
@@ -171,73 +190,75 @@ export function RallyMonthCalendar({
   };
 
   return (
-    <View
-      testID={testID}
-      className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
-    >
-      <View className="flex-row items-center justify-between">
-        <Pressable
-          role="button"
-          aria-label={t("calendar.previousMonth")}
-          className="size-11 items-center justify-center"
-          onPress={() => step(-1)}
-        >
-          <ChevronLeft colorClassName="accent-accent" size={20} />
-        </Pressable>
-        <Pressable
-          role="button"
-          aria-label={t("calendar.chooseMonth", { month: heading })}
-          className="min-h-11 justify-center px-2"
-          onPress={() => setIsPickerOpen(true)}
-        >
-          <Text className="text-foreground text-base font-semibold">
-            {heading}
-          </Text>
-        </Pressable>
-        <Pressable
-          role="button"
-          aria-label={t("calendar.nextMonth")}
-          className="size-11 items-center justify-center"
-          onPress={() => step(1)}
-        >
-          <ChevronRight colorClassName="accent-accent" size={20} />
-        </Pressable>
-      </View>
-      <View className="flex-row">
-        {WEEKDAYS.map((weekday) => (
-          <Text
-            key={weekday}
-            className="text-foreground-muted flex-1 text-center text-xs"
+    <GestureDetector gesture={swipe}>
+      <View
+        testID={testID}
+        className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
+      >
+        <View className="flex-row items-center justify-between">
+          <Pressable
+            role="button"
+            aria-label={t("calendar.previousMonth")}
+            className="size-11 items-center justify-center"
+            onPress={() => step(-1)}
           >
-            {weekday}
-          </Text>
-        ))}
-      </View>
-      {weeks.map((week, weekIndex) => (
-        <View key={weekIndex} className="flex-row">
-          {week.map((day, dayIndex) => (
-            <CalendarDay
-              key={day?.key ?? `blank-${dayIndex}`}
-              day={day}
-              emoji={emoji}
-              mark={day ? dayMarks?.get(day.key) : undefined}
-              todayKey={todayKey}
-              onPress={onPressDay}
-              isRecordedOnly={isRecordedOnly}
-            />
+            <ChevronLeft colorClassName="accent-accent" size={20} />
+          </Pressable>
+          <Pressable
+            role="button"
+            aria-label={t("calendar.chooseMonth", { month: heading })}
+            className="min-h-11 justify-center px-2"
+            onPress={() => setIsPickerOpen(true)}
+          >
+            <Text className="text-foreground text-base font-semibold">
+              {heading}
+            </Text>
+          </Pressable>
+          <Pressable
+            role="button"
+            aria-label={t("calendar.nextMonth")}
+            className="size-11 items-center justify-center"
+            onPress={() => step(1)}
+          >
+            <ChevronRight colorClassName="accent-accent" size={20} />
+          </Pressable>
+        </View>
+        <View className="flex-row">
+          {WEEKDAYS.map((weekday) => (
+            <Text
+              key={weekday}
+              className="text-foreground-muted flex-1 text-center text-xs"
+            >
+              {weekday}
+            </Text>
           ))}
         </View>
-      ))}
-      <MonthPickerSheet
-        isPresented={isPickerOpen}
-        month={month}
-        years={pickerYears(
-          firstStampedAt ? [firstStampedAt, ...stampDates] : stampDates,
-          month,
-        )}
-        onDone={pickMonth}
-        onClose={() => setIsPickerOpen(false)}
-      />
-    </View>
+        {weeks.map((week, weekIndex) => (
+          <View key={weekIndex} className="flex-row">
+            {week.map((day, dayIndex) => (
+              <CalendarDay
+                key={day?.key ?? `blank-${dayIndex}`}
+                day={day}
+                emoji={emoji}
+                mark={day ? dayMarks?.get(day.key) : undefined}
+                todayKey={todayKey}
+                onPress={onPressDay}
+                isRecordedOnly={isRecordedOnly}
+              />
+            ))}
+          </View>
+        ))}
+        <MonthPickerSheet
+          isPresented={isPickerOpen}
+          month={month}
+          years={pickerYears(
+            firstStampedAt ? [firstStampedAt, ...stampDates] : stampDates,
+            month,
+          )}
+          onDone={pickMonth}
+          onClose={() => setIsPickerOpen(false)}
+        />
+      </View>
+    </GestureDetector>
   );
 }

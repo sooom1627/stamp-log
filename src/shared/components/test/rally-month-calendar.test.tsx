@@ -1,9 +1,15 @@
 import {
+  act,
   render,
   screen,
   userEvent,
   within,
 } from "@testing-library/react-native";
+import { GestureHandlerRootView, State } from "react-native-gesture-handler";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 
 import { type DayMark } from "@/shared/utils/month-grid";
 
@@ -16,6 +22,10 @@ beforeEach(() => {
   jest.setSystemTime(new Date(2026, 9, 10, 12));
 });
 
+// The calendar's swipe needs the gesture root the app layout gives it.
+const renderCalendar = (ui: React.ReactElement) =>
+  render(ui, { wrapper: GestureHandlerRootView });
+
 const at = (day: number, hours: number) =>
   new Date(2026, 9, day, hours).toISOString();
 
@@ -27,7 +37,7 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
   ]);
 
   test("shows each day's emoji and +N on days with more than one stamp", async () => {
-    await render(
+    await renderCalendar(
       <RallyMonthCalendar
         testID="logs-calendar"
         stampDates={stampDates}
@@ -47,7 +57,7 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
   });
 
   test("reads the number of stamps with the day", async () => {
-    await render(
+    await renderCalendar(
       <RallyMonthCalendar stampDates={stampDates} dayMarks={dayMarks} />,
     );
 
@@ -63,7 +73,7 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
   });
 
   test("cannot press a day when no day action is given", async () => {
-    await render(
+    await renderCalendar(
       <RallyMonthCalendar stampDates={stampDates} dayMarks={dayMarks} />,
     );
 
@@ -79,7 +89,7 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
 describe("RT-003 ST-004 calendar tells the range it shows", () => {
   test("reports the shown month as local midnights, end left out", async () => {
     const onVisibleRangeChange = jest.fn();
-    await render(
+    await renderCalendar(
       <RallyMonthCalendar
         stampDates={[]}
         onVisibleRangeChange={onVisibleRangeChange}
@@ -101,7 +111,7 @@ describe("RT-003 ST-004 calendar tells the range it shows", () => {
   });
 
   test("starts the year wheel at the first stamp's year when only some stamps are given", async () => {
-    await render(
+    await renderCalendar(
       <RallyMonthCalendar
         stampDates={[at(7, 9)]}
         firstStampedAt={new Date(2023, 4, 1).toISOString()}
@@ -119,5 +129,46 @@ describe("RT-003 ST-004 calendar tells the range it shows", () => {
     // 2023 to next year (2027).
     const [rows] = yearWheel.children;
     expect(typeof rows === "string" ? [] : rows.children).toHaveLength(5);
+  });
+});
+
+describe("S-051 T-001 ST-003 swipe the calendar to change months", () => {
+  const swipe = (translationX: number) =>
+    fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE, translationX },
+      { state: State.END, translationX },
+    ]);
+
+  test("goes to the next month when swiped left and the previous when swiped right", async () => {
+    const onVisibleRangeChange = jest.fn();
+    await renderCalendar(
+      <RallyMonthCalendar
+        testID="logs-calendar"
+        stampDates={[]}
+        onVisibleRangeChange={onVisibleRangeChange}
+      />,
+    );
+
+    await act(() => swipe(-80));
+    expect(screen.getByText("November 2026")).toBeOnTheScreen();
+    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
+      start: new Date(2026, 10, 1),
+      end: new Date(2026, 11, 1),
+    });
+
+    await act(() => swipe(80));
+    await act(() => swipe(80));
+    expect(screen.getByText("September 2026")).toBeOnTheScreen();
+  });
+
+  test("stays on the month after a short drag", async () => {
+    await renderCalendar(
+      <RallyMonthCalendar testID="logs-calendar" stampDates={[]} />,
+    );
+
+    await act(() => swipe(-20));
+
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
   });
 });
