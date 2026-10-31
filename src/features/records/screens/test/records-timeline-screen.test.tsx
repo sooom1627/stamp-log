@@ -1,4 +1,4 @@
-import { Alert, type AlertButton } from "react-native";
+import { Alert, ScrollView, type AlertButton } from "react-native";
 
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
@@ -1156,5 +1156,43 @@ describe("S-051 T-004 ST-004 Logs reads three months and counts the previous one
     const logs = within(await screen.findByLabelText("Logs timeline"));
     expect(await logs.findByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
     expect(stampsDb.listStamps).not.toHaveBeenCalled();
+  });
+});
+
+describe("S-051 T-004 ST-005 the previous month starts from its heading", () => {
+  test("scrolls back so the month heading is just under the bar", async () => {
+    jest.setSystemTime(new Date(2026, 10, 20, 12));
+    const rally = await saveRallyNamed("Scroll back", "🛞");
+    const stamps = [
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 10, 3, 9).toISOString(),
+      }),
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 9, 3, 9).toISOString(),
+      }),
+    ];
+    await showOnlyStamps(stamps.map(({ id }) => id));
+    jest
+      .spyOn(stampSummaryDb, "getFirstStampedAt")
+      .mockResolvedValue(stamps[1].stampedAt);
+    // The native scroll view is not in the test; its scroll is recorded.
+    const scrollTo = jest.spyOn(ScrollView.prototype, "scrollTo");
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    // The month heading sits 120 points down the scroll.
+    await fireEvent(logs.getByTestId("logs-month"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 120, width: 360, height: 400 } },
+    });
+
+    await userEvent
+      .setup()
+      .press(
+        await logs.findByRole("button", { name: "Show October 2026, 1 stamp" }),
+      );
+
+    // Under the collapsed bar (44 points; no safe area in tests).
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 76, animated: true });
   });
 });

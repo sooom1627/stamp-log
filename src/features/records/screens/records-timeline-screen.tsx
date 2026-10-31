@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View, type ScrollViewInstance } from "react-native";
 
 import { useRouter } from "expo-router";
 
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DayCard } from "@/shared/components/day-card";
 import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
@@ -34,6 +35,9 @@ import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 import { PreviousMonthButton } from "../components/previous-month-button";
 import { buildDayMarks } from "../utils/day-marks";
 
+// The navigation bar once the large title has shrunk (iOS).
+const COLLAPSED_BAR_HEIGHT = 44;
+
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
   const { t } = useTranslation();
@@ -43,6 +47,10 @@ export function RecordsTimelineScreen() {
   // and the album below show only the calendar's month (S-051).
   const [month, setMonth] = useState(currentMonth);
   const { start, end } = monthRange(month);
+  const { top: safeTop } = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollViewInstance>(null);
+  // Where the month heading sits in the scroll.
+  const monthY = useRef(0);
   const previousMonth = new Date(month.getFullYear(), month.getMonth() - 1, 1);
   // One read of the shown month and the months beside it: the calendar's
   // pages beside it come into view while it is swiped, the stamps below are
@@ -82,7 +90,14 @@ export function RecordsTimelineScreen() {
     <PreviousMonthButton
       month={previousMonth}
       count={previousMonthCount}
-      onPress={() => setMonth(previousMonth)}
+      onPress={() => {
+        setMonth(previousMonth);
+        // Read the new month from its heading, just under the shrunk bar.
+        scrollRef.current?.scrollTo({
+          y: monthY.current - safeTop - COLLAPSED_BAR_HEIGHT,
+          animated: true,
+        });
+      }}
     />
   ) : null;
   // Stamps exist, only not in this month.
@@ -97,6 +112,7 @@ export function RecordsTimelineScreen() {
           the pages, so it does not stick (S-050). The scroll runs under the
           large title so the title can shrink. */}
       <ScrollView
+        ref={scrollRef}
         aria-label={t("records.timelineLabel")}
         className="bg-canvas from-canvas-top via-canvas-mid to-canvas-bottom flex-1 bg-linear-to-b"
         contentContainerClassName="pb-32"
@@ -104,19 +120,26 @@ export function RecordsTimelineScreen() {
       >
         <View className="px-5">
           <TabRootSubtitle>{t("records.subtitle")}</TabRootSubtitle>
-          <RallyMonthCalendar
-            testID="logs-calendar"
-            month={month}
-            onChangeMonth={setMonth}
-            stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
-            dayMarks={buildDayMarks(nearStamps ?? [], rallies ?? [])}
-            firstStampedAt={firstStampedAt}
-            isHeadingAbove
-            isRecordedOnly
-            onPressDay={(date) =>
-              push({ pathname: "/logs-day", params: { date } })
-            }
-          />
+          <View
+            testID="logs-month"
+            onLayout={({ nativeEvent }) => {
+              monthY.current = nativeEvent.layout.y;
+            }}
+          >
+            <RallyMonthCalendar
+              testID="logs-calendar"
+              month={month}
+              onChangeMonth={setMonth}
+              stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
+              dayMarks={buildDayMarks(nearStamps ?? [], rallies ?? [])}
+              firstStampedAt={firstStampedAt}
+              isHeadingAbove
+              isRecordedOnly
+              onPressDay={(date) =>
+                push({ pathname: "/logs-day", params: { date } })
+              }
+            />
+          </View>
         </View>
         {hasPosts ? (
           <View testID="logs-view-switch">
