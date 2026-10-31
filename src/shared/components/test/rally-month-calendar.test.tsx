@@ -2,6 +2,7 @@ import { useState, type ComponentProps } from "react";
 
 import {
   act,
+  fireEvent,
   render,
   screen,
   userEvent,
@@ -209,5 +210,82 @@ describe("S-051 T-002 ST-002 the calendar follows the finger", () => {
     await act(() => jest.runAllTicks());
 
     expect(screen.getByText("October 2026")).toBeOnTheScreen();
+  });
+});
+
+describe("S-051 T-003 ST-003 months as pages side by side", () => {
+  const hidden = { includeHiddenElements: true };
+  const drag = (translationX: number) =>
+    fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE, translationX },
+      { state: State.END, translationX },
+    ]);
+  // The pages take the calendar's width once it is laid out.
+  const layOut = (width: number) =>
+    fireEvent(screen.getByTestId("logs-calendar-pages"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width, height: 300 } },
+    });
+
+  test("fills the empty cells with the days around the month, dimmed and not pressable", async () => {
+    await renderCalendar(
+      <Calendar
+        testID="logs-calendar"
+        stampDates={[new Date(2026, 8, 29, 9).toISOString()]}
+        onPressDay={jest.fn()}
+      />,
+    );
+
+    const page = within(screen.getByTestId("logs-calendar-month-2026-10"));
+    // October 2026 starts on Thursday and ends on Saturday.
+    expect(
+      page.getByTestId("calendar-outside-day-2026-09-28", hidden),
+    ).toHaveTextContent("28");
+    expect(
+      page.getByTestId("calendar-outside-day-2026-11-01", hidden),
+    ).toHaveTextContent("1");
+    // A stamp in the next or previous month is shown on that month's page.
+    expect(page.queryByText(/^\+/, hidden)).toBeNull();
+    expect(
+      page.queryByRole("button", { name: /^Sep 28, 2026/ }),
+    ).not.toBeOnTheScreen();
+  });
+
+  test("lays the previous and next months beside the shown one, weekdays included", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+
+    const shown = screen.getByTestId("logs-calendar-month-2026-10");
+    expect(within(shown).getByText("Mon")).toBeOnTheScreen();
+    // The pages beside it are off screen, so they are not read out.
+    expect(
+      screen.getByTestId("logs-calendar-month-2026-09", hidden),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId("logs-calendar-month-2026-11", hidden),
+    ).toBeTruthy();
+    expect(
+      screen.queryByTestId("logs-calendar-month-2026-09"),
+    ).not.toBeOnTheScreen();
+
+    await userEvent
+      .setup()
+      .press(screen.getByRole("button", { name: "Previous month" }));
+
+    expect(screen.getByTestId("logs-calendar-month-2026-09")).toBeOnTheScreen();
+    expect(
+      screen.getByTestId("logs-calendar-month-2026-08", hidden),
+    ).toBeTruthy();
+  });
+
+  test("snaps to the next month after a quarter of the width, and back before it", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+    await layOut(320);
+
+    await act(() => drag(-70));
+    await act(() => jest.runAllTicks());
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+
+    await act(() => drag(-80));
+    expect(await screen.findByText("November 2026")).toBeOnTheScreen();
   });
 });

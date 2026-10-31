@@ -73,8 +73,12 @@ export function RecordsTimelineScreen() {
   // Stamps exist, only not in this month.
   const isEmptyMonth =
     isLoaded && !isError && !hasPosts && (stamps ?? []).length > 0;
-  // The calendar reads only the month it shows.
-  const { data: calendarStamps } = useStampsBetween(start, end);
+  // The calendar reads the month it shows and the months beside it, whose
+  // pages come into view while it is swiped.
+  const { data: calendarStamps } = useStampsBetween(
+    new Date(month.getFullYear(), month.getMonth() - 1, 1),
+    new Date(month.getFullYear(), month.getMonth() + 2, 1),
+  );
   const calendarPosts = stampsWithRallies(calendarStamps ?? [], rallies ?? []);
 
   return (
