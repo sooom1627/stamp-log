@@ -1,20 +1,17 @@
-import {
-  buildLastDays,
-  buildMonthWeeks,
-  buildWeek,
-  shiftWeek,
-  weekHeadingMonth,
-} from "../month-grid";
+import { buildLastDays, buildMonthWeeks } from "../month-grid";
 
+// Days of the shown month as numbers, the other months' days as null.
 function dayNumbers(weeks: ReturnType<typeof buildMonthWeeks>) {
-  return weeks.map((week) => week.map((day) => day?.date.getDate() ?? null));
+  return weeks.map((week) =>
+    week.map((day) => (day.isInMonth ? day.date.getDate() : null)),
+  );
 }
 
 function recordedKeys(weeks: ReturnType<typeof buildMonthWeeks>) {
   return weeks
     .flat()
-    .filter((day) => day?.isRecorded)
-    .map((day) => day?.key);
+    .filter((day) => day.isRecorded)
+    .map((day) => day.key);
 }
 
 describe("S-006 ST-001 buildMonthWeeks", () => {
@@ -71,27 +68,20 @@ describe("S-006 ST-001 buildMonthWeeks", () => {
 
     expect(recordedKeys(weeks)).toEqual(["2026-09-02", "2026-09-20"]);
   });
-});
 
-function weekKeys(days: ReturnType<typeof buildWeek>) {
-  return days.map((day) => day.key);
-}
+  test("S-051 ST-002 fills the weeks with the days of the months around it", () => {
+    const weeks = buildMonthWeeks(new Date(2026, 8, 1), []);
 
-describe("S-028 ST-001 buildWeek", () => {
-  test("lays out the Monday-first week that holds the given day", () => {
-    expect(weekKeys(buildWeek(new Date(2026, 8, 20, 15), []))).toEqual([
-      "2026-09-14",
-      "2026-09-15",
-      "2026-09-16",
-      "2026-09-17",
-      "2026-09-18",
-      "2026-09-19",
-      "2026-09-20",
+    expect(weeks[0].map(({ key }) => key)).toEqual([
+      "2026-08-31",
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04",
+      "2026-09-05",
+      "2026-09-06",
     ]);
-  });
-
-  test("fills every day of a week that crosses a month or a year", () => {
-    expect(weekKeys(buildWeek(new Date(2026, 9, 1), []))).toEqual([
+    expect(weeks[4].map(({ key }) => key)).toEqual([
       "2026-09-28",
       "2026-09-29",
       "2026-09-30",
@@ -100,60 +90,8 @@ describe("S-028 ST-001 buildWeek", () => {
       "2026-10-03",
       "2026-10-04",
     ]);
-    expect(weekKeys(buildWeek(new Date(2027, 0, 1), []))).toEqual([
-      "2026-12-28",
-      "2026-12-29",
-      "2026-12-30",
-      "2026-12-31",
-      "2027-01-01",
-      "2027-01-02",
-      "2027-01-03",
-    ]);
-  });
-
-  test("marks only the local days of the week that have stamps", () => {
-    const week = buildWeek(new Date(2026, 8, 20), [
-      new Date(2026, 8, 14, 0, 5).toISOString(),
-      new Date(2026, 8, 18, 23, 30).toISOString(),
-      new Date(2026, 8, 13, 23, 59).toISOString(),
-      new Date(2026, 8, 21, 0, 0).toISOString(),
-    ]);
-
-    expect(week.filter((day) => day.isRecorded).map((day) => day.key)).toEqual([
-      "2026-09-14",
-      "2026-09-18",
-    ]);
-  });
-});
-
-describe("S-028 ST-001 shiftWeek", () => {
-  test("moves the day by whole weeks", () => {
-    expect(shiftWeek(new Date(2026, 8, 20), 1)).toEqual(new Date(2026, 8, 27));
-    expect(shiftWeek(new Date(2026, 8, 20), -1)).toEqual(new Date(2026, 8, 13));
-    expect(shiftWeek(new Date(2026, 11, 28), 1)).toEqual(new Date(2027, 0, 4));
-  });
-});
-
-describe("S-028 ST-002 weekHeadingMonth", () => {
-  const september = new Date(2026, 8, 1);
-  const october = new Date(2026, 9, 1);
-  const weekOf = (month: number, day: number) =>
-    buildWeek(new Date(2026, month - 1, day), []);
-
-  test("keeps the heading month while the week still has one of its days", () => {
-    expect(weekHeadingMonth(september, weekOf(9, 28))).toEqual(september);
-    expect(weekHeadingMonth(october, weekOf(9, 28))).toEqual(october);
-  });
-
-  test("moves to the week's month once no day of the heading month is left", () => {
-    expect(weekHeadingMonth(september, weekOf(10, 5))).toEqual(october);
-    expect(weekHeadingMonth(october, weekOf(9, 21))).toEqual(september);
-  });
-
-  test("uses the first day of the month for any day passed as the heading", () => {
-    expect(weekHeadingMonth(new Date(2026, 8, 20, 15), weekOf(9, 28))).toEqual(
-      september,
-    );
+    expect(weeks[0][0].isInMonth).toBe(false);
+    expect(weeks[0][1].isInMonth).toBe(true);
   });
 });
 

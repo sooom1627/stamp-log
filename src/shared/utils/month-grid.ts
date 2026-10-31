@@ -4,7 +4,10 @@ import { localDateKey, localDateKeyFromIso } from "./local-date-key";
 export type MonthDay = {
   date: Date;
   key: string;
+  // Only days of the shown month count as recorded.
   isRecorded: boolean;
+  // False for the days of the months before and after that fill its weeks.
+  isInMonth: boolean;
 };
 
 // What a recorded day shows when stamps come from several rallies (Logs):
@@ -20,44 +23,33 @@ function toRecordedDateKeys(stampDates: string[]) {
   return new Set(stampDates.map((stampDate) => localDateKeyFromIso(stampDate)));
 }
 
-// Weeks of the month containing `month`, Monday first. Cells outside the
-// month are null so every week has seven columns.
+// Weeks of the month containing `month`, Monday first. The days of the
+// months before and after fill the first and last weeks.
 export function buildMonthWeeks(month: Date, stampDates: string[]) {
   const year = month.getFullYear();
   const monthIndex = month.getMonth();
   const recordedDateKeys = toRecordedDateKeys(stampDates);
-  const leadingBlanks = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
+  const firstDay = new Date(year, monthIndex, 1);
+  const leadingDays = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const weekCount = Math.ceil((leadingDays + daysInMonth) / DAYS_PER_WEEK);
 
-  const days: (MonthDay | null)[] = Array.from(
-    { length: leadingBlanks },
-    () => null,
+  return Array.from({ length: weekCount }, (_, week) =>
+    Array.from({ length: DAYS_PER_WEEK }, (_, weekday): MonthDay => {
+      const date = addLocalDays(
+        firstDay,
+        week * DAYS_PER_WEEK + weekday - leadingDays,
+      );
+      const key = localDateKey(date);
+      const isInMonth = date.getMonth() === monthIndex;
+      return {
+        date,
+        key,
+        isRecorded: isInMonth && recordedDateKeys.has(key),
+        isInMonth,
+      };
+    }),
   );
-  for (let dayOfMonth = 1; dayOfMonth <= daysInMonth; dayOfMonth++) {
-    const date = new Date(year, monthIndex, dayOfMonth);
-    const key = localDateKey(date);
-    days.push({ date, key, isRecorded: recordedDateKeys.has(key) });
-  }
-  while (days.length % DAYS_PER_WEEK !== 0) {
-    days.push(null);
-  }
-
-  return Array.from({ length: days.length / DAYS_PER_WEEK }, (_, week) =>
-    days.slice(week * DAYS_PER_WEEK, (week + 1) * DAYS_PER_WEEK),
-  );
-}
-
-// The Monday-first week holding `anchor`. Unlike a month row it has no blanks:
-// days from the next or previous month fill it.
-export function buildWeek(anchor: Date, stampDates: string[]): MonthDay[] {
-  const recordedDateKeys = toRecordedDateKeys(stampDates);
-  const mondayOffset = (anchor.getDay() + 6) % 7;
-
-  return Array.from({ length: DAYS_PER_WEEK }, (_, index) => {
-    const date = addLocalDays(anchor, index - mondayOffset);
-    const key = localDateKey(date);
-    return { date, key, isRecorded: recordedDateKeys.has(key) };
-  });
 }
 
 // The 7 days ending today, oldest first.
@@ -67,71 +59,43 @@ export function buildLastDays(stampDates: string[], today: Date): MonthDay[] {
   return Array.from({ length: DAYS_PER_WEEK }, (_, index) => {
     const date = addLocalDays(today, index - (DAYS_PER_WEEK - 1));
     const key = localDateKey(date);
-    return { date, key, isRecorded: recordedDateKeys.has(key) };
+    return {
+      date,
+      key,
+      isRecorded: recordedDateKeys.has(key),
+      isInMonth: true,
+    };
   });
-}
-
-export function shiftWeek(anchor: Date, delta: number) {
-  return addLocalDays(anchor, delta * DAYS_PER_WEEK);
-}
-
-// Keep the heading month while the shown week still has one of its days, so
-// stepping across a month boundary does not flip the heading back and forth.
-export function weekHeadingMonth(currentMonth: Date, weekDays: MonthDay[]) {
-  const year = currentMonth.getFullYear();
-  const monthIndex = currentMonth.getMonth();
-  const keepsMonth = weekDays.some(
-    ({ date }) => date.getFullYear() === year && date.getMonth() === monthIndex,
-  );
-  const month = keepsMonth ? currentMonth : weekDays[0].date;
-  return new Date(month.getFullYear(), month.getMonth(), 1);
 }
 
 // Local midnights; `end` is the day after the last shown day.
 export type CalendarRange = { start: Date; end: Date };
 
-// What the calendar shows: a week around `weekAnchor`, or all of `month`.
-export type CalendarView = {
-  isMonthView: boolean;
-  month: Date;
-  weekAnchor: Date;
-};
-
-function firstDayOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
+// The first local day of this month, where the calendar opens.
+export function currentMonth() {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), 1);
 }
 
-// Opens on the week holding today every time; the view is not remembered.
-export function initialCalendarView(): CalendarView {
-  const today = new Date();
+// All of `month` (its first day) as local midnights.
+export function monthRange(month: Date): CalendarRange {
   return {
-    isMonthView: false,
-    month: firstDayOfMonth(today),
-    weekAnchor: today,
+    start: month,
+    end: new Date(month.getFullYear(), month.getMonth() + 1, 1),
   };
 }
 
-export function visibleCalendarRange({
-  isMonthView,
-  month,
-  weekAnchor,
-}: CalendarView): CalendarRange {
-  if (isMonthView) {
-    return {
-      start: month,
-      end: new Date(month.getFullYear(), month.getMonth() + 1, 1),
-    };
-  }
-  const [monday] = buildWeek(weekAnchor, []);
-  return { start: monday.date, end: addLocalDays(monday.date, DAYS_PER_WEEK) };
+const monthHeadingFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  year: "numeric",
+});
+
+// The calendar's heading for a month, e.g. "October 2026".
+export function formatMonthHeading(month: Date) {
+  return monthHeadingFormatter.format(month);
 }
 
-// The range the calendar shows when it opens.
-export function initialCalendarRange() {
-  return visibleCalendarRange(initialCalendarView());
-}
-
-// From the first stamp's year (or this year) to next year, always including
+// From the first stamp's year (or this year) to this year, always including
 // the shown month's year so the wheel can select it.
 export function pickerYears(stampDates: string[], shownMonth: Date) {
   const thisYear = new Date().getFullYear();
@@ -139,6 +103,6 @@ export function pickerYears(stampDates: string[], shownMonth: Date) {
     new Date(stampDate).getFullYear(),
   );
   const from = Math.min(thisYear, shownMonth.getFullYear(), ...stampYears);
-  const to = Math.max(thisYear + 1, shownMonth.getFullYear());
+  const to = Math.max(thisYear, shownMonth.getFullYear());
   return Array.from({ length: to - from + 1 }, (_, index) => from + index);
 }

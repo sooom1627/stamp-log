@@ -1,9 +1,18 @@
+import { useState, type ComponentProps } from "react";
+
 import {
+  act,
+  fireEvent,
   render,
   screen,
   userEvent,
   within,
 } from "@testing-library/react-native";
+import { GestureHandlerRootView, State } from "react-native-gesture-handler";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 
 import { type DayMark } from "@/shared/utils/month-grid";
 
@@ -12,9 +21,37 @@ import { RallyMonthCalendar } from "../rally-month-calendar";
 jest.useFakeTimers();
 
 beforeEach(() => {
-  // Saturday, October 10, 2026: the week shown is Oct 5–11.
-  jest.setSystemTime(new Date(2026, 9, 10, 12));
+  // Thursday, December 10, 2026. The calendar starts on October 2026, so the
+  // months after it can still be reached (no month after this one, S-051
+  // T-004).
+  jest.setSystemTime(new Date(2026, 11, 10, 12));
 });
+
+type CalendarProps = ComponentProps<typeof RallyMonthCalendar>;
+
+// The screen keeps the shown month; here it starts on October 2026.
+function Calendar({
+  onChangeMonth,
+  ...props
+}: Omit<CalendarProps, "month" | "onChangeMonth"> & {
+  onChangeMonth?: CalendarProps["onChangeMonth"];
+}) {
+  const [month, setMonth] = useState(new Date(2026, 9, 1));
+  return (
+    <RallyMonthCalendar
+      {...props}
+      month={month}
+      onChangeMonth={(next) => {
+        setMonth(next);
+        onChangeMonth?.(next);
+      }}
+    />
+  );
+}
+
+// The calendar's swipe needs the gesture root the app layout gives it.
+const renderCalendar = (ui: React.ReactElement) =>
+  render(ui, { wrapper: GestureHandlerRootView });
 
 const at = (day: number, hours: number) =>
   new Date(2026, 9, day, hours).toISOString();
@@ -27,8 +64,8 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
   ]);
 
   test("shows each day's emoji and +N on days with more than one stamp", async () => {
-    await render(
-      <RallyMonthCalendar
+    await renderCalendar(
+      <Calendar
         testID="logs-calendar"
         stampDates={stampDates}
         dayMarks={dayMarks}
@@ -47,8 +84,8 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
   });
 
   test("reads the number of stamps with the day", async () => {
-    await render(
-      <RallyMonthCalendar stampDates={stampDates} dayMarks={dayMarks} />,
+    await renderCalendar(
+      <Calendar stampDates={stampDates} dayMarks={dayMarks} />,
     );
 
     expect(
@@ -63,8 +100,8 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
   });
 
   test("cannot press a day when no day action is given", async () => {
-    await render(
-      <RallyMonthCalendar stampDates={stampDates} dayMarks={dayMarks} />,
+    await renderCalendar(
+      <Calendar stampDates={stampDates} dayMarks={dayMarks} />,
     );
 
     expect(
@@ -76,45 +113,24 @@ describe("S-011 T-001 ST-002 calendar with a mark per day", () => {
   });
 });
 
-describe("RT-003 ST-004 calendar tells the range it shows", () => {
-  test("reports the shown week or month as local midnights, end left out", async () => {
-    const onVisibleRangeChange = jest.fn();
-    await render(
-      <RallyMonthCalendar
-        stampDates={[]}
-        onVisibleRangeChange={onVisibleRangeChange}
-      />,
+describe("RT-003 ST-004 / S-051 ST-004 calendar tells the month it moves to", () => {
+  test("asks for the next or previous month with ‹ ›", async () => {
+    const onChangeMonth = jest.fn();
+    await renderCalendar(
+      <Calendar stampDates={[]} onChangeMonth={onChangeMonth} />,
     );
     const user = userEvent.setup();
 
-    await user.press(screen.getByRole("button", { name: "Next week" }));
-    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
-      start: new Date(2026, 9, 12),
-      end: new Date(2026, 9, 19),
-    });
-
-    await user.press(screen.getByRole("button", { name: "Show month" }));
-    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
-      start: new Date(2026, 9, 1),
-      end: new Date(2026, 10, 1),
-    });
-
     await user.press(screen.getByRole("button", { name: "Next month" }));
-    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
-      start: new Date(2026, 10, 1),
-      end: new Date(2026, 11, 1),
-    });
+    expect(onChangeMonth).toHaveBeenLastCalledWith(new Date(2026, 10, 1));
 
-    await user.press(screen.getByRole("button", { name: "Show week" }));
-    expect(onVisibleRangeChange).toHaveBeenLastCalledWith({
-      start: new Date(2026, 9, 5),
-      end: new Date(2026, 9, 12),
-    });
+    await user.press(screen.getByRole("button", { name: "Previous month" }));
+    expect(onChangeMonth).toHaveBeenLastCalledWith(new Date(2026, 9, 1));
   });
 
   test("starts the year wheel at the first stamp's year when only some stamps are given", async () => {
-    await render(
-      <RallyMonthCalendar
+    await renderCalendar(
+      <Calendar
         stampDates={[at(7, 9)]}
         firstStampedAt={new Date(2023, 4, 1).toISOString()}
       />,
@@ -128,8 +144,221 @@ describe("RT-003 ST-004 calendar tells the range it shows", () => {
     const yearWheel = screen.getByTestId("month-picker-year");
     expect(yearWheel).toHaveProp("selection", 2026);
     // The wheel's rows are native views without text, so count them:
-    // 2023 to next year (2027).
+    // 2023 to this year (2026).
     const [rows] = yearWheel.children;
-    expect(typeof rows === "string" ? [] : rows.children).toHaveLength(5);
+    expect(typeof rows === "string" ? [] : rows.children).toHaveLength(4);
+  });
+});
+
+describe("S-051 T-004 ST-002 no month after this month", () => {
+  beforeEach(() => {
+    // October 2026 is this month.
+    jest.setSystemTime(new Date(2026, 9, 10, 12));
+  });
+
+  const swipe = (translationX: number) =>
+    fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE, translationX },
+      { state: State.END, translationX },
+    ]);
+
+  test("cannot press › on this month", async () => {
+    const onChangeMonth = jest.fn();
+    await renderCalendar(
+      <Calendar stampDates={[]} onChangeMonth={onChangeMonth} />,
+    );
+
+    const next = screen.getByRole("button", { name: "Next month" });
+    expect(next).toBeDisabled();
+    await userEvent.setup().press(next);
+    expect(onChangeMonth).not.toHaveBeenCalled();
+  });
+
+  test("stays on this month when swiped left, and still goes back when swiped right", async () => {
+    const onChangeMonth = jest.fn();
+    await renderCalendar(
+      <Calendar
+        testID="logs-calendar"
+        stampDates={[]}
+        onChangeMonth={onChangeMonth}
+      />,
+    );
+
+    await act(() => swipe(-80));
+    await act(() => jest.runAllTicks());
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+    expect(onChangeMonth).not.toHaveBeenCalled();
+
+    await act(() => swipe(80));
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Next month" }),
+    ).not.toBeDisabled();
+  });
+
+  test("turns a later month picked on the wheels into this month", async () => {
+    const onChangeMonth = jest.fn();
+    await renderCalendar(
+      <Calendar stampDates={[]} onChangeMonth={onChangeMonth} />,
+    );
+    await userEvent
+      .setup()
+      .press(
+        screen.getByRole("button", { name: "Choose month, October 2026" }),
+      );
+
+    await fireEvent(
+      screen.getByTestId("month-picker-month"),
+      "selectionChange",
+      {
+        nativeEvent: { selection: 11 },
+      },
+    );
+    await fireEvent(screen.getByTestId("month-picker-done"), "buttonPress");
+
+    expect(onChangeMonth).toHaveBeenLastCalledWith(new Date(2026, 9, 1));
+  });
+});
+
+describe("S-051 T-001 ST-003 swipe the calendar to change months", () => {
+  const swipe = (translationX: number) =>
+    fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE, translationX },
+      { state: State.END, translationX },
+    ]);
+
+  test("goes to the next month when swiped left and the previous when swiped right", async () => {
+    const onChangeMonth = jest.fn();
+    await renderCalendar(
+      <Calendar
+        testID="logs-calendar"
+        stampDates={[]}
+        onChangeMonth={onChangeMonth}
+      />,
+    );
+
+    await act(() => swipe(-80));
+    // The month turns once the days have slid out.
+    expect(await screen.findByText("November 2026")).toBeOnTheScreen();
+    expect(onChangeMonth).toHaveBeenLastCalledWith(new Date(2026, 10, 1));
+
+    await act(() => swipe(80));
+    expect(await screen.findByText("October 2026")).toBeOnTheScreen();
+    await act(() => swipe(80));
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+  });
+
+  test("stays on the month after a short drag", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+
+    await act(() => swipe(-20));
+    await act(() => jest.runAllTicks());
+
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+  });
+});
+
+describe("S-051 T-002 ST-002 the calendar follows the finger", () => {
+  const drag = (translationX: number, velocityX: number) =>
+    fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE, translationX, velocityX },
+      { state: State.END, translationX, velocityX },
+    ]);
+
+  test("turns the month on a quick flick even when the finger moved little", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+
+    await act(() => drag(-25, -800));
+
+    expect(await screen.findByText("November 2026")).toBeOnTheScreen();
+  });
+
+  test("stays on the month after a short slow drag", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+
+    await act(() => drag(25, 100));
+    await act(() => jest.runAllTicks());
+
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+  });
+});
+
+describe("S-051 T-003 ST-003 months as pages side by side", () => {
+  const hidden = { includeHiddenElements: true };
+  const drag = (translationX: number) =>
+    fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE, translationX },
+      { state: State.END, translationX },
+    ]);
+  // The pages take the calendar's width once it is laid out.
+  const layOut = (width: number) =>
+    fireEvent(screen.getByTestId("logs-calendar-pages"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width, height: 300 } },
+    });
+
+  test("fills the empty cells with the days around the month, dimmed and not pressable", async () => {
+    await renderCalendar(
+      <Calendar
+        testID="logs-calendar"
+        stampDates={[new Date(2026, 8, 29, 9).toISOString()]}
+        onPressDay={jest.fn()}
+      />,
+    );
+
+    const page = within(screen.getByTestId("logs-calendar-month-2026-10"));
+    // October 2026 starts on Thursday and ends on Saturday.
+    expect(
+      page.getByTestId("calendar-outside-day-2026-09-28", hidden),
+    ).toHaveTextContent("28");
+    expect(
+      page.getByTestId("calendar-outside-day-2026-11-01", hidden),
+    ).toHaveTextContent("1");
+    // A stamp in the next or previous month is shown on that month's page.
+    expect(page.queryByText(/^\+/, hidden)).toBeNull();
+    expect(
+      page.queryByRole("button", { name: /^Sep 28, 2026/ }),
+    ).not.toBeOnTheScreen();
+  });
+
+  test("lays the previous and next months beside the shown one, weekdays included", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+
+    const shown = screen.getByTestId("logs-calendar-month-2026-10");
+    expect(within(shown).getByText("Mon")).toBeOnTheScreen();
+    // The pages beside it are off screen, so they are not read out.
+    expect(
+      screen.getByTestId("logs-calendar-month-2026-09", hidden),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId("logs-calendar-month-2026-11", hidden),
+    ).toBeTruthy();
+    expect(
+      screen.queryByTestId("logs-calendar-month-2026-09"),
+    ).not.toBeOnTheScreen();
+
+    await userEvent
+      .setup()
+      .press(screen.getByRole("button", { name: "Previous month" }));
+
+    expect(screen.getByTestId("logs-calendar-month-2026-09")).toBeOnTheScreen();
+    expect(
+      screen.getByTestId("logs-calendar-month-2026-08", hidden),
+    ).toBeTruthy();
+  });
+
+  test("snaps to the next month after a quarter of the width, and back before it", async () => {
+    await renderCalendar(<Calendar testID="logs-calendar" stampDates={[]} />);
+    await layOut(320);
+
+    await act(() => drag(-70));
+    await act(() => jest.runAllTicks());
+    expect(screen.getByText("October 2026")).toBeOnTheScreen();
+
+    await act(() => drag(-80));
+    expect(await screen.findByText("November 2026")).toBeOnTheScreen();
   });
 });
