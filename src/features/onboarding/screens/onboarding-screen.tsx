@@ -5,6 +5,7 @@ import { View } from "react-native";
 import { useRouter } from "expo-router";
 
 import { useTranslation } from "react-i18next";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useSaveRally } from "@/shared/hooks/use-rallies";
@@ -45,7 +46,10 @@ export function OnboardingScreen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
       {step === pickStep ? (
-        <View className="flex-1 pt-6 pb-1">
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          className="flex-1 pt-6 pb-1"
+        >
           <FirstRallyPicker
             selectedIndex={selectedIndex}
             onSelect={setSelectedIndex}
@@ -53,7 +57,7 @@ export function OnboardingScreen() {
             onMakeOwn={finish}
             isStarting={isSaving}
           />
-        </View>
+        </Animated.View>
       ) : (
         <IntroPages
           step={step}

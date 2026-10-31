@@ -8,6 +8,13 @@ import { i18n } from "@/shared/i18n";
 jest.mock("react-native-worklets", () =>
   jest.requireActual("react-native-worklets/src/mock"),
 );
+// Reanimated 4.7.1 falls back to JSReanimated under Jest, which throws from
+// setCSSEventHandler while the module loads. The CSS event handler has no
+// native side in Jest, so register nothing.
+jest.mock("react-native-reanimated/src/css/native/proxy", () => ({
+  ...jest.requireActual<object>("react-native-reanimated/src/css/native/proxy"),
+  setCSSEventHandler: jest.fn(),
+}));
 jest.mock("react-native-reanimated", () => {
   return jest.requireActual("react-native-reanimated/mock");
 });

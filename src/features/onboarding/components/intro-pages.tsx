@@ -1,10 +1,22 @@
+import { useEffect } from "react";
+
 import { Pressable, Text, View } from "react-native";
 
 import { useTranslation } from "react-i18next";
+import Animated, {
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { useCSSVariable } from "uniwind";
 
 import { AtoMark } from "@/shared/components/ato-mark";
 import { ChevronLeft, ChevronRight, Lock } from "@/shared/components/icons";
 import { SwipePages } from "@/shared/components/swipe-pages";
+
+import { easeOut } from "../utils/motion";
 
 import { introArt } from "./intro-art";
 
@@ -79,7 +91,9 @@ export function IntroPages({
         values={introPageKeys}
         value={introPageKeys[step]}
         onChange={(key) => onChangeStep(introPageKeys.indexOf(key))}
-        renderPage={(key) => <IntroPage pageKey={key} />}
+        renderPage={(key) => (
+          <IntroPage pageKey={key} isActive={key === introPageKeys[step]} />
+        )}
       />
       <View className="flex-row items-center justify-between px-6 pt-4">
         <View
@@ -91,14 +105,7 @@ export function IntroPages({
           className="flex-row items-center gap-1.5"
         >
           {introPages.map((page, index) => (
-            <View
-              key={page.key}
-              className={
-                index === step
-                  ? "bg-foreground h-1.5 w-[22px] rounded-full"
-                  : "bg-foreground-muted size-1.5 rounded-full opacity-40"
-              }
-            />
+            <PageDot key={page.key} isCurrent={index === step} />
           ))}
         </View>
         <View className="flex-row gap-2">
@@ -134,7 +141,39 @@ export function IntroPages({
   );
 }
 
-function IntroPage({ pageKey }: { pageKey: IntroPageKey }) {
+// The current page's dot stretches; the one before it shrinks back.
+function PageDot({ isCurrent }: { isCurrent: boolean }) {
+  const foreground = useCSSVariable("--color-foreground") as string;
+  const muted = useCSSVariable("--color-foreground-muted") as string;
+  const progress = useSharedValue(isCurrent ? 1 : 0);
+
+  useEffect(() => {
+    progress.set(
+      withTiming(isCurrent ? 1 : 0, { duration: 220, easing: easeOut }),
+    );
+  }, [isCurrent, progress]);
+
+  const dotStyle = useAnimatedStyle(() => ({
+    width: interpolate(progress.get(), [0, 1], [6, 22]),
+    opacity: interpolate(progress.get(), [0, 1], [0.4, 1]),
+    backgroundColor: interpolateColor(
+      progress.get(),
+      [0, 1],
+      [muted, foreground],
+    ),
+  }));
+
+  return <Animated.View className="h-1.5 rounded-full" style={dotStyle} />;
+}
+
+function IntroPage({
+  pageKey,
+  isActive,
+}: {
+  pageKey: IntroPageKey;
+  // The page on screen: its picture plays the first time this is true.
+  isActive: boolean;
+}) {
   const index = introPageKeys.indexOf(pageKey);
   const { title, body } = introPages[index];
   const { t } = useTranslation();
@@ -143,7 +182,7 @@ function IntroPage({ pageKey }: { pageKey: IntroPageKey }) {
   return (
     <View className="flex-1">
       <View className="mt-1 max-h-100 flex-1 px-4">
-        <Art />
+        <Art isActive={isActive} />
       </View>
       <View className="mt-8 gap-3 px-6">
         {index === 0 ? (
