@@ -404,14 +404,16 @@ describe("S-006 T-002 ST-003 month navigation", () => {
     await user.press(
       rallyCalendar().getByRole("button", { name: "Next month" }),
     );
-    await user.press(
-      rallyCalendar().getByRole("button", { name: "Next month" }),
-    );
 
+    // September is this month, the last one the calendar goes to (T-004).
     expect(
-      await (await findRallyCalendar()).findByText("October 2026"),
+      await (await findRallyCalendar()).findByText("September 2026"),
     ).toBeOnTheScreen();
-    expect(rallyCalendar().queryAllByLabelText(/, recorded$/)).toHaveLength(0);
+    // Only the stamp the rally was opened with, today.
+    expect(rallyCalendar().getAllByLabelText(/, recorded$/)).toHaveLength(1);
+    expect(
+      rallyCalendar().getByLabelText("Sep 20, 2026, recorded"),
+    ).toBeOnTheScreen();
   });
 });
 
@@ -865,12 +867,21 @@ describe("S-051 T-001 ST-002 month-only calendar", () => {
   });
 
   test("steps by month with ‹ ›", async () => {
-    jest.setSystemTime(new Date(2026, 8, 20, 12));
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
     const { user } = await openRallyDetail("Month steps");
     await user.press(
       await (
         await findRallyCalendar()
-      ).findByRole("button", { name: "Next month" }),
+      ).findByRole("button", { name: "Previous month" }),
+    );
+
+    expect(rallyCalendar().getByText("September 2026")).toBeOnTheScreen();
+    expect(rallyCalendar().getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(
+      30,
+    );
+
+    await user.press(
+      rallyCalendar().getByRole("button", { name: "Next month" }),
     );
 
     expect(rallyCalendar().getByText("October 2026")).toBeOnTheScreen();

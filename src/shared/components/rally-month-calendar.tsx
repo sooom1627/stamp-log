@@ -9,6 +9,7 @@ import Animated from "react-native-reanimated";
 import { monthNumber, useMonthSwipe } from "@/shared/hooks/use-month-swipe";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
+  currentMonth,
   formatMonthHeading,
   pickerYears,
   type DayMark,
@@ -62,9 +63,14 @@ export function RallyMonthCalendar({
   const todayKey = localDateKey(new Date());
   const { t } = useTranslation();
   const heading = formatMonthHeading(month);
+  // No month after this one has stamps yet, so the calendar stops there.
+  const thisMonth = currentMonth();
+  const isThisMonth = monthNumber(month) >= monthNumber(thisMonth);
 
-  const step = (delta: number) =>
+  const step = (delta: number) => {
+    if (delta > 0 && isThisMonth) return;
     onChangeMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
+  };
 
   // Left shows the next month, right the previous one (‹ ›).
   const {
@@ -72,11 +78,18 @@ export function RallyMonthCalendar({
     stripStyle,
     onPagesLayout,
     firstMonthNumber,
-  } = useMonthSwipe({ testID, month, onStep: step });
+  } = useMonthSwipe({
+    testID,
+    month,
+    lastMonth: thisMonth,
+    onStep: step,
+  });
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const pickMonth = (picked: Date) => {
-    onChangeMonth(picked);
+    onChangeMonth(
+      monthNumber(picked) > monthNumber(thisMonth) ? thisMonth : picked,
+    );
     setIsPickerOpen(false);
   };
 
@@ -108,7 +121,12 @@ export function RallyMonthCalendar({
           <Pressable
             role="button"
             aria-label={t("calendar.nextMonth")}
-            className="size-11 items-center justify-center"
+            disabled={isThisMonth}
+            className={
+              isThisMonth
+                ? "size-11 items-center justify-center opacity-30"
+                : "size-11 items-center justify-center"
+            }
             onPress={() => step(1)}
           >
             <ChevronRight colorClassName="accent-accent" size={20} />
