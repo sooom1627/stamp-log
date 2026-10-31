@@ -1,10 +1,22 @@
+import { useEffect } from "react";
+
 import { Pressable, Text, View } from "react-native";
 
 import { useTranslation } from "react-i18next";
+import Animated, {
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { useCSSVariable } from "uniwind";
 
 import { AtoMark } from "@/shared/components/ato-mark";
 import { ChevronLeft, ChevronRight, Lock } from "@/shared/components/icons";
 import { SwipePages } from "@/shared/components/swipe-pages";
+
+import { easeOut } from "../utils/motion";
 
 import { introArt } from "./intro-art";
 
@@ -91,14 +103,7 @@ export function IntroPages({
           className="flex-row items-center gap-1.5"
         >
           {introPages.map((page, index) => (
-            <View
-              key={page.key}
-              className={
-                index === step
-                  ? "bg-foreground h-1.5 w-[22px] rounded-full"
-                  : "bg-foreground-muted size-1.5 rounded-full opacity-40"
-              }
-            />
+            <PageDot key={page.key} isCurrent={index === step} />
           ))}
         </View>
         <View className="flex-row gap-2">
@@ -132,6 +137,31 @@ export function IntroPages({
       </View>
     </View>
   );
+}
+
+// The current page's dot stretches; the one before it shrinks back.
+function PageDot({ isCurrent }: { isCurrent: boolean }) {
+  const foreground = useCSSVariable("--color-foreground") as string;
+  const muted = useCSSVariable("--color-foreground-muted") as string;
+  const progress = useSharedValue(isCurrent ? 1 : 0);
+
+  useEffect(() => {
+    progress.set(
+      withTiming(isCurrent ? 1 : 0, { duration: 220, easing: easeOut }),
+    );
+  }, [isCurrent, progress]);
+
+  const dotStyle = useAnimatedStyle(() => ({
+    width: interpolate(progress.get(), [0, 1], [6, 22]),
+    opacity: interpolate(progress.get(), [0, 1], [0.4, 1]),
+    backgroundColor: interpolateColor(
+      progress.get(),
+      [0, 1],
+      [muted, foreground],
+    ),
+  }));
+
+  return <Animated.View className="h-1.5 rounded-full" style={dotStyle} />;
 }
 
 function IntroPage({ pageKey }: { pageKey: IntroPageKey }) {
