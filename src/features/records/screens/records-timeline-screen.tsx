@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { ScrollView, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
@@ -28,9 +28,14 @@ import {
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
-import { initialCalendarRange } from "@/shared/utils/month-grid";
+import {
+  currentMonth,
+  formatMonthHeading,
+  monthRange,
+} from "@/shared/utils/month-grid";
 import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
+import { PreviousMonthButton } from "../components/previous-month-button";
 import { buildDayMarks } from "../utils/day-marks";
 
 export function RecordsTimelineScreen() {
@@ -38,21 +43,38 @@ export function RecordsTimelineScreen() {
   const { t } = useTranslation();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
+  // Opens on this month every time; the month is not remembered. The stamps
+  // and the album below show only the calendar's month (S-051).
+  const [month, setMonth] = useState(currentMonth);
+  const { start, end } = monthRange(month);
   const { rallies, stamps, isLoaded, isError, retry } =
     useRalliesAndStamps(useStamps());
+  const monthStamps = (stamps ?? []).filter((stamp) => {
+    const stampedAt = new Date(stamp.stampedAt);
+    return stampedAt >= start && stampedAt < end;
+  });
   // A stamp is shown once its rally is loaded, so every post has its name.
-  const posts = stampsWithRallies(stamps ?? [], rallies ?? []);
+  const posts = stampsWithRallies(monthStamps, rallies ?? []);
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
-  const tiles = albumTiles(stamps ?? [], rallies ?? []);
+  const tiles = albumTiles(monthStamps, rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const hasPosts = posts.length > 0;
-  // The calendar reads only the week or month it shows.
-  const [calendarRange, setCalendarRange] = useState(initialCalendarRange);
-  const { data: calendarStamps } = useStampsBetween(
-    calendarRange.start,
-    calendarRange.end,
-  );
   const { data: firstStampedAt } = useFirstStampedAt();
+  // Earlier months have stamps, so the bottom can step back one month.
+  const hasEarlierStamps =
+    typeof firstStampedAt === "string" && new Date(firstStampedAt) < start;
+  const previousMonth = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+  const previousMonthButton = hasEarlierStamps ? (
+    <PreviousMonthButton
+      month={previousMonth}
+      onPress={() => setMonth(previousMonth)}
+    />
+  ) : null;
+  // Stamps exist, only not in this month.
+  const isEmptyMonth =
+    isLoaded && !isError && !hasPosts && (stamps ?? []).length > 0;
+  // The calendar reads only the month it shows.
+  const { data: calendarStamps } = useStampsBetween(start, end);
   const calendarPosts = stampsWithRallies(calendarStamps ?? [], rallies ?? []);
 
   return (
@@ -69,13 +91,13 @@ export function RecordsTimelineScreen() {
       >
         <View className="px-5">
           <TabRootSubtitle>{t("records.subtitle")}</TabRootSubtitle>
-          {/* Not linked to the pages: moving it leaves the posts as they are. */}
           <RallyMonthCalendar
             testID="logs-calendar"
+            month={month}
+            onChangeMonth={setMonth}
             stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
             dayMarks={buildDayMarks(calendarStamps ?? [], rallies ?? [])}
             firstStampedAt={firstStampedAt}
-            onVisibleRangeChange={setCalendarRange}
             isRecordedOnly
             onPressDay={(date) =>
               push({ pathname: "/logs-day", params: { date } })
@@ -133,14 +155,26 @@ export function RecordsTimelineScreen() {
             tiles={tiles}
             showsEmoji
           />
-        ) : (
+        ) : null}
+        {hasPosts ? <View className="pt-4">{previousMonthButton}</View> : null}
+        {isEmptyMonth ? (
+          <View className="items-center gap-2 py-12">
+            <Text className="text-foreground-secondary">
+              {t("records.noStampsInMonth", {
+                month: formatMonthHeading(month),
+              })}
+            </Text>
+            {previousMonthButton}
+          </View>
+        ) : null}
+        {!hasPosts && !isEmptyMonth ? (
           <TimelineEmpty
             isError={isError}
             isLoaded={isLoaded}
             message={t("rallies.noStamps")}
             onRetry={retry}
           />
-        )}
+        ) : null}
       </ScrollView>
       <TabRootHeader title={t("records.title")} />
     </>

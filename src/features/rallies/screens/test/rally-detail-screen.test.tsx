@@ -348,23 +348,16 @@ describe("S-006 T-002 ST-002 month calendar", () => {
       stampedAt: new Date(2026, 8, 10, 9).toISOString(),
     });
 
-    const { user } = await openRallyDetail(
-      "Calendar marks",
-      async (rallyId) => {
-        await saveStamp({
-          rallyId,
-          stampedAt: new Date(2026, 8, 2, 8).toISOString(),
-        });
-      },
-    );
+    await openRallyDetail("Calendar marks", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 2, 8).toISOString(),
+      });
+    });
 
     expect(
       await (await findRallyCalendar()).findByText("September 2026"),
     ).toBeOnTheScreen();
-    // S-028: the calendar opens on this week; the whole month is one tap away.
-    await user.press(
-      rallyCalendar().getByRole("button", { name: "Show month" }),
-    );
     expect(
       rallyCalendar().getByLabelText("Sep 2, 2026, recorded"),
     ).toBeOnTheScreen();
@@ -396,11 +389,6 @@ describe("S-006 T-002 ST-003 month navigation", () => {
     expect(
       await (await findRallyCalendar()).findByText("September 2026"),
     ).toBeOnTheScreen();
-    // S-028: ‹ › step months in the month view.
-    await user.press(
-      rallyCalendar().getByRole("button", { name: "Show month" }),
-    );
-
     await user.press(
       rallyCalendar().getByRole("button", { name: "Previous month" }),
     );
@@ -849,128 +837,40 @@ describe("S-028 T-002 ST-004 rally summary without stamps", () => {
   });
 });
 
-describe("S-028 T-003 ST-003 week and month views", () => {
-  test("opens on this week and toggles between the week and the whole month", async () => {
+describe("S-051 T-001 ST-002 month-only calendar", () => {
+  test("always shows the whole month without a week view", async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 12));
-    const { user } = await openRallyDetail(
-      "Folded calendar",
-      async (rallyId) => {
-        for (const day of [2, 18]) {
-          await saveStamp({
-            rallyId,
-            stampedAt: new Date(2026, 8, day, 9).toISOString(),
-          });
-        }
-      },
-    );
+    await openRallyDetail("Month only", async (rallyId) => {
+      await saveStamp({
+        rallyId,
+        stampedAt: new Date(2026, 8, 2, 9).toISOString(),
+      });
+    });
 
     expect(
       await (await findRallyCalendar()).findByText("September 2026"),
-    ).toBeOnTheScreen();
-    expect(
-      rallyCalendar().getByLabelText("Sep 14, 2026, not recorded"),
-    ).toBeOnTheScreen();
-    expect(
-      rallyCalendar().getByLabelText("Sep 18, 2026, recorded"),
-    ).toBeOnTheScreen();
-    expect(rallyCalendar().getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(
-      7,
-    );
-    expect(
-      rallyCalendar().queryByLabelText("Sep 2, 2026, recorded"),
-    ).not.toBeOnTheScreen();
-
-    const showMonth = rallyCalendar().getByRole("button", {
-      name: "Show month",
-    });
-    expect(showMonth).toBeCollapsed();
-    await user.press(showMonth);
-
-    expect(
-      rallyCalendar().getByLabelText("Sep 2, 2026, recorded"),
     ).toBeOnTheScreen();
     expect(rallyCalendar().getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(
       30,
     );
-    const showWeek = rallyCalendar().getByRole("button", { name: "Show week" });
-    expect(showWeek).toBeExpanded();
-
-    await user.press(showWeek);
-
     expect(
-      rallyCalendar().queryByLabelText("Sep 2, 2026, recorded"),
+      rallyCalendar().getByLabelText("Sep 2, 2026, recorded"),
+    ).toBeOnTheScreen();
+    expect(
+      rallyCalendar().queryByRole("button", { name: /^Show (month|week)$/ }),
     ).not.toBeOnTheScreen();
-    expect(rallyCalendar().getAllByLabelText(/^Sep \d+, 2026, /)).toHaveLength(
-      7,
-    );
-  });
-});
-
-describe("S-028 T-003 ST-004 stepping weeks and months", () => {
-  test("steps by week in the week view and keeps the heading month across the boundary", async () => {
-    jest.setSystemTime(new Date(2026, 8, 20, 12));
-    const { user } = await openRallyDetail("Week steps", async (rallyId) => {
-      await saveStamp({
-        rallyId,
-        stampedAt: new Date(2026, 8, 10, 9).toISOString(),
-      });
-    });
     expect(
-      await (await findRallyCalendar()).findByText("September 2026"),
-    ).toBeOnTheScreen();
-    expect(
-      rallyCalendar().queryByRole("button", { name: "Previous month" }),
+      rallyCalendar().queryByRole("button", { name: /^(Previous|Next) week$/ }),
     ).not.toBeOnTheScreen();
-
-    await user.press(
-      rallyCalendar().getByRole("button", { name: "Previous week" }),
-    );
-    expect(
-      rallyCalendar().getByLabelText("Sep 7, 2026, not recorded"),
-    ).toBeOnTheScreen();
-    expect(
-      rallyCalendar().getByLabelText("Sep 10, 2026, recorded"),
-    ).toBeOnTheScreen();
-
-    const nextWeek = rallyCalendar().getByRole("button", { name: "Next week" });
-    await user.press(nextWeek);
-    await user.press(nextWeek);
-    await user.press(nextWeek);
-    // Sep 28 – Oct 4 still holds September days.
-    expect(
-      rallyCalendar().getByLabelText("Oct 4, 2026, not recorded"),
-    ).toBeOnTheScreen();
-    expect(rallyCalendar().getByText("September 2026")).toBeOnTheScreen();
-
-    await user.press(nextWeek);
-    expect(
-      rallyCalendar().getByLabelText("Oct 5, 2026, not recorded"),
-    ).toBeOnTheScreen();
-    expect(rallyCalendar().getByText("October 2026")).toBeOnTheScreen();
-
-    await user.press(
-      rallyCalendar().getByRole("button", { name: "Previous week" }),
-    );
-    expect(
-      rallyCalendar().getByLabelText("Sep 28, 2026, not recorded"),
-    ).toBeOnTheScreen();
-    expect(rallyCalendar().getByText("October 2026")).toBeOnTheScreen();
   });
 
-  test("steps by month in the month view", async () => {
+  test("steps by month with ‹ ›", async () => {
     jest.setSystemTime(new Date(2026, 8, 20, 12));
     const { user } = await openRallyDetail("Month steps");
     await user.press(
       await (
         await findRallyCalendar()
-      ).findByRole("button", { name: "Show month" }),
-    );
-
-    expect(
-      rallyCalendar().queryByRole("button", { name: "Previous week" }),
-    ).not.toBeOnTheScreen();
-    await user.press(
-      rallyCalendar().getByRole("button", { name: "Next month" }),
+      ).findByRole("button", { name: "Next month" }),
     );
 
     expect(rallyCalendar().getByText("October 2026")).toBeOnTheScreen();
@@ -1023,9 +923,6 @@ describe("S-028 T-003 ST-005 month picker", () => {
     );
     expect(
       rallyCalendar().getByLabelText("Mar 14, 2025, recorded"),
-    ).toBeOnTheScreen();
-    expect(
-      rallyCalendar().getByRole("button", { name: "Show week" }),
     ).toBeOnTheScreen();
     // The native sheet keeps its content until it reports the dismissal.
     expect(rallyCalendar().getByTestId("month-picker-sheet")).toHaveProp(

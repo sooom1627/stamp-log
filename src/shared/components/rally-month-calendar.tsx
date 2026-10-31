@@ -4,20 +4,15 @@ import { Pressable, Text, View } from "react-native";
 
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
+import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
 
 import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
   buildMonthWeeks,
-  buildWeek,
-  initialCalendarView,
+  formatMonthHeading,
   pickerYears,
-  shiftWeek,
-  visibleCalendarRange,
-  weekHeadingMonth,
-  type CalendarRange,
-  type CalendarView,
   type DayMark,
   type MonthDay,
 } from "@/shared/utils/month-grid";
@@ -25,11 +20,13 @@ import {
 import { ChevronLeft, ChevronRight } from "./icons";
 import { MonthPickerSheet } from "./month-picker-sheet";
 
-const monthFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "long",
-  year: "numeric",
-});
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+// A swipe starts once the finger moves this far sideways, and gives way to
+// the screen's vertical scroll when it moves this far up or down first.
+const SWIPE_START_X = 20;
+const SWIPE_FAIL_Y = 15;
+// How far the finger has to travel before a swipe turns the month.
+const SWIPE_TURN_X = 40;
 
 type CalendarDayProps = {
   day: MonthDay | null;
@@ -136,10 +133,12 @@ type RallyMonthCalendarProps = {
   onPressDay?: (key: string) => void;
   // Logs opens only days with stamps; rally detail opens empty days too.
   isRecordedOnly?: boolean;
-  // Called when the shown week or month changes, so a screen can read only
-  // the stamps of that range (Logs). Starts at `initialCalendarRange()`
-  // (month-grid).
-  onVisibleRangeChange?: (range: CalendarRange) => void;
+  // The shown month (its first local day). The screen keeps it, so it can
+  // show that month's stamps below (Logs) and move it from elsewhere.
+  month: Date;
+  // Called with the first day of the month that ‹ ›, a swipe or the picker
+  // moves to.
+  onChangeMonth: (month: Date) => void;
   // The oldest stamp's time, when `stampDates` holds only the shown range.
   firstStampedAt?: string | null;
 };
@@ -151,134 +150,106 @@ export function RallyMonthCalendar({
   dayMarks,
   onPressDay,
   isRecordedOnly = false,
-  onVisibleRangeChange,
+  month,
+  onChangeMonth,
   firstStampedAt,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
-  const [view, setView] = useState(initialCalendarView);
   const { t } = useTranslation();
-  const { isMonthView, month, weekAnchor } = view;
-  const weeks = isMonthView
-    ? buildMonthWeeks(month, stampDates)
-    : [buildWeek(weekAnchor, stampDates)];
+  const weeks = buildMonthWeeks(month, stampDates);
+  const heading = formatMonthHeading(month);
 
-  // Every change of the shown days goes through here.
-  const changeView = (next: CalendarView) => {
-    setView(next);
-    onVisibleRangeChange?.(visibleCalendarRange(next));
-  };
+  const step = (delta: number) =>
+    onChangeMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
 
-  const showMonth = () => changeView({ ...view, isMonthView: true });
-  const showWeek = () => changeView(initialCalendarView());
-
-  // ‹ › step by the unit on screen: a week in the week view, a month otherwise.
-  const step = (delta: number) => {
-    if (isMonthView) {
-      changeView({
-        ...view,
-        month: new Date(month.getFullYear(), month.getMonth() + delta, 1),
-      });
-      return;
-    }
-    const nextAnchor = shiftWeek(weekAnchor, delta);
-    changeView({
-      isMonthView,
-      weekAnchor: nextAnchor,
-      month: weekHeadingMonth(month, buildWeek(nextAnchor, [])),
-    });
-  };
-  const heading = monthFormatter.format(month);
+  // Left shows the next month, right the previous one (‹ ›).
+  const swipe = usePanGesture({
+    testID: `${testID}-swipe`,
+    runOnJS: true,
+    activeOffsetX: [-SWIPE_START_X, SWIPE_START_X],
+    failOffsetY: [-SWIPE_FAIL_Y, SWIPE_FAIL_Y],
+    onDeactivate: ({ canceled, translationX }) => {
+      if (canceled || Math.abs(translationX) < SWIPE_TURN_X) return;
+      step(translationX < 0 ? 1 : -1);
+    },
+  });
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const pickMonth = (picked: Date) => {
-    changeView({ ...view, month: picked, isMonthView: true });
+    onChangeMonth(picked);
     setIsPickerOpen(false);
   };
 
   return (
-    <View
-      testID={testID}
-      className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
-    >
-      <View className="flex-row items-center justify-between">
-        <Pressable
-          role="button"
-          aria-label={
-            isMonthView
-              ? t("calendar.previousMonth")
-              : t("calendar.previousWeek")
-          }
-          className="size-11 items-center justify-center"
-          onPress={() => step(-1)}
-        >
-          <ChevronLeft colorClassName="accent-accent" size={20} />
-        </Pressable>
-        <Pressable
-          role="button"
-          aria-label={t("calendar.chooseMonth", { month: heading })}
-          className="min-h-11 justify-center px-2"
-          onPress={() => setIsPickerOpen(true)}
-        >
-          <Text className="text-foreground text-base font-semibold">
-            {heading}
-          </Text>
-        </Pressable>
-        <Pressable
-          role="button"
-          aria-label={
-            isMonthView ? t("calendar.nextMonth") : t("calendar.nextWeek")
-          }
-          className="size-11 items-center justify-center"
-          onPress={() => step(1)}
-        >
-          <ChevronRight colorClassName="accent-accent" size={20} />
-        </Pressable>
-      </View>
-      <View className="flex-row">
-        {WEEKDAYS.map((weekday) => (
-          <Text
-            key={weekday}
-            className="text-foreground-muted flex-1 text-center text-xs"
+    <GestureDetector gesture={swipe}>
+      <View
+        testID={testID}
+        className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
+      >
+        <View className="flex-row items-center justify-between">
+          <Pressable
+            role="button"
+            aria-label={t("calendar.previousMonth")}
+            className="size-11 items-center justify-center"
+            onPress={() => step(-1)}
           >
-            {weekday}
-          </Text>
-        ))}
-      </View>
-      {weeks.map((week, weekIndex) => (
-        <View key={weekIndex} className="flex-row">
-          {week.map((day, dayIndex) => (
-            <CalendarDay
-              key={day?.key ?? `blank-${dayIndex}`}
-              day={day}
-              emoji={emoji}
-              mark={day ? dayMarks?.get(day.key) : undefined}
-              todayKey={todayKey}
-              onPress={onPressDay}
-              isRecordedOnly={isRecordedOnly}
-            />
+            <ChevronLeft colorClassName="accent-accent" size={20} />
+          </Pressable>
+          <Pressable
+            role="button"
+            aria-label={t("calendar.chooseMonth", { month: heading })}
+            className="min-h-11 justify-center px-2"
+            onPress={() => setIsPickerOpen(true)}
+          >
+            <Text className="text-foreground text-base font-semibold">
+              {heading}
+            </Text>
+          </Pressable>
+          <Pressable
+            role="button"
+            aria-label={t("calendar.nextMonth")}
+            className="size-11 items-center justify-center"
+            onPress={() => step(1)}
+          >
+            <ChevronRight colorClassName="accent-accent" size={20} />
+          </Pressable>
+        </View>
+        <View className="flex-row">
+          {WEEKDAYS.map((weekday) => (
+            <Text
+              key={weekday}
+              className="text-foreground-muted flex-1 text-center text-xs"
+            >
+              {weekday}
+            </Text>
           ))}
         </View>
-      ))}
-      <Pressable
-        role="button"
-        aria-expanded={isMonthView}
-        className="min-h-11 items-center justify-center self-center px-4"
-        onPress={isMonthView ? showWeek : showMonth}
-      >
-        <Text className="text-foreground-secondary text-sm font-semibold">
-          {isMonthView ? t("calendar.showWeek") : t("calendar.showMonth")}
-        </Text>
-      </Pressable>
-      <MonthPickerSheet
-        isPresented={isPickerOpen}
-        month={month}
-        years={pickerYears(
-          firstStampedAt ? [firstStampedAt, ...stampDates] : stampDates,
-          month,
-        )}
-        onDone={pickMonth}
-        onClose={() => setIsPickerOpen(false)}
-      />
-    </View>
+        {weeks.map((week, weekIndex) => (
+          <View key={weekIndex} className="flex-row">
+            {week.map((day, dayIndex) => (
+              <CalendarDay
+                key={day?.key ?? `blank-${dayIndex}`}
+                day={day}
+                emoji={emoji}
+                mark={day ? dayMarks?.get(day.key) : undefined}
+                todayKey={todayKey}
+                onPress={onPressDay}
+                isRecordedOnly={isRecordedOnly}
+              />
+            ))}
+          </View>
+        ))}
+        <MonthPickerSheet
+          isPresented={isPickerOpen}
+          month={month}
+          years={pickerYears(
+            firstStampedAt ? [firstStampedAt, ...stampDates] : stampDates,
+            month,
+          )}
+          onDone={pickMonth}
+          onClose={() => setIsPickerOpen(false)}
+        />
+      </View>
+    </GestureDetector>
   );
 }
