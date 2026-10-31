@@ -47,8 +47,6 @@ type RallyMonthCalendarProps = {
   onChangeMonth: (month: Date) => void;
   // The oldest stamp's time, when `stampDates` holds only the shown range.
   firstStampedAt?: string | null;
-  // Puts the month and ‹ › above the panel instead of inside it (Logs).
-  isHeadingAbove?: boolean;
 };
 
 export function RallyMonthCalendar({
@@ -61,7 +59,6 @@ export function RallyMonthCalendar({
   month,
   onChangeMonth,
   firstStampedAt,
-  isHeadingAbove = false,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
   const { t } = useTranslation();
@@ -96,79 +93,49 @@ export function RallyMonthCalendar({
     setIsPickerOpen(false);
   };
 
-  const previousButton = (
-    <Pressable
-      role="button"
-      aria-label={t("calendar.previousMonth")}
-      className="size-11 items-center justify-center"
-      onPress={() => step(-1)}
-    >
-      <ChevronLeft colorClassName="accent-accent" size={20} />
-    </Pressable>
-  );
-  const nextButton = (
-    <Pressable
-      role="button"
-      aria-label={t("calendar.nextMonth")}
-      disabled={isThisMonth}
-      className={
-        isThisMonth
-          ? "size-11 items-center justify-center opacity-30"
-          : "size-11 items-center justify-center"
-      }
-      onPress={() => step(1)}
-    >
-      <ChevronRight colorClassName="accent-accent" size={20} />
-    </Pressable>
-  );
-  const headingButton = (
-    <Pressable
-      role="button"
-      aria-label={t("calendar.chooseMonth", { month: heading })}
-      className={
-        isHeadingAbove
-          ? "min-h-11 justify-center"
-          : "min-h-11 justify-center px-2"
-      }
-      onPress={() => setIsPickerOpen(true)}
-    >
-      <Text
-        className={
-          isHeadingAbove
-            ? "text-foreground text-xl font-bold"
-            : "text-foreground text-base font-semibold"
-        }
-      >
-        {heading}
-      </Text>
-    </Pressable>
-  );
-
   return (
     <View testID={testID} className="w-full gap-1">
-      {/* On Logs the month is the heading of the whole screen below, so it
-          sits above the panel: the month left, ‹ › right (S-051 T-004). */}
-      {isHeadingAbove ? (
-        <View className="flex-row items-center justify-between">
-          {headingButton}
-          <View className="flex-row">
-            {previousButton}
-            {nextButton}
-          </View>
+      {/* The month sits above the panel, the month left and ‹ › right. On
+          Logs it heads the whole screen below (S-051 T-004); rally detail
+          matches it (S-055). */}
+      <View className="flex-row items-center justify-between">
+        <Pressable
+          role="button"
+          aria-label={t("calendar.chooseMonth", { month: heading })}
+          className="min-h-11 justify-center"
+          onPress={() => setIsPickerOpen(true)}
+        >
+          <Text className="text-foreground text-xl font-bold">{heading}</Text>
+        </Pressable>
+        <View className="flex-row">
+          <Pressable
+            role="button"
+            aria-label={t("calendar.previousMonth")}
+            className="size-11 items-center justify-center"
+            onPress={() => step(-1)}
+          >
+            <ChevronLeft colorClassName="accent-accent" size={20} />
+          </Pressable>
+          <Pressable
+            role="button"
+            aria-label={t("calendar.nextMonth")}
+            disabled={isThisMonth}
+            className={
+              isThisMonth
+                ? "size-11 items-center justify-center opacity-30"
+                : "size-11 items-center justify-center"
+            }
+            onPress={() => step(1)}
+          >
+            <ChevronRight colorClassName="accent-accent" size={20} />
+          </Pressable>
         </View>
-      ) : null}
+      </View>
       <GestureDetector gesture={swipe}>
         <View
           testID={`${testID}-panel`}
           className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
         >
-          {isHeadingAbove ? null : (
-            <View className="flex-row items-center justify-between">
-              {previousButton}
-              {headingButton}
-              {nextButton}
-            </View>
-          )}
           {/* Each month is a page placed at its own position on a strip, so a
               page stays put when the shown month changes; the strip moves with
               the finger. The shown page sets the height; the clip hides the
