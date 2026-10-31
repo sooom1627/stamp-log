@@ -122,6 +122,8 @@ export const ja: Translation = {
     subtitle: "これまでのスタンプ",
     timelineLabel: "記録の一覧",
     noStampsOnDay: "この日は押していません",
+    noStampsInMonth: "{{month}} は押していません",
+    showPreviousMonth: "{{month}} を見る",
   },
   settings: {
     title: "設定",

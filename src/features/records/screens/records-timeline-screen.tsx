@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { ScrollView, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
@@ -28,9 +28,14 @@ import {
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
-import { currentMonth, monthRange } from "@/shared/utils/month-grid";
+import {
+  currentMonth,
+  formatMonthHeading,
+  monthRange,
+} from "@/shared/utils/month-grid";
 import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
+import { PreviousMonthButton } from "../components/previous-month-button";
 import { buildDayMarks } from "../utils/day-marks";
 
 export function RecordsTimelineScreen() {
@@ -54,9 +59,22 @@ export function RecordsTimelineScreen() {
   const tiles = albumTiles(monthStamps, rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const hasPosts = posts.length > 0;
+  const { data: firstStampedAt } = useFirstStampedAt();
+  // Earlier months have stamps, so the bottom can step back one month.
+  const hasEarlierStamps =
+    typeof firstStampedAt === "string" && new Date(firstStampedAt) < start;
+  const previousMonth = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+  const previousMonthButton = hasEarlierStamps ? (
+    <PreviousMonthButton
+      month={previousMonth}
+      onPress={() => setMonth(previousMonth)}
+    />
+  ) : null;
+  // Stamps exist, only not in this month.
+  const isEmptyMonth =
+    isLoaded && !isError && !hasPosts && (stamps ?? []).length > 0;
   // The calendar reads only the month it shows.
   const { data: calendarStamps } = useStampsBetween(start, end);
-  const { data: firstStampedAt } = useFirstStampedAt();
   const calendarPosts = stampsWithRallies(calendarStamps ?? [], rallies ?? []);
 
   return (
@@ -137,14 +155,26 @@ export function RecordsTimelineScreen() {
             tiles={tiles}
             showsEmoji
           />
-        ) : (
+        ) : null}
+        {hasPosts ? <View className="pt-4">{previousMonthButton}</View> : null}
+        {isEmptyMonth ? (
+          <View className="items-center gap-2 py-12">
+            <Text className="text-foreground-secondary">
+              {t("records.noStampsInMonth", {
+                month: formatMonthHeading(month),
+              })}
+            </Text>
+            {previousMonthButton}
+          </View>
+        ) : null}
+        {!hasPosts && !isEmptyMonth ? (
           <TimelineEmpty
             isError={isError}
             isLoaded={isLoaded}
             message={t("rallies.noStamps")}
             onRetry={retry}
           />
-        )}
+        ) : null}
       </ScrollView>
       <TabRootHeader title={t("records.title")} />
     </>

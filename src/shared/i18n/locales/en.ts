@@ -120,6 +120,8 @@ export const en = {
     subtitle: "Your days, one stamp at a time",
     timelineLabel: "Logs timeline",
     noStampsOnDay: "No stamps on this day",
+    noStampsInMonth: "No stamps in {{month}}",
+    showPreviousMonth: "Show {{month}}",
   },
   settings: {
     title: "Settings",

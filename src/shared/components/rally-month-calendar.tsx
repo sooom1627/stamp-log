@@ -11,6 +11,7 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
   buildMonthWeeks,
+  formatMonthHeading,
   pickerYears,
   type DayMark,
   type MonthDay,
@@ -19,10 +20,6 @@ import {
 import { ChevronLeft, ChevronRight } from "./icons";
 import { MonthPickerSheet } from "./month-picker-sheet";
 
-const monthFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "long",
-  year: "numeric",
-});
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 // A swipe starts once the finger moves this far sideways, and gives way to
 // the screen's vertical scroll when it moves this far up or down first.
@@ -160,7 +157,7 @@ export function RallyMonthCalendar({
   const todayKey = localDateKey(new Date());
   const { t } = useTranslation();
   const weeks = buildMonthWeeks(month, stampDates);
-  const heading = monthFormatter.format(month);
+  const heading = formatMonthHeading(month);
 
   const step = (delta: number) =>
     onChangeMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));

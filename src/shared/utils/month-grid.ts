@@ -75,6 +75,16 @@ export function monthRange(month: Date): CalendarRange {
   };
 }
 
+const monthHeadingFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  year: "numeric",
+});
+
+// The calendar's heading for a month, e.g. "October 2026".
+export function formatMonthHeading(month: Date) {
+  return monthHeadingFormatter.format(month);
+}
+
 // From the first stamp's year (or this year) to next year, always including
 // the shown month's year so the wheel can select it.
 export function pickerYears(stampDates: string[], shownMonth: Date) {
