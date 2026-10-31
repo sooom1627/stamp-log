@@ -47,6 +47,8 @@ type RallyMonthCalendarProps = {
   onChangeMonth: (month: Date) => void;
   // The oldest stamp's time, when `stampDates` holds only the shown range.
   firstStampedAt?: string | null;
+  // Puts the month and ‹ › above the panel instead of inside it (Logs).
+  isHeadingAbove?: boolean;
 };
 
 export function RallyMonthCalendar({
@@ -59,6 +61,7 @@ export function RallyMonthCalendar({
   month,
   onChangeMonth,
   firstStampedAt,
+  isHeadingAbove = false,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
   const { t } = useTranslation();
@@ -93,98 +96,133 @@ export function RallyMonthCalendar({
     setIsPickerOpen(false);
   };
 
-  return (
-    <GestureDetector gesture={swipe}>
-      <View
-        testID={testID}
-        className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
+  const previousButton = (
+    <Pressable
+      role="button"
+      aria-label={t("calendar.previousMonth")}
+      className="size-11 items-center justify-center"
+      onPress={() => step(-1)}
+    >
+      <ChevronLeft colorClassName="accent-accent" size={20} />
+    </Pressable>
+  );
+  const nextButton = (
+    <Pressable
+      role="button"
+      aria-label={t("calendar.nextMonth")}
+      disabled={isThisMonth}
+      className={
+        isThisMonth
+          ? "size-11 items-center justify-center opacity-30"
+          : "size-11 items-center justify-center"
+      }
+      onPress={() => step(1)}
+    >
+      <ChevronRight colorClassName="accent-accent" size={20} />
+    </Pressable>
+  );
+  const headingButton = (
+    <Pressable
+      role="button"
+      aria-label={t("calendar.chooseMonth", { month: heading })}
+      className={
+        isHeadingAbove
+          ? "min-h-11 justify-center"
+          : "min-h-11 justify-center px-2"
+      }
+      onPress={() => setIsPickerOpen(true)}
+    >
+      <Text
+        className={
+          isHeadingAbove
+            ? "text-foreground text-xl font-bold"
+            : "text-foreground text-base font-semibold"
+        }
       >
+        {heading}
+      </Text>
+    </Pressable>
+  );
+
+  return (
+    <View testID={testID} className="w-full gap-1">
+      {/* On Logs the month is the heading of the whole screen below, so it
+          sits above the panel: the month left, ‹ › right (S-051 T-004). */}
+      {isHeadingAbove ? (
         <View className="flex-row items-center justify-between">
-          <Pressable
-            role="button"
-            aria-label={t("calendar.previousMonth")}
-            className="size-11 items-center justify-center"
-            onPress={() => step(-1)}
-          >
-            <ChevronLeft colorClassName="accent-accent" size={20} />
-          </Pressable>
-          <Pressable
-            role="button"
-            aria-label={t("calendar.chooseMonth", { month: heading })}
-            className="min-h-11 justify-center px-2"
-            onPress={() => setIsPickerOpen(true)}
-          >
-            <Text className="text-foreground text-base font-semibold">
-              {heading}
-            </Text>
-          </Pressable>
-          <Pressable
-            role="button"
-            aria-label={t("calendar.nextMonth")}
-            disabled={isThisMonth}
-            className={
-              isThisMonth
-                ? "size-11 items-center justify-center opacity-30"
-                : "size-11 items-center justify-center"
-            }
-            onPress={() => step(1)}
-          >
-            <ChevronRight colorClassName="accent-accent" size={20} />
-          </Pressable>
+          {headingButton}
+          <View className="flex-row">
+            {previousButton}
+            {nextButton}
+          </View>
         </View>
-        {/* Each month is a page placed at its own position on a strip, so a
-            page stays put when the shown month changes; the strip moves with
-            the finger. The shown page sets the height; the clip hides the
-            pages beside it. */}
+      ) : null}
+      <GestureDetector gesture={swipe}>
         <View
-          testID={`${testID}-pages`}
-          className="overflow-hidden"
-          onLayout={onPagesLayout}
+          testID={`${testID}-panel`}
+          className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
         >
-          <Animated.View style={stripStyle}>
-            {PAGE_OFFSETS.map((offset) => {
-              const pageMonth = new Date(
-                month.getFullYear(),
-                month.getMonth() + offset,
-                1,
-              );
-              const isShown = offset === 0;
-              const left =
-                `${(monthNumber(pageMonth) - firstMonthNumber) * 100}%` as const;
-              return (
-                <View
-                  key={monthNumber(pageMonth)}
-                  testID={`${testID}-month-${monthTestKey(pageMonth)}`}
-                  // The pages beside the shown one are off screen.
-                  aria-hidden={!isShown}
-                  className={isShown ? "w-full" : "absolute top-0 w-full"}
-                  style={{ left }}
-                >
-                  <CalendarMonthPage
-                    month={pageMonth}
-                    stampDates={stampDates}
-                    emoji={emoji}
-                    dayMarks={dayMarks}
-                    todayKey={todayKey}
-                    onPressDay={onPressDay}
-                    isRecordedOnly={isRecordedOnly}
-                  />
-                </View>
-              );
-            })}
-          </Animated.View>
-        </View>
-        <MonthPickerSheet
-          isPresented={isPickerOpen}
-          month={month}
-          years={pickerYears(
-            firstStampedAt ? [firstStampedAt, ...stampDates] : stampDates,
-            month,
+          {isHeadingAbove ? null : (
+            <View className="flex-row items-center justify-between">
+              {previousButton}
+              {headingButton}
+              {nextButton}
+            </View>
           )}
-          onDone={pickMonth}
-          onClose={() => setIsPickerOpen(false)}
-        />
-      </View>
-    </GestureDetector>
+          {/* Each month is a page placed at its own position on a strip, so a
+              page stays put when the shown month changes; the strip moves with
+              the finger. The shown page sets the height; the clip hides the
+              pages beside it. */}
+          <View
+            testID={`${testID}-pages`}
+            className="overflow-hidden"
+            onLayout={onPagesLayout}
+          >
+            <Animated.View style={stripStyle}>
+              {PAGE_OFFSETS.map((offset) => {
+                const pageMonth = new Date(
+                  month.getFullYear(),
+                  month.getMonth() + offset,
+                  1,
+                );
+                const isShown = offset === 0;
+                const left =
+                  `${(monthNumber(pageMonth) - firstMonthNumber) * 100}%` as const;
+                return (
+                  <View
+                    key={monthNumber(pageMonth)}
+                    testID={`${testID}-month-${monthTestKey(pageMonth)}`}
+                    // The pages beside the shown one are off screen.
+                    aria-hidden={!isShown}
+                    className={isShown ? "w-full" : "absolute top-0 w-full"}
+                    style={{ left }}
+                  >
+                    <CalendarMonthPage
+                      month={pageMonth}
+                      stampDates={stampDates}
+                      emoji={emoji}
+                      dayMarks={dayMarks}
+                      todayKey={todayKey}
+                      onPressDay={onPressDay}
+                      isRecordedOnly={isRecordedOnly}
+                    />
+                  </View>
+                );
+              })}
+            </Animated.View>
+          </View>
+        </View>
+      </GestureDetector>
+      <MonthPickerSheet
+        isPresented={isPickerOpen}
+        month={month}
+        years={pickerYears(
+          firstStampedAt ? [firstStampedAt, ...stampDates] : stampDates,
+          month,
+        )}
+        onDone={pickMonth}
+        onClose={() => setIsPickerOpen(false)}
+      />
+    </View>
   );
 }

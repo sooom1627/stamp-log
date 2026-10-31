@@ -102,6 +102,7 @@ export function RecordsTimelineScreen() {
             stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
             dayMarks={buildDayMarks(calendarStamps ?? [], rallies ?? [])}
             firstStampedAt={firstStampedAt}
+            isHeadingAbove
             isRecordedOnly
             onPressDay={(date) =>
               push({ pathname: "/logs-day", params: { date } })

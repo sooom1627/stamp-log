@@ -1086,3 +1086,21 @@ describe("S-051 T-003 ST-004 Logs calendar reads the months beside it", () => {
     expect(await september.findByText("🦩", hidden)).toBeTruthy();
   });
 });
+
+describe("S-051 T-004 ST-003 Logs month heading above the calendar", () => {
+  test("puts the month and ‹ › outside the calendar's panel", async () => {
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+    const panel = within(logs.getByTestId("logs-calendar-panel"));
+    expect(
+      calendar.getByRole("button", { name: "Choose month, October 2026" }),
+    ).toBeOnTheScreen();
+    expect(panel.queryByText("October 2026")).not.toBeOnTheScreen();
+    expect(
+      panel.queryByRole("button", { name: "Previous month" }),
+    ).not.toBeOnTheScreen();
+    expect(panel.getByText("Mon")).toBeOnTheScreen();
+  });
+});

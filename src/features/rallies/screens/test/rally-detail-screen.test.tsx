@@ -1127,7 +1127,7 @@ describe("S-028 RT-001 ST-005 calendar look", () => {
       });
     });
 
-    expect(await screen.findByTestId("rally-calendar")).toHaveProp(
+    expect(await screen.findByTestId("rally-calendar-panel")).toHaveProp(
       "className",
       expect.stringContaining("bg-surface "),
     );
@@ -1228,7 +1228,7 @@ describe("S-033 T-002 ST-002 rally detail on the canvas", () => {
       "className",
       expect.stringContaining("bg-canvas"),
     );
-    expect(screen.getByTestId("rally-calendar")).toHaveProp(
+    expect(screen.getByTestId("rally-calendar-panel")).toHaveProp(
       "className",
       expect.stringContaining("bg-surface "),
     );
