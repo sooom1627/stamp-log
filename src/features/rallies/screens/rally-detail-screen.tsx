@@ -29,6 +29,7 @@ import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
+import { currentMonth } from "@/shared/utils/month-grid";
 
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallySummaryStats } from "../components/rally-summary-stats";
@@ -59,6 +60,8 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const headerHeight = useHeaderHeight();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
+  // Opens on this month every time; the month is not remembered.
+  const [calendarMonth, setCalendarMonth] = useState(currentMonth);
   const { data: rally } = useRally(rallyId);
   const {
     data: stamps,
@@ -136,6 +139,8 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               {stamps ? <RallySummaryStats summary={summary} /> : null}
             </View>
             <RallyMonthCalendar
+              month={calendarMonth}
+              onChangeMonth={setCalendarMonth}
               stampDates={stampDates}
               emoji={rally.emoji}
               onPressDay={(date) =>

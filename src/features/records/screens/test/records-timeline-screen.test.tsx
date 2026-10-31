@@ -12,6 +12,11 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
+import { State } from "react-native-gesture-handler";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
@@ -46,6 +51,12 @@ async function attachPhotos(stampId: number, count: number) {
   });
   await updateStampMemo({ id: stampId, memo: "", photoUris });
 }
+
+// Logs shows only the calendar's month (S-051). Mid-month, so stamps a few
+// days ago stay in this month on any day the tests run.
+beforeEach(() => {
+  jest.setSystemTime(new Date(2026, 9, 20, 12));
+});
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -478,20 +489,6 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     ).toBeOnTheScreen();
   });
 
-  test("does not change the list when the calendar moves", async () => {
-    const rally = await saveRallyNamed("Calendar list", "🪁");
-    await saveStamp({ rallyId: rally.id });
-    const { logs, calendar } = await openLogsCalendar();
-    const firstPost = () => logs.getAllByText(stampTimePattern)[0];
-    const before = firstPost().props.children;
-    const user = userEvent.setup();
-
-    await user.press(calendar.getByRole("button", { name: "Previous month" }));
-
-    expect(firstPost().props.children).toEqual(before);
-    expect(logs.getByText("Calendar list")).toBeOnTheScreen();
-  });
-
   test("S-012 T-001 ST-003 opens the Logs day sheet from a recorded day only", async () => {
     const rally = await saveRallyNamed("Calendar press", "🪀");
     const stamp = await saveStamp({ rallyId: rally.id });
@@ -905,5 +902,79 @@ describe("S-037 T-005 ST-003 small copies in the Album", () => {
     expect(within(tile).getByTestId("album-tile-image")).toHaveProp("source", [
       { uri: stampPhotoThumbUri(cover.fileName) },
     ]);
+  });
+});
+
+describe("S-051 T-001 ST-004 Logs shows the calendar's month", () => {
+  async function saveMonthStamps() {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    const rally = await saveRallyNamed("Month posts", "🗓️");
+    const october = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 9, 18, 9).toISOString(),
+    });
+    await attachPhotos(october.id, 2);
+    const earlyOctober = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 9, 1, 0, 30).toISOString(),
+    });
+    const september = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 30, 23, 30).toISOString(),
+    });
+    await attachPhotos(september.id, 1);
+    await showOnlyStamps([october.id, earlyOctober.id, september.id]);
+    return { october, earlyOctober, september };
+  }
+
+  const postIds = (logs: ReturnType<typeof within>) =>
+    logs.getAllByTestId(/^stamp-post-\d+$/).map(({ props }) => props.testID);
+
+  test("shows only this month's stamps, newest first, with this month's counts", async () => {
+    const { october, earlyOctober } = await saveMonthStamps();
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(postIds(logs)).toEqual([
+      `stamp-post-${october.id}`,
+      `stamp-post-${earlyOctober.id}`,
+    ]);
+    expect(pickerSegments(logs)).toEqual(["Stamps · 2", "Album · 2"]);
+  });
+
+  test("moves the stamps and the counts with the calendar's month", async () => {
+    const { september } = await saveMonthStamps();
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+    const user = userEvent.setup();
+
+    await user.press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
+    expect(postIds(logs)).toEqual([`stamp-post-${september.id}`]);
+    expect(pickerSegments(logs)).toEqual(["Stamps · 1", "Album · 1"]);
+  });
+
+  test("moves the stamps when the calendar is swiped", async () => {
+    const { september } = await saveMonthStamps();
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+
+    await act(() =>
+      fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationX: 80 },
+        { state: State.END, translationX: 80 },
+      ]),
+    );
+
+    expect(
+      await within(logs.getByTestId("logs-calendar")).findByText(
+        "September 2026",
+      ),
+    ).toBeOnTheScreen();
+    expect(postIds(logs)).toEqual([`stamp-post-${september.id}`]);
   });
 });

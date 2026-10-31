@@ -38,22 +38,24 @@ export function RecordsTimelineScreen() {
   const { t } = useTranslation();
   // Starts on Stamps every time the screen opens (not remembered).
   const [view, setView] = useState<StampsView>("stamps");
+  // Opens on this month every time; the month is not remembered. The stamps
+  // and the album below show only the calendar's month (S-051).
+  const [month, setMonth] = useState(currentMonth);
+  const { start, end } = monthRange(month);
   const { rallies, stamps, isLoaded, isError, retry } =
     useRalliesAndStamps(useStamps());
+  const monthStamps = (stamps ?? []).filter((stamp) => {
+    const stampedAt = new Date(stamp.stampedAt);
+    return stampedAt >= start && stampedAt < end;
+  });
   // A stamp is shown once its rally is loaded, so every post has its name.
-  const posts = stampsWithRallies(stamps ?? [], rallies ?? []);
+  const posts = stampsWithRallies(monthStamps, rallies ?? []);
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
-  const tiles = albumTiles(stamps ?? [], rallies ?? []);
+  const tiles = albumTiles(monthStamps, rallies ?? []);
   const photoCount = tiles.reduce((sum, tile) => sum + tile.photoCount, 0);
   const hasPosts = posts.length > 0;
   // The calendar reads only the month it shows.
-  const [calendarRange, setCalendarRange] = useState(() =>
-    monthRange(currentMonth()),
-  );
-  const { data: calendarStamps } = useStampsBetween(
-    calendarRange.start,
-    calendarRange.end,
-  );
+  const { data: calendarStamps } = useStampsBetween(start, end);
   const { data: firstStampedAt } = useFirstStampedAt();
   const calendarPosts = stampsWithRallies(calendarStamps ?? [], rallies ?? []);
 
@@ -71,13 +73,13 @@ export function RecordsTimelineScreen() {
       >
         <View className="px-5">
           <TabRootSubtitle>{t("records.subtitle")}</TabRootSubtitle>
-          {/* Not linked to the pages: moving it leaves the posts as they are. */}
           <RallyMonthCalendar
             testID="logs-calendar"
+            month={month}
+            onChangeMonth={setMonth}
             stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
             dayMarks={buildDayMarks(calendarStamps ?? [], rallies ?? [])}
             firstStampedAt={firstStampedAt}
-            onVisibleRangeChange={setCalendarRange}
             isRecordedOnly
             onPressDay={(date) =>
               push({ pathname: "/logs-day", params: { date } })

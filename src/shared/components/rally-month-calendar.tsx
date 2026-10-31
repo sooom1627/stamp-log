@@ -11,10 +11,7 @@ import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
   buildMonthWeeks,
-  currentMonth,
-  monthRange,
   pickerYears,
-  type CalendarRange,
   type DayMark,
   type MonthDay,
 } from "@/shared/utils/month-grid";
@@ -139,9 +136,12 @@ type RallyMonthCalendarProps = {
   onPressDay?: (key: string) => void;
   // Logs opens only days with stamps; rally detail opens empty days too.
   isRecordedOnly?: boolean;
-  // Called when the shown month changes, so a screen can read only the stamps
-  // of that month (Logs). Starts at this month.
-  onVisibleRangeChange?: (range: CalendarRange) => void;
+  // The shown month (its first local day). The screen keeps it, so it can
+  // show that month's stamps below (Logs) and move it from elsewhere.
+  month: Date;
+  // Called with the first day of the month that ‹ ›, a swipe or the picker
+  // moves to.
+  onChangeMonth: (month: Date) => void;
   // The oldest stamp's time, when `stampDates` holds only the shown range.
   firstStampedAt?: string | null;
 };
@@ -153,23 +153,17 @@ export function RallyMonthCalendar({
   dayMarks,
   onPressDay,
   isRecordedOnly = false,
-  onVisibleRangeChange,
+  month,
+  onChangeMonth,
   firstStampedAt,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
-  // Opens on this month every time; the month is not remembered.
-  const [month, setMonth] = useState(currentMonth);
   const { t } = useTranslation();
   const weeks = buildMonthWeeks(month, stampDates);
   const heading = monthFormatter.format(month);
 
-  // Every change of the shown month goes through here.
-  const changeMonth = (next: Date) => {
-    setMonth(next);
-    onVisibleRangeChange?.(monthRange(next));
-  };
   const step = (delta: number) =>
-    changeMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
+    onChangeMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
 
   // Left shows the next month, right the previous one (‹ ›).
   const swipe = usePanGesture({
@@ -185,7 +179,7 @@ export function RallyMonthCalendar({
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const pickMonth = (picked: Date) => {
-    changeMonth(picked);
+    onChangeMonth(picked);
     setIsPickerOpen(false);
   };
 
