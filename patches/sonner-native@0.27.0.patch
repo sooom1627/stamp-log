@@ -1,0 +1,57 @@
+diff --git a/lib/module/gestures.js b/lib/module/gestures.js
+index 006393c2afe8dfe45719948c6df344a925e0c717..ff5c3b61e54400ca687fb77e585d185a04b2cacc 100644
+--- a/lib/module/gestures.js
++++ b/lib/module/gestures.js
+@@ -142,7 +142,7 @@ export const ToastSwipeHandler = ({
+       aStyle.opacity = interpolate(translate.value, [0, direction === 'left' ? -windowWidth : -60], [1, 0]);
+     }
+     return aStyle;
+-  }, [direction, translate, windowWidth]);
++  });
+   return /*#__PURE__*/_jsx(GestureDetector, {
+     gesture: Gesture.Race(tap, pan),
+     children: /*#__PURE__*/_jsx(Animated.View, {
+diff --git a/lib/module/use-toast-animations.js b/lib/module/use-toast-animations.js
+index 52e05b6a4c5e41e394ec87d8f7dbb009893d2dd1..dd2af543211e5c6d7b46a7170b9972c32b0f22c0 100644
+--- a/lib/module/use-toast-animations.js
++++ b/lib/module/use-toast-animations.js
+@@ -24,7 +24,7 @@ export const useToastAnimations = ({
+         scale: wiggleSharedValue.value
+       }]
+     };
+-  }, [wiggleSharedValue]);
++  });
+ 
+   // ScaleX: visual narrowing avoids layout-width changes that cause text rewrap
+   const {
+@@ -46,7 +46,7 @@ export const useToastAnimations = ({
+       duration: STACKING_ANIMATION_DURATION,
+       easing: easeOutQuartFn
+     });
+-  }, [enableStacking, numberOfToasts, index, toastPosition, isExpanded, stackGap, screenWidth]);
++  });
+   const absolutePositionStyle = useAnimatedStyle(() => {
+     const base = {
+       position: 'absolute',
+@@ -63,7 +63,7 @@ export const useToastAnimations = ({
+       base.top = 0;
+     }
+     return base;
+-  }, [yPosition, toastPosition, stackScaleX]);
++  });
+   const wiggle = React.useCallback(() => {
+     'worklet';
+ 
+diff --git a/lib/module/use-toast-position.js b/lib/module/use-toast-position.js
+index 5ef8eaaf7bfe3f904c9407a3e73e927b31a78823..9afad3610ef4a08e096a470f7c015ef2f472a64b 100644
+--- a/lib/module/use-toast-position.js
++++ b/lib/module/use-toast-position.js
+@@ -37,7 +37,7 @@ export const useToastPosition = ({
+       duration: STACKING_ANIMATION_DURATION,
+       easing: easeOutQuartFn
+     });
+-  }, [id, index, numberOfToasts, enableStacking, position, toastHeightsVersion, gap, orderedIdsKey, isExpanded, stackGap]);
++  });
+   return yPosition;
+ };
+ //# sourceMappingURL=use-toast-position.js.map

@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  sonner-native@0.27.0:
+    hash: d25c19e2810b9f359476f574691c6a2ad2c845d67fd4ca9527327c544d8501c2
+    path: patches/sonner-native@0.27.0.patch
+
 importers:
 
   .:
@@ -115,7 +120,7 @@ importers:
         version: 0.13.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(react-native@0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.3.0))(react@19.3.0)
       sonner-native:
         specifier: ^0.27.0
-        version: 0.27.0(096a3df46e7fb5329e08f04f23ac41c5)
+        version: 0.27.0(patch_hash=d25c19e2810b9f359476f574691c6a2ad2c845d67fd4ca9527327c544d8501c2)(096a3df46e7fb5329e08f04f23ac41c5)
       uniwind:
         specifier: ^1.12.0
         version: 1.13.0(@expo/metro-config@58.0.17(expo@58.0.19)(typescript@6.0.3))(metro-cache@0.87.2)(metro-transform-worker@0.87.2)(metro@0.87.2)(react-native@0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.3.0))(react@19.3.0)(tailwindcss@4.3.3)
@@ -11693,7 +11698,7 @@ snapshots:
 
   slugify@1.6.9: {}
 
-  sonner-native@0.27.0(096a3df46e7fb5329e08f04f23ac41c5):
+  sonner-native@0.27.0(patch_hash=d25c19e2810b9f359476f574691c6a2ad2c845d67fd4ca9527327c544d8501c2)(096a3df46e7fb5329e08f04f23ac41c5):
     dependencies:
       react: 19.3.0
       react-native: 0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.3.0)
