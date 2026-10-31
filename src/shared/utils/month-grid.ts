@@ -95,7 +95,7 @@ export function formatMonthHeading(month: Date) {
   return monthHeadingFormatter.format(month);
 }
 
-// From the first stamp's year (or this year) to next year, always including
+// From the first stamp's year (or this year) to this year, always including
 // the shown month's year so the wheel can select it.
 export function pickerYears(stampDates: string[], shownMonth: Date) {
   const thisYear = new Date().getFullYear();
@@ -103,6 +103,6 @@ export function pickerYears(stampDates: string[], shownMonth: Date) {
     new Date(stampDate).getFullYear(),
   );
   const from = Math.min(thisYear, shownMonth.getFullYear(), ...stampYears);
-  const to = Math.max(thisYear + 1, shownMonth.getFullYear());
+  const to = Math.max(thisYear, shownMonth.getFullYear());
   return Array.from({ length: to - from + 1 }, (_, index) => from + index);
 }

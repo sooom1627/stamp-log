@@ -1,4 +1,4 @@
-import { Alert, type AlertButton } from "react-native";
+import { Alert, ScrollView, type AlertButton } from "react-native";
 
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
@@ -98,6 +98,14 @@ async function showOnlyStamps(ids: number[]) {
   jest
     .spyOn(stampsDb, "listStamps")
     .mockResolvedValue(stamps.filter(({ id }) => ids.includes(id)));
+  const { listStampsBetween } = stampsDb;
+  jest
+    .spyOn(stampsDb, "listStampsBetween")
+    .mockImplementation(async (start, end) =>
+      (await listStampsBetween(start, end)).filter(({ id }) =>
+        ids.includes(id),
+      ),
+    );
 }
 
 async function openLogs() {
@@ -189,7 +197,7 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     const rally = await saveRallyNamed("Day sections", "📚");
     const at = (day: number, hour: number) =>
       new Date(2026, 9, day, hour).toISOString();
-    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([
+    jest.spyOn(stampsDb, "listStampsBetween").mockResolvedValue([
       {
         id: 904,
         rallyId: rally.id,
@@ -258,7 +266,8 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
     within(await screen.findByLabelText("Logs timeline"));
 
   test("shows No stamps yet without the Stamps / Album switch when there are no stamps", async () => {
-    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    jest.spyOn(stampsDb, "listStampsBetween").mockResolvedValue([]);
+    jest.spyOn(stampSummaryDb, "getFirstStampedAt").mockResolvedValue(null);
     await openLogs();
     const logs = await logsTimeline();
 
@@ -268,7 +277,7 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
 
   test("shows nothing while the stamps are loading", async () => {
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listStampsBetween")
       .mockImplementation(() => new Promise(() => {}));
     await openLogs();
     const logs = await logsTimeline();
@@ -279,7 +288,7 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
 
   test("shows a load error with Retry instead of the empty state", async () => {
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listStampsBetween")
       .mockRejectedValue(new Error("disk full"));
     await openLogs();
     const logs = await logsTimeline();
@@ -306,9 +315,9 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
   test("shows the stamps after retrying a failed load", async () => {
     const rally = await saveRallyNamed("Retry rally", "🎯");
     await saveStamp({ rallyId: rally.id });
-    const realListStamps = stampsDb.listStamps;
+    const realListStamps = stampsDb.listStampsBetween;
     const listSpy = jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listStampsBetween")
       .mockRejectedValue(new Error("disk full"));
     await openLogs();
     const logs = await logsTimeline();
@@ -869,7 +878,8 @@ describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
   });
 
   test("has no pages without stamps", async () => {
-    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    jest.spyOn(stampsDb, "listStampsBetween").mockResolvedValue([]);
+    jest.spyOn(stampSummaryDb, "getFirstStampedAt").mockResolvedValue(null);
     await openLogs();
     const logs = within(await screen.findByLabelText("Logs timeline"));
 
@@ -1017,7 +1027,7 @@ describe("S-051 T-001 ST-005 Logs steps back a month from the bottom", () => {
     const user = userEvent.setup();
 
     await user.press(
-      await logs.findByRole("button", { name: "Show October 2026" }),
+      await logs.findByRole("button", { name: "Show October 2026, 1 stamp" }),
     );
 
     expect(await calendar.findByText("October 2026")).toBeOnTheScreen();
@@ -1046,7 +1056,7 @@ describe("S-051 T-001 ST-005 Logs steps back a month from the bottom", () => {
     expect(logs.queryByTestId("logs-view-picker")).not.toBeOnTheScreen();
     expect(logs.queryByText("No stamps yet")).not.toBeOnTheScreen();
     expect(
-      logs.getByRole("button", { name: "Show October 2026" }),
+      logs.getByRole("button", { name: "Show October 2026, 0 stamps" }),
     ).toBeOnTheScreen();
   });
 
@@ -1084,5 +1094,105 @@ describe("S-051 T-003 ST-004 Logs calendar reads the months beside it", () => {
       logs.getByTestId("logs-calendar-month-2026-09", hidden),
     );
     expect(await september.findByText("🦩", hidden)).toBeTruthy();
+  });
+});
+
+describe("S-051 T-004 ST-003 Logs month heading above the calendar", () => {
+  test("puts the month and ‹ › outside the calendar's panel", async () => {
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+    const panel = within(logs.getByTestId("logs-calendar-panel"));
+    expect(
+      calendar.getByRole("button", { name: "Choose month, October 2026" }),
+    ).toBeOnTheScreen();
+    expect(panel.queryByText("October 2026")).not.toBeOnTheScreen();
+    expect(
+      panel.queryByRole("button", { name: "Previous month" }),
+    ).not.toBeOnTheScreen();
+    expect(panel.getByText("Mon")).toBeOnTheScreen();
+  });
+});
+
+describe("S-051 T-004 ST-004 Logs reads three months and counts the previous one", () => {
+  test("shows the previous month's count on the button", async () => {
+    jest.setSystemTime(new Date(2026, 10, 20, 12));
+    const rally = await saveRallyNamed("Counted month", "🧮");
+    const stamps = [
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 9, 3, 9).toISOString(),
+      }),
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 9, 4, 9).toISOString(),
+      }),
+    ];
+    await showOnlyStamps(stamps.map(({ id }) => id));
+    jest
+      .spyOn(stampSummaryDb, "getFirstStampedAt")
+      .mockResolvedValue(stamps[0].stampedAt);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const button = await logs.findByRole("button", {
+      name: "Show October 2026, 2 stamps",
+    });
+    expect(within(button).getByText("October 2026 · 2")).toBeOnTheScreen();
+  });
+
+  test("reads only the months around the calendar's month, not every stamp", async () => {
+    const rally = await saveRallyNamed("Three months", "🗂️");
+    const stamp = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 9, 5, 9).toISOString(),
+    });
+    await showOnlyStamps([stamp.id]);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(await logs.findByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+    expect(stampsDb.listStamps).not.toHaveBeenCalled();
+  });
+});
+
+describe("S-051 T-004 ST-005 the previous month starts from its heading", () => {
+  test("scrolls back so the month heading is just under the bar", async () => {
+    jest.setSystemTime(new Date(2026, 10, 20, 12));
+    const rally = await saveRallyNamed("Scroll back", "🛞");
+    const stamps = [
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 10, 3, 9).toISOString(),
+      }),
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 9, 3, 9).toISOString(),
+      }),
+    ];
+    await showOnlyStamps(stamps.map(({ id }) => id));
+    jest
+      .spyOn(stampSummaryDb, "getFirstStampedAt")
+      .mockResolvedValue(stamps[1].stampedAt);
+    // The native scroll view is not in the test; its scroll is recorded.
+    const scrollTo = jest.spyOn(ScrollView.prototype, "scrollTo");
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    // The month heading sits 120 points down the scroll.
+    await fireEvent(logs.getByTestId("logs-month"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 120, width: 360, height: 400 } },
+    });
+
+    await userEvent
+      .setup()
+      .press(
+        await logs.findByRole("button", { name: "Show October 2026, 1 stamp" }),
+      );
+
+    // Under the collapsed bar (44 points; no safe area in tests).
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 76, animated: true });
   });
 });

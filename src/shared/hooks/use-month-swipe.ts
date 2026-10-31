@@ -34,6 +34,8 @@ type MonthSwipeOptions = {
   testID: string;
   // The shown month (its first local day).
   month: Date;
+  // The latest month a swipe can reach (this month).
+  lastMonth: Date;
   // Called with +1 (next month, swiped left) or -1 (previous, swiped right).
   onStep: (delta: number) => void;
 };
@@ -44,8 +46,14 @@ type MonthSwipeOptions = {
 // drags the strip; letting go settles on the page beside or back on the shown
 // one. When the month changes by one (a swipe, ‹ ›, or Logs' previous-month
 // button) the strip slides there; further (the picker) it jumps.
-export function useMonthSwipe({ testID, month, onStep }: MonthSwipeOptions) {
+export function useMonthSwipe({
+  testID,
+  month,
+  lastMonth,
+  onStep,
+}: MonthSwipeOptions) {
   const shownNumber = monthNumber(month);
+  const lastNumber = monthNumber(lastMonth);
   // Pages are placed from the first month shown, so offsets stay small.
   const [firstMonthNumber] = useState(shownNumber);
   const width = useSharedValue(0);
@@ -81,8 +89,10 @@ export function useMonthSwipe({ testID, month, onStep }: MonthSwipeOptions) {
       if (pageWidth === 0) return;
       const settled = settledPage.get();
       const dragged = dragStartPage.get() - translationX / pageWidth;
-      // Only the pages beside the shown one are ready.
-      page.set(Math.min(settled + 1, Math.max(settled - 1, dragged)));
+      // Only the pages beside the shown one are ready, and none after the
+      // last month.
+      const highest = Math.min(settled + 1, Math.max(settled, lastNumber));
+      page.set(Math.min(highest, Math.max(settled - 1, dragged)));
     },
     onDeactivate: ({ canceled, translationX, velocityX }) => {
       "worklet";
@@ -94,11 +104,11 @@ export function useMonthSwipe({ testID, month, onStep }: MonthSwipeOptions) {
       const isFlick = Math.abs(velocityX) >= SWIPE_TURN_VELOCITY;
       const isTurn = isFlick || Math.abs(translationX) >= turnDistance;
       const timing = { duration: SLIDE_MS, easing: slideEasing };
-      if (canceled || !isTurn) {
+      const delta = (isFlick ? velocityX : translationX) < 0 ? 1 : -1;
+      if (canceled || !isTurn || settled + delta > lastNumber) {
         page.set(withTiming(settled, timing));
         return;
       }
-      const delta = (isFlick ? velocityX : translationX) < 0 ? 1 : -1;
       page.set(withTiming(settled + delta, timing));
       scheduleOnRN(onStep, delta);
     },
