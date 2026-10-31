@@ -120,6 +120,8 @@ export const en = {
     subtitle: "Your days, one stamp at a time",
     timelineLabel: "Logs timeline",
     noStampsOnDay: "No stamps on this day",
+    noStampsInMonth: "No stamps in {{month}}",
+    showPreviousMonth: "Show {{month}}, {{stamps}}",
   },
   settings: {
     title: "Settings",
@@ -205,11 +207,7 @@ export const en = {
   calendar: {
     previousMonth: "Previous month",
     nextMonth: "Next month",
-    previousWeek: "Previous week",
-    nextWeek: "Next week",
     chooseMonth: "Choose month, {{month}}",
-    showWeek: "Show week",
-    showMonth: "Show month",
     month: "Month",
     year: "Year",
     dayNotRecorded: "{{date}}, not recorded",

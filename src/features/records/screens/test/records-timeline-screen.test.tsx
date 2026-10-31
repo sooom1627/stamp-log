@@ -1,4 +1,4 @@
-import { Alert, type AlertButton } from "react-native";
+import { Alert, ScrollView, type AlertButton } from "react-native";
 
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
@@ -12,10 +12,16 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
+import { State } from "react-native-gesture-handler";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
 import { stampPhotoThumbUri } from "@/shared/db/stamp-photo-files";
+import * as stampSummaryDb from "@/shared/db/stamp-summary-db";
 import * as stampsDb from "@/shared/db/stamps-db";
 import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
@@ -46,6 +52,12 @@ async function attachPhotos(stampId: number, count: number) {
   });
   await updateStampMemo({ id: stampId, memo: "", photoUris });
 }
+
+// Logs shows only the calendar's month (S-051). Mid-month, so stamps a few
+// days ago stay in this month on any day the tests run.
+beforeEach(() => {
+  jest.setSystemTime(new Date(2026, 9, 20, 12));
+});
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -86,6 +98,14 @@ async function showOnlyStamps(ids: number[]) {
   jest
     .spyOn(stampsDb, "listStamps")
     .mockResolvedValue(stamps.filter(({ id }) => ids.includes(id)));
+  const { listStampsBetween } = stampsDb;
+  jest
+    .spyOn(stampsDb, "listStampsBetween")
+    .mockImplementation(async (start, end) =>
+      (await listStampsBetween(start, end)).filter(({ id }) =>
+        ids.includes(id),
+      ),
+    );
 }
 
 async function openLogs() {
@@ -177,7 +197,7 @@ describe("S-011 RT-001 ST-007 Logs day cards", () => {
     const rally = await saveRallyNamed("Day sections", "📚");
     const at = (day: number, hour: number) =>
       new Date(2026, 9, day, hour).toISOString();
-    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([
+    jest.spyOn(stampsDb, "listStampsBetween").mockResolvedValue([
       {
         id: 904,
         rallyId: rally.id,
@@ -246,7 +266,8 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
     within(await screen.findByLabelText("Logs timeline"));
 
   test("shows No stamps yet without the Stamps / Album switch when there are no stamps", async () => {
-    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    jest.spyOn(stampsDb, "listStampsBetween").mockResolvedValue([]);
+    jest.spyOn(stampSummaryDb, "getFirstStampedAt").mockResolvedValue(null);
     await openLogs();
     const logs = await logsTimeline();
 
@@ -256,7 +277,7 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
 
   test("shows nothing while the stamps are loading", async () => {
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listStampsBetween")
       .mockImplementation(() => new Promise(() => {}));
     await openLogs();
     const logs = await logsTimeline();
@@ -267,7 +288,7 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
 
   test("shows a load error with Retry instead of the empty state", async () => {
     jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listStampsBetween")
       .mockRejectedValue(new Error("disk full"));
     await openLogs();
     const logs = await logsTimeline();
@@ -294,9 +315,9 @@ describe("S-010 T-001 ST-004 Logs empty, loading and error", () => {
   test("shows the stamps after retrying a failed load", async () => {
     const rally = await saveRallyNamed("Retry rally", "🎯");
     await saveStamp({ rallyId: rally.id });
-    const realListStamps = stampsDb.listStamps;
+    const realListStamps = stampsDb.listStampsBetween;
     const listSpy = jest
-      .spyOn(stampsDb, "listStamps")
+      .spyOn(stampsDb, "listStampsBetween")
       .mockRejectedValue(new Error("disk full"));
     await openLogs();
     const logs = await logsTimeline();
@@ -429,7 +450,7 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     return { logs, calendar: within(logs.getByTestId("logs-calendar")) };
   }
 
-  test("opens on this week and marks stamped days with the last rally's emoji and +N", async () => {
+  test("opens on this month and marks stamped days with the last rally's emoji and +N", async () => {
     const cafes = await saveRallyNamed("Calendar cafes", "🧋");
     const runs = await saveRallyNamed("Calendar runs", "🛼");
     // Stamped now, so today (always in the week shown first) ends on cafes.
@@ -443,12 +464,18 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     const hidden = { includeHiddenElements: true };
     expect(within(today).getByText("🧋")).toBeOnTheScreen();
     expect(within(today).getByText(/^\+\d+$/, hidden)).toBeOnTheScreen();
+    const now = new Date();
+    const daysInMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+    ).getDate();
     expect(
       calendar.getAllByRole("button", { name: /, 20\d\d, / }),
-    ).toHaveLength(7);
+    ).toHaveLength(daysInMonth);
     expect(
-      calendar.getByRole("button", { name: "Show month" }),
-    ).toBeOnTheScreen();
+      calendar.queryByRole("button", { name: "Show month" }),
+    ).not.toBeOnTheScreen();
   });
 
   test("RT-003 ST-004 marks a stamped day of an earlier month once the calendar shows it", async () => {
@@ -461,7 +488,6 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     const { calendar } = await openLogsCalendar();
     const user = userEvent.setup();
 
-    await user.press(calendar.getByRole("button", { name: "Show month" }));
     await user.press(calendar.getByRole("button", { name: "Previous month" }));
     await user.press(calendar.getByRole("button", { name: "Previous month" }));
 
@@ -471,22 +497,6 @@ describe("S-011 T-001 ST-003 Logs calendar", () => {
     expect(
       calendar.getByLabelText("Aug 30, 2026, not recorded"),
     ).toBeOnTheScreen();
-  });
-
-  test("does not change the list when the calendar moves", async () => {
-    const rally = await saveRallyNamed("Calendar list", "🪁");
-    await saveStamp({ rallyId: rally.id });
-    const { logs, calendar } = await openLogsCalendar();
-    const firstPost = () => logs.getAllByText(stampTimePattern)[0];
-    const before = firstPost().props.children;
-    const user = userEvent.setup();
-
-    await user.press(calendar.getByRole("button", { name: "Previous week" }));
-    await user.press(calendar.getByRole("button", { name: "Show month" }));
-    await user.press(calendar.getByRole("button", { name: "Previous month" }));
-
-    expect(firstPost().props.children).toEqual(before);
-    expect(logs.getByText("Calendar list")).toBeOnTheScreen();
   });
 
   test("S-012 T-001 ST-003 opens the Logs day sheet from a recorded day only", async () => {
@@ -868,7 +878,8 @@ describe("S-043 T-001 ST-002 Logs pages for Stamps and Album", () => {
   });
 
   test("has no pages without stamps", async () => {
-    jest.spyOn(stampsDb, "listStamps").mockResolvedValue([]);
+    jest.spyOn(stampsDb, "listStampsBetween").mockResolvedValue([]);
+    jest.spyOn(stampSummaryDb, "getFirstStampedAt").mockResolvedValue(null);
     await openLogs();
     const logs = within(await screen.findByLabelText("Logs timeline"));
 
@@ -902,5 +913,286 @@ describe("S-037 T-005 ST-003 small copies in the Album", () => {
     expect(within(tile).getByTestId("album-tile-image")).toHaveProp("source", [
       { uri: stampPhotoThumbUri(cover.fileName) },
     ]);
+  });
+});
+
+describe("S-051 T-001 ST-004 Logs shows the calendar's month", () => {
+  async function saveMonthStamps() {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    const rally = await saveRallyNamed("Month posts", "🗓️");
+    const october = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 9, 18, 9).toISOString(),
+    });
+    await attachPhotos(october.id, 2);
+    const earlyOctober = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 9, 1, 0, 30).toISOString(),
+    });
+    const september = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 30, 23, 30).toISOString(),
+    });
+    await attachPhotos(september.id, 1);
+    await showOnlyStamps([october.id, earlyOctober.id, september.id]);
+    return { october, earlyOctober, september };
+  }
+
+  const postIds = (logs: ReturnType<typeof within>) =>
+    logs.getAllByTestId(/^stamp-post-\d+$/).map(({ props }) => props.testID);
+
+  test("shows only this month's stamps, newest first, with this month's counts", async () => {
+    const { october, earlyOctober } = await saveMonthStamps();
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(postIds(logs)).toEqual([
+      `stamp-post-${october.id}`,
+      `stamp-post-${earlyOctober.id}`,
+    ]);
+    expect(pickerSegments(logs)).toEqual(["Stamps · 2", "Album · 2"]);
+  });
+
+  test("moves the stamps and the counts with the calendar's month", async () => {
+    const { september } = await saveMonthStamps();
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+    const user = userEvent.setup();
+
+    await user.press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
+    expect(postIds(logs)).toEqual([`stamp-post-${september.id}`]);
+    expect(pickerSegments(logs)).toEqual(["Stamps · 1", "Album · 1"]);
+  });
+
+  test("moves the stamps when the calendar is swiped", async () => {
+    const { september } = await saveMonthStamps();
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+
+    await act(() =>
+      fireGestureHandler(getByGestureTestId("logs-calendar-swipe"), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationX: 80 },
+        { state: State.END, translationX: 80 },
+      ]),
+    );
+
+    expect(
+      await within(logs.getByTestId("logs-calendar")).findByText(
+        "September 2026",
+      ),
+    ).toBeOnTheScreen();
+    expect(postIds(logs)).toEqual([`stamp-post-${september.id}`]);
+  });
+});
+
+describe("S-051 T-001 ST-005 Logs steps back a month from the bottom", () => {
+  async function saveStampsIn(months: [number, number][]) {
+    jest.setSystemTime(new Date(2026, 10, 20, 12));
+    const rally = await saveRallyNamed("Back a month", "🧭");
+    const stamps = [];
+    for (const [year, monthIndex] of months) {
+      stamps.push(
+        await saveStamp({
+          rallyId: rally.id,
+          stampedAt: new Date(year, monthIndex, 10, 9).toISOString(),
+        }),
+      );
+    }
+    const ids = stamps.map(({ id }) => id);
+    await showOnlyStamps(ids);
+    // The oldest stamp of this test, not of the shared database.
+    jest
+      .spyOn(stampSummaryDb, "getFirstStampedAt")
+      .mockResolvedValue(stamps[stamps.length - 1].stampedAt);
+    return stamps;
+  }
+
+  async function openLogsList() {
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    return { logs, calendar: within(logs.getByTestId("logs-calendar")) };
+  }
+
+  test("moves the calendar and the stamps to the previous month", async () => {
+    const [, october] = await saveStampsIn([
+      [2026, 10],
+      [2026, 9],
+    ]);
+    const { logs, calendar } = await openLogsList();
+    const user = userEvent.setup();
+
+    await user.press(
+      await logs.findByRole("button", { name: "Show October 2026, 1 stamp" }),
+    );
+
+    expect(await calendar.findByText("October 2026")).toBeOnTheScreen();
+    expect(logs.getByTestId(`stamp-post-${october.id}`)).toBeOnTheScreen();
+    expect(pickerSegments(logs)).toEqual(["Stamps · 1", "Album · 0"]);
+  });
+
+  test("has no button in the oldest stamp's month", async () => {
+    await saveStampsIn([[2026, 10]]);
+    const { logs } = await openLogsList();
+
+    expect(await logs.findAllByTestId(/^stamp-post-\d+$/)).toHaveLength(1);
+    expect(pickerSegments(logs)).toEqual(["Stamps · 1", "Album · 0"]);
+    expect(
+      logs.queryByRole("button", { name: /^Show \w+ \d{4}$/ }),
+    ).not.toBeOnTheScreen();
+  });
+
+  test("says a month has no stamps and offers the earlier month", async () => {
+    await saveStampsIn([[2026, 8]]);
+    const { logs } = await openLogsList();
+
+    expect(
+      await logs.findByText("No stamps in November 2026"),
+    ).toBeOnTheScreen();
+    expect(logs.queryByTestId("logs-view-picker")).not.toBeOnTheScreen();
+    expect(logs.queryByText("No stamps yet")).not.toBeOnTheScreen();
+    expect(
+      logs.getByRole("button", { name: "Show October 2026, 0 stamps" }),
+    ).toBeOnTheScreen();
+  });
+
+  test("says a month before the first stamp has no stamps, without the button", async () => {
+    await saveStampsIn([[2026, 10]]);
+    const { logs, calendar } = await openLogsList();
+    const user = userEvent.setup();
+
+    await user.press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(
+      await logs.findByText("No stamps in October 2026"),
+    ).toBeOnTheScreen();
+    expect(
+      logs.queryByRole("button", { name: /^Show \w+ \d{4}$/ }),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describe("S-051 T-003 ST-004 Logs calendar reads the months beside it", () => {
+  test("marks the previous month's page before the calendar turns to it", async () => {
+    const rally = await saveRallyNamed("Beside month", "🦩");
+    // The day's last stamp gives its mark, and other tests share the database.
+    const stamp = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 3, 23, 59).toISOString(),
+    });
+    await showOnlyStamps([stamp.id]);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const hidden = { includeHiddenElements: true };
+    const september = within(
+      logs.getByTestId("logs-calendar-month-2026-09", hidden),
+    );
+    expect(await september.findByText("🦩", hidden)).toBeTruthy();
+  });
+});
+
+describe("S-051 T-004 ST-003 Logs month heading above the calendar", () => {
+  test("puts the month and ‹ › outside the calendar's panel", async () => {
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+    const panel = within(logs.getByTestId("logs-calendar-panel"));
+    expect(
+      calendar.getByRole("button", { name: "Choose month, October 2026" }),
+    ).toBeOnTheScreen();
+    expect(panel.queryByText("October 2026")).not.toBeOnTheScreen();
+    expect(
+      panel.queryByRole("button", { name: "Previous month" }),
+    ).not.toBeOnTheScreen();
+    expect(panel.getByText("Mon")).toBeOnTheScreen();
+  });
+});
+
+describe("S-051 T-004 ST-004 Logs reads three months and counts the previous one", () => {
+  test("shows the previous month's count on the button", async () => {
+    jest.setSystemTime(new Date(2026, 10, 20, 12));
+    const rally = await saveRallyNamed("Counted month", "🧮");
+    const stamps = [
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 9, 3, 9).toISOString(),
+      }),
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 9, 4, 9).toISOString(),
+      }),
+    ];
+    await showOnlyStamps(stamps.map(({ id }) => id));
+    jest
+      .spyOn(stampSummaryDb, "getFirstStampedAt")
+      .mockResolvedValue(stamps[0].stampedAt);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const button = await logs.findByRole("button", {
+      name: "Show October 2026, 2 stamps",
+    });
+    expect(within(button).getByText("October 2026 · 2")).toBeOnTheScreen();
+  });
+
+  test("reads only the months around the calendar's month, not every stamp", async () => {
+    const rally = await saveRallyNamed("Three months", "🗂️");
+    const stamp = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 9, 5, 9).toISOString(),
+    });
+    await showOnlyStamps([stamp.id]);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    expect(await logs.findByTestId(`stamp-post-${stamp.id}`)).toBeOnTheScreen();
+    expect(stampsDb.listStamps).not.toHaveBeenCalled();
+  });
+});
+
+describe("S-051 T-004 ST-005 the previous month starts from its heading", () => {
+  test("scrolls back so the month heading is just under the bar", async () => {
+    jest.setSystemTime(new Date(2026, 10, 20, 12));
+    const rally = await saveRallyNamed("Scroll back", "🛞");
+    const stamps = [
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 10, 3, 9).toISOString(),
+      }),
+      await saveStamp({
+        rallyId: rally.id,
+        stampedAt: new Date(2026, 9, 3, 9).toISOString(),
+      }),
+    ];
+    await showOnlyStamps(stamps.map(({ id }) => id));
+    jest
+      .spyOn(stampSummaryDb, "getFirstStampedAt")
+      .mockResolvedValue(stamps[1].stampedAt);
+    // The native scroll view is not in the test; its scroll is recorded.
+    const scrollTo = jest.spyOn(ScrollView.prototype, "scrollTo");
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    // The month heading sits 120 points down the scroll.
+    await fireEvent(logs.getByTestId("logs-month"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 120, width: 360, height: 400 } },
+    });
+
+    await userEvent
+      .setup()
+      .press(
+        await logs.findByRole("button", { name: "Show October 2026, 1 stamp" }),
+      );
+
+    // Under the collapsed bar (44 points; no safe area in tests).
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 76, animated: true });
   });
 });
