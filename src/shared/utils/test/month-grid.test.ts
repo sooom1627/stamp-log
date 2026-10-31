@@ -1,14 +1,17 @@
 import { buildLastDays, buildMonthWeeks } from "../month-grid";
 
+// Days of the shown month as numbers, the other months' days as null.
 function dayNumbers(weeks: ReturnType<typeof buildMonthWeeks>) {
-  return weeks.map((week) => week.map((day) => day?.date.getDate() ?? null));
+  return weeks.map((week) =>
+    week.map((day) => (day.isInMonth ? day.date.getDate() : null)),
+  );
 }
 
 function recordedKeys(weeks: ReturnType<typeof buildMonthWeeks>) {
   return weeks
     .flat()
-    .filter((day) => day?.isRecorded)
-    .map((day) => day?.key);
+    .filter((day) => day.isRecorded)
+    .map((day) => day.key);
 }
 
 describe("S-006 ST-001 buildMonthWeeks", () => {
@@ -64,6 +67,31 @@ describe("S-006 ST-001 buildMonthWeeks", () => {
     ]);
 
     expect(recordedKeys(weeks)).toEqual(["2026-09-02", "2026-09-20"]);
+  });
+
+  test("S-051 ST-002 fills the weeks with the days of the months around it", () => {
+    const weeks = buildMonthWeeks(new Date(2026, 8, 1), []);
+
+    expect(weeks[0].map(({ key }) => key)).toEqual([
+      "2026-08-31",
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04",
+      "2026-09-05",
+      "2026-09-06",
+    ]);
+    expect(weeks[4].map(({ key }) => key)).toEqual([
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-03",
+      "2026-10-04",
+    ]);
+    expect(weeks[0][0].isInMonth).toBe(false);
+    expect(weeks[0][1].isInMonth).toBe(true);
   });
 });
 

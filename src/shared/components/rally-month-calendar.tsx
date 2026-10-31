@@ -64,7 +64,7 @@ function CalendarDay({
   isRecordedOnly,
 }: CalendarDayProps) {
   const { t } = useTranslation();
-  if (!day) return <View className="flex-1" />;
+  if (!day || !day.isInMonth) return <View className="flex-1" />;
 
   // Keys are YYYY-MM-DD, so string order is date order.
   const isFuture = day.key > todayKey;

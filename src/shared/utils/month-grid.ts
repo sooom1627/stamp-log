@@ -4,7 +4,10 @@ import { localDateKey, localDateKeyFromIso } from "./local-date-key";
 export type MonthDay = {
   date: Date;
   key: string;
+  // Only days of the shown month count as recorded.
   isRecorded: boolean;
+  // False for the days of the months before and after that fill its weeks.
+  isInMonth: boolean;
 };
 
 // What a recorded day shows when stamps come from several rallies (Logs):
@@ -20,30 +23,32 @@ function toRecordedDateKeys(stampDates: string[]) {
   return new Set(stampDates.map((stampDate) => localDateKeyFromIso(stampDate)));
 }
 
-// Weeks of the month containing `month`, Monday first. Cells outside the
-// month are null so every week has seven columns.
+// Weeks of the month containing `month`, Monday first. The days of the
+// months before and after fill the first and last weeks.
 export function buildMonthWeeks(month: Date, stampDates: string[]) {
   const year = month.getFullYear();
   const monthIndex = month.getMonth();
   const recordedDateKeys = toRecordedDateKeys(stampDates);
-  const leadingBlanks = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
+  const firstDay = new Date(year, monthIndex, 1);
+  const leadingDays = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const weekCount = Math.ceil((leadingDays + daysInMonth) / DAYS_PER_WEEK);
 
-  const days: (MonthDay | null)[] = Array.from(
-    { length: leadingBlanks },
-    () => null,
-  );
-  for (let dayOfMonth = 1; dayOfMonth <= daysInMonth; dayOfMonth++) {
-    const date = new Date(year, monthIndex, dayOfMonth);
-    const key = localDateKey(date);
-    days.push({ date, key, isRecorded: recordedDateKeys.has(key) });
-  }
-  while (days.length % DAYS_PER_WEEK !== 0) {
-    days.push(null);
-  }
-
-  return Array.from({ length: days.length / DAYS_PER_WEEK }, (_, week) =>
-    days.slice(week * DAYS_PER_WEEK, (week + 1) * DAYS_PER_WEEK),
+  return Array.from({ length: weekCount }, (_, week) =>
+    Array.from({ length: DAYS_PER_WEEK }, (_, weekday): MonthDay => {
+      const date = addLocalDays(
+        firstDay,
+        week * DAYS_PER_WEEK + weekday - leadingDays,
+      );
+      const key = localDateKey(date);
+      const isInMonth = date.getMonth() === monthIndex;
+      return {
+        date,
+        key,
+        isRecorded: isInMonth && recordedDateKeys.has(key),
+        isInMonth,
+      };
+    }),
   );
 }
 
@@ -54,7 +59,12 @@ export function buildLastDays(stampDates: string[], today: Date): MonthDay[] {
   return Array.from({ length: DAYS_PER_WEEK }, (_, index) => {
     const date = addLocalDays(today, index - (DAYS_PER_WEEK - 1));
     const key = localDateKey(date);
-    return { date, key, isRecorded: recordedDateKeys.has(key) };
+    return {
+      date,
+      key,
+      isRecorded: recordedDateKeys.has(key),
+      isInMonth: true,
+    };
   });
 }
 
