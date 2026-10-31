@@ -2,118 +2,27 @@ import { useState } from "react";
 
 import { Pressable, Text, View } from "react-native";
 
-import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated from "react-native-reanimated";
 
-import { useMonthSwipe } from "@/shared/hooks/use-month-swipe";
-import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
-import { formatStampCount } from "@/shared/utils/format-stamp-count";
+import { monthNumber, useMonthSwipe } from "@/shared/hooks/use-month-swipe";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
-  buildMonthWeeks,
   formatMonthHeading,
   pickerYears,
   type DayMark,
-  type MonthDay,
 } from "@/shared/utils/month-grid";
 
+import { CalendarMonthPage } from "./calendar-month-page";
 import { ChevronLeft, ChevronRight } from "./icons";
 import { MonthPickerSheet } from "./month-picker-sheet";
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+// The pages around the shown month that are kept ready for a swipe.
+const PAGE_OFFSETS = [-1, 0, 1];
 
-type CalendarDayProps = {
-  day: MonthDay | null;
-  emoji: string | undefined;
-  mark: DayMark | undefined;
-  todayKey: string;
-  onPress: ((key: string) => void) | undefined;
-  isRecordedOnly: boolean;
-};
-
-function dayLabel(t: TFunction, day: MonthDay, mark: DayMark | undefined) {
-  const date = formatSpokenDate(day.date);
-  if (!day.isRecorded) return t("calendar.dayNotRecorded", { date });
-  if (!mark) return t("calendar.dayRecorded", { date });
-  const stamps = formatStampCount(mark.extraCount + 1);
-  return t("calendar.dayRecordedCount", { date, stamps });
-}
-
-// Complete class strings per state (no interpolation, see AGENTS.md).
-function dayCircleClassName(isRecorded: boolean, isToday: boolean) {
-  if (isRecorded && isToday) {
-    return "bg-accent-soft border-accent size-10 items-center justify-center rounded-full border-2";
-  }
-  if (isRecorded) {
-    return "bg-accent-soft size-10 items-center justify-center rounded-full";
-  }
-  if (isToday) {
-    return "border-accent size-10 items-center justify-center rounded-full border-2";
-  }
-  return "size-10 items-center justify-center rounded-full";
-}
-
-function CalendarDay({
-  day,
-  emoji,
-  mark,
-  todayKey,
-  onPress,
-  isRecordedOnly,
-}: CalendarDayProps) {
-  const { t } = useTranslation();
-  if (!day || !day.isInMonth) return <View className="flex-1" />;
-
-  // Keys are YYYY-MM-DD, so string order is date order.
-  const isFuture = day.key > todayKey;
-  const isToday = day.key === todayKey;
-  const isDisabled =
-    isFuture || !onPress || (isRecordedOnly && !day.isRecorded);
-  const extraCount = mark?.extraCount ?? 0;
-
-  return (
-    <Pressable
-      role="button"
-      aria-label={dayLabel(t, day, mark)}
-      aria-disabled={isDisabled}
-      disabled={isDisabled}
-      className="flex-1 items-center py-1"
-      onPress={() => onPress?.(day.key)}
-    >
-      <View
-        testID={`calendar-day-${day.key}`}
-        className={dayCircleClassName(day.isRecorded, isToday)}
-      >
-        {day.isRecorded ? (
-          // The cell's aria-label already reads the day and "recorded".
-          <Text className="text-xl">{mark?.emoji ?? emoji}</Text>
-        ) : (
-          <Text
-            className={
-              isFuture
-                ? "text-foreground-muted text-base"
-                : "text-foreground text-base"
-            }
-          >
-            {day.date.getDate()}
-          </Text>
-        )}
-        {day.isRecorded && extraCount > 0 ? (
-          // Overlaps the circle's bottom-right corner; the label reads the count.
-          <View
-            aria-hidden
-            className="bg-surface border-border absolute -right-1.5 -bottom-1 rounded-full border px-1"
-          >
-            <Text className="text-foreground-secondary text-[10px] font-semibold">
-              +{extraCount}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-    </Pressable>
-  );
+function monthTestKey(month: Date) {
+  return `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
 }
 
 type RallyMonthCalendarProps = {
@@ -152,7 +61,6 @@ export function RallyMonthCalendar({
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(new Date());
   const { t } = useTranslation();
-  const weeks = buildMonthWeeks(month, stampDates);
   const heading = formatMonthHeading(month);
 
   const step = (delta: number) =>
@@ -161,8 +69,9 @@ export function RallyMonthCalendar({
   // Left shows the next month, right the previous one (‹ ›).
   const {
     gesture: swipe,
-    daysStyle,
-    onDaysLayout,
+    stripStyle,
+    onPagesLayout,
+    firstMonthNumber,
   } = useMonthSwipe({ testID, month, onStep: step });
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -205,35 +114,46 @@ export function RallyMonthCalendar({
             <ChevronRight colorClassName="accent-accent" size={20} />
           </Pressable>
         </View>
-        <View className="flex-row">
-          {WEEKDAYS.map((weekday) => (
-            <Text
-              key={weekday}
-              className="text-foreground-muted flex-1 text-center text-xs"
-            >
-              {weekday}
-            </Text>
-          ))}
-        </View>
-        {/* Only the days move with the finger; the clip keeps them inside
-            the card while they slide. */}
-        <View className="overflow-hidden" onLayout={onDaysLayout}>
-          <Animated.View style={daysStyle} className="gap-2">
-            {weeks.map((week, weekIndex) => (
-              <View key={weekIndex} className="flex-row">
-                {week.map((day, dayIndex) => (
-                  <CalendarDay
-                    key={day?.key ?? `blank-${dayIndex}`}
-                    day={day}
+        {/* Each month is a page placed at its own position on a strip, so a
+            page stays put when the shown month changes; the strip moves with
+            the finger. The shown page sets the height; the clip hides the
+            pages beside it. */}
+        <View
+          testID={`${testID}-pages`}
+          className="overflow-hidden"
+          onLayout={onPagesLayout}
+        >
+          <Animated.View style={stripStyle}>
+            {PAGE_OFFSETS.map((offset) => {
+              const pageMonth = new Date(
+                month.getFullYear(),
+                month.getMonth() + offset,
+                1,
+              );
+              const isShown = offset === 0;
+              const left =
+                `${(monthNumber(pageMonth) - firstMonthNumber) * 100}%` as const;
+              return (
+                <View
+                  key={monthNumber(pageMonth)}
+                  testID={`${testID}-month-${monthTestKey(pageMonth)}`}
+                  // The pages beside the shown one are off screen.
+                  aria-hidden={!isShown}
+                  className={isShown ? "w-full" : "absolute top-0 w-full"}
+                  style={{ left }}
+                >
+                  <CalendarMonthPage
+                    month={pageMonth}
+                    stampDates={stampDates}
                     emoji={emoji}
-                    mark={day ? dayMarks?.get(day.key) : undefined}
+                    dayMarks={dayMarks}
                     todayKey={todayKey}
-                    onPress={onPressDay}
+                    onPressDay={onPressDay}
                     isRecordedOnly={isRecordedOnly}
                   />
-                ))}
-              </View>
-            ))}
+                </View>
+              );
+            })}
           </Animated.View>
         </View>
         <MonthPickerSheet
