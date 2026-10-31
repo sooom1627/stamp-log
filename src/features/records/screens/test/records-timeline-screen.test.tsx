@@ -1065,3 +1065,24 @@ describe("S-051 T-001 ST-005 Logs steps back a month from the bottom", () => {
     ).not.toBeOnTheScreen();
   });
 });
+
+describe("S-051 T-003 ST-004 Logs calendar reads the months beside it", () => {
+  test("marks the previous month's page before the calendar turns to it", async () => {
+    const rally = await saveRallyNamed("Beside month", "🦩");
+    // The day's last stamp gives its mark, and other tests share the database.
+    const stamp = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 3, 23, 59).toISOString(),
+    });
+    await showOnlyStamps([stamp.id]);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const hidden = { includeHiddenElements: true };
+    const september = within(
+      logs.getByTestId("logs-calendar-month-2026-09", hidden),
+    );
+    expect(await september.findByText("🦩", hidden)).toBeTruthy();
+  });
+});
