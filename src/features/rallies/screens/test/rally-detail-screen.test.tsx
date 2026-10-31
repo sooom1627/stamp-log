@@ -1656,3 +1656,21 @@ describe("S-043 T-001 ST-003 rally detail pages for Stamps and Album", () => {
     expect(detail.queryByTestId("rally-view-pager")).not.toBeOnTheScreen();
   });
 });
+
+describe("S-055 T-001 ST-002 rally detail month heading above the calendar", () => {
+  test("puts the month and ‹ › outside the calendar's panel, like Logs", async () => {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    await openRallyDetail("Heading above");
+
+    const calendar = await findRallyCalendar();
+    const panel = within(screen.getByTestId("rally-calendar-panel"));
+    expect(
+      calendar.getByRole("button", { name: "Choose month, October 2026" }),
+    ).toBeOnTheScreen();
+    expect(panel.queryByText("October 2026")).not.toBeOnTheScreen();
+    expect(
+      panel.queryByRole("button", { name: "Previous month" }),
+    ).not.toBeOnTheScreen();
+    expect(panel.getByText("Mon")).toBeOnTheScreen();
+  });
+});
