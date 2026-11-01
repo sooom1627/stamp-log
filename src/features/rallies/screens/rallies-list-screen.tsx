@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { Text, useWindowDimensions, View } from "react-native";
 
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 
 import { LoadError } from "@/shared/components/load-error";
 import { SwipePages } from "@/shared/components/swipe-pages";
+import { TabScrollView } from "@/shared/components/tab-scroll-view";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
 import { useSaveStamp, useStampSummary } from "@/shared/hooks/use-stamps";
 import { type Rally } from "@/shared/schemas/rallies";
@@ -135,10 +136,7 @@ export function RalliesListScreen() {
                 )
               : undefined;
             return (
-              <ScrollView
-                contentContainerClassName="px-5 pt-4 pb-32"
-                contentInsetAdjustmentBehavior="automatic"
-              >
+              <TabScrollView contentContainerClassName="px-5 pt-4">
                 {shownRallies?.length === 0 ? (
                   <Text className="text-foreground-muted py-12 text-center text-sm">
                     {t(
@@ -179,7 +177,7 @@ export function RalliesListScreen() {
                     ))}
                   </View>
                 ) : null}
-              </ScrollView>
+              </TabScrollView>
             );
           }}
         />

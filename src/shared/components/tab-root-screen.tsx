@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 
-import { ScrollView, Text, View } from "react-native";
+import { Text } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 
@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 
 import { AtoMark } from "./ato-mark";
+import { TabScrollView } from "./tab-scroll-view";
 
 export const tabRootScreenOptions = {
   headerLargeTitleEnabled: true,
@@ -58,17 +59,16 @@ type TabRootScreenProps = {
 export function TabRootScreen({ label, children }: TabRootScreenProps) {
   return (
     <>
-      <ScrollView
+      <TabScrollView
         aria-label={label}
         className="bg-canvas from-canvas-top via-canvas-mid to-canvas-bottom flex-1 bg-linear-to-b"
-        contentContainerClassName="px-5 pb-32"
-        contentInsetAdjustmentBehavior="automatic"
+        contentContainerClassName="px-5"
       >
         <TabRootSubtitle>
           {formatHeaderDate(new Date()).weekday}
         </TabRootSubtitle>
         {children}
-      </ScrollView>
+      </TabScrollView>
       <TabRootHeader />
     </>
   );

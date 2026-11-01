@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-import { ScrollView, Text, View, type ScrollViewInstance } from "react-native";
+import { Text, View, type ScrollViewInstance } from "react-native";
 
 import { useRouter } from "expo-router";
 
@@ -19,6 +19,7 @@ import {
   TabRootHeader,
   TabRootSubtitle,
 } from "@/shared/components/tab-root-screen";
+import { TabScrollView } from "@/shared/components/tab-scroll-view";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
 import { useFirstStampedAt, useStampsBetween } from "@/shared/hooks/use-stamps";
@@ -111,12 +112,10 @@ export function RecordsTimelineScreen() {
           which still follow the finger (S-043 T-004). The switch only changes
           the pages, so it does not stick (S-050). The scroll runs under the
           large title so the title can shrink. */}
-      <ScrollView
+      <TabScrollView
         ref={scrollRef}
         aria-label={t("records.timelineLabel")}
         className="bg-canvas from-canvas-top via-canvas-mid to-canvas-bottom flex-1 bg-linear-to-b"
-        contentContainerClassName="pb-32"
-        contentInsetAdjustmentBehavior="automatic"
       >
         <View className="px-5">
           <TabRootSubtitle>{t("records.subtitle")}</TabRootSubtitle>
@@ -211,7 +210,7 @@ export function RecordsTimelineScreen() {
             onRetry={retry}
           />
         ) : null}
-      </ScrollView>
+      </TabScrollView>
       <TabRootHeader title={t("records.title")} />
     </>
   );

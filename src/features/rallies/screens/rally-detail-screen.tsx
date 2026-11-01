@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 
 import { Stack, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -16,6 +16,7 @@ import {
   StampsAlbumPicker,
   type StampsView,
 } from "@/shared/components/stamps-album-picker";
+import { TabScrollView } from "@/shared/components/tab-scroll-view";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import {
   useDeleteRally,
@@ -101,14 +102,15 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
 
   return (
     <>
-      {/* The header is transparent, so the scroll starts below it. */}
+      {/* The header is transparent, so the scroll starts below it. Its iOS
+          inset then clears only the tab bar, and the switch sticks just under
+          the header. */}
       <View className="bg-canvas flex-1" style={{ paddingTop: headerHeight }}>
         {/* Like a profile: the top scrolls away and the switch sticks, while
             the pages below still follow the finger (S-043 T-003). */}
-        <ScrollView
+        <TabScrollView
           aria-label={t("rallies.detailLabel")}
           className="bg-canvas flex-1"
-          contentContainerClassName="pb-6"
           stickyHeaderIndices={hasStamps ? [1] : undefined}
         >
           <View className="items-center gap-4 px-5 pt-6">
@@ -200,7 +202,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               onRetry={() => void refetchStamps()}
             />
           )}
-        </ScrollView>
+        </TabScrollView>
       </View>
       <Stack.Title>{rally.name}</Stack.Title>
       <RallyActionsMenu
