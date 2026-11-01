@@ -1091,8 +1091,8 @@ describe("S-011 RT-001 ST-007 rally detail day cards", () => {
   });
 });
 
-describe("S-028 RT-001 ST-004 top panel look", () => {
-  test("puts the rally name, count and summary on a flat accent panel with tiles", async () => {
+describe("S-052 T-001 ST-002 compact top panel", () => {
+  test("puts the emoji beside the name and count, and the summary on one line without boxes", async () => {
     await openRallyDetail("Top panel");
 
     const panel = await screen.findByTestId("rally-top-panel");
@@ -1100,21 +1100,57 @@ describe("S-028 RT-001 ST-004 top panel look", () => {
       "className",
       expect.stringContaining("bg-accent-subtle"),
     );
+    const head = within(panel).getByTestId("rally-top-panel-head");
+    expect(head).toHaveProp("className", expect.stringContaining("flex-row"));
+    expect(within(head).getByText("🗼")).toBeOnTheScreen();
     expect(
-      within(panel).getByRole("heading", { name: "Top panel" }),
+      within(head).getByRole("heading", { name: "Top panel" }),
     ).toBeOnTheScreen();
-    expect(within(panel).getByText("1 stamp")).toHaveProp(
+    expect(within(head).getByText("1 stamp")).toHaveProp(
       "className",
       expect.stringContaining("text-accent-strong"),
     );
-    const tiles = within(panel).getAllByTestId("rally-summary-tile");
-    expect(tiles).toHaveLength(3);
-    for (const tile of tiles) {
-      expect(tile).toHaveProp(
+
+    const summary = within(panel).getByLabelText("Rally summary");
+    const stats = within(summary).getAllByTestId("rally-summary-stat");
+    expect(stats).toHaveLength(3);
+    for (const stat of stats) {
+      expect(stat).not.toHaveProp(
         "className",
         expect.stringContaining("bg-background"),
       );
     }
+    // A thin line between the columns, not before the first.
+    expect(stats[0]).not.toHaveProp(
+      "className",
+      expect.stringContaining("border-l"),
+    );
+    expect(stats[1]).toHaveProp(
+      "className",
+      expect.stringContaining("border-l"),
+    );
+    expect(stats[2]).toHaveProp(
+      "className",
+      expect.stringContaining("border-l"),
+    );
+  });
+
+  test("shows Archived on the count's line", async () => {
+    await openRallyDetail("Archived panel");
+    await fireEvent(
+      await screen.findByTestId("rally-action-archive"),
+      "buttonPress",
+    );
+
+    const countRow = await screen.findByTestId("rally-top-panel-count");
+    await waitFor(() => {
+      expect(within(countRow).getByText("Archived")).toBeOnTheScreen();
+    });
+    expect(within(countRow).getByText("1 stamp")).toBeOnTheScreen();
+    expect(countRow).toHaveProp(
+      "className",
+      expect.stringContaining("flex-row"),
+    );
   });
 });
 

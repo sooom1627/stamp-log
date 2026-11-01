@@ -118,28 +118,52 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           <View className="items-center gap-4 px-5 pt-6">
             <View
               testID="rally-top-panel"
-              className="bg-accent-subtle border-continuous w-full items-center gap-2 rounded-3xl px-5 pt-6 pb-5"
+              className="bg-accent-subtle border-continuous w-full gap-2.5 rounded-3xl px-4 py-3.5"
             >
-              <View className="bg-background size-20 items-center justify-center rounded-full">
-                <Text className="text-5xl">{rally.emoji}</Text>
-              </View>
-              <Text
-                selectable
-                role="heading"
-                className="text-foreground mt-1 text-2xl font-bold"
+              {/* Low enough that the whole month calendar fits below without
+                  scrolling (S-052). */}
+              <View
+                testID="rally-top-panel-head"
+                className="flex-row items-center gap-3.5"
               >
-                {rally.name}
-              </Text>
-              {rally.isArchived ? (
-                <Text className="text-foreground-muted text-sm font-medium">
-                  {t("rallies.archived")}
-                </Text>
-              ) : null}
-              {stamps ? (
-                <Text className="text-accent-strong text-base font-semibold">
-                  {formatStampCount(stamps.length)}
-                </Text>
-              ) : null}
+                <View className="bg-background size-15 items-center justify-center rounded-full">
+                  <Text className="text-4xl">{rally.emoji}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text
+                    selectable
+                    role="heading"
+                    className="text-foreground text-2xl font-bold"
+                  >
+                    {rally.name}
+                  </Text>
+                  <View
+                    testID="rally-top-panel-count"
+                    className="flex-row items-baseline gap-1.5"
+                  >
+                    {stamps ? (
+                      <Text className="text-accent-strong text-base font-semibold">
+                        {formatStampCount(stamps.length)}
+                      </Text>
+                    ) : null}
+                    {rally.isArchived ? (
+                      <>
+                        {stamps ? (
+                          <Text
+                            aria-hidden
+                            className="text-foreground-muted text-sm font-medium"
+                          >
+                            ·
+                          </Text>
+                        ) : null}
+                        <Text className="text-foreground-muted text-sm font-medium">
+                          {t("rallies.archived")}
+                        </Text>
+                      </>
+                    ) : null}
+                  </View>
+                </View>
+              </View>
               {stamps ? <RallySummaryStats summary={summary} /> : null}
             </View>
             <RallyMonthCalendar
