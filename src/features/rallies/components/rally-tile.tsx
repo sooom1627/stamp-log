@@ -1,13 +1,20 @@
+import { useState } from "react";
+
 import { Pressable, Text, View } from "react-native";
 
 import { Link } from "expo-router";
 
 import { useTranslation } from "react-i18next";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 
 import { Check, Plus, Star } from "@/shared/components/icons";
 import { type Rally } from "@/shared/schemas/rallies";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { buildLastDays } from "@/shared/utils/month-grid";
+import { pressStampButton } from "@/shared/utils/motion";
 
 import { RallyActivityWeek } from "./rally-activity-week";
 
@@ -39,6 +46,19 @@ export function RallyTile({
   const { t } = useTranslation();
   // The last of the 7 days is today.
   const isStampedToday = activityDays[activityDays.length - 1].isRecorded;
+  // Only a stamp pressed here answers with motion (S-056); a tile that opens
+  // already stamped stays still.
+  const [hasPressedStamp, setHasPressedStamp] = useState(false);
+  const buttonScale = useSharedValue(1);
+  const buttonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.get() }],
+  }));
+
+  function pressStamp() {
+    buttonScale.set(pressStampButton());
+    setHasPressedStamp(true);
+    onPressStamp?.();
+  }
 
   return (
     <View
@@ -66,34 +86,40 @@ export function RallyTile({
           ) : null}
         </View>
         {onPressStamp ? (
-          <Pressable
-            role="button"
-            aria-label={
-              isStampedToday
-                ? t("home.stampedToday", { name })
-                : t("home.stampToday", { name })
-            }
-            aria-disabled={isStampedToday}
-            disabled={isStampedToday}
-            // 32px visually; the hit area stays 44px.
-            hitSlop={6}
-            className={
-              isStampedToday
-                ? "bg-accent size-8 items-center justify-center rounded-full"
-                : "bg-surface-muted size-8 items-center justify-center rounded-full active:opacity-70"
-            }
-            onPress={onPressStamp}
-          >
-            {isStampedToday ? (
-              <Check colorClassName="accent-white" size={16} strokeWidth={3} />
-            ) : (
-              <Plus
-                colorClassName="accent-foreground"
-                size={16}
-                strokeWidth={2.5}
-              />
-            )}
-          </Pressable>
+          <Animated.View style={buttonStyle}>
+            <Pressable
+              role="button"
+              aria-label={
+                isStampedToday
+                  ? t("home.stampedToday", { name })
+                  : t("home.stampToday", { name })
+              }
+              aria-disabled={isStampedToday}
+              disabled={isStampedToday}
+              // 32px visually; the hit area stays 44px.
+              hitSlop={6}
+              className={
+                isStampedToday
+                  ? "bg-accent size-8 items-center justify-center rounded-full"
+                  : "bg-surface-muted size-8 items-center justify-center rounded-full active:opacity-70"
+              }
+              onPress={pressStamp}
+            >
+              {isStampedToday ? (
+                <Check
+                  colorClassName="accent-white"
+                  size={16}
+                  strokeWidth={3}
+                />
+              ) : (
+                <Plus
+                  colorClassName="accent-foreground"
+                  size={16}
+                  strokeWidth={2.5}
+                />
+              )}
+            </Pressable>
+          </Animated.View>
         ) : null}
       </View>
       <Link
@@ -118,7 +144,10 @@ export function RallyTile({
           </Text>
         </Pressable>
       </Link>
-      <RallyActivityWeek activityDays={activityDays} />
+      <RallyActivityWeek
+        activityDays={activityDays}
+        popsToday={hasPressedStamp}
+      />
     </View>
   );
 }

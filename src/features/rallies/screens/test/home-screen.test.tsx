@@ -1196,3 +1196,51 @@ describe("S-053 T-001 ST-002 a today card that does not look empty", () => {
     }
   });
 });
+
+// The motion itself is checked on a device (Task #211); here the press ends
+// in the same state as before the motion was added.
+describe("S-056 T-001 ST-003 the tile answers a press", () => {
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    jest.mocked(toast).mockClear();
+    await deleteAllRallies();
+  });
+
+  test("turns + into a check, fills today's dot and keeps the toast, count and place", async () => {
+    await ralliesDb.saveRally({ name: "Morning run", emoji: "🏃" });
+    await ralliesDb.saveRally({ name: "Tokyo towers", emoji: "🗼" });
+    const user = userEvent.setup();
+    await renderRouter("./src/app");
+    expect(await screen.findByText("Morning run")).toBeOnTheScreen();
+    const tileNames = () =>
+      screen
+        .getAllByTestId("rally-tile")
+        .map((tile) => within(tile).queryAllByText(/^(Morning|Tokyo)/))
+        .flat()
+        .map((text) => text.children[0]);
+    const namesBefore = tileNames();
+
+    await user.press(
+      screen.getByRole("button", { name: "Stamp Morning run for today" }),
+    );
+
+    expect(
+      await screen.findByRole("button", {
+        name: "Morning run already stamped today",
+      }),
+    ).toBeDisabled();
+    const tile = screen
+      .getAllByTestId("rally-tile")
+      .find((candidate) => within(candidate).queryByText("Morning run"));
+    if (!tile) throw new Error("tile not found");
+    expect(within(tile).getByText("1 stamp")).toBeOnTheScreen();
+    const days = within(tile).getAllByTestId("activity-day");
+    expect(days.at(-1)).toHaveProp("aria-selected", true);
+    expect(toast).toHaveBeenCalledWith(
+      "Add a memo or photos?",
+      expect.anything(),
+    );
+    // The pressed tile stays where it was while home is open.
+    expect(tileNames()).toEqual(namesBefore);
+  });
+});

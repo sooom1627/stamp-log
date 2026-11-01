@@ -1,9 +1,11 @@
 import { Text, View } from "react-native";
 
 import { useTranslation } from "react-i18next";
+import Animated from "react-native-reanimated";
 
 import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { type MonthDay } from "@/shared/utils/month-grid";
+import { dotPop } from "@/shared/utils/motion";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -14,11 +16,14 @@ function twoLetterWeekday(date: Date) {
   return weekdayFormatter.format(date).slice(0, 2);
 }
 
-// The last 7 days, oldest to today, as two-letter weekdays over dots.
+// The last 7 days, oldest to today, as two-letter weekdays over dots. With
+// popsToday, today's dot swells once as it fills (S-056).
 export function RallyActivityWeek({
   activityDays,
+  popsToday = false,
 }: {
   activityDays: MonthDay[];
+  popsToday?: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -40,8 +45,9 @@ export function RallyActivityWeek({
         ))}
       </View>
       <View className="flex-row">
-        {activityDays.map((day) => {
+        {activityDays.map((day, index) => {
           const formattedDate = formatSpokenDate(day.date);
+          const isToday = index === activityDays.length - 1;
           return (
             <View
               key={day.key}
@@ -55,13 +61,15 @@ export function RallyActivityWeek({
               className="h-3 flex-1 items-center justify-center"
               testID="activity-day"
             >
-              <View
-                className={
-                  day.isRecorded
-                    ? "bg-foreground size-2 rounded-full"
-                    : "bg-foreground-muted size-1.5 rounded-full opacity-40"
-                }
-              />
+              {day.isRecorded ? (
+                // A new view when the day fills, so the pop runs then.
+                <Animated.View
+                  entering={isToday && popsToday ? dotPop : undefined}
+                  className="bg-foreground size-2 rounded-full"
+                />
+              ) : (
+                <View className="bg-foreground-muted size-1.5 rounded-full opacity-40" />
+              )}
             </View>
           );
         })}
