@@ -7,6 +7,7 @@ import { GestureDetector } from "react-native-gesture-handler";
 import Animated from "react-native-reanimated";
 
 import { monthNumber, useMonthSwipe } from "@/shared/hooks/use-month-swipe";
+import { useToday } from "@/shared/hooks/use-today";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import {
   currentMonth,
@@ -60,7 +61,7 @@ export function RallyMonthCalendar({
   onChangeMonth,
   firstStampedAt,
 }: RallyMonthCalendarProps) {
-  const todayKey = localDateKey(new Date());
+  const todayKey = localDateKey(useToday());
   const { t } = useTranslation();
   const heading = formatMonthHeading(month);
   // No month after this one has stamps yet, so the calendar stops there.
