@@ -6,17 +6,14 @@ import { useTranslation } from "react-i18next";
 import Animated, {
   FadeInDown,
   interpolate,
-  Keyframe,
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
-  withTiming,
 } from "react-native-reanimated";
 
 import { Check, Plus } from "@/shared/components/icons";
+import { dotPop, easeOut, pressStampButton } from "@/shared/utils/motion";
 
 import { useEntrance } from "../hooks/use-entrance";
-import { easeOut } from "../utils/motion";
 
 import { ArtPanel } from "./art-panel";
 
@@ -24,13 +21,6 @@ const weekLabels = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
 // A tile to try the stamp button on; the toast answers like the app's.
 const stampedBefore = [false, true, false, true, true, false];
-
-// Today's dot swells as it fills, then settles.
-const dotPop = new Keyframe({
-  0: { transform: [{ scale: 0.4 }] },
-  60: { transform: [{ scale: 1.6 }], easing: easeOut },
-  100: { transform: [{ scale: 1 }], easing: easeOut },
-}).duration(360);
 
 export function TryStampArt({ isActive }: { isActive: boolean }) {
   const [isStamped, setIsStamped] = useState(false);
@@ -50,12 +40,7 @@ export function TryStampArt({ isActive }: { isActive: boolean }) {
   function toggleStamp() {
     // Only stamping answers with a press; taking it back is quiet.
     if (!isStamped) {
-      buttonScale.set(
-        withSequence(
-          withTiming(0.86, { duration: 100, easing: easeOut }),
-          withTiming(1, { duration: 220, easing: easeOut }),
-        ),
-      );
+      buttonScale.set(pressStampButton());
     }
     setIsStamped(!isStamped);
   }

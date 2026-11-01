@@ -15,8 +15,7 @@ import { useCSSVariable } from "uniwind";
 import { AtoMark } from "@/shared/components/ato-mark";
 import { ChevronLeft, ChevronRight, Lock } from "@/shared/components/icons";
 import { SwipePages } from "@/shared/components/swipe-pages";
-
-import { easeOut } from "../utils/motion";
+import { easeOut } from "@/shared/utils/motion";
 
 import { introArt } from "./intro-art";
 
