@@ -26,6 +26,8 @@ type HomeTopCardsProps = {
   windowWidth: number;
   today: Date;
   todayRallies: Rally[];
+  // Rallies stamped from home's tiles while it has been in view.
+  pressedRallyIds: ReadonlySet<Rally["id"]>;
   todayLog: TodayLogEntry[];
   daysWithAto: number;
   firstStampedAt: Date | null;
@@ -40,6 +42,7 @@ export function HomeTopCards({
   windowWidth,
   today,
   todayRallies,
+  pressedRallyIds,
   todayLog,
   daysWithAto,
   firstStampedAt,
@@ -75,6 +78,7 @@ export function HomeTopCards({
       >
         <TodayCard
           rallies={todayRallies}
+          pressedRallyIds={pressedRallyIds}
           today={today}
           width={cardWidth}
           position={positionOf(0)}
