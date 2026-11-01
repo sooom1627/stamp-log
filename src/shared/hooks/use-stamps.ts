@@ -53,12 +53,14 @@ export function useStamp(stampId: Stamp["id"]) {
 }
 
 // What rally tiles and the today card show: every rally's count, and the
-// stamps of the 7 local days ending `today`.
+// stamps of the 7 local days ending `today`. When the day turns, the last
+// day's summary stays while the new one loads, so tiles do not blink empty.
 export function useStampSummary(today: Date) {
   const since = addLocalDays(today, -6).toISOString();
   return useQuery({
     queryKey: [...stampsQueryKey, "summary", since],
     queryFn: () => getStampSummary(since),
+    placeholderData: keepPreviousData,
   });
 }
 

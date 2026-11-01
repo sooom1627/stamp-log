@@ -729,6 +729,28 @@ describe("RT-003 ST-003 useStampSummary reads counts and the last 7 days", () =>
   });
 });
 
+describe("S-057 T-001 ST-002 useStampSummary on a new day", () => {
+  test("keeps the last day's summary while the new day's loads", async () => {
+    await saveStamp({ rallyId: 841 });
+    const { result, rerender } = await renderHook(
+      ({ today }: { today: Date }) => useStampSummary(today),
+      { wrapper: createWrapper(), initialProps: { today: new Date() } },
+    );
+    await waitFor(() => {
+      expect(result.current.data?.countsByRally.get(841)).toBe(1);
+    });
+
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await rerender({ today: tomorrow });
+
+    // Tiles and the today card do not blink empty when the day turns.
+    expect(result.current.data?.countsByRally.get(841)).toBe(1);
+    await waitFor(() => {
+      expect(result.current.isPlaceholderData).toBe(false);
+    });
+  });
+});
+
 describe("RT-003 ST-004 useStampsBetween and useFirstStampedAt", () => {
   afterEach(() => {
     jest.restoreAllMocks();
