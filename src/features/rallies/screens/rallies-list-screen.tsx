@@ -13,6 +13,7 @@ import { LoadError } from "@/shared/components/load-error";
 import { SwipePages } from "@/shared/components/swipe-pages";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
 import { useSaveStamp, useStampSummary } from "@/shared/hooks/use-stamps";
+import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
 
 import { RallyTile } from "../components/rally-tile";
@@ -59,7 +60,7 @@ export function RalliesListScreen() {
     stamps: summary,
     isError: isListError,
     retry: retryLists,
-  } = useRalliesAndStamps(useStampSummary(new Date()));
+  } = useRalliesAndStamps(useStampSummary(useToday()));
   const { mutate: saveStamp } = useSaveStamp();
 
   // Same as home: the order is fixed while the list is open, so a tile does

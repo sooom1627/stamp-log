@@ -2,6 +2,7 @@ import { Children, type ReactNode } from "react";
 
 import { Text, View } from "react-native";
 
+import { useToday } from "@/shared/hooks/use-today";
 import { formatDayHeading } from "@/shared/utils/format-stamp-date-time";
 
 type DayCardProps = {
@@ -13,7 +14,7 @@ type DayCardProps = {
 
 // One day of a timeline: the day heading above a card holding its posts.
 export function DayCard({ dateKey, date, children }: DayCardProps) {
-  const { title, detail } = formatDayHeading(date);
+  const { title, detail } = formatDayHeading(date, useToday());
 
   return (
     <View testID={`day-section-${dateKey}`} className="gap-2">

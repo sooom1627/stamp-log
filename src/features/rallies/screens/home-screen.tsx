@@ -15,6 +15,7 @@ import {
   useSaveStamp,
   useStampSummary,
 } from "@/shared/hooks/use-stamps";
+import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
 
 import { HomeTopCards } from "../components/home-top-cards";
@@ -33,7 +34,7 @@ export function HomeScreen() {
   const { t } = useTranslation();
   const { width: windowWidth } = useWindowDimensions();
   const tileWidth = (windowWidth - SCREEN_PADDING * 2 - TILE_GAP) / 2;
-  const today = new Date();
+  const today = useToday();
   const {
     rallies,
     stamps: summary,

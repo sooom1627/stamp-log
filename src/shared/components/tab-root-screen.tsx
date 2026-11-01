@@ -6,6 +6,7 @@ import { Stack, useRouter } from "expo-router";
 
 import { useTranslation } from "react-i18next";
 
+import { useToday } from "@/shared/hooks/use-today";
 import { formatHeaderDate } from "@/shared/utils/format-header-date";
 
 import { AtoMark } from "./ato-mark";
@@ -25,7 +26,7 @@ export function TabRootSubtitle({ children }: { children: string }) {
 // The large title (today's month and day unless given) and the toolbar shared
 // by tab roots.
 export function TabRootHeader({ title }: { title?: string }) {
-  const { monthDay } = formatHeaderDate(new Date());
+  const { monthDay } = formatHeaderDate(useToday());
   const { push } = useRouter();
   const { t } = useTranslation();
 
@@ -56,6 +57,7 @@ type TabRootScreenProps = {
 };
 
 export function TabRootScreen({ label, children }: TabRootScreenProps) {
+  const { weekday } = formatHeaderDate(useToday());
   return (
     <>
       <ScrollView
@@ -64,9 +66,7 @@ export function TabRootScreen({ label, children }: TabRootScreenProps) {
         contentContainerClassName="px-5 pb-32"
         contentInsetAdjustmentBehavior="automatic"
       >
-        <TabRootSubtitle>
-          {formatHeaderDate(new Date()).weekday}
-        </TabRootSubtitle>
+        <TabRootSubtitle>{weekday}</TabRootSubtitle>
         {children}
       </ScrollView>
       <TabRootHeader />
