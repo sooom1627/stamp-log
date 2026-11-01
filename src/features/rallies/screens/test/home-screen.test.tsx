@@ -1244,3 +1244,41 @@ describe("S-056 T-001 ST-003 the tile answers a press", () => {
     expect(tileNames()).toEqual(namesBefore);
   });
 });
+
+describe("S-056 T-001 ST-004 today's stamp takes the pressed emoji", () => {
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    await deleteAllRallies();
+  });
+
+  test("adds the pressed rally's emoji after today's earlier ones and keeps the rows and count", async () => {
+    await ralliesDb.saveRally({ name: "Morning run", emoji: "🏃" });
+    await ralliesDb.saveRally({ name: "Tokyo towers", emoji: "🗼" });
+    const [run] = (await ralliesDb.listRallies()).filter(
+      (rally) => rally.name === "Morning run",
+    );
+    await stampsDb.saveStamp({
+      rallyId: run.id,
+      stampedAt: new Date(2026, 8, 20, 7, 0).toISOString(),
+    });
+    const user = userEvent.setup();
+    await renderRouter("./src/app");
+    expect(await screen.findByText("1 stamp today")).toBeOnTheScreen();
+
+    await user.press(
+      screen.getByRole("button", { name: "Stamp Tokyo towers for today" }),
+    );
+
+    expect(await screen.findByText("2 stamps today")).toBeOnTheScreen();
+    const card = screen.getByTestId("today-card");
+    expect(
+      within(within(card).getByTestId("today-stamp"))
+        .getAllByText(/./)
+        .map((text) => text.children),
+    ).toEqual([["🏃"], ["🗼"]]);
+    expect(rallyRowsOf(card)).toEqual([
+      ["🏃", "Morning run"],
+      ["🗼", "Tokyo towers"],
+    ]);
+  });
+});

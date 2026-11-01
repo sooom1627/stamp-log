@@ -2,10 +2,12 @@ import { Text, View } from "react-native";
 
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
+import Animated from "react-native-reanimated";
 
 import { type Rally } from "@/shared/schemas/rallies";
 import { formatSpokenMonthDay } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
+import { stampIn } from "@/shared/utils/motion";
 
 import { stampEmojiRows } from "../utils/stamp-emoji-rows";
 
@@ -43,10 +45,20 @@ function tiltFor(date: Date) {
 
 // A small tilt per emoji so overlapping emojis look pressed by hand.
 const EMOJI_TILTS = ["-6deg", "5deg", "-3deg", "7deg", "-5deg"];
+const EMOJI_STAMP_INS = EMOJI_TILTS.map(stampIn);
 
 // Inked with today's rallies' emojis, overlapping, or a blank ring with the
-// date. It sits in the card's disc, inside a thin ring.
-function TodayStamp({ rallies, today }: { rallies: Rally[]; today: Date }) {
+// date. It sits in the card's disc, inside a thin ring. An emoji of a rally
+// just stamped from a tile is pressed in (S-056); the others stay still.
+function TodayStamp({
+  rallies,
+  today,
+  pressedRallyIds,
+}: {
+  rallies: Rally[];
+  today: Date;
+  pressedRallyIds: ReadonlySet<Rally["id"]>;
+}) {
   if (rallies.length === 0) {
     return (
       <View
@@ -96,15 +108,20 @@ function TodayStamp({ rallies, today }: { rallies: Rally[]; today: Date }) {
           {row.map((emoji, index) => {
             const position = rowIndex * 3 + index;
             return (
-              <Text
+              <Animated.Text
                 key={position}
+                entering={
+                  pressedRallyIds.has(rallies[position].id)
+                    ? EMOJI_STAMP_INS[position]
+                    : undefined
+                }
                 className={
                   index === 0 ? emojiClassName : `-ml-2 ${emojiClassName}`
                 }
                 style={{ transform: [{ rotate: EMOJI_TILTS[position] }] }}
               >
                 {emoji}
-              </Text>
+              </Animated.Text>
             );
           })}
           {rowIndex === rows.length - 1 && moreCount > 0 ? (
@@ -156,6 +173,8 @@ function RallyRows({ rallies }: { rallies: Rally[] }) {
 
 type TodayCardProps = {
   rallies: Rally[];
+  // Rallies stamped from home's tiles while it has been in view.
+  pressedRallyIds: ReadonlySet<Rally["id"]>;
   today: Date;
   width: number;
   position: string;
@@ -164,7 +183,13 @@ type TodayCardProps = {
 // The first of home's top cards: how many rallies were stamped today and
 // each of them on a row, with today's stamp in the disc. First stamped first; the card
 // keeps its height however many rallies there are.
-export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
+export function TodayCard({
+  rallies,
+  pressedRallyIds,
+  today,
+  width,
+  position,
+}: TodayCardProps) {
   const { t } = useTranslation();
 
   return (
@@ -199,7 +224,11 @@ export function TodayCard({ rallies, today, width, position }: TodayCardProps) {
           )}
         </View>
         <CardDisc>
-          <TodayStamp rallies={rallies} today={today} />
+          <TodayStamp
+            rallies={rallies}
+            today={today}
+            pressedRallyIds={pressedRallyIds}
+          />
         </CardDisc>
       </View>
     </TopCard>

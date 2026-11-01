@@ -24,3 +24,17 @@ export const dotPop = new Keyframe({
   60: { transform: [{ scale: 1.6 }], easing: easeOut },
   100: { transform: [{ scale: 1 }], easing: easeOut },
 }).duration(360);
+
+// A stamp pressed into place: from a little larger and straight to its tilt,
+// inked in the first part of the way.
+export function stampIn(rotation: string) {
+  return new Keyframe({
+    0: { opacity: 0, transform: [{ rotate: "0deg" }, { scale: 1.35 }] },
+    40: { opacity: 1, easing: easeOut },
+    100: {
+      opacity: 1,
+      transform: [{ rotate: rotation }, { scale: 1 }],
+      easing: easeOut,
+    },
+  }).duration(380);
+}

@@ -50,7 +50,18 @@ export function HomeScreen() {
     number
   > | null>(null);
   const [shouldResort, setShouldResort] = useState(true);
-  useFocusEffect(useCallback(() => setShouldResort(true), []));
+  // Rallies stamped from the tiles since home came into focus. Only their
+  // emojis are pressed into today's stamp (S-056); ones already there when
+  // home opens or comes back stay still.
+  const [pressedRallyIds, setPressedRallyIds] = useState<
+    ReadonlySet<Rally["id"]>
+  >(new Set());
+  useFocusEffect(
+    useCallback(() => {
+      setShouldResort(true);
+      setPressedRallyIds(new Set());
+    }, []),
+  );
   if (shouldResort && summary) {
     setShouldResort(false);
     setOrderCounts(summary.countsByRally);
@@ -81,6 +92,7 @@ export function HomeScreen() {
               rallies,
               today,
             )}
+            pressedRallyIds={pressedRallyIds}
             todayLog={buildTodayLog(summary.recentStamps, rallies, today)}
             daysWithAto={countDaysWithAto(firstStampedAt, today)}
             firstStampedAt={firstStampedAt ? new Date(firstStampedAt) : null}
@@ -122,12 +134,15 @@ export function HomeScreen() {
                 stampDates={datesByRally.get(rally.id) ?? []}
                 stampCount={summary?.countsByRally.get(rally.id) ?? 0}
                 width={tileWidth}
-                onPressStamp={() =>
+                onPressStamp={() => {
+                  setPressedRallyIds(
+                    (pressed) => new Set([...pressed, rally.id]),
+                  );
                   saveStamp(
                     { rallyId: rally.id },
                     { onSuccess: (stamp) => showAddMemoToast(stamp.id) },
-                  )
-                }
+                  );
+                }}
               />
             ))}
             <Link href="/create-rally" asChild>
