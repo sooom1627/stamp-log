@@ -5,6 +5,7 @@ import { Link } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { Check, Plus, Star } from "@/shared/components/icons";
+import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { buildLastDays } from "@/shared/utils/month-grid";
@@ -35,7 +36,7 @@ export function RallyTile({
   width,
   onPressStamp,
 }: RallyTileProps) {
-  const activityDays = buildLastDays(stampDates, new Date());
+  const activityDays = buildLastDays(stampDates, useToday());
   const { t } = useTranslation();
   // The last of the 7 days is today.
   const isStampedToday = activityDays[activityDays.length - 1].isRecorded;

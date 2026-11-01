@@ -24,6 +24,7 @@ import {
   useSetRallyFavorite,
 } from "@/shared/hooks/use-rallies";
 import { useRallyStamps } from "@/shared/hooks/use-stamps";
+import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
@@ -72,8 +73,9 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
   const { mutate: deleteRally } = useDeleteRally();
   const { mutate: setRallyFavorite } = useSetRallyFavorite();
   const { mutate: setRallyArchived } = useSetRallyArchived();
+  const today = useToday();
   const stampDates = stamps?.map((stamp) => stamp.stampedAt) ?? [];
-  const summary = stamps ? buildRallySummary(stampDates, new Date()) : null;
+  const summary = stamps ? buildRallySummary(stampDates, today) : null;
   const sections = groupByLocalDay(stamps ?? [], (stamp) => stamp.stampedAt);
 
   useCloseWhenMissing(rally === null);
