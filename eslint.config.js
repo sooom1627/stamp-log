@@ -16,6 +16,20 @@ const features = fs
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name);
 
+// tailwind.css の @layer theme（light / dark の @variant）で定義した色。
+// プラグインは @theme しか読まないため、ここから no-custom-classname の whitelist を作る
+const themeLayerColors = [
+  ...new Set(
+    [
+      ...fs
+        .readFileSync(`${__dirname}/tailwind.css`, "utf8")
+        .split("@layer theme")[1]
+        .matchAll(/--color-([\w-]+):/g),
+    ].map(([, name]) => name),
+  ),
+];
+const themeColorClassName = `^(bg|text|border|from|via|to)-(${themeLayerColors.join("|")})(\\/\\d+)?$`;
+
 module.exports = [
   // グローバルな無視パターン
   {
@@ -282,7 +296,10 @@ module.exports = [
       // 矛盾するクラス名を検出（flex flex-col と flex-row など）
       "tailwindcss/no-contradicting-classname": "error",
       // カスタムクラス名の使用を制限（Uniwindでは基本的にTailwindクラスのみ使用）
-      "tailwindcss/no-custom-classname": "warn",
+      "tailwindcss/no-custom-classname": [
+        "warn",
+        { whitelist: [themeColorClassName] },
+      ],
       // 不要な任意値を警告（text-[16px] より text-base を推奨）
       "tailwindcss/no-unnecessary-arbitrary-value": "warn",
 
