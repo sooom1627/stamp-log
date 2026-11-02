@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
 import { act, screen, within } from "@testing-library/react-native";
@@ -12,7 +12,7 @@ beforeEach(async () => {
   await i18n.changeLanguage("ja");
 });
 
-async function openRoute(path: string) {
+async function openRoute(path: Href) {
   await renderRouter("./src/app");
   await act(() => {
     router.push(path);
