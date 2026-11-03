@@ -1,4 +1,4 @@
-import { useIdParam } from "@/features/rallies/hooks/use-id-param";
+import { useIdParam } from "@/features/rallies/hooks/use-route-param";
 import { AddStampMemoScreen } from "@/features/rallies/screens/add-stamp-memo-screen";
 
 export default function AddStampMemoSheet() {

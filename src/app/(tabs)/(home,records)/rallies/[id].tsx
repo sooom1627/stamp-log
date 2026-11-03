@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-import { useIdParam } from "@/features/rallies/hooks/use-id-param";
+import { useIdParam } from "@/features/rallies/hooks/use-route-param";
 import { RallyDetailScreen } from "@/features/rallies/screens/rally-detail-screen";
 
 export default function RallyDetailPage() {
