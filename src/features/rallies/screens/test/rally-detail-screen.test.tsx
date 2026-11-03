@@ -23,7 +23,13 @@ import {
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
 import { daysAgoAt } from "@/shared/utils/test-helpers/days-ago-at";
-import { PagerViewCommands } from "@/shared/utils/test-helpers/native-views";
+import {
+  headerItem,
+  headerMenuItems,
+  PagerViewCommands,
+  pressHeaderButton,
+  pressHeaderMenuItem,
+} from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
 
@@ -407,30 +413,15 @@ describe("S-006 T-002 ST-003 month navigation", () => {
 });
 
 describe("S-028 T-001 ST-001 rally actions menu", () => {
-  test("puts a 44pt Rally actions menu with Past stamp and Delete rally in the header", async () => {
+  test("puts a Rally actions menu with Past stamp and Delete rally in the header", async () => {
     await openRallyDetail("Header menu");
 
-    expect(await screen.findByTestId("rally-actions-menu-icon")).toHaveProp(
-      "modifiers",
+    expect(headerItem("Rally actions").type).toBe("menu");
+    expect(headerMenuItems("Rally actions")).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ $type: "frame", width: 44, height: 44 }),
-        expect.objectContaining({
-          $type: "accessibilityLabel",
-          label: "Rally actions",
-        }),
+        expect.objectContaining({ title: "Past stamp" }),
+        expect.objectContaining({ title: "Delete rally", destructive: true }),
       ]),
-    );
-    expect(screen.getByTestId("rally-action-past-stamp")).toHaveProp(
-      "label",
-      "Past stamp",
-    );
-    expect(screen.getByTestId("rally-action-delete")).toHaveProp(
-      "label",
-      "Delete rally",
-    );
-    expect(screen.getByTestId("rally-action-delete")).toHaveProp(
-      "role",
-      "destructive",
     );
   });
 });
@@ -440,10 +431,7 @@ describe("S-028 T-001 ST-002 past stamp from the actions menu", () => {
     const { rally, user } = await openRallyDetail("Menu past stamp");
     expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
 
-    await fireEvent(
-      screen.getByTestId("rally-action-past-stamp"),
-      "buttonPress",
-    );
+    await pressHeaderMenuItem("Rally actions", "Past stamp");
 
     expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Save" }));
@@ -461,10 +449,7 @@ describe("S-028 T-001 ST-002 past stamp from the actions menu", () => {
 describe("S-028 T-001 ST-003 delete rally from the actions menu", () => {
   async function pressMenuDelete(name: string) {
     const opened = await openRallyDetail(name);
-    await fireEvent(
-      await screen.findByTestId("rally-action-delete"),
-      "buttonPress",
-    );
+    await pressHeaderMenuItem("Rally actions", "Delete rally");
     return opened;
   }
 
@@ -526,10 +511,7 @@ describe("S-028 T-001 ST-003 delete rally from the actions menu", () => {
 
 describe("S-017 T-001 ST-003 confirm names the stamps deleted with the rally", () => {
   async function pressDelete() {
-    await fireEvent(
-      await screen.findByTestId("rally-action-delete"),
-      "buttonPress",
-    );
+    await pressHeaderMenuItem("Rally actions", "Delete rally");
   }
 
   async function openEmptyRally(name: string) {
@@ -640,10 +622,7 @@ describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () 
   }
 
   async function confirmDelete() {
-    await fireEvent(
-      await screen.findByTestId("rally-action-delete"),
-      "buttonPress",
-    );
+    await pressHeaderMenuItem("Rally actions", "Delete rally");
     await act(async () => {
       findAlertButton("destructive").onPress?.();
     });
@@ -745,9 +724,9 @@ describe("S-028 T-001 ST-005 rally actions icon", () => {
   test("uses a native toolbar menu icon with no custom tint", async () => {
     await openRallyDetail("Round menu icon");
 
-    const icon = await screen.findByTestId("rally-actions-menu-icon");
-    expect(icon).toHaveProp("systemName", "ellipsis");
-    expect(icon).not.toHaveProp("color");
+    const menu = headerItem("Rally actions");
+    expect(menu.sfSymbolName).toBe("ellipsis");
+    expect(menu.tintColor).toBeUndefined();
   });
 });
 
@@ -1127,10 +1106,7 @@ describe("S-052 T-001 ST-002 compact top panel", () => {
 
   test("shows Archived on the count's line", async () => {
     await openRallyDetail("Archived panel");
-    await fireEvent(
-      await screen.findByTestId("rally-action-archive"),
-      "buttonPress",
-    );
+    await pressHeaderMenuItem("Rally actions", "Archive rally");
 
     const countRow = await screen.findByTestId("rally-top-panel-count");
     await waitFor(() => {
@@ -1184,9 +1160,7 @@ describe("S-013 T-001 ST-005 edit rally from the actions menu", () => {
   test("lists Past stamp, Edit rally, Archive rally and Delete rally in that order", async () => {
     await openRallyDetail("Menu order");
 
-    const actions = await screen.findAllByTestId(/^rally-action-/);
-
-    expect(actions.map((action) => action.props.label)).toEqual([
+    expect(headerMenuItems("Rally actions").map(({ title }) => title)).toEqual([
       "Past stamp",
       "Edit rally",
       "Archive rally",
@@ -1197,10 +1171,7 @@ describe("S-013 T-001 ST-005 edit rally from the actions menu", () => {
   test("opens the edit sheet and shows the new name and emoji on detail and home", async () => {
     const { rally, user } = await openRallyDetail("Menu edit before");
 
-    await fireEvent(
-      await screen.findByTestId("rally-action-edit"),
-      "buttonPress",
-    );
+    await pressHeaderMenuItem("Rally actions", "Edit rally");
 
     expect(await screen.findByTestId("edit-rally-form")).toBeOnTheScreen();
     expect(screen.getByLabelText("Name")).toHaveDisplayValue(
@@ -1316,23 +1287,16 @@ describe("S-032 T-001 ST-006 favorite star in the header", () => {
   test("sets the favorite from the star and stays on the rally", async () => {
     const { rally } = await openRallyDetail("Star on");
 
-    const star = await screen.findByTestId("rally-favorite");
-    expect(star).toHaveProp("label", "Add to favorites");
-    expect(star).toHaveProp("systemImage", "star");
+    expect(headerItem("Add to favorites").sfSymbolName).toBe("star");
 
-    await fireEvent(star, "buttonPress");
+    await pressHeaderButton("Add to favorites");
 
     await waitFor(() => {
-      expect(screen.getByTestId("rally-favorite")).toHaveProp(
-        "label",
-        "Remove from favorites",
+      expect(headerItem("Remove from favorites").sfSymbolName).toBe(
+        "star.fill",
       );
     });
     expect(await isFavoriteSaved(rally.id)).toBe(true);
-    expect(screen.getByTestId("rally-favorite")).toHaveProp(
-      "systemImage",
-      "star.fill",
-    );
     expect(screen.getByRole("heading", { name: "Star on" })).toBeOnTheScreen();
   });
 
@@ -1341,16 +1305,12 @@ describe("S-032 T-001 ST-006 favorite star in the header", () => {
       ralliesDb.setRallyFavorite({ id: rallyId, isFavorite: true }),
     );
 
-    const star = await screen.findByTestId("rally-favorite");
-    expect(star).toHaveProp("label", "Remove from favorites");
+    expect(headerItem("Remove from favorites").type).toBe("button");
 
-    await fireEvent(star, "buttonPress");
+    await pressHeaderButton("Remove from favorites");
 
     await waitFor(() => {
-      expect(screen.getByTestId("rally-favorite")).toHaveProp(
-        "label",
-        "Add to favorites",
-      );
+      expect(headerItem("Add to favorites").type).toBe("button");
     });
     expect(await isFavoriteSaved(rally.id)).toBe(false);
   });
@@ -1358,9 +1318,7 @@ describe("S-032 T-001 ST-006 favorite star in the header", () => {
   test("keeps the star out of the actions menu", async () => {
     await openRallyDetail("Star apart");
 
-    const actions = await screen.findAllByTestId(/^rally-action-/);
-
-    expect(actions.map((action) => action.props.label)).toEqual([
+    expect(headerMenuItems("Rally actions").map(({ title }) => title)).toEqual([
       "Past stamp",
       "Edit rally",
       "Archive rally",
@@ -1375,26 +1333,27 @@ describe("S-039 T-002 ST-004 archive from the actions menu", () => {
     return rallies.find((rally) => rally.id === rallyId)?.isArchived;
   }
 
-  async function pressArchiveAction() {
-    await fireEvent(screen.getByTestId("rally-action-archive"), "buttonPress");
+  // The third menu action: Archive rally, or Unarchive rally once archived.
+  function archiveAction() {
+    return headerMenuItems("Rally actions")[2];
   }
 
   test("archives without a confirmation and stays on the rally", async () => {
     const { rally } = await openRallyDetail("Archive me");
-    const archiveAction = await screen.findByTestId("rally-action-archive");
-    expect(archiveAction).toHaveProp("label", "Archive rally");
-    expect(archiveAction).toHaveProp("systemImage", "archivebox");
+    expect(archiveAction()).toEqual(
+      expect.objectContaining({
+        title: "Archive rally",
+        sfSymbolName: "archivebox",
+      }),
+    );
     expect(screen.queryByText("Archived")).not.toBeOnTheScreen();
 
-    await pressArchiveAction();
+    await pressHeaderMenuItem("Rally actions", "Archive rally");
 
     expect(await screen.findByText("Archived")).toBeOnTheScreen();
     expect(await isArchivedSaved(rally.id)).toBe(true);
     expect(Alert.alert).not.toHaveBeenCalled();
-    expect(screen.getByTestId("rally-action-archive")).toHaveProp(
-      "label",
-      "Unarchive rally",
-    );
+    expect(archiveAction().title).toBe("Unarchive rally");
     expect(
       screen.getByRole("heading", { name: "Archive me" }),
     ).toBeOnTheScreen();
@@ -1402,22 +1361,15 @@ describe("S-039 T-002 ST-004 archive from the actions menu", () => {
 
   test("unarchives an archived rally", async () => {
     const { rally } = await openRallyDetail("Bring me back");
-    await screen.findByTestId("rally-action-archive");
-    await pressArchiveAction();
+    await pressHeaderMenuItem("Rally actions", "Archive rally");
     await waitFor(() => {
-      expect(screen.getByTestId("rally-action-archive")).toHaveProp(
-        "label",
-        "Unarchive rally",
-      );
+      expect(archiveAction().title).toBe("Unarchive rally");
     });
 
-    await pressArchiveAction();
+    await pressHeaderMenuItem("Rally actions", "Unarchive rally");
 
     await waitFor(() => {
-      expect(screen.getByTestId("rally-action-archive")).toHaveProp(
-        "label",
-        "Archive rally",
-      );
+      expect(archiveAction().title).toBe("Archive rally");
     });
     expect(screen.queryByText("Archived")).not.toBeOnTheScreen();
     await expect(isArchivedSaved(rally.id)).resolves.toBe(false);
