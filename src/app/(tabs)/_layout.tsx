@@ -26,7 +26,7 @@ export default function TabsLayout() {
         />
         <NativeTabs.Trigger.Label>{t("tabs.home")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="records">
+      <NativeTabs.Trigger name="(records)">
         <NativeTabs.Trigger.Icon
           sf={{ default: "list.bullet", selected: "list.bullet" }}
           md="format_list_bulleted"

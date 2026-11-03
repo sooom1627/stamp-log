@@ -54,6 +54,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 58 (Rea
   - Route default exports are named by role, without `Route`: tab roots `*Tab` (`HomeTab`), pushed screens `*Page` (`RallyDetailPage`), form sheets `*Sheet` (`EditStampSheet`), layouts `*Layout`. Feature screen bodies stay `*Screen`.
   - Destructure Query results with names (React Compiler: never dot into hook results to call functions): `const { data: rallies, isError: isRalliesError, refetch: refetchRallies } = useRallies()`, `const { mutate: saveStamp, isPending: isSaving } = useSaveStamp()`.
 - **Routing**:
+  - Group the root routes of `src/app` by what the screen works on, matching the `features/` and `shared/schemas` words: `(onboarding)`, `(rallies)`, `(stamps)`, `(records)`, `(settings)`. Do not add a `_layout` to these groups (they stay children of the root Stack, so a sheet still opens over a sheet). Routes inside `(tabs)` live in the stack of the tab they open in; a screen both tabs push goes in `(tabs)/(home,records)/`.
   - Read URL params in the route file and validate them with Zod (`useIdParam` / `idParamSchema`); pass typed values to the feature screen. An invalid param closes the screen like a missing record.
   - Navigate with `<Link href asChild>` when a press only navigates; otherwise destructure `const { push, back } = useRouter()`. Import the imperative `router` only outside components.
   - Write hrefs with params as objects: `push({ pathname: "/edit-stamp", params: { stampId } })` (typed routes check the params).

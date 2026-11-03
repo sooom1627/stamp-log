@@ -31,6 +31,7 @@ src/
 
 - Domain code lives in `src/features/<kebab-name>/`
 - Keep `src/app/` routes thin: read params, render the feature screen
+- Put each root route of `src/app/` in the group named for what it works on (`(onboarding)` `(rallies)` `(stamps)` `(records)` `(settings)`), without a group `_layout`. See AGENTS.md **Routing**
 - Cross-feature code lives in `src/shared/` (not top-level `components/` / `hooks/`). The rallies and stamps types, tables, Query hooks and the UI that more than one feature shows live there
 - Imports go one way: `shared` → `features` → `app`. `shared` never imports `features` or `app`; a feature never imports another feature or `app`. When a second feature needs something, move it to `shared`. ESLint (`import/no-restricted-paths`) enforces this
 - Code only one feature uses stays in that feature, even when it reads rallies or stamps (e.g. the home sort in `features/rallies/utils/`)
