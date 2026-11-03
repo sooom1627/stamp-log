@@ -17,6 +17,7 @@ import {
   fireGestureHandler,
   getByGestureTestId,
 } from "react-native-gesture-handler/jest-utils";
+import type * as PagerViewNativeComponent from "react-native-pager-view/lib/typescript/PagerViewNativeComponent";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
@@ -36,7 +37,7 @@ jest.useFakeTimers();
 // The native commands the pager sends to turn its page. Jest loads the
 // package's CommonJS build, so spy on that copy.
 const { Commands: PagerViewCommands } = jest.requireActual<
-  typeof import("react-native-pager-view/lib/typescript/PagerViewNativeComponent")
+  typeof PagerViewNativeComponent
 >("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 // Photos the user picked in the library, saved onto the stamp (S-035).
