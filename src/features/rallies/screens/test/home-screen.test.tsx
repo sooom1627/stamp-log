@@ -16,6 +16,7 @@ import { toast } from "sonner-native";
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampSummaryDb from "@/shared/db/stamp-summary-db";
 import * as stampsDb from "@/shared/db/stamps-db";
+import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
 
 jest.useFakeTimers();
 
@@ -26,13 +27,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-// Tests in this file share one in-memory database.
-async function deleteAllRallies() {
-  for (const rally of await ralliesDb.listRallies()) {
-    await ralliesDb.deleteRally(rally.id);
-  }
-}
 
 // The today card's rows of today's rallies, each as its texts.
 function rallyRowsOf(card: ReturnType<typeof screen.getByTestId>) {

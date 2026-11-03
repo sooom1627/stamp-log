@@ -17,7 +17,6 @@ import {
   fireGestureHandler,
   getByGestureTestId,
 } from "react-native-gesture-handler/jest-utils";
-import type * as PagerViewNativeComponent from "react-native-pager-view/lib/typescript/PagerViewNativeComponent";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
@@ -31,14 +30,10 @@ import {
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
 import { localDateKey } from "@/shared/utils/local-date-key";
+import { daysAgoAt } from "@/shared/utils/test-helpers/days-ago-at";
+import { PagerViewCommands } from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
-
-// The native commands the pager sends to turn its page. Jest loads the
-// package's CommonJS build, so spy on that copy.
-const { Commands: PagerViewCommands } = jest.requireActual<
-  typeof PagerViewNativeComponent
->("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 // Photos the user picked in the library, saved onto the stamp (S-035).
 let nextPickedPhotoId = 1;
@@ -63,13 +58,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-function daysAgoAt(days: number, hours: number) {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  date.setHours(hours, 0, 0, 0);
-  return date.toISOString();
-}
 
 async function saveRallyNamed(name: string, emoji: string) {
   await saveRally({ name, emoji });

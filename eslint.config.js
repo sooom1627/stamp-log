@@ -339,9 +339,13 @@ module.exports = [
     },
   },
 
-  // テストファイル用の設定: 可読性優先でルールを緩和
+  // テストファイル・テストだけが使う道具用の設定: 可読性優先でルールを緩和
   {
-    files: ["**/*.test.ts", "**/*.test.tsx"],
+    files: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "src/shared/utils/test-helpers/**",
+    ],
     plugins: {
       jest: jest,
     },

@@ -12,7 +12,6 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
-import type * as PagerViewNativeComponent from "react-native-pager-view/lib/typescript/PagerViewNativeComponent";
 import { toast } from "sonner-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
@@ -23,14 +22,10 @@ import {
   formatStampDay,
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
+import { daysAgoAt } from "@/shared/utils/test-helpers/days-ago-at";
+import { PagerViewCommands } from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
-
-// The native commands the pager sends to turn its page. Jest loads the
-// package's CommonJS build, so spy on that copy.
-const { Commands: PagerViewCommands } = jest.requireActual<
-  typeof PagerViewNativeComponent
->("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 // Photos the user picked in the library, saved onto the stamp (S-035).
 let nextPickedPhotoId = 1;
@@ -113,13 +108,6 @@ describe("Rally detail", () => {
     expect(screen.getByText("1 stamp")).toBeOnTheScreen();
   });
 });
-
-function daysAgoAt(days: number, hours: number) {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  date.setHours(hours, 0, 0, 0);
-  return date.toISOString();
-}
 
 // Logs keeps its own calendar mounted behind its tab, so calendar queries look
 // inside rally detail's calendar only.

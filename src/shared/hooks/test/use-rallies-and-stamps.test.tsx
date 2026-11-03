@@ -1,29 +1,19 @@
-import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampsDb from "@/shared/db/stamps-db";
-import { createTestQueryClient } from "@/shared/query/create-query-client";
+import {
+  clearQueryClients,
+  createWrapper,
+} from "@/shared/utils/test-helpers/query-wrapper";
 
 import { useRalliesAndStamps } from "../use-rallies-and-stamps";
 import { useStamps } from "../use-stamps";
 
-let queryClient: QueryClient;
-
 afterEach(() => {
-  queryClient.clear();
+  clearQueryClients();
   jest.restoreAllMocks();
 });
-
-function createWrapper() {
-  queryClient = createTestQueryClient();
-
-  return function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
-  };
-}
 
 describe("RT ST-006 useRalliesAndStamps", () => {
   test("is loaded once both lists are read", async () => {
