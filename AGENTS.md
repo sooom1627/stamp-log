@@ -46,7 +46,7 @@ You are an expert developer proficient in TypeScript, React and Expo SDK 58 (Rea
 ## Code Style & Structure
 
 - **Functional Programming**: Use functional and declarative patterns; strictly avoid classes.
-- **File Organization**: Organize by **Feature** under `src/features/<kebab-name>/` (`screens/`, `components/`, `hooks/`, `db/`, `schemas/`). Put cross-feature UI, schemas, db (connection, table setup, rallies / stamps tables), hooks, theme, QueryClient factory, and utils under `src/shared/`. Keep `src/app/` as routes only. Tests go in each layer’s `test/` (e.g. `hooks/test/`), not next to the source file.
+- **File Organization**: Organize by **Feature** under `src/features/<kebab-name>/` (`screens/`, `components/`, `hooks/`, `db/`, `schemas/`). Put cross-feature UI, schemas, db (connection, table setup, rallies / stamps tables), hooks, theme, QueryClient factory, and utils under `src/shared/`. Keep `src/app/` as routes only. Tests go in each layer’s `test/` (e.g. `hooks/test/`), not next to the source file. Helpers that tests in more than one layer use go in `src/shared/utils/test-helpers/`, imported by tests only.
 - **Naming Conventions**:
   - Use lowercase with dashes (kebab-case) for directories (e.g., `features/stamps`, `shared/theme`).
   - Favor **named exports** for components and functions.
