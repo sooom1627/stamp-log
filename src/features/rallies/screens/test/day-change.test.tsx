@@ -7,19 +7,14 @@ import { act, screen, within } from "@testing-library/react-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampsDb from "@/shared/db/stamps-db";
+import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
+import { largeTitles } from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
 
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-// Tests in this file share one in-memory database.
-async function deleteAllRallies() {
-  for (const rally of await ralliesDb.listRallies()) {
-    await ralliesDb.deleteRally(rally.id);
-  }
-}
 
 async function saveRallyStampedAt(name: string, stampedAt: Date) {
   await ralliesDb.saveRally({ name, emoji: "🗼" });
@@ -32,14 +27,6 @@ async function saveRallyStampedAt(name: string, stampedAt: Date) {
     stampedAt: stampedAt.toISOString(),
   });
   return rally;
-}
-
-// The large title is a native header prop, not text in the tree.
-function largeTitles() {
-  return screen.container
-    .queryAll((instance) => instance.type === "RNSScreenStackHeaderConfig")
-    .map((instance) => instance.props.title)
-    .filter((title) => title !== "(tabs)");
 }
 
 // The OS tells the app it came back through AppState; the test plays the OS.

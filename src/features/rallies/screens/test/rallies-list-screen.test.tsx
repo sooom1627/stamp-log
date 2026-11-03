@@ -7,18 +7,13 @@ import {
   waitFor,
   within,
 } from "@testing-library/react-native";
-import type * as PagerViewNativeComponent from "react-native-pager-view/lib/typescript/PagerViewNativeComponent";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampsDb from "@/shared/db/stamps-db";
+import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
+import { PagerViewCommands } from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
-
-// The native commands the pager sends to turn its page. Jest loads the
-// package's CommonJS build, so spy on that copy.
-const { Commands: PagerViewCommands } = jest.requireActual<
-  typeof PagerViewNativeComponent
->("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -26,13 +21,6 @@ afterEach(() => {
 
 const daysAgo = (days: number) =>
   new Date(2026, 8, 20 - days, 12).toISOString();
-
-// Tests in this file share one in-memory database.
-async function deleteAllRallies() {
-  for (const rally of await ralliesDb.listRallies()) {
-    await ralliesDb.deleteRally(rally.id);
-  }
-}
 
 async function saveRallyWithStamps(
   name: string,

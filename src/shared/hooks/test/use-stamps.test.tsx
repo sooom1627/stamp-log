@@ -1,18 +1,18 @@
 import { File, Paths } from "expo-file-system";
 
-import {
-  QueryClientProvider,
-  useQueryClient,
-  type QueryClient,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
 import * as stampsDb from "@/shared/db/stamps-db";
 import { saveStamp } from "@/shared/db/stamps-db";
-import { createTestQueryClient } from "@/shared/query/create-query-client";
 import { type Rally } from "@/shared/schemas/rallies";
 import { type Stamp } from "@/shared/schemas/stamps";
+import { daysAgoAt } from "@/shared/utils/test-helpers/days-ago-at";
+import {
+  clearQueryClients,
+  createWrapper,
+} from "@/shared/utils/test-helpers/query-wrapper";
 
 import {
   ralliesQueryKey,
@@ -35,25 +35,9 @@ import {
   useUpdateStampMemo,
 } from "../use-stamps";
 
-const queryClients: QueryClient[] = [];
-
 afterEach(() => {
-  for (const queryClient of queryClients) {
-    queryClient.clear();
-  }
-  queryClients.length = 0;
+  clearQueryClients();
 });
-
-function createWrapper() {
-  const queryClient = createTestQueryClient();
-  queryClients.push(queryClient);
-
-  return function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
-  };
-}
 
 function useStampsFlow() {
   const query = useStamps();
@@ -266,13 +250,6 @@ describe("S-025 ST-003 past stamp Query hook", () => {
     ).toHaveLength(1);
   });
 });
-
-function daysAgoAt(days: number, hours: number) {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  date.setHours(hours, 0, 0, 0);
-  return date.toISOString();
-}
 
 function useRallyStampsFlow(rallyId: number) {
   return {

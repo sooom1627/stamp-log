@@ -1,13 +1,12 @@
-import {
-  QueryClientProvider,
-  useQueryClient,
-  type QueryClient,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { saveRally } from "@/shared/db/rallies-db";
-import { createTestQueryClient } from "@/shared/query/create-query-client";
 import { type Rally } from "@/shared/schemas/rallies";
+import {
+  clearQueryClients,
+  createWrapper,
+} from "@/shared/utils/test-helpers/query-wrapper";
 
 import {
   ralliesQueryKey,
@@ -17,21 +16,9 @@ import {
   useUpdateRally,
 } from "../use-rallies";
 
-let queryClient: QueryClient;
-
 afterEach(() => {
-  queryClient.clear();
+  clearQueryClients();
 });
-
-function createWrapper() {
-  queryClient = createTestQueryClient();
-
-  return function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
-  };
-}
 
 describe("S-013 T-001 ST-003 useUpdateRally", () => {
   test("rallies show the updated name and emoji when the caller's onSuccess runs", async () => {
