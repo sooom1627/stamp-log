@@ -177,7 +177,7 @@ export function RecordsTimelineScreen() {
                         detail={formatStampTime(new Date(stamp.stampedAt))}
                         onPress={() =>
                           push({
-                            pathname: "/records/rallies/[id]",
+                            pathname: "/rallies/[id]",
                             params: { id: rally.id },
                           })
                         }

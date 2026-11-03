@@ -724,7 +724,8 @@ describe("S-017 T-001 ST-003 other screens drop the deleted rally's stamps", () 
     const logs = await screen.findByLabelText("Logs timeline");
     expect(within(logs).getAllByText("Logs deleted")).toHaveLength(3);
     await act(() => {
-      router.push(`/records/rallies/${rally.id}`);
+      // From Logs, the shared detail opens on the Logs stack.
+      router.push(`/rallies/${rally.id}`);
     });
     expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
 

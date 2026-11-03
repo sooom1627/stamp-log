@@ -417,8 +417,13 @@ describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
 
     await userEvent.setup().press(logs.getByTestId(`stamp-post-${stamp.id}`));
 
-    expect(app.getPathname()).toBe(`/records/rallies/${rally.id}`);
-    expect(app.getSegments()).toEqual(["(tabs)", "records", "rallies", "[id]"]);
+    expect(app.getPathname()).toBe(`/rallies/${rally.id}`);
+    expect(app.getSegments()).toEqual([
+      "(tabs)",
+      "(records)",
+      "rallies",
+      "[id]",
+    ]);
     expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
 
     await act(() => {
