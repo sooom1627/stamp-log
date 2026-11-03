@@ -4,7 +4,7 @@ import { Text, useWindowDimensions, View } from "react-native";
 
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
-import { Button, Host, Picker, Text as SwiftText } from "@expo/ui/swift-ui";
+import { Host, Picker, Text as SwiftText } from "@expo/ui/swift-ui";
 import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
 import { useTranslation } from "react-i18next";
@@ -94,17 +94,6 @@ export function RalliesListScreen() {
         style={{ paddingTop: headerHeight }}
       >
         <View className="gap-4 px-5 pt-2">
-          {/* The native toolbar button is not in the RN tree; tests press this. */}
-          {process.env.NODE_ENV === "test" ? (
-            <Host matchContents>
-              <Button
-                testID="rallies-list-create"
-                label={t("rallies.createRally")}
-                systemImage="plus"
-                onPress={openCreateRally}
-              />
-            </Host>
-          ) : null}
           <Text role="heading" className="text-foreground text-2xl font-bold">
             Your Days
           </Text>
