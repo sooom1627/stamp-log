@@ -19,7 +19,7 @@
 
 ## 入りと出
 
-- 入り: ホームのラリー行タップ、[rallies-list.md](./rallies-list.md) のタイルの名称タップ（`/rallies/[id]`）。Logs の投稿タップ（`/records/rallies/[id]`。Logs のスタックに積む）
+- 入り: ホームのラリー行タップ、[rallies-list.md](./rallies-list.md) のタイルの名称タップ（`/rallies/[id]`）。Logs の投稿タップ（同じ `/rallies/[id]`。Logs のスタックに積む）
 - 出:
   - 戻る → 元のタブ
   - 右上の星 → その場でお気に入りを付け外しし、この画面に留まる（[お気に入り](#お気に入り)）
