@@ -11,7 +11,10 @@ import {
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampsDb from "@/shared/db/stamps-db";
 import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
-import { PagerViewCommands } from "@/shared/utils/test-helpers/native-views";
+import {
+  PagerViewCommands,
+  pressHeaderButton,
+} from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
 
@@ -176,7 +179,7 @@ describe("S-039 T-001 ST-002 rallies list", () => {
   test("opens rally creation from the header plus", async () => {
     await openRalliesList();
 
-    await fireEvent(screen.getByTestId("rallies-list-create"), "buttonPress");
+    await pressHeaderButton("Create rally");
 
     expect(
       await screen.findByPlaceholderText("Enter a rally name"),
