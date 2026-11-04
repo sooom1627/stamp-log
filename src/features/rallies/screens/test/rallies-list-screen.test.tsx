@@ -10,14 +10,13 @@ import {
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampsDb from "@/shared/db/stamps-db";
+import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
+import {
+  PagerViewCommands,
+  pressHeaderButton,
+} from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
-
-// The native commands the pager sends to turn its page. Jest loads the
-// package's CommonJS build, so spy on that copy.
-const { Commands: PagerViewCommands } = jest.requireActual<
-  typeof import("react-native-pager-view/lib/typescript/PagerViewNativeComponent")
->("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -25,13 +24,6 @@ afterEach(() => {
 
 const daysAgo = (days: number) =>
   new Date(2026, 8, 20 - days, 12).toISOString();
-
-// Tests in this file share one in-memory database.
-async function deleteAllRallies() {
-  for (const rally of await ralliesDb.listRallies()) {
-    await ralliesDb.deleteRally(rally.id);
-  }
-}
 
 async function saveRallyWithStamps(
   name: string,
@@ -187,7 +179,7 @@ describe("S-039 T-001 ST-002 rallies list", () => {
   test("opens rally creation from the header plus", async () => {
     await openRalliesList();
 
-    await fireEvent(screen.getByTestId("rallies-list-create"), "buttonPress");
+    await pressHeaderButton("Create rally");
 
     expect(
       await screen.findByPlaceholderText("Enter a rally name"),

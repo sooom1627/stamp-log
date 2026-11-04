@@ -4,17 +4,11 @@ import Storage from "expo-sqlite/kv-store";
 import { fireEvent, screen, userEvent } from "@testing-library/react-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
+import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
 
 import { hasOnboarded, markOnboarded } from "../../db/onboarding-state";
 
 jest.useFakeTimers();
-
-// Tests in this file share one in-memory database.
-async function deleteAllRallies() {
-  for (const rally of await ralliesDb.listRallies()) {
-    await ralliesDb.deleteRally(rally.id);
-  }
-}
 
 beforeEach(async () => {
   // A fresh install: never onboarded, no rallies.

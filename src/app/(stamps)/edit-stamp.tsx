@@ -1,4 +1,4 @@
-import { useIdParam } from "@/features/rallies/hooks/use-id-param";
+import { useIdParam } from "@/features/rallies/hooks/use-route-param";
 import { EditStampScreen } from "@/features/rallies/screens/edit-stamp-screen";
 
 export default function EditStampSheet() {

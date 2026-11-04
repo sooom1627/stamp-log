@@ -55,26 +55,53 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen
-              name="onboarding"
+              name="(onboarding)/onboarding"
               // Finishing replaces it with Home; there is nothing to go back to.
               options={{ headerShown: false, gestureEnabled: false }}
             />
             <Stack.Screen
-              name="about-ato"
+              name="(onboarding)/about-ato"
               // Opened over Settings; Close and Done bring it back.
               options={{ presentation: "fullScreenModal", headerShown: false }}
             />
-            <Stack.Screen name="create-rally" options={formSheetOptions} />
-            <Stack.Screen name="edit-rally" options={formSheetOptions} />
-            <Stack.Screen name="add-stamp-memo" options={formSheetOptions} />
-            <Stack.Screen name="add-past-stamp" options={formSheetOptions} />
-            <Stack.Screen name="edit-stamp" options={formSheetOptions} />
-            <Stack.Screen name="rally-day" options={formSheetOptions} />
-            <Stack.Screen name="logs-day" options={formSheetOptions} />
-            <Stack.Screen name="settings" options={formSheetOptions} />
-            <Stack.Screen name="language" options={formSheetOptions} />
             <Stack.Screen
-              name="stamp-photos"
+              name="(rallies)/create-rally"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(rallies)/edit-rally"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(stamps)/add-stamp-memo"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(stamps)/add-past-stamp"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(stamps)/edit-stamp"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(rallies)/rally-day"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(records)/logs-day"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(settings)/settings"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(settings)/language"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(stamps)/stamp-photos"
               options={{
                 // iOS full-screen presentation: it has no swipe-down dismiss,
                 // so the screen closes with its own Close button only.

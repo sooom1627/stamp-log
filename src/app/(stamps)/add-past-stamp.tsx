@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router";
 import {
   useDateParam,
   useIdParam,
-} from "@/features/rallies/hooks/use-id-param";
+} from "@/features/rallies/hooks/use-route-param";
 import { AddPastStampScreen } from "@/features/rallies/screens/add-past-stamp-screen";
 
 function PastStampForDay({ rallyId }: { rallyId: number }) {

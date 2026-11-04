@@ -1,4 +1,4 @@
-import { useIdParam } from "@/features/rallies/hooks/use-id-param";
+import { useIdParam } from "@/features/rallies/hooks/use-route-param";
 import { StampPhotosScreen } from "@/features/rallies/screens/stamp-photos-screen";
 
 export default function StampPhotosPage() {

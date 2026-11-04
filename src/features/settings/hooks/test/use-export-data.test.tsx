@@ -1,19 +1,19 @@
 import { File } from "expo-file-system";
 import { shareAsync } from "expo-sharing";
 
-import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { backupSchema } from "@/features/settings/schemas/backup";
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { saveStamp } from "@/shared/db/stamps-db";
-import { createTestQueryClient } from "@/shared/query/create-query-client";
+import {
+  clearQueryClients,
+  createWrapper,
+} from "@/shared/utils/test-helpers/query-wrapper";
 
 import { useExportData } from "../use-export-data";
 
 jest.useFakeTimers();
-
-const queryClients: QueryClient[] = [];
 
 beforeEach(() => {
   jest.setSystemTime(new Date(2026, 9, 25, 9, 30));
@@ -22,22 +22,8 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.restoreAllMocks();
-  for (const queryClient of queryClients) {
-    queryClient.clear();
-  }
-  queryClients.length = 0;
+  clearQueryClients();
 });
-
-function createWrapper() {
-  const queryClient = createTestQueryClient();
-  queryClients.push(queryClient);
-
-  return function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
-  };
-}
 
 describe("S-041 T-001 ST-004 export data hook", () => {
   test("writes every rally and stamp to a dated JSON file and shares it", async () => {

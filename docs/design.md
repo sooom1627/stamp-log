@@ -145,8 +145,7 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 - `/rally-day?rallyId=&date=` — ラリーの日（formSheet）
 - `/edit-stamp?stampId=` — スタンプを編集（formSheet）
 - `/rallies-list` — ラリー一覧（ホームのスタック。`View All` から）
-- `/rallies/[id]` — ラリー詳細（ホームのスタック）
-- `/records/rallies/[id]` — ラリー詳細（Logs のスタック。戻ると Logs）
+- `/rallies/[id]` — ラリー詳細（開いたタブのスタックに積む。ホームから開けばホーム、Logs から開けば Logs に戻る）
 - `/records` — 記録（タブ。カレンダーとタイムライン）
 - `/logs-day?date=` — Logs の日（formSheet）
 - `/settings` — 設定（formSheet。タブルートの Menu ボタンから）

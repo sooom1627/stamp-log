@@ -16,6 +16,13 @@ import { toast } from "sonner-native";
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampSummaryDb from "@/shared/db/stamp-summary-db";
 import * as stampsDb from "@/shared/db/stamps-db";
+import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
+import {
+  headerItem,
+  headerMenuItems,
+  pressHeaderButton,
+  pressHeaderMenuItem,
+} from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
 
@@ -26,13 +33,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-// Tests in this file share one in-memory database.
-async function deleteAllRallies() {
-  for (const rally of await ralliesDb.listRallies()) {
-    await ralliesDb.deleteRally(rally.id);
-  }
-}
 
 // The today card's rows of today's rallies, each as its texts.
 function rallyRowsOf(card: ReturnType<typeof screen.getByTestId>) {
@@ -688,14 +688,19 @@ describe("S-032 T-001 ST-007 favorites on home", () => {
       .map((tile) => tile.props.accessibilityLabel);
   }
 
-  async function pressStarOnDetailAndReturn(rallyId: number, label: string) {
+  // Presses the star labelled `press`; it reads `pressed` after.
+  async function pressStarOnDetailAndReturn(
+    rallyId: number,
+    press: string,
+    pressed: string,
+  ) {
     await act(() => {
       router.push(`/rallies/${rallyId}`);
     });
-    const star = await screen.findByTestId("rally-favorite");
-    await fireEvent(star, "buttonPress");
+    await screen.findByLabelText("Rally detail");
+    await pressHeaderButton(press);
     await waitFor(() => {
-      expect(screen.getByTestId("rally-favorite")).toHaveProp("label", label);
+      expect(headerItem(pressed).type).toBe("button");
     });
     await act(() => {
       router.back();
@@ -710,7 +715,11 @@ describe("S-032 T-001 ST-007 favorites on home", () => {
     await screen.findByRole("button", { name: "View Many details" });
     expect(tileNames()).toEqual(["View Many details", "View Few details"]);
 
-    await pressStarOnDetailAndReturn(few.id, "Remove from favorites");
+    await pressStarOnDetailAndReturn(
+      few.id,
+      "Add to favorites",
+      "Remove from favorites",
+    );
 
     await waitFor(() =>
       expect(tileNames()).toEqual(["View Few details", "View Many details"]),
@@ -730,7 +739,11 @@ describe("S-032 T-001 ST-007 favorites on home", () => {
       "View None details",
     ]);
 
-    await pressStarOnDetailAndReturn(few.id, "Add to favorites");
+    await pressStarOnDetailAndReturn(
+      few.id,
+      "Remove from favorites",
+      "Add to favorites",
+    );
 
     await waitFor(() =>
       expect(tileNames()).toEqual([
@@ -805,18 +818,20 @@ describe("S-039 T-002 ST-005 archived rallies leave home", () => {
       .map((tile) => tile.props.accessibilityLabel);
   }
 
-  async function pressArchiveOnDetailAndReturn(rallyId: number, label: string) {
+  // Chooses the menu action titled `press`; it reads `pressed` after.
+  async function pressArchiveOnDetailAndReturn(
+    rallyId: number,
+    press: string,
+    pressed: string,
+  ) {
     await act(() => {
       router.push(`/rallies/${rallyId}`);
     });
-    await fireEvent(
-      await screen.findByTestId("rally-action-archive"),
-      "buttonPress",
-    );
+    await screen.findByLabelText("Rally detail");
+    await pressHeaderMenuItem("Rally actions", press);
     await waitFor(() => {
-      expect(screen.getByTestId("rally-action-archive")).toHaveProp(
-        "label",
-        label,
+      expect(headerMenuItems("Rally actions")).toContainEqual(
+        expect.objectContaining({ title: pressed }),
       );
     });
     await act(() => {
@@ -837,7 +852,11 @@ describe("S-039 T-002 ST-005 archived rallies leave home", () => {
       "View Least details",
     ]);
 
-    await pressArchiveOnDetailAndReturn(middle.id, "Unarchive rally");
+    await pressArchiveOnDetailAndReturn(
+      middle.id,
+      "Archive rally",
+      "Unarchive rally",
+    );
 
     await waitFor(() =>
       expect(gridTileNames()).toEqual([
@@ -846,7 +865,11 @@ describe("S-039 T-002 ST-005 archived rallies leave home", () => {
       ]),
     );
 
-    await pressArchiveOnDetailAndReturn(middle.id, "Archive rally");
+    await pressArchiveOnDetailAndReturn(
+      middle.id,
+      "Unarchive rally",
+      "Archive rally",
+    );
 
     await waitFor(() =>
       expect(gridTileNames()).toEqual([

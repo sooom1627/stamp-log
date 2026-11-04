@@ -3,11 +3,12 @@ import { Alert } from "react-native";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import { act, fireEvent, screen, within } from "@testing-library/react-native";
+import { act, screen, within } from "@testing-library/react-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { saveStamp } from "@/shared/db/stamps-db";
 import { i18n } from "@/shared/i18n";
+import { pressHeaderMenuItem } from "@/shared/utils/test-helpers/native-views";
 
 jest.mock("@softwhere-uz/react-native-emoji-keyboard");
 
@@ -69,7 +70,7 @@ describe("S-045 T-002 ST-002 rally screens in Japanese", () => {
     const detail = await screen.findByLabelText("ラリーの詳細");
     await within(detail).findByText("1 stamp");
 
-    await fireEvent.press(screen.getByTestId("rally-action-delete"));
+    await pressHeaderMenuItem("ラリーの操作", "ラリーを削除");
 
     expect(alert).toHaveBeenCalledWith(
       "ラリーを削除しますか？",

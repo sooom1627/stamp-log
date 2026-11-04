@@ -30,14 +30,10 @@ import {
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
 import { localDateKey } from "@/shared/utils/local-date-key";
+import { daysAgoAt } from "@/shared/utils/test-helpers/days-ago-at";
+import { PagerViewCommands } from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
-
-// The native commands the pager sends to turn its page. Jest loads the
-// package's CommonJS build, so spy on that copy.
-const { Commands: PagerViewCommands } = jest.requireActual<
-  typeof import("react-native-pager-view/lib/typescript/PagerViewNativeComponent")
->("react-native-pager-view/lib/commonjs/PagerViewNativeComponent");
 
 // Photos the user picked in the library, saved onto the stamp (S-035).
 let nextPickedPhotoId = 1;
@@ -62,13 +58,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-function daysAgoAt(days: number, hours: number) {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  date.setHours(hours, 0, 0, 0);
-  return date.toISOString();
-}
 
 async function saveRallyNamed(name: string, emoji: string) {
   await saveRally({ name, emoji });
@@ -416,8 +405,13 @@ describe("S-010 T-001 ST-006 Logs post opens its rally", () => {
 
     await userEvent.setup().press(logs.getByTestId(`stamp-post-${stamp.id}`));
 
-    expect(app.getPathname()).toBe(`/records/rallies/${rally.id}`);
-    expect(app.getSegments()).toEqual(["(tabs)", "records", "rallies", "[id]"]);
+    expect(app.getPathname()).toBe(`/rallies/${rally.id}`);
+    expect(app.getSegments()).toEqual([
+      "(tabs)",
+      "(records)",
+      "rallies",
+      "[id]",
+    ]);
     expect(await screen.findByLabelText("Rally detail")).toBeOnTheScreen();
 
     await act(() => {
