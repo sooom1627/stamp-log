@@ -22,15 +22,11 @@ import {
 import { TabScrollView } from "@/shared/components/tab-scroll-view";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
-import { useFirstStampedAt, useStampsBetween } from "@/shared/hooks/use-stamps";
+import { useFirstStampedAt, useMonthStamps } from "@/shared/hooks/use-stamps";
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
-import {
-  currentMonth,
-  formatMonthHeading,
-  monthRange,
-} from "@/shared/utils/month-grid";
+import { currentMonth, formatMonthHeading } from "@/shared/utils/month-grid";
 import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
 import { PreviousMonthButton } from "../components/previous-month-button";
@@ -47,34 +43,33 @@ export function RecordsTimelineScreen() {
   // Opens on this month every time; the month is not remembered. The stamps
   // and the album below show only the calendar's month (S-051).
   const [month, setMonth] = useState(currentMonth);
-  const { start, end } = monthRange(month);
   const { top: safeTop } = useSafeAreaInsets();
   const scrollRef = useRef<ScrollViewInstance>(null);
   // Where the month heading sits in the scroll.
   const monthY = useRef(0);
   const previousMonth = new Date(month.getFullYear(), month.getMonth() - 1, 1);
-  // One read of the shown month and the months beside it: the calendar's
-  // pages beside it come into view while it is swiped, the stamps below are
-  // the shown month's, and the button at the bottom counts the previous one.
+  // Each month is read once and kept: the calendar's pages beside the shown
+  // month come into view while it is swiped, the stamps below are the shown
+  // month's, and the button at the bottom counts the previous one. Turning a
+  // month reads only the month newly beside it.
+  const { data: previousStamps } = useMonthStamps(previousMonth);
   const {
     rallies,
-    stamps: nearStamps,
-    isLoaded: isNearLoaded,
+    stamps: shownStamps,
+    isLoaded: isShownLoaded,
     isError,
     retry,
-  } = useRalliesAndStamps(
-    useStampsBetween(
-      previousMonth,
-      new Date(month.getFullYear(), month.getMonth() + 2, 1),
-    ),
+  } = useRalliesAndStamps(useMonthStamps(month));
+  const { data: nextStamps } = useMonthStamps(
+    new Date(month.getFullYear(), month.getMonth() + 1, 1),
   );
-  const stampsIn = (from: Date, to: Date) =>
-    (nearStamps ?? []).filter((stamp) => {
-      const stampedAt = new Date(stamp.stampedAt);
-      return stampedAt >= from && stampedAt < to;
-    });
-  const monthStamps = stampsIn(start, end);
-  const previousMonthCount = stampsIn(previousMonth, start).length;
+  const monthStamps = shownStamps ?? [];
+  const previousMonthCount = previousStamps?.length ?? 0;
+  const calendarStamps = [
+    ...(previousStamps ?? []),
+    ...monthStamps,
+    ...(nextStamps ?? []),
+  ];
   // A stamp is shown once its rally is loaded, so every post has its name.
   const posts = stampsWithRallies(monthStamps, rallies ?? []);
   const sections = groupByLocalDay(posts, ({ stamp }) => stamp.stampedAt);
@@ -84,9 +79,9 @@ export function RecordsTimelineScreen() {
   // The oldest stamp tells whether there are any stamps, and any before
   // this month.
   const { data: firstStampedAt, isError: isFirstError } = useFirstStampedAt();
-  const isLoaded = isNearLoaded && firstStampedAt !== undefined;
+  const isLoaded = isShownLoaded && firstStampedAt !== undefined;
   const hasEarlierStamps =
-    typeof firstStampedAt === "string" && new Date(firstStampedAt) < start;
+    typeof firstStampedAt === "string" && new Date(firstStampedAt) < month;
   const previousMonthButton = hasEarlierStamps ? (
     <PreviousMonthButton
       month={previousMonth}
@@ -104,7 +99,7 @@ export function RecordsTimelineScreen() {
   // Stamps exist, only not in this month.
   const isEmptyMonth =
     isLoaded && !isError && !hasPosts && typeof firstStampedAt === "string";
-  const calendarPosts = stampsWithRallies(nearStamps ?? [], rallies ?? []);
+  const calendarPosts = stampsWithRallies(calendarStamps, rallies ?? []);
 
   return (
     <>
@@ -130,7 +125,7 @@ export function RecordsTimelineScreen() {
               month={month}
               onChangeMonth={setMonth}
               stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
-              dayMarks={buildDayMarks(nearStamps ?? [], rallies ?? [])}
+              dayMarks={buildDayMarks(calendarStamps, rallies ?? [])}
               firstStampedAt={firstStampedAt}
               isRecordedOnly
               onPressDay={(date) =>

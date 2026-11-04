@@ -1190,3 +1190,33 @@ describe("S-051 T-004 ST-005 the previous month starts from its heading", () => 
     expect(scrollTo).toHaveBeenLastCalledWith({ y: 76, animated: true });
   });
 });
+
+describe("RT-007 ST-003 Logs reads each month once", () => {
+  test("turning the calendar reads only the month that comes beside it, and shows the turned month's stamps", async () => {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    const rally = await saveRallyNamed("Month by month", "🌀");
+    const september = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 12, 9).toISOString(),
+    });
+    await showOnlyStamps([september.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+    const reads = jest.mocked(stampsDb.listStampsBetween);
+    reads.mockClear();
+
+    await userEvent
+      .setup()
+      .press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      logs.getAllByTestId(/^stamp-post-\d+$/).map(({ props }) => props.testID),
+    ).toEqual([`stamp-post-${september.id}`]);
+    // September and October were read with the calendar; only August is new.
+    expect(reads.mock.calls).toEqual([
+      [new Date(2026, 7, 1).toISOString(), new Date(2026, 8, 1).toISOString()],
+    ]);
+  });
+});
