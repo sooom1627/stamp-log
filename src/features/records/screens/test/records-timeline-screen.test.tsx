@@ -1253,10 +1253,10 @@ describe("RT-007 ST-006 Logs fades the stamps below in when the month turns", ()
       within(fade).getByTestId(`stamp-post-${september.id}`),
     ).toBeOnTheScreen();
     // Reanimated's CSS animation props are not in the ViewStyle type.
-    const fadeIn = {
+    const fadeIn: Record<string, unknown> = {
       animationName: { from: { opacity: 0.1 }, to: { opacity: 1 } },
       animationDuration: 400,
-    } as ViewStyle;
+    };
     expect(fade).toHaveStyle(fadeIn);
 
     await userEvent
@@ -1274,5 +1274,37 @@ describe("RT-007 ST-006 Logs fades the stamps below in when the month turns", ()
       within(augustFade).getByTestId(`stamp-post-${august.id}`),
     ).toBeOnTheScreen();
     expect(augustFade).toHaveStyle(fadeIn);
+  });
+
+  // While the stamps below still show the month before (the calendar slides
+  // first), they dim. RNTL renders the turned month at once, so this only
+  // sees the end: the stamps are opaque again, at once, and the fade-in
+  // above alone brings them back (the two do not stack).
+  test("the stamps below dim from the turn's start and are opaque again once the turned month shows", async () => {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    const rally = await saveRallyNamed("Dim between months", "🌘");
+    const september = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 12, 9).toISOString(),
+    });
+    await showOnlyStamps([september.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+
+    await userEvent
+      .setup()
+      .press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
+    const below = logs.getByTestId("logs-month-stamps");
+    expect(
+      within(below).getByTestId(`stamp-post-${september.id}`),
+    ).toBeOnTheScreen();
+    expect(below).toHaveStyle({
+      opacity: 1,
+      transitionProperty: "opacity",
+      transitionDuration: 0,
+    } as ViewStyle);
   });
 });
