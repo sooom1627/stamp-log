@@ -1220,3 +1220,29 @@ describe("RT-007 ST-003 Logs reads each month once", () => {
     ]);
   });
 });
+
+describe("RT-007 ST-006 Logs fades the stamps below when the month turns", () => {
+  test("the stamps below are fully shown again once the turned month is drawn", async () => {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    const rally = await saveRallyNamed("Fade between months", "🌗");
+    const september = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 12, 9).toISOString(),
+    });
+    await showOnlyStamps([september.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+
+    await userEvent
+      .setup()
+      .press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
+    const below = logs.getByTestId("logs-month-stamps");
+    expect(
+      within(below).getByTestId(`stamp-post-${september.id}`),
+    ).toBeOnTheScreen();
+    expect(below).toHaveStyle({ opacity: 1 });
+  });
+});

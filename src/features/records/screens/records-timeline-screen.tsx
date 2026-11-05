@@ -5,6 +5,7 @@ import { View, type ScrollViewInstance } from "react-native";
 import { useRouter } from "expo-router";
 
 import { useTranslation } from "react-i18next";
+import Animated, { cubicBezier } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
@@ -24,6 +25,13 @@ import { buildDayMarks } from "../utils/day-marks";
 
 // The navigation bar once the large title has shrunk (iOS).
 const COLLAPSED_BAR_HEIGHT = 44;
+// While the stamps below still show the month before, they fade nearly out,
+// and back in once the new month is drawn. The wait keeps a quick turn from
+// dimming at all (as in React's useDeferredValue "stale content" example).
+const STALE_OPACITY = 0.1;
+const STALE_DELAY_MS = 100;
+const FADE_MS = 200;
+const FADE_EASING = cubicBezier(0.23, 1, 0.32, 1);
 
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
@@ -37,6 +45,7 @@ export function RecordsTimelineScreen() {
   // Mounting a month of posts takes long, so a swipe or ‹ › does not wait for
   // it, and quick turns skip the months passed on the way.
   const listMonth = useDeferredValue(month);
+  const isListStale = listMonth !== month;
   const { top: safeTop } = useSafeAreaInsets();
   const scrollRef = useRef<ScrollViewInstance>(null);
   // Where the month heading sits in the scroll.
@@ -102,12 +111,23 @@ export function RecordsTimelineScreen() {
             />
           </View>
         </View>
-        <LogsMonthStamps
-          month={listMonth}
-          view={view}
-          onChangeView={setView}
-          onShowMonth={showMonth}
-        />
+        <Animated.View
+          testID="logs-month-stamps"
+          style={{
+            opacity: isListStale ? STALE_OPACITY : 1,
+            transitionProperty: "opacity",
+            transitionDuration: FADE_MS,
+            transitionDelay: isListStale ? STALE_DELAY_MS : 0,
+            transitionTimingFunction: FADE_EASING,
+          }}
+        >
+          <LogsMonthStamps
+            month={listMonth}
+            view={view}
+            onChangeView={setView}
+            onShowMonth={showMonth}
+          />
+        </Animated.View>
       </TabScrollView>
       <TabRootHeader title={t("records.title")} />
     </>
