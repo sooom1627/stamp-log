@@ -142,6 +142,8 @@ export function LogsMonthStamps({
         }
         tiles={tiles}
         showsEmoji
+        // The month's posts and album fade in each time the month turns.
+        fadeInKey={month.toISOString()}
       />
       <View className="pt-4">{previousMonthButton}</View>
     </>

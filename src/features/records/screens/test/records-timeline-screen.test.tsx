@@ -1,4 +1,9 @@
-import { Alert, ScrollView, type AlertButton } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  type AlertButton,
+  type ViewStyle,
+} from "react-native";
 
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
@@ -1221,15 +1226,19 @@ describe("RT-007 ST-003 Logs reads each month once", () => {
   });
 });
 
-describe("RT-007 ST-006 Logs fades the stamps below when the month turns", () => {
-  test("the stamps below are fully shown again once the turned month is drawn", async () => {
+describe("RT-007 ST-006 Logs fades the stamps below in when the month turns", () => {
+  test("the turned month's stamps fade in from nearly clear, every time the month turns", async () => {
     jest.setSystemTime(new Date(2026, 9, 20, 12));
     const rally = await saveRallyNamed("Fade between months", "🌗");
     const september = await saveStamp({
       rallyId: rally.id,
       stampedAt: new Date(2026, 8, 12, 9).toISOString(),
     });
-    await showOnlyStamps([september.id]);
+    const august = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 7, 12, 9).toISOString(),
+    });
+    await showOnlyStamps([september.id, august.id]);
     await openLogs();
     const logs = within(await screen.findByLabelText("Logs timeline"));
     const calendar = within(logs.getByTestId("logs-calendar"));
@@ -1239,10 +1248,31 @@ describe("RT-007 ST-006 Logs fades the stamps below when the month turns", () =>
       .press(calendar.getByRole("button", { name: "Previous month" }));
 
     expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
-    const below = logs.getByTestId("logs-month-stamps");
+    const fade = logs.getByTestId("logs-view-fade-stamps");
     expect(
-      within(below).getByTestId(`stamp-post-${september.id}`),
+      within(fade).getByTestId(`stamp-post-${september.id}`),
     ).toBeOnTheScreen();
-    expect(below).toHaveStyle({ opacity: 1 });
+    // Reanimated's CSS animation props are not in the ViewStyle type.
+    const fadeIn = {
+      animationName: { from: { opacity: 0.1 }, to: { opacity: 1 } },
+      animationDuration: 400,
+    } as ViewStyle;
+    expect(fade).toHaveStyle(fadeIn);
+
+    await userEvent
+      .setup()
+      .press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("August 2026")).toBeOnTheScreen();
+    // A fresh view, so the fade-in plays again for August.
+    const augustFade = await waitFor(() => {
+      const view = logs.getByTestId("logs-view-fade-stamps");
+      expect(view).not.toBe(fade);
+      return view;
+    });
+    expect(
+      within(augustFade).getByTestId(`stamp-post-${august.id}`),
+    ).toBeOnTheScreen();
+    expect(augustFade).toHaveStyle(fadeIn);
   });
 });
