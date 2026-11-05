@@ -30,8 +30,9 @@ const COLLAPSED_BAR_HEIGHT = 44;
 // dimming at all (as in React's useDeferredValue "stale content" example).
 const STALE_OPACITY = 0.1;
 const STALE_DELAY_MS = 100;
-const FADE_MS = 200;
-const FADE_EASING = cubicBezier(0.23, 1, 0.32, 1);
+const FADE_MS = 400;
+// CSS ease-out: gentler than a strong UI ease-out, so the fade reads as one.
+const FADE_EASING = cubicBezier(0, 0, 0.58, 1);
 
 export function RecordsTimelineScreen() {
   const { push } = useRouter();
