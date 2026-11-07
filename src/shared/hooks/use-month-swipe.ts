@@ -38,6 +38,8 @@ type MonthSwipeOptions = {
   lastMonth: Date;
   // Called with +1 (next month, swiped left) or -1 (previous, swiped right).
   onStep: (delta: number) => void;
+  // Called with true when a drag starts and false when it is let go.
+  onDragChange?: (isDragging: boolean) => void;
 };
 
 // The calendar's months are pages on a strip (S-051 T-003). Page n sits at
@@ -51,6 +53,7 @@ export function useMonthSwipe({
   month,
   lastMonth,
   onStep,
+  onDragChange,
 }: MonthSwipeOptions) {
   const shownNumber = monthNumber(month);
   const lastNumber = monthNumber(lastMonth);
@@ -82,6 +85,7 @@ export function useMonthSwipe({
       "worklet";
       cancelAnimation(page);
       dragStartPage.set(page.get());
+      if (onDragChange) scheduleOnRN(onDragChange, true);
     },
     onUpdate: ({ translationX }) => {
       "worklet";
@@ -96,6 +100,7 @@ export function useMonthSwipe({
     },
     onDeactivate: ({ canceled, translationX, velocityX }) => {
       "worklet";
+      if (onDragChange) scheduleOnRN(onDragChange, false);
       const settled = settledPage.get();
       const turnDistance = Math.max(
         SWIPE_TURN_MIN_X,

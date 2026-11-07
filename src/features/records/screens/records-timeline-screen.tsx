@@ -25,9 +25,9 @@ import { buildDayMarks } from "../utils/day-marks";
 
 // The navigation bar once the large title has shrunk (iOS).
 const COLLAPSED_BAR_HEIGHT = 44;
-// From the turn's start (the calendar slides while the new month is drawn),
-// the stamps below dim; once the new month shows they are opaque at once and
-// its own fade-in (StampsAlbumPager fadeInKey) brings it up from 0.1.
+// While the calendar is dragged, and from a turn's start until the new month
+// is drawn, the stamps below dim; once the new month shows they are opaque at
+// once and its own fade-in (StampsAlbumPager fadeInKey) brings it up from 0.1.
 const STALE_OPACITY = 0.1;
 const DIM_MS = 260;
 const DIM_EASING = cubicBezier(0, 0, 0.58, 1);
@@ -44,7 +44,8 @@ export function RecordsTimelineScreen() {
   // Mounting a month of posts takes long, so a swipe or ‹ › does not wait for
   // it, and quick turns skip the months passed on the way.
   const listMonth = useDeferredValue(month);
-  const isListStale = listMonth !== month;
+  const [isDragging, setIsDragging] = useState(false);
+  const isListDimmed = isDragging || listMonth !== month;
   const { top: safeTop } = useSafeAreaInsets();
   const scrollRef = useRef<ScrollViewInstance>(null);
   // Where the month heading sits in the scroll.
@@ -100,6 +101,7 @@ export function RecordsTimelineScreen() {
               testID="logs-calendar"
               month={month}
               onChangeMonth={setMonth}
+              onDragChange={setIsDragging}
               stampDates={calendarPosts.map(({ stamp }) => stamp.stampedAt)}
               dayMarks={buildDayMarks(calendarStamps, rallies ?? [])}
               firstStampedAt={firstStampedAt}
@@ -113,9 +115,9 @@ export function RecordsTimelineScreen() {
         <Animated.View
           testID="logs-month-stamps"
           style={{
-            opacity: isListStale ? STALE_OPACITY : 1,
+            opacity: isListDimmed ? STALE_OPACITY : 1,
             transitionProperty: "opacity",
-            transitionDuration: isListStale ? DIM_MS : 0,
+            transitionDuration: isListDimmed ? DIM_MS : 0,
             transitionTimingFunction: DIM_EASING,
           }}
         >
