@@ -66,10 +66,10 @@ function TodayStamp({
         testID="today-stamp"
       >
         <View className="border-foreground-muted absolute inset-0 rounded-full border border-dashed opacity-40" />
-        <Text className="text-foreground-muted text-[10px] font-bold tracking-widest">
+        <Text className="text-foreground-muted text-caption2 font-bold tracking-widest">
           {monthFormatter.format(today).toUpperCase()}
         </Text>
-        <Text className="text-foreground-muted text-3xl leading-8 font-bold">
+        <Text className="text-foreground-muted text-title1 font-bold">
           {today.getDate()}
         </Text>
       </View>
@@ -125,7 +125,7 @@ function TodayStamp({
             );
           })}
           {rowIndex === rows.length - 1 && moreCount > 0 ? (
-            <Text className="text-accent-strong ml-0.5 text-xs font-bold">
+            <Text className="text-accent-strong text-footnote ml-1 font-semibold">
               {`+${moreCount}`}
             </Text>
           ) : null}
@@ -146,16 +146,16 @@ function RallyRows({ rallies }: { rallies: Rally[] }) {
   const moreCount = rallies.length - shown.length;
 
   return (
-    <View className="gap-0.5">
+    <View className="gap-1">
       {shown.map((rally) => (
         <View
           key={rally.id}
           className="flex-row items-center gap-2"
           testID="today-rally-row"
         >
-          <Text className="text-sm">{rally.emoji}</Text>
+          <Text className="text-subhead">{rally.emoji}</Text>
           <Text
-            className="text-foreground-secondary flex-1 text-sm"
+            className="text-foreground-secondary text-subhead flex-1"
             numberOfLines={1}
           >
             {rally.name}
@@ -164,7 +164,7 @@ function RallyRows({ rallies }: { rallies: Rally[] }) {
       ))}
       {moreCount > 0 ? (
         <View className="flex-row" testID="today-rally-row">
-          <Text className="text-foreground-muted text-sm">{`+${moreCount}`}</Text>
+          <Text className="text-foreground-muted text-subhead">{`+${moreCount}`}</Text>
         </View>
       ) : null}
     </View>
@@ -205,7 +205,7 @@ export function TodayCard({
         <View className="flex-1 gap-1">
           {rallies.length > 0 ? (
             <>
-              <Text className="text-foreground text-lg font-semibold">
+              <Text className="text-foreground text-headline">
                 {t("home.todayCount", {
                   stamps: formatStampCount(rallies.length),
                 })}
@@ -214,10 +214,10 @@ export function TodayCard({
             </>
           ) : (
             <>
-              <Text className="text-foreground text-lg font-semibold">
+              <Text className="text-foreground text-headline">
                 {t("home.noStampsToday")}
               </Text>
-              <Text className="text-foreground-secondary text-sm">
+              <Text className="text-foreground-secondary text-subhead">
                 {t("home.noStampsTodayBody")}
               </Text>
             </>
