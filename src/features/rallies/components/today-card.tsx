@@ -13,7 +13,7 @@ import { stampEmojiRows } from "../utils/stamp-emoji-rows";
 
 import { CardDisc, TopCard } from "./top-card";
 
-// Dates on screen stay English (docs/design.md 言語).
+// Dates on screen stay English (docs/ia.md 言語).
 const monthDayFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",

@@ -1,7 +1,7 @@
 import { i18n } from "@/shared/i18n";
 
 // Dates read out by VoiceOver follow the app language, unlike the dates on
-// screen, which stay English (docs/design.md 言語).
+// screen, which stay English (docs/ia.md 言語).
 const spokenDateFormatters = {
   en: new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }),
   ja: new Intl.DateTimeFormat("ja-JP", { dateStyle: "long" }),

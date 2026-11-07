@@ -20,7 +20,7 @@ export function formatStampTime(date: Date) {
 }
 
 // The day line of a rally detail post, e.g. "Fri, Sep 18". Dates stay English
-// in every language (docs/design.md 言語).
+// in every language (docs/ia.md 言語).
 export function formatStampDay(date: Date, now = new Date()) {
   return `${weekdayFormatter.format(date)}, ${monthFormatter.format(date)} ${date.getDate()}${yearSuffix(date, now)}`;
 }

@@ -101,7 +101,7 @@ master
 ## Before coding
 
 1. Find the target Story issue. If missing, create it first (Story form, `Epic: E-###` line). A new Epic is added to the table in `docs/product.md` first.
-2. If the Story changes the spec or adds or changes screens, plan ST-001 of its first Task as the docs Sub: update `docs/product.md`, [docs/design.md](docs/design.md) and the matching `docs/screens/*.md` there for the whole Story. Do not put Story docs on a separate branch or PR.
+2. If the Story changes the spec or adds or changes screens, plan ST-001 of its first Task as the docs Sub: update `docs/product.md`, [docs/ia.md](docs/ia.md) and the matching `docs/screens/*.md` there for the whole Story. Do not put Story docs on a separate branch or PR.
 3. Ensure the Story branch exists; cut a Task branch only after the Task issues and their Sub checklists are written.
 4. Split the Task into Subs (typically docs → schema → db → hooks → UI; docs only in the Story's first Task). Do not implement an unsplit Task as one blob.
 5. Split the Story itself if it has more than 5 acceptance criteria or cannot ship in one PR after Task/Sub split.
