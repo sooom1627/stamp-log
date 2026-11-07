@@ -65,7 +65,9 @@ export function WithAtoCard({
     >
       <View className="flex-1 flex-row items-center gap-3">
         <View className="flex-1 gap-1">
-          <Text className="text-foreground text-headline">{dayText}</Text>
+          <Text className="text-foreground text-headline font-semibold">
+            {dayText}
+          </Text>
           <View className="flex-row gap-3">
             <Text className="text-foreground-secondary text-subhead">
               {formatStampCount(stampCount)}

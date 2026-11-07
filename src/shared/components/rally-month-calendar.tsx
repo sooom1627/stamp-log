@@ -111,7 +111,9 @@ export function RallyMonthCalendar({
           className="min-h-11 justify-center"
           onPress={() => setIsPickerOpen(true)}
         >
-          <Text className="text-foreground text-xl font-bold">{heading}</Text>
+          <Text className="text-foreground text-title2 font-bold">
+            {heading}
+          </Text>
         </Pressable>
         <View className="flex-row">
           <Pressable
@@ -140,7 +142,7 @@ export function RallyMonthCalendar({
       <GestureDetector gesture={swipe}>
         <View
           testID={`${testID}-panel`}
-          className="bg-surface border-continuous w-full gap-2 rounded-3xl p-3"
+          className="bg-surface border-continuous rounded-card w-full gap-2 p-3"
         >
           {/* Each month is a page placed at its own position on a strip, so a
               page stays put when the shown month changes; the strip moves with

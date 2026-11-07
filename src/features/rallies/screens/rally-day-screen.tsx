@@ -52,14 +52,14 @@ export function RallyDayScreen({ rallyId, date }: RallyDayScreenProps) {
         <View className="gap-5">
           <View
             testID="rally-day-empty"
-            className="bg-accent-subtle border-continuous items-center gap-3 rounded-3xl py-8"
+            className="bg-accent-subtle border-continuous rounded-card items-center gap-3 py-8"
           >
             <View className="bg-background size-14 items-center justify-center rounded-full">
               <Text aria-hidden className="text-3xl opacity-60">
                 {rally.emoji}
               </Text>
             </View>
-            <Text className="text-accent-strong text-base font-semibold">
+            <Text className="text-accent-strong text-headline font-semibold">
               {t("rallies.noStampOnDay")}
             </Text>
           </View>

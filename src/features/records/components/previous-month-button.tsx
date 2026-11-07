@@ -35,8 +35,8 @@ export function PreviousMonthButton({
       className="min-h-11 flex-row items-center justify-center gap-1 self-center px-4"
       onPress={onPress}
     >
-      <ChevronLeft colorClassName="accent-accent" size={18} />
-      <Text className="text-foreground-secondary text-sm font-semibold">
+      <ChevronLeft colorClassName="accent-accent" size={16} />
+      <Text className="text-foreground-secondary text-subhead font-semibold">
         {`${heading} · ${count}`}
       </Text>
     </Pressable>
