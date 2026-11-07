@@ -28,15 +28,15 @@ export function RallyActivityWeek({
   const { t } = useTranslation();
 
   return (
-    <View className="w-full gap-1.5" testID="activity-week">
+    <View className="w-full gap-1" testID="activity-week">
       <View className="flex-row">
         {activityDays.map((day, index) => (
           <Text
             key={day.key}
             className={
               index === activityDays.length - 1
-                ? "text-foreground flex-1 text-center text-[10px] font-bold"
-                : "text-foreground-muted flex-1 text-center text-[10px] font-medium"
+                ? "text-foreground text-caption2 flex-1 text-center font-semibold"
+                : "text-foreground-muted text-caption2 flex-1 text-center"
             }
             testID="activity-weekday"
           >

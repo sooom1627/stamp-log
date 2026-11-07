@@ -18,6 +18,28 @@
   --color-mark-sun-to: #f97316;
   /* The action on an inverse (toast-like) surface. */
   --color-inverse-accent: #fdba74;
+
+  /* Type and corners from DESIGN.md (S-060): iOS's text styles at the
+     default size, and one corner for cards. Change both files together. */
+  --text-large-title: 34px;
+  --text-large-title--line-height: 41px;
+  --text-title1: 28px;
+  --text-title1--line-height: 34px;
+  --text-title2: 22px;
+  --text-title2--line-height: 28px;
+  --text-headline: 17px;
+  --text-headline--line-height: 22px;
+  --text-body: 17px;
+  --text-body--line-height: 22px;
+  --text-body-long: 17px;
+  --text-body-long--line-height: 26px;
+  --text-subhead: 15px;
+  --text-subhead--line-height: 20px;
+  --text-footnote: 13px;
+  --text-footnote--line-height: 18px;
+  --text-caption2: 11px;
+  --text-caption2--line-height: 13px;
+  --radius-card: 20px;
 }
 
 /* Semantic colors: use these instead of `dark:` variants. Both variants must

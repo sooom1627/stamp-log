@@ -17,9 +17,9 @@ import { TodayCard } from "./today-card";
 import { TodayLogCard } from "./today-log-card";
 import { WithAtoCard } from "./with-ato-card";
 
-// Matches the tab root's px-5 and the row's gap-2.5.
+// Matches the tab root's px-5 and the row's gap-3.
 const SCREEN_PADDING = 20;
-const CARD_GAP = 10;
+const CARD_GAP = 12;
 const CARD_COUNT = 3;
 
 type HomeTopCardsProps = {
@@ -63,7 +63,7 @@ export function HomeTopCards({
   };
 
   return (
-    <View className="mb-5">
+    <View className="mb-6">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -73,7 +73,7 @@ export function HomeTopCards({
         onScroll={onScroll}
         scrollEventThrottle={16}
         className="-mx-5"
-        contentContainerClassName="gap-2.5 px-5"
+        contentContainerClassName="gap-3 px-5"
         testID="top-cards"
       >
         <TodayCard
@@ -97,7 +97,7 @@ export function HomeTopCards({
           position={positionOf(2)}
         />
       </ScrollView>
-      <View className="mt-3 flex-row justify-center gap-1.5" aria-hidden>
+      <View className="mt-3 flex-row justify-center gap-2" aria-hidden>
         {Array.from({ length: CARD_COUNT }, (_, index) => (
           <View
             key={index}

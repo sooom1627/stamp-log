@@ -88,7 +88,7 @@ export function TodayLogCard({ entries, width, position }: TodayLogCardProps) {
           {TICKS.map((hour) => (
             <Text
               key={hour}
-              className="text-foreground-muted absolute top-5 -ml-2 w-4 text-center text-[10px]"
+              className="text-foreground-muted text-caption2 absolute top-5 -ml-2 w-4 text-center"
               style={{ left: percentOfDay(hour) }}
             >
               {hour}
@@ -96,23 +96,23 @@ export function TodayLogCard({ entries, width, position }: TodayLogCardProps) {
           ))}
         </View>
         {entries.length > 0 ? (
-          <View className="flex-row gap-3.5" testID="today-log-times">
+          <View className="flex-row gap-3" testID="today-log-times">
             {earlierCount > 0 ? (
-              <Text className="text-foreground-muted text-sm">
+              <Text className="text-foreground-muted text-subhead">
                 {`+${earlierCount}`}
               </Text>
             ) : null}
             {latest.map((entry) => (
               <Text
                 key={entry.stampId}
-                className="text-foreground-secondary text-sm"
+                className="text-foreground-secondary text-subhead"
               >
                 {`${entry.emoji} ${formatStampTime(entry.stampedAt)}`}
               </Text>
             ))}
           </View>
         ) : (
-          <Text className="text-foreground-muted text-sm">
+          <Text className="text-foreground-muted text-subhead">
             {t("home.todayLogEmpty")}
           </Text>
         )}

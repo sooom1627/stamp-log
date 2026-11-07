@@ -98,9 +98,11 @@ Details and the mandatory Red → Green cycle live in `.cursor/rules/tdd-cycle.m
 
 ## UI & Styling (Uniwind + Tailwind CSS v4)
 
+- **Design rules**: Follow [`DESIGN.md`](DESIGN.md) for colors, type, spacing, radius, icon sizes, text size and motion. Use only its scales (`text-body`, `gap-3`, `rounded-card`, …). When a value changes, change `DESIGN.md` and `tailwind.css` in the same commit.
+
 - **Styling**: Use **Uniwind** and Tailwind utility `className` on React Native components. Load the `uniwind` skill for setup, theming, variants, and third-party bindings.
 - **Priority**: This repo's Uniwind `className` rules override `expo-native-ui`'s "CSS and Tailwind are not supported" guidance. Keep `expo-native-ui` for Safe Area and `@expo/ui` selection — not for inline-style-only styling or icons (see **Icons**).
-- **Colors**: Use the semantic theme tokens in `tailwind.css` (`bg-background`, `text-foreground`, `text-foreground-secondary`, `text-foreground-muted`, `bg-surface-muted`, `border-border`, `bg-primary`, `text-primary-foreground`, `bg-inverse`). They carry light and dark values, so do not write `dark:` variants. Never hard-code hex in components; for native views that take a color value (`@expo/ui`), use `useAccentColor()` / `useCSSVariable`.
+- **Colors**: Use the color tokens in `DESIGN.md`'s Colors (defined in `tailwind.css`). They carry light and dark values, so do not write `dark:` variants. Never hard-code hex in components; for native views that take a color value (`@expo/ui`), use `useAccentColor()` / `useCSSVariable`.
 - **Icons**: Use lucide icons from `@/shared/components/icons` (each wrapped once with `withUniwind`; color with `colorClassName="accent-*"`). Add new icons to that module. SF Symbols only where the API accepts nothing else: `NativeTabs.Trigger.Icon`, `Stack.Toolbar.Button icon`, and the `@expo/ui` `Menu` label.
 - **Corners**: Add `border-continuous` to every `rounded-*` box (not needed for `rounded-full`).
 - **Do not use NativeWind APIs**: no `nativewind/babel`, `cssInterop`, `remapProps`, `ThemeProvider`, or `tailwind.config.js`. Theme lives in CSS (`@theme`). Third-party components use `withUniwind()`, never wrapping core `react-native` / Reanimated primitives.

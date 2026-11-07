@@ -7,7 +7,9 @@
 ## Documentation
 
 - [docs/product.md](docs/product.md) — プロダクト定義（概要・ビジョン・基盤）
-- [docs/design.md](docs/design.md) — IA・画面定義
+- [docs/ia.md](docs/ia.md) — IA・画面定義
+- [DESIGN.md](DESIGN.md) — 色・文字・余白・角丸・アイコン・動きの決まり
+- [docs/brand.md](docs/brand.md) — 名前・言葉づかい・ロゴ・掲載
 - [GitHub Issues](https://github.com/sooom1627/stamp-log/issues) — Story / Task（Epic 一覧は [docs/product.md](docs/product.md) §3）
 - [docs/archive/backlog.md](docs/archive/backlog.md) — 移行前のバックログ（凍結）
 

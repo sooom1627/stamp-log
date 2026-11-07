@@ -1,6 +1,6 @@
 # Product
 
-プロダクト定義（概要・ビジョン・基盤）。画面・IA は [design.md](./design.md)、名前・コピー・見た目の方針は [brand.md](./brand.md) を参照する。Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues) を参照する。
+プロダクト定義（概要・ビジョン・基盤）。画面・IA は [ia.md](./ia.md)、名前・コピー・見た目の方針は [brand.md](./brand.md) を参照する。Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues) を参照する。
 
 # 1. 概要
 
@@ -98,7 +98,7 @@
 - 写真のアルバム（スタンプに付けた写真をまとめて見る）
 - ラリー・スタンプの編集
 
-UI上の名称は開発過程で変更可能とする。画面の配置・遷移の詳細は [design.md](./design.md) を正とする。
+UI上の名称は開発過程で変更可能とする。画面の配置・遷移の詳細は [ia.md](./ia.md) を正とする。
 
 ## 2.3 基本概念
 

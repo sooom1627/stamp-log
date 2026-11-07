@@ -26,9 +26,9 @@ import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 import { buildTodayLog, countDaysWithAto } from "../utils/today-log";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 
-// Matches the tab root's px-5 and the grid's gap-2.5.
+// Matches the tab root's px-5 and the grid's gap-3.
 const SCREEN_PADDING = 20;
-const TILE_GAP = 10;
+const TILE_GAP = 12;
 
 export function HomeScreen() {
   const { t } = useTranslation();
@@ -106,8 +106,11 @@ export function HomeScreen() {
         ) : null}
         {isListError ? <LoadError onRetry={retryLists} /> : null}
         {rallies?.length ? (
-          <View className="mt-2 mb-2.5 flex-row items-center justify-between">
-            <Text role="heading" className="text-foreground text-xl font-bold">
+          <View className="mb-2 flex-row items-center justify-between">
+            <Text
+              role="heading"
+              className="text-foreground text-title2 font-bold"
+            >
               Your Days
             </Text>
             <Link href="/rallies-list" asChild>
@@ -116,7 +119,7 @@ export function HomeScreen() {
                 role="link"
                 className="-my-2 -mr-2 min-h-11 justify-center px-2 active:opacity-70"
               >
-                <Text className="text-foreground text-base font-medium">
+                <Text className="text-foreground text-body">
                   {t("home.viewAll")}
                 </Text>
               </Pressable>
@@ -124,7 +127,7 @@ export function HomeScreen() {
           </View>
         ) : null}
         {orderedRallies ? (
-          <View className="flex-row flex-wrap gap-2.5" testID="rally-grid">
+          <View className="flex-row flex-wrap gap-3" testID="rally-grid">
             {orderedRallies.map((rally) => (
               <RallyTile
                 key={rally.id}
@@ -149,7 +152,7 @@ export function HomeScreen() {
             <Link href="/create-rally" asChild>
               <Pressable
                 aria-label={t("rallies.createRally")}
-                className="border-border border-continuous min-h-44 items-center justify-center gap-2 rounded-3xl border-2 border-dashed active:opacity-70"
+                className="border-border border-continuous rounded-card min-h-44 items-center justify-center gap-2 border-2 border-dashed active:opacity-70"
                 style={{ width: tileWidth }}
               >
                 <View
@@ -162,7 +165,7 @@ export function HomeScreen() {
                     strokeWidth={2.5}
                   />
                 </View>
-                <Text className="text-foreground text-sm font-semibold">
+                <Text className="text-foreground text-subhead font-semibold">
                   {t("home.newRally")}
                 </Text>
               </Pressable>
