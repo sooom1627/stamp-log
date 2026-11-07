@@ -24,6 +24,7 @@ import {
   stampsQueryKey,
   useDeleteStamp,
   useFirstStampedAt,
+  useMonthStamps,
   usePhotoDayStamps,
   useRallyStamps,
   useSaveStamp,
@@ -781,5 +782,82 @@ describe("RT-003 ST-004 useStampsBetween and useFirstStampedAt", () => {
     await waitFor(() => {
       expect(result.current.data).toBe(oldest.stampedAt);
     });
+  });
+});
+
+describe("RT-007 ST-002 useMonthStamps reads each month once", () => {
+  const september = new Date(2026, 8, 1);
+  const october = new Date(2026, 9, 1);
+  const november = new Date(2026, 10, 1);
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  // Two months side by side, as a calendar keeps the months beside the
+  // shown one.
+  function useTwoMonths({ first, second }: { first: Date; second: Date }) {
+    return {
+      first: useMonthStamps(first),
+      second: useMonthStamps(second),
+      save: useSaveStamp(),
+    };
+  }
+
+  test("reads only the month that comes into view, and a month already read keeps its data", async () => {
+    const inOctober = await saveStamp({
+      rallyId: 871,
+      stampedAt: new Date(2026, 9, 12, 9).toISOString(),
+    });
+    const reads = jest.spyOn(stampsDb, "listStampsBetween");
+    const { result, rerender } = await renderHook(useTwoMonths, {
+      initialProps: { first: september, second: october },
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => {
+      expect(result.current.second.isSuccess).toBe(true);
+    });
+    const octoberStamps = result.current.second.data;
+    expect(octoberStamps?.map(({ id }) => id)).toContain(inOctober.id);
+    reads.mockClear();
+
+    await rerender({ first: october, second: november });
+    await waitFor(() => {
+      expect(result.current.second.isSuccess).toBe(true);
+    });
+
+    expect(reads.mock.calls).toEqual([
+      [november.toISOString(), new Date(2026, 11, 1).toISOString()],
+    ]);
+    expect(result.current.first.data).toBe(octoberStamps);
+  });
+
+  test("reads a shown month again after a save, and a month the save did not change keeps its data", async () => {
+    const { result } = await renderHook(useTwoMonths, {
+      initialProps: { first: september, second: october },
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => {
+      expect(result.current.first.isSuccess).toBe(true);
+      expect(result.current.second.isSuccess).toBe(true);
+    });
+    const septemberStamps = result.current.first.data;
+    const octoberCount = result.current.second.data?.length ?? 0;
+
+    let savedId = 0;
+    await act(async () => {
+      savedId = (
+        await result.current.save.mutateAsync({
+          rallyId: 872,
+          stampedAt: new Date(2026, 9, 20, 9).toISOString(),
+        })
+      ).id;
+    });
+
+    await waitFor(() => {
+      expect(result.current.second.data?.length).toBe(octoberCount + 1);
+    });
+    expect(result.current.second.data?.map(({ id }) => id)).toContain(savedId);
+    expect(result.current.first.data).toBe(septemberStamps);
   });
 });

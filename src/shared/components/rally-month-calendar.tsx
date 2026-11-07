@@ -48,6 +48,9 @@ type RallyMonthCalendarProps = {
   onChangeMonth: (month: Date) => void;
   // The oldest stamp's time, when `stampDates` holds only the shown range.
   firstStampedAt?: string | null;
+  // Called with true when a swipe starts dragging the months, false when it
+  // is let go (Logs dims the stamps below meanwhile).
+  onDragChange?: (isDragging: boolean) => void;
 };
 
 export function RallyMonthCalendar({
@@ -60,6 +63,7 @@ export function RallyMonthCalendar({
   month,
   onChangeMonth,
   firstStampedAt,
+  onDragChange,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(useToday());
   const { t } = useTranslation();
@@ -84,6 +88,7 @@ export function RallyMonthCalendar({
     month,
     lastMonth: thisMonth,
     onStep: step,
+    onDragChange,
   });
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);

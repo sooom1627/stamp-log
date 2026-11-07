@@ -362,3 +362,36 @@ describe("S-051 T-003 ST-003 months as pages side by side", () => {
     expect(await screen.findByText("November 2026")).toBeOnTheScreen();
   });
 });
+
+describe("RT-007 ST-006 the calendar tells when its months are dragged", () => {
+  test("tells a drag's start and its letting go, whether or not it turns the month", async () => {
+    const onDragChange = jest.fn();
+    await renderCalendar(
+      <Calendar
+        testID="logs-calendar"
+        stampDates={[]}
+        onDragChange={onDragChange}
+      />,
+    );
+    const swipe = getByGestureTestId("logs-calendar-swipe");
+
+    await act(() =>
+      fireGestureHandler(swipe, [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationX: 25 },
+        { state: State.END, translationX: 25 },
+      ]),
+    );
+    await act(() => jest.runAllTicks());
+    await act(() =>
+      fireGestureHandler(swipe, [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationX: 80 },
+        { state: State.END, translationX: 80 },
+      ]),
+    );
+
+    expect(await screen.findByText("September 2026")).toBeOnTheScreen();
+    expect(onDragChange.mock.calls).toEqual([[true], [false], [true], [false]]);
+  });
+});

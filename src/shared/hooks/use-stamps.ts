@@ -24,6 +24,7 @@ import {
 } from "@/shared/db/stamps-db";
 import { type Stamp, type StampPhoto } from "@/shared/schemas/stamps";
 import { addLocalDays } from "@/shared/utils/add-local-days";
+import { monthRange } from "@/shared/utils/month-grid";
 
 export const stampsQueryKey = ["stamps"] as const;
 
@@ -73,6 +74,19 @@ export function useStampsBetween(start: Date, end: Date) {
     queryKey: [...stampsQueryKey, "between", startIso, endIso],
     queryFn: () => listStampsBetween(startIso, endIso),
     placeholderData: keepPreviousData,
+  });
+}
+
+// The stamps of one local month (`month` is its first day). The key is the
+// month, not the range a screen shows, so a month read once is used again
+// while it stays cached; writes invalidate it with every stamps query.
+export function useMonthStamps(month: Date) {
+  const { start, end } = monthRange(month);
+  const startIso = start.toISOString();
+  const endIso = end.toISOString();
+  return useQuery({
+    queryKey: [...stampsQueryKey, "month", startIso],
+    queryFn: () => listStampsBetween(startIso, endIso),
   });
 }
 

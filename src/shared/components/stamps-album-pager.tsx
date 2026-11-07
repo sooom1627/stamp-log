@@ -3,12 +3,20 @@ import { useState, type ReactNode } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
 
 import { useTranslation } from "react-i18next";
+import Animated, { cubicBezier } from "react-native-reanimated";
 
 import { type AlbumTile } from "@/shared/utils/album-photos";
 
 import { AlbumGrid } from "./album-grid";
 import { stampsViews, type StampsView } from "./stamps-album-picker";
 import { SwipePages } from "./swipe-pages";
+
+// A page's content fades in from nearly clear (Logs, when its month turns).
+const FADE_IN = {
+  animationName: { from: { opacity: 0.1 }, to: { opacity: 1 } },
+  animationDuration: 400,
+  animationTimingFunction: cubicBezier(0, 0, 0.58, 1),
+};
 
 type StampsAlbumPagerProps = {
   // The pager is `${testIDPrefix}-pager`, each page `${testIDPrefix}-page-${view}`.
@@ -20,6 +28,9 @@ type StampsAlbumPagerProps = {
   stamps: ReactNode;
   tiles: AlbumTile[];
   showsEmoji: boolean;
+  // When this changes, each page's content fades in again. Without it the
+  // pages do not fade.
+  fadeInKey?: string;
 };
 
 // The Stamps and Album pages under the StampsAlbumPicker, inside the screen's
@@ -32,6 +43,7 @@ export function StampsAlbumPager({
   stamps,
   tiles,
   showsEmoji,
+  fadeInKey,
 }: StampsAlbumPagerProps) {
   const { height: windowHeight } = useWindowDimensions();
   const { t } = useTranslation();
@@ -61,17 +73,23 @@ export function StampsAlbumPager({
             }))
           }
         >
-          {page === "stamps" ? (
-            stamps
-          ) : tiles.length === 0 ? (
-            <View className="items-center py-12">
-              <Text className="text-foreground-secondary">
-                {t("stamps.noPhotos")}
-              </Text>
-            </View>
-          ) : (
-            <AlbumGrid tiles={tiles} showsEmoji={showsEmoji} />
-          )}
+          <Animated.View
+            key={fadeInKey}
+            testID={`${testIDPrefix}-fade-${page}`}
+            style={fadeInKey === undefined ? undefined : FADE_IN}
+          >
+            {page === "stamps" ? (
+              stamps
+            ) : tiles.length === 0 ? (
+              <View className="items-center py-12">
+                <Text className="text-foreground-secondary">
+                  {t("stamps.noPhotos")}
+                </Text>
+              </View>
+            ) : (
+              <AlbumGrid tiles={tiles} showsEmoji={showsEmoji} />
+            )}
+          </Animated.View>
         </View>
       )}
     />

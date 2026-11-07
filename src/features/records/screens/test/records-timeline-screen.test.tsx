@@ -1,4 +1,9 @@
-import { Alert, ScrollView, type AlertButton } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  type AlertButton,
+  type ViewStyle,
+} from "react-native";
 
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
@@ -1188,5 +1193,118 @@ describe("S-051 T-004 ST-005 the previous month starts from its heading", () => 
 
     // Under the collapsed bar (44 points; no safe area in tests).
     expect(scrollTo).toHaveBeenLastCalledWith({ y: 76, animated: true });
+  });
+});
+
+describe("RT-007 ST-003 Logs reads each month once", () => {
+  test("turning the calendar reads only the month that comes beside it, and shows the turned month's stamps", async () => {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    const rally = await saveRallyNamed("Month by month", "🌀");
+    const september = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 12, 9).toISOString(),
+    });
+    await showOnlyStamps([september.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+    const reads = jest.mocked(stampsDb.listStampsBetween);
+    reads.mockClear();
+
+    await userEvent
+      .setup()
+      .press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
+    expect(
+      logs.getAllByTestId(/^stamp-post-\d+$/).map(({ props }) => props.testID),
+    ).toEqual([`stamp-post-${september.id}`]);
+    // September and October were read with the calendar; only August is new.
+    expect(reads.mock.calls).toEqual([
+      [new Date(2026, 7, 1).toISOString(), new Date(2026, 8, 1).toISOString()],
+    ]);
+  });
+});
+
+describe("RT-007 ST-006 Logs fades the stamps below in when the month turns", () => {
+  test("the turned month's stamps fade in from nearly clear, every time the month turns", async () => {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    const rally = await saveRallyNamed("Fade between months", "🌗");
+    const september = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 12, 9).toISOString(),
+    });
+    const august = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 7, 12, 9).toISOString(),
+    });
+    await showOnlyStamps([september.id, august.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+
+    await userEvent
+      .setup()
+      .press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
+    const fade = logs.getByTestId("logs-view-fade-stamps");
+    expect(
+      within(fade).getByTestId(`stamp-post-${september.id}`),
+    ).toBeOnTheScreen();
+    // Reanimated's CSS animation props are not in the ViewStyle type.
+    const fadeIn: Record<string, unknown> = {
+      animationName: { from: { opacity: 0.1 }, to: { opacity: 1 } },
+      animationDuration: 400,
+    };
+    expect(fade).toHaveStyle(fadeIn);
+
+    await userEvent
+      .setup()
+      .press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("August 2026")).toBeOnTheScreen();
+    // A fresh view, so the fade-in plays again for August.
+    const augustFade = await waitFor(() => {
+      const view = logs.getByTestId("logs-view-fade-stamps");
+      expect(view).not.toBe(fade);
+      return view;
+    });
+    expect(
+      within(augustFade).getByTestId(`stamp-post-${august.id}`),
+    ).toBeOnTheScreen();
+    expect(augustFade).toHaveStyle(fadeIn);
+  });
+
+  // While the stamps below still show the month before (the calendar slides
+  // first), they dim. RNTL renders the turned month at once, so this only
+  // sees the end: the stamps are opaque again, at once, and the fade-in
+  // above alone brings them back (the two do not stack).
+  test("the stamps below dim from the turn's start and are opaque again once the turned month shows", async () => {
+    jest.setSystemTime(new Date(2026, 9, 20, 12));
+    const rally = await saveRallyNamed("Dim between months", "🌘");
+    const september = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: new Date(2026, 8, 12, 9).toISOString(),
+    });
+    await showOnlyStamps([september.id]);
+    await openLogs();
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const calendar = within(logs.getByTestId("logs-calendar"));
+
+    await userEvent
+      .setup()
+      .press(calendar.getByRole("button", { name: "Previous month" }));
+
+    expect(await calendar.findByText("September 2026")).toBeOnTheScreen();
+    const below = logs.getByTestId("logs-month-stamps");
+    expect(
+      within(below).getByTestId(`stamp-post-${september.id}`),
+    ).toBeOnTheScreen();
+    expect(below).toHaveStyle({
+      opacity: 1,
+      transitionProperty: "opacity",
+      transitionDuration: 0,
+    } as ViewStyle);
   });
 });

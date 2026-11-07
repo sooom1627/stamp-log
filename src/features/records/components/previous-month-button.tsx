@@ -3,24 +3,26 @@ import { Pressable, Text } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { ChevronLeft } from "@/shared/components/icons";
+import { useMonthStamps } from "@/shared/hooks/use-stamps";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { formatMonthHeading } from "@/shared/utils/month-grid";
 
 type PreviousMonthButtonProps = {
   // The first day of the month the button moves to.
   month: Date;
-  // That month's stamps, shown beside it.
-  count: number;
   onPress: () => void;
 };
 
-// At the bottom of Logs: turns the calendar and the records below back a month.
+// At the bottom of Logs: turns the calendar and the records below back a
+// month. It counts that month's stamps itself, so the list above does not
+// render again when the count arrives.
 export function PreviousMonthButton({
   month,
-  count,
   onPress,
 }: PreviousMonthButtonProps) {
   const { t } = useTranslation();
+  const { data: stamps } = useMonthStamps(month);
+  const count = stamps?.length ?? 0;
   const heading = formatMonthHeading(month);
 
   return (
