@@ -11,6 +11,7 @@ import {
 import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampsDb from "@/shared/db/stamps-db";
 import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 import {
   PagerViewCommands,
   pressHeaderButton,
@@ -332,5 +333,28 @@ describe("S-043 T-002 ST-002 pages for the list tabs", () => {
     expect(
       ralliesList().getAllByRole("button", { name: "Retry" }),
     ).toHaveLength(1);
+  });
+});
+
+describe("S-060 T-002 ST-002 rallies list follows DESIGN.md", () => {
+  beforeEach(async () => {
+    jest.setSystemTime(new Date(2026, 8, 20, 9, 0));
+    await deleteAllRallies();
+  });
+
+  test("keeps the heading and the grid on the scales, 12 between tiles", async () => {
+    await saveRallyWithStamps("Grid rules", 1);
+
+    await openRalliesList();
+
+    const grid = await screen.findByTestId("rally-grid");
+    expect(offScaleClassNames(grid)).toEqual([]);
+    expect(grid).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)gap-3(\s|$)/),
+    );
+    expect(
+      ralliesList().getByRole("heading", { name: "Your Days" }),
+    ).toHaveProp("className", expect.stringContaining("text-title2"));
   });
 });

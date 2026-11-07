@@ -36,6 +36,7 @@ import {
 } from "@/shared/utils/format-stamp-date-time";
 import { localDateKey } from "@/shared/utils/local-date-key";
 import { daysAgoAt } from "@/shared/utils/test-helpers/days-ago-at";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 import { PagerViewCommands } from "@/shared/utils/test-helpers/native-views";
 
 jest.useFakeTimers();
@@ -1059,6 +1060,20 @@ describe("S-051 T-001 ST-005 Logs steps back a month from the bottom", () => {
     ).toBeOnTheScreen();
   });
 
+  test("keeps the earlier-month button on DESIGN.md's scales (S-060)", async () => {
+    await saveStampsIn([[2026, 8]]);
+    const { logs } = await openLogsList();
+
+    const button = await logs.findByRole("button", {
+      name: "Show October 2026, 0 stamps",
+    });
+    expect(offScaleClassNames(button)).toEqual([]);
+    expect(within(button).getByText(/October/)).toHaveProp(
+      "className",
+      expect.stringContaining("text-subhead"),
+    );
+  });
+
   test("says a month before the first stamp has no stamps, without the button", async () => {
     await saveStampsIn([[2026, 10]]);
     const { logs, calendar } = await openLogsList();
@@ -1306,5 +1321,40 @@ describe("RT-007 ST-006 Logs fades the stamps below in when the month turns", ()
       transitionProperty: "opacity",
       transitionDuration: 0,
     } as ViewStyle);
+  });
+});
+
+describe("S-060 T-002 ST-002 Logs day cards follow DESIGN.md", () => {
+  test("keeps the day heading, posts and photo mark on the scales, with the memo on the long line height", async () => {
+    const rally = await saveRallyNamed("Logs rules", "📐");
+    const withMemo = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: daysAgoAt(1, 19),
+    });
+    await updateStampMemo({
+      id: withMemo.id,
+      memo: "長いメモは二行にわたって折り返す",
+    });
+    const photoRally = await saveRallyNamed("Logs rules photo", "📷");
+    const withPhoto = await saveStamp({
+      rallyId: photoRally.id,
+      stampedAt: daysAgoAt(1, 8),
+    });
+    await attachPhotos(withPhoto.id, 1);
+
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    const post = logs.getByTestId(`stamp-post-${withMemo.id}`);
+    const section = logs.getByTestId(
+      `day-section-${localDateKey(new Date(daysAgoAt(1, 19)))}`,
+    );
+    expect(
+      within(section).getByTestId(`stamp-post-${withPhoto.id}`),
+    ).toBeOnTheScreen();
+    expect(offScaleClassNames(section)).toEqual([]);
+    expect(
+      within(post).getByText("長いメモは二行にわたって折り返す"),
+    ).toHaveProp("className", expect.stringContaining("text-body-long"));
   });
 });
