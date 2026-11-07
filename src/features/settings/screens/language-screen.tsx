@@ -46,20 +46,20 @@ export function LanguageScreen() {
                       onSuccess: () => back(),
                     })
                   }
-                  className="active:bg-surface-muted-active min-h-13 flex-row items-center px-4 py-2.5"
+                  className="active:bg-surface-muted-active min-h-13 flex-row items-center px-4 py-3"
                 >
-                  <Text className="text-foreground flex-1 text-base">
+                  <Text className="text-foreground text-body flex-1">
                     {option.label}
                   </Text>
                   {isSelected ? (
-                    <Check size={18} colorClassName="accent-accent-strong" />
+                    <Check size={20} colorClassName="accent-accent-strong" />
                   ) : null}
                 </Pressable>
               </Fragment>
             );
           })}
         </View>
-        <Text className="text-foreground-muted px-4 text-sm">
+        <Text className="text-foreground-muted text-footnote px-4">
           {t("language.deviceNote")}
         </Text>
       </View>

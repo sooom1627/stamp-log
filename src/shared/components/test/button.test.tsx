@@ -91,7 +91,7 @@ describe("S-006 RT-001 ST-001 Button", () => {
     );
     expect(screen.getByText("Save")).toHaveProp(
       "className",
-      expect.stringContaining("text-base"),
+      expect.stringContaining("text-headline font-semibold"),
     );
   });
 });

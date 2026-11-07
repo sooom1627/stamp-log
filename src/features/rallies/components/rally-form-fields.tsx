@@ -44,7 +44,7 @@ export function RallyFormFields({
           className="border-continuous border-border bg-surface-muted active:bg-surface-muted-active flex-row items-center gap-3 rounded-2xl border px-4 py-3"
         >
           <Text className="text-3xl">{emoji}</Text>
-          <Text className="text-foreground-muted flex-1 text-sm">
+          <Text className="text-foreground-muted text-subhead flex-1">
             {t("rallies.tapToChange")}
           </Text>
         </Pressable>
