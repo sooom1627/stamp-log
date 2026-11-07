@@ -2,7 +2,7 @@
 
 画面と情報設計（IA）の正。プロダクト原則は [product.md](./product.md)、Story / Task は [GitHub Issues](https://github.com/sooom1627/stamp-log/issues)。この文書は現在の仕様（目標を含む）だけを書き、Story ごとの判断やスコープ外は Issue に書く。
 
-Figma は使わない。色・余白・トークンはコード（Uniwind）側。この文書は配置・遷移・出す情報だけを決める。
+Figma は使わない。色・文字・余白・角丸の決まりは [DESIGN.md](../DESIGN.md)、値の正はコード（`tailwind.css`）。この文書は配置・遷移・出す情報だけを決める。
 
 ## 書き方
 
