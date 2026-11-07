@@ -58,7 +58,7 @@ export function Button({
           }
         />
       ) : null}
-      <Text className={`text-base font-semibold ${labelClassNames[look]}`}>
+      <Text className={`text-headline font-semibold ${labelClassNames[look]}`}>
         {shownLabel}
       </Text>
     </Pressable>

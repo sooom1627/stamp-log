@@ -14,6 +14,7 @@ import {
 
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
 import { listStamps, saveStamp } from "@/shared/db/stamps-db";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 
 jest.useFakeTimers();
 
@@ -185,5 +186,24 @@ describe("S-035 ST-005 pick photos in the memo sheet", () => {
     await user.press(screen.getByRole("button", { name: "Remove photo 1" }));
 
     expect(screen.getByText("1 / 4")).toBeOnTheScreen();
+  });
+});
+
+describe("S-060 T-003 ST-001 the form sheet follows DESIGN.md", () => {
+  test("keeps the sheet's heading, fields and button on the scales, 24 between groups", async () => {
+    await renderRouter("./src/app", {
+      initialUrl: "/add-stamp-memo?stampId=1",
+    });
+
+    const form = await screen.findByTestId("add-stamp-memo-form");
+    expect(offScaleClassNames(form)).toEqual([]);
+    expect(form).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)gap-6(\s|$)/),
+    );
+    expect(screen.getByRole("heading")).toHaveProp(
+      "className",
+      expect.stringContaining("text-title1"),
+    );
   });
 });

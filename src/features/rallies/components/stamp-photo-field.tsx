@@ -47,10 +47,10 @@ export function StampPhotoField({
   return (
     <View className="gap-2">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-foreground text-sm font-semibold">
+        <Text className="text-foreground text-subhead font-semibold">
           {t("stampForm.photos")}
         </Text>
-        <Text className="text-foreground-muted text-sm">
+        <Text className="text-foreground-muted text-subhead">
           {`${photoUris.length} / ${maxStampPhotos}`}
         </Text>
       </View>
@@ -77,7 +77,7 @@ export function StampPhotoField({
           <Pressable
             role="button"
             aria-label={t("stampForm.addPhotos")}
-            className="border-continuous border-border aspect-square flex-1 items-center justify-center gap-0.5 rounded-xl border-[1.5px] border-dashed active:opacity-70"
+            className="border-continuous border-border aspect-square flex-1 items-center justify-center gap-1 rounded-xl border-[1.5px] border-dashed active:opacity-70"
             onPress={handleAdd}
           >
             <Plus
@@ -85,7 +85,7 @@ export function StampPhotoField({
               size={20}
               strokeWidth={2}
             />
-            <Text className="text-foreground-secondary text-xs">
+            <Text className="text-foreground-secondary text-footnote">
               {t("stampForm.add")}
             </Text>
           </Pressable>
