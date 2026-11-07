@@ -13,6 +13,7 @@ import {
 
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
 import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 
 jest.useFakeTimers();
 
@@ -153,6 +154,19 @@ describe("S-028 RT-001 ST-006 rally day look", () => {
     expect(screen.getByText("No stamp on this day")).toHaveProp(
       "className",
       expect.stringContaining("text-accent-strong"),
+    );
+  });
+});
+
+describe("S-060 T-002 ST-001 rally day follows DESIGN.md", () => {
+  test("draws the empty day on a card corner with type on the scales", async () => {
+    await openRallyDay("Day rules", "2026-09-15");
+
+    const empty = await screen.findByTestId("rally-day-empty");
+    expect(offScaleClassNames(empty)).toEqual([]);
+    expect(empty).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)rounded-card(\s|$)/),
     );
   });
 });

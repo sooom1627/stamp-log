@@ -62,7 +62,7 @@ function CalendarDay({
           testID={`calendar-outside-day-${day.key}`}
           className="size-10 items-center justify-center"
         >
-          <Text className="text-foreground-muted text-base opacity-50">
+          <Text className="text-foreground-muted text-body opacity-50">
             {day.date.getDate()}
           </Text>
         </View>
@@ -97,8 +97,8 @@ function CalendarDay({
           <Text
             className={
               isFuture
-                ? "text-foreground-muted text-base"
-                : "text-foreground text-base"
+                ? "text-foreground-muted text-body"
+                : "text-foreground text-body"
             }
           >
             {day.date.getDate()}
@@ -110,7 +110,7 @@ function CalendarDay({
             aria-hidden
             className="bg-surface border-border absolute -right-1.5 -bottom-1 rounded-full border px-1"
           >
-            <Text className="text-foreground-secondary text-[10px] font-semibold">
+            <Text className="text-foreground-secondary text-caption2 font-semibold">
               +{extraCount}
             </Text>
           </View>
@@ -149,7 +149,7 @@ export function CalendarMonthPage({
         {WEEKDAYS.map((weekday) => (
           <Text
             key={weekday}
-            className="text-foreground-muted flex-1 text-center text-xs"
+            className="text-foreground-muted text-caption2 flex-1 text-center"
           >
             {weekday}
           </Text>

@@ -20,12 +20,12 @@ function SummaryStat({ label, value, hasDivider = false }: SummaryStatProps) {
       testID="rally-summary-stat"
       className={
         hasDivider
-          ? "border-border flex-1 items-center gap-0.5 border-l px-1"
-          : "flex-1 items-center gap-0.5 px-1"
+          ? "border-border flex-1 items-center gap-1 border-l px-1"
+          : "flex-1 items-center gap-1 px-1"
       }
     >
-      <Text className="text-foreground-muted text-xs">{label}</Text>
-      <Text className="text-foreground text-center text-sm font-semibold">
+      <Text className="text-foreground-muted text-caption2">{label}</Text>
+      <Text className="text-foreground text-subhead text-center font-semibold">
         {value}
       </Text>
     </View>
