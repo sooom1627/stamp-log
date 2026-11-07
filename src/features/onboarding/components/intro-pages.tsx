@@ -73,14 +73,14 @@ export function IntroPages({
   const nextLabel = isLastPage ? finishLabel : t("onboarding.next");
 
   return (
-    <View className="flex-1 pb-1.5">
+    <View className="flex-1 pb-2">
       <View className="items-end px-4">
         <Pressable
           role="button"
           onPress={onLeave}
-          className="min-h-11 justify-center px-3.5 active:opacity-70"
+          className="min-h-11 justify-center px-4 active:opacity-70"
         >
-          <Text className="text-foreground-muted text-[15px] font-semibold">
+          <Text className="text-foreground-muted text-subhead font-semibold">
             {leaveLabel}
           </Text>
         </Pressable>
@@ -94,14 +94,14 @@ export function IntroPages({
           <IntroPage pageKey={key} isActive={key === introPageKeys[step]} />
         )}
       />
-      <View className="flex-row items-center justify-between px-6 pt-4">
+      <View className="flex-row items-center justify-between px-5 pt-4">
         <View
           role="img"
           aria-label={t("onboarding.page", {
             n: step + 1,
             total: introPages.length,
           })}
-          className="flex-row items-center gap-1.5"
+          className="flex-row items-center gap-2"
         >
           {introPages.map((page, index) => (
             <PageDot key={page.key} isCurrent={index === step} />
@@ -122,15 +122,15 @@ export function IntroPages({
             role="button"
             aria-label={nextLabel}
             onPress={isLastPage ? onFinish : () => onChangeStep(step + 1)}
-            className="bg-primary active:bg-main-hover h-13 flex-row items-center gap-2 rounded-full pr-[22px] pl-[26px]"
+            className="bg-primary active:bg-main-hover h-13 flex-row items-center gap-2 rounded-full pr-5 pl-6"
           >
-            <Text className="text-primary-foreground text-base font-semibold">
+            <Text className="text-primary-foreground text-headline font-semibold">
               {nextLabel}
             </Text>
             {!isLastPage ? (
               <ChevronRight
                 colorClassName="accent-primary-foreground"
-                size={18}
+                size={20}
               />
             ) : null}
           </Pressable>
@@ -183,26 +183,24 @@ function IntroPage({
       <View className="mt-1 max-h-100 flex-1 px-4">
         <Art isActive={isActive} />
       </View>
-      <View className="mt-8 gap-3 px-6">
+      <View className="mt-8 gap-3 px-5">
         {index === 0 ? (
-          <View className="flex-row items-center gap-2.5">
+          <View className="flex-row items-center gap-2">
             <AtoMark size={32} />
-            <Text className="text-foreground text-[15px] font-bold">Ato</Text>
+            <Text className="text-foreground text-subhead font-bold">Ato</Text>
           </View>
         ) : null}
         <Text
           role="heading"
-          className="text-foreground text-[32px] leading-9 font-bold"
+          className="text-foreground text-large-title font-bold"
         >
           {t(title)}
         </Text>
-        <Text className="text-foreground-muted text-base leading-[23px]">
-          {t(body)}
-        </Text>
+        <Text className="text-foreground-muted text-body-long">{t(body)}</Text>
         {index === 0 ? (
-          <View className="flex-row items-center gap-1.5">
-            <Lock colorClassName="accent-foreground-muted" size={14} />
-            <Text className="text-foreground-muted text-[13px]">
+          <View className="flex-row items-center gap-2">
+            <Lock colorClassName="accent-foreground-muted" size={12} />
+            <Text className="text-foreground-muted text-footnote">
               {t("onboarding.noAccount")}
             </Text>
           </View>
