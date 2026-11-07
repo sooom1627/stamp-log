@@ -63,7 +63,7 @@ export function RallyTile({
 
   return (
     <View
-      className="bg-surface border-continuous gap-3 rounded-[28px] p-4"
+      className="bg-surface border-continuous rounded-card gap-3 p-4"
       style={{ width }}
       testID="rally-tile"
     >
@@ -81,7 +81,7 @@ export function RallyTile({
               <Star
                 colorClassName="accent-foreground-muted"
                 fillClassName="accent-foreground-muted"
-                size={11}
+                size={12}
               />
             </View>
           ) : null}
@@ -136,11 +136,11 @@ export function RallyTile({
         >
           <Text
             numberOfLines={1}
-            className="text-foreground text-[15px] leading-5 font-semibold"
+            className="text-foreground text-subhead font-semibold"
           >
             {name}
           </Text>
-          <Text className="text-foreground-muted text-[13px] font-medium">
+          <Text className="text-foreground-muted text-footnote">
             {formatStampCount(stampCount)}
           </Text>
         </Pressable>

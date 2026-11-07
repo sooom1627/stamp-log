@@ -20,7 +20,9 @@ export const tabRootScreenOptions = {
 // their list header.
 export function TabRootSubtitle({ children }: { children: string }) {
   return (
-    <Text className="text-foreground-secondary mb-4 text-sm">{children}</Text>
+    <Text className="text-foreground-secondary text-subhead mb-4">
+      {children}
+    </Text>
   );
 }
 
