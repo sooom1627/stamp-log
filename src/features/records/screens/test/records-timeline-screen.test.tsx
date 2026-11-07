@@ -1358,3 +1358,32 @@ describe("S-060 T-002 ST-002 Logs day cards follow DESIGN.md", () => {
     ).toHaveProp("className", expect.stringContaining("text-body-long"));
   });
 });
+
+describe("S-060 T-002 ST-003 Logs Album follows DESIGN.md", () => {
+  test("keeps the photo tiles' marks on the scales, with the grid's 2px lines", async () => {
+    const rally = await saveRallyNamed("Album rules", "🧪");
+    const stamp = await saveStamp({
+      rallyId: rally.id,
+      stampedAt: daysAgoAt(1, 9),
+    });
+    await attachPhotos(stamp.id, 2);
+    await showOnlyStamps([stamp.id]);
+    await openLogs();
+
+    const logs = within(await screen.findByLabelText("Logs timeline"));
+    await fireEvent(logs.getByTestId("logs-view-picker"), "selectionChange", {
+      nativeEvent: { selection: "album" },
+    });
+
+    const grid = within(logs.getByTestId("logs-view-pager-album")).getByTestId(
+      "album-grid",
+    );
+    // The 2px lines between photos are DESIGN.md's one spacing exception.
+    expect(
+      offScaleClassNames(grid).filter((name) => name !== "gap-0.5"),
+    ).toEqual([]);
+    expect(
+      within(grid).getByText("2", { includeHiddenElements: true }),
+    ).toHaveProp("className", expect.stringContaining("text-footnote"));
+  });
+});

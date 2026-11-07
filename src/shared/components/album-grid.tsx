@@ -72,7 +72,7 @@ function AlbumRow({ tiles, showsEmoji }: AlbumRowProps) {
               style={{ flex: 1 }}
             />
             {showsEmoji ? (
-              <View className="bg-surface border-continuous absolute bottom-1.5 left-1.5 size-6 items-center justify-center rounded-lg">
+              <View className="bg-surface border-continuous absolute bottom-2 left-2 size-6 items-center justify-center rounded-lg">
                 <Text aria-hidden className="text-xs">
                   {tile.emoji}
                 </Text>
@@ -81,14 +81,14 @@ function AlbumRow({ tiles, showsEmoji }: AlbumRowProps) {
             {tile.photoCount > 1 ? (
               <View
                 aria-hidden
-                className="bg-photo-viewer/70 absolute right-1.5 bottom-1.5 flex-row items-center gap-1 rounded-full px-1.5 py-0.5"
+                className="bg-photo-viewer/70 absolute right-2 bottom-2 flex-row items-center gap-1 rounded-full px-2 py-1"
               >
                 <ImageIcon
                   colorClassName="accent-photo-viewer-foreground"
                   size={12}
                   strokeWidth={2.2}
                 />
-                <Text className="text-photo-viewer-foreground text-xs font-semibold">
+                <Text className="text-photo-viewer-foreground text-footnote font-semibold">
                   {tile.photoCount}
                 </Text>
               </View>

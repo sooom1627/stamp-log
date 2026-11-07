@@ -106,11 +106,11 @@ function StampPhotosPager({
             strokeWidth={2}
           />
         </Pressable>
-        <View className="flex-1 items-center gap-0.5">
-          <Text className="text-photo-viewer-foreground text-base font-semibold">
+        <View className="flex-1 items-center gap-1">
+          <Text className="text-photo-viewer-foreground text-headline font-semibold">
             {`${rally.emoji} ${rally.name}`}
           </Text>
-          <Text className="text-photo-viewer-muted text-sm">
+          <Text className="text-photo-viewer-muted text-subhead">
             {formatStampDateTime(new Date(photos[index].stampedAt))}
           </Text>
         </View>
@@ -162,7 +162,7 @@ function StampPhotosPager({
               />
             ))}
           </View>
-          <Text className="text-photo-viewer-muted text-sm">
+          <Text className="text-photo-viewer-muted text-subhead">
             {`${index + 1} / ${photos.length}`}
           </Text>
         </View>
