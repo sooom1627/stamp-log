@@ -181,7 +181,7 @@ Tasks:
 
 ゴール: ラリーごとに何が集まったか、どれだけ進んだかを確認できるようにする。「集めている」「進んでいる」感覚を与えることを目的とする。
 
-注記: S-002 Done の次はここ。S-003（位置情報）は後回し。実装前に [design.md](../design.md) と該当 `docs/screens/*.md` を `master` に揃える。Tasks はデザインが `master` に入ってから分割する。画面は [home.md](../screens/home.md) / [create-rally.md](../screens/create-rally.md) / [rally-detail.md](../screens/rally-detail.md) / [stamp-detail.md](../screens/stamp-detail.md)。タブの枠は S-018。
+注記: S-002 Done の次はここ。S-003（位置情報）は後回し。実装前に [ia.md](../ia.md) と該当 `docs/screens/*.md` を `master` に揃える。Tasks はデザインが `master` に入ってから分割する。画面は [home.md](../screens/home.md) / [create-rally.md](../screens/create-rally.md) / [rally-detail.md](../screens/rally-detail.md) / [stamp-detail.md](../screens/stamp-detail.md)。タブの枠は S-018。
 
 ### Story: S-018 3つの領域をタブで切り替える
 

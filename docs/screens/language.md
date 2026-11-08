@@ -28,7 +28,7 @@ The app follows your device's language: Japanese for Japanese, English otherwise
 ```
 
 - 選択肢は 3 つ。`Device language`（日本語表示では `端末の言語`）、`English`、`日本語`。`English` と `日本語` はどちらの言語で表示していても、その言語の名前で出す
-- 既定は `Device language`。端末の言語が `ja` なら日本語、それ以外は英語（[design.md](../design.md)「言語」）
+- 既定は `Device language`。端末の言語が `ja` なら日本語、それ以外は英語（[ia.md](../ia.md)「言語」）
 - 行は設定と同じ角丸の面にまとめ、今の選択の右にチェックを出す
 - 面の下に、`Device language` の意味を小さく出す
 

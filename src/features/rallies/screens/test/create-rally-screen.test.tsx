@@ -8,6 +8,7 @@ import {
 } from "@testing-library/react-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 
 jest.mock("@softwhere-uz/react-native-emoji-keyboard");
 
@@ -152,5 +153,22 @@ describe("S-002 T-002 RT-003 ST-002 name required", () => {
     );
 
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+});
+
+describe("S-060 T-003 ST-001 the form sheet follows DESIGN.md", () => {
+  test("keeps the sheet's heading, fields and button on the scales, 24 between groups", async () => {
+    await renderRouter("./src/app", { initialUrl: "/create-rally" });
+
+    const form = await screen.findByTestId("create-rally-form");
+    expect(offScaleClassNames(form)).toEqual([]);
+    expect(form).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)gap-6(\s|$)/),
+    );
+    expect(screen.getByRole("heading")).toHaveProp(
+      "className",
+      expect.stringContaining("text-title1"),
+    );
   });
 });

@@ -17,6 +17,7 @@ import * as ralliesDb from "@/shared/db/rallies-db";
 import * as stampSummaryDb from "@/shared/db/stamp-summary-db";
 import * as stampsDb from "@/shared/db/stamps-db";
 import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 import {
   headerItem,
   headerMenuItems,
@@ -540,11 +541,11 @@ describe("S-029 T-002 ST-001 rally tiles", () => {
       "className",
       expect.stringContaining("flex-row flex-wrap"),
     );
-    // The jest window is 750 wide: (750 - 2 * 20 padding - 10 gap) / 2.
+    // The jest window is 750 wide: (750 - 2 * 20 padding - 12 gap) / 2.
     const tile = within(grid)
       .getAllByTestId("rally-tile")
       .find((candidate) => within(candidate).queryByText("Tile grid check"));
-    expect(tile).toHaveStyle({ width: 350 });
+    expect(tile).toHaveStyle({ width: 349 });
   });
 });
 
@@ -930,7 +931,7 @@ describe("S-039 T-003 ST-003 View All tap target", () => {
     );
     expect(within(viewAll).getByText("View All")).toHaveProp(
       "className",
-      expect.stringContaining("text-base"),
+      expect.stringContaining("text-body"),
     );
   });
 });
@@ -956,13 +957,13 @@ describe("S-050 T-001 ST-003 orange only on today's stamp", () => {
     await renderHomeWithRally("Corner check");
 
     const todayCard = screen.getByTestId("today-card");
-    for (const name of ["bg-surface ", "rounded-[32px]"]) {
+    for (const name of ["bg-surface ", "rounded-card"]) {
       expect(todayCard).toHaveProp("className", expect.stringContaining(name));
     }
     const tile = screen
       .getAllByTestId("rally-tile")
       .find((candidate) => within(candidate).queryByText("Corner check"));
-    for (const name of ["rounded-[28px]", "p-4"]) {
+    for (const name of ["rounded-card", "p-4"]) {
       expect(tile).toHaveProp("className", expect.stringContaining(name));
     }
   });
@@ -1303,5 +1304,38 @@ describe("S-056 T-001 ST-004 today's stamp takes the pressed emoji", () => {
       ["🏃", "Morning run"],
       ["🗼", "Tokyo towers"],
     ]);
+  });
+});
+
+describe("S-060 T-001 ST-002 top cards follow DESIGN.md", () => {
+  test("keeps the top cards' spacing, type and corners on the scales", async () => {
+    await renderHomeWithRally("Scale check");
+
+    expect(offScaleClassNames(screen.getByTestId("top-cards"))).toEqual([]);
+    const todayCard = screen.getByTestId("today-card");
+    for (const name of ["rounded-card", "p-4"]) {
+      expect(todayCard).toHaveProp("className", expect.stringContaining(name));
+    }
+    expect(screen.getByTestId("top-cards")).toHaveProp(
+      "contentContainerClassName",
+      expect.stringContaining("gap-3 "),
+    );
+  });
+});
+
+describe("S-060 T-001 ST-003 the rally grid follows DESIGN.md", () => {
+  test("keeps the heading, tiles and the create tile on the scales", async () => {
+    await renderHomeWithRally("Grid check");
+
+    const grid = screen.getByTestId("rally-grid");
+    expect(offScaleClassNames(grid)).toEqual([]);
+    expect(grid).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)gap-3(\s|$)/),
+    );
+    expect(screen.getByRole("heading", { name: "Your Days" })).toHaveProp(
+      "className",
+      expect.stringContaining("text-title2"),
+    );
   });
 });

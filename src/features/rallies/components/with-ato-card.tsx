@@ -65,25 +65,25 @@ export function WithAtoCard({
     >
       <View className="flex-1 flex-row items-center gap-3">
         <View className="flex-1 gap-1">
-          <Text className="text-foreground text-lg font-semibold">
+          <Text className="text-foreground text-headline font-semibold">
             {dayText}
           </Text>
           <View className="flex-row gap-3">
-            <Text className="text-foreground-secondary text-sm">
+            <Text className="text-foreground-secondary text-subhead">
               {formatStampCount(stampCount)}
             </Text>
-            <Text className="text-foreground-secondary text-sm">
+            <Text className="text-foreground-secondary text-subhead">
               {formatRallyCount(rallies.length)}
             </Text>
           </View>
         </View>
         <CardDisc>
           <View
-            className="w-16 flex-row flex-wrap justify-center gap-0.5"
+            className="w-17 flex-row flex-wrap justify-center gap-1"
             testID="with-ato-emojis"
           >
             {rallies.slice(0, MAX_EMOJIS).map((rally) => (
-              <Text key={rally.id} className="w-5 text-center text-base">
+              <Text key={rally.id} className="text-body w-5 text-center">
                 {rally.emoji}
               </Text>
             ))}

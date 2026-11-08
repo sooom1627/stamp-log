@@ -21,12 +21,12 @@ export function DayCard({ dateKey, date, children }: DayCardProps) {
       <View className="flex-row items-baseline justify-between px-1">
         <Text
           role="heading"
-          className="text-foreground text-base font-semibold"
+          className="text-foreground text-headline font-semibold"
         >
           {title}
         </Text>
         {detail ? (
-          <Text className="text-foreground-muted text-sm">{detail}</Text>
+          <Text className="text-foreground-muted text-subhead">{detail}</Text>
         ) : null}
       </View>
       <View

@@ -77,10 +77,14 @@ export function StampDateTimeErrors({
   return (
     <>
       {isFuture ? (
-        <Text className="text-danger text-sm">{t("stampForm.futureTime")}</Text>
+        <Text className="text-danger text-subhead">
+          {t("stampForm.futureTime")}
+        </Text>
       ) : null}
       {hasStampOnDay ? (
-        <Text className="text-danger text-sm">{t("stampForm.sameDay")}</Text>
+        <Text className="text-danger text-subhead">
+          {t("stampForm.sameDay")}
+        </Text>
       ) : null}
     </>
   );

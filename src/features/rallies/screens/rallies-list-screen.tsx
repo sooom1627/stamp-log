@@ -24,7 +24,7 @@ import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 
 // Matches the screen's px-5 and the grid's gap-2.5.
 const SCREEN_PADDING = 20;
-const TILE_GAP = 10;
+const TILE_GAP = 12;
 
 type RalliesFilter = "all" | "favorites" | "archived";
 
@@ -94,7 +94,10 @@ export function RalliesListScreen() {
         style={{ paddingTop: headerHeight }}
       >
         <View className="gap-4 px-5 pt-2">
-          <Text role="heading" className="text-foreground text-2xl font-bold">
+          <Text
+            role="heading"
+            className="text-foreground text-title2 font-bold"
+          >
             Your Days
           </Text>
           <Host matchContents={{ vertical: true }}>
@@ -128,7 +131,7 @@ export function RalliesListScreen() {
             return (
               <TabScrollView contentContainerClassName="px-5 pt-4">
                 {shownRallies?.length === 0 ? (
-                  <Text className="text-foreground-muted py-12 text-center text-sm">
+                  <Text className="text-foreground-muted text-subhead py-12 text-center">
                     {t(
                       filters.find(({ value }) => value === page)?.empty ??
                         "rallies.noRallies",
@@ -137,7 +140,7 @@ export function RalliesListScreen() {
                 ) : null}
                 {shownRallies?.length ? (
                   <View
-                    className="flex-row flex-wrap gap-2.5"
+                    className="flex-row flex-wrap gap-3"
                     testID="rally-grid"
                   >
                     {shownRallies.map((rally) => (

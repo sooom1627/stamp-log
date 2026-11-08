@@ -30,11 +30,11 @@ export function TopCard({
     <View
       accessible
       aria-label={spokenLabel}
-      className="bg-surface border-continuous h-42 gap-2 rounded-[32px] px-4.5 py-4"
+      className="bg-surface border-continuous rounded-card h-42 gap-2 p-4"
       style={{ width }}
       testID={testID}
     >
-      <View className="mt-0.5 flex-row items-center gap-2">
+      <View className="flex-row items-center gap-2">
         <View
           className={
             tone === "today"
@@ -42,11 +42,9 @@ export function TopCard({
               : "bg-foreground size-1.75 rounded-full"
           }
         />
-        <Text className="text-foreground-muted text-sm font-medium">
-          {label}
-        </Text>
+        <Text className="text-foreground-muted text-footnote">{label}</Text>
         {detail ? (
-          <Text className="text-foreground-muted ml-auto text-sm">
+          <Text className="text-foreground-muted text-footnote ml-auto">
             {detail}
           </Text>
         ) : null}

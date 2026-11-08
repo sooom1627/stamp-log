@@ -9,6 +9,7 @@ import { toast } from "sonner-native";
 import { backupSchema } from "@/features/settings/schemas/backup";
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { saveRally } from "@/shared/db/rallies-db";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 
 import appJson from "../../../../../app.json";
 
@@ -148,5 +149,18 @@ describe("S-041 T-001 ST-005 export data from the settings sheet", () => {
     await fireEvent.press(screen.getByRole("button", { name: /Export data/ }));
 
     expect(shareAsync).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("S-060 T-003 ST-002 settings follow DESIGN.md", () => {
+  test("keeps the rows, group labels and notes on the scales", async () => {
+    await openSettings();
+
+    const sheet = await screen.findByTestId("settings-sheet");
+    expect(offScaleClassNames(sheet)).toEqual([]);
+    expect(sheet).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)gap-6(\s|$)/),
+    );
   });
 });

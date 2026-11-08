@@ -15,6 +15,7 @@ import {
 import { listRallies, saveRally } from "@/shared/db/rallies-db";
 import { listStamps, saveStamp, updateStampMemo } from "@/shared/db/stamps-db";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 
 jest.useFakeTimers();
 
@@ -220,5 +221,26 @@ describe("S-037 T-003 ST-003 page through the day's photos of the rally", () => 
     expect(
       screen.getByText(formatStampDateTime(morningAt, now)),
     ).toBeOnTheScreen();
+  });
+});
+
+describe("S-060 T-002 ST-003 photo viewer follows DESIGN.md", () => {
+  test("keeps the header and the page count on the scales", async () => {
+    const { stamp } = await seedStampWithPhotos("Viewer rules rally", 2);
+
+    await openViewer(stamp.photos[0].id);
+
+    const title = await screen.findByText("🔬 Viewer rules rally");
+    expect(title).toHaveProp(
+      "className",
+      expect.stringContaining("text-headline"),
+    );
+    const header = title.parent?.parent;
+    if (!header) throw new Error("The viewer header is missing");
+    expect(offScaleClassNames(header)).toEqual([]);
+    expect(screen.getByText("1 / 2")).toHaveProp(
+      "className",
+      expect.stringContaining("text-subhead"),
+    );
   });
 });

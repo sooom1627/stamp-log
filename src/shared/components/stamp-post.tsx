@@ -65,11 +65,14 @@ export function StampPost({
       </View>
       <View className="flex-1">
         <View className="flex-row items-baseline gap-2">
-          <Text selectable className="text-foreground text-base font-semibold">
+          <Text
+            selectable
+            className="text-foreground text-headline font-semibold"
+          >
             {title}
           </Text>
           {detail ? (
-            <Text selectable className="text-foreground-muted text-sm">
+            <Text selectable className="text-foreground-muted text-subhead">
               {detail}
             </Text>
           ) : null}
@@ -89,14 +92,14 @@ export function StampPost({
                   photos: `${photoCount} ${photoCount === 1 ? "photo" : "photos"}`,
                 })}
                 hitSlop={10}
-                className="bg-surface-muted flex-row items-center gap-1 self-center rounded-full px-2 py-0.5"
+                className="bg-surface-muted flex-row items-center gap-1 self-center rounded-full px-2 py-1"
               >
                 <ImageIcon
                   colorClassName="accent-text-muted"
-                  size={13}
+                  size={12}
                   strokeWidth={2}
                 />
-                <Text className="text-foreground-secondary text-xs font-semibold">
+                <Text className="text-foreground-secondary text-footnote font-semibold">
                   {photoCount}
                 </Text>
               </Pressable>
@@ -104,11 +107,11 @@ export function StampPost({
           ) : null}
         </View>
         {memo ? (
-          <Text selectable className="text-foreground-secondary text-base">
+          <Text selectable className="text-foreground-secondary text-body-long">
             {memo}
           </Text>
         ) : (
-          <Text className="text-foreground-muted text-base">
+          <Text className="text-foreground-muted text-body">
             {t("stamps.noMemo")}
           </Text>
         )}

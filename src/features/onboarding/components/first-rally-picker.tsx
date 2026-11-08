@@ -71,21 +71,21 @@ export function FirstRallyPicker({
 
   return (
     <View className="flex-1">
-      <View className="items-center gap-2.5 px-6">
-        <Text className="text-accent-strong text-[13px] font-semibold">
+      <View className="items-center gap-2 px-5">
+        <Text className="text-accent-strong text-footnote font-semibold">
           {t("onboarding.lastStep")}
         </Text>
         <Text
           role="heading"
-          className="text-foreground text-center text-[32px] leading-9 font-bold"
+          className="text-foreground text-large-title text-center font-bold"
         >
           {t("onboarding.whatFirst")}
         </Text>
-        <Text className="text-foreground-muted text-center text-base leading-[23px]">
+        <Text className="text-foreground-muted text-body-long text-center">
           {t("onboarding.startWithOne")}
         </Text>
       </View>
-      <View className="mt-6 max-h-98 flex-1 overflow-hidden pt-1.5">
+      <View className="mt-6 max-h-98 flex-1 overflow-hidden pt-2">
         <Animated.ScrollView
           ref={scrollRef}
           onScroll={onScroll}
@@ -118,7 +118,7 @@ export function FirstRallyPicker({
           ))}
         </Animated.ScrollView>
       </View>
-      <View className="mt-3.5 flex-row justify-center gap-2.5">
+      <View className="mt-4 flex-row justify-center gap-2">
         {firstRallyTemplates.map((template, index) => {
           const isSelected = index === selectedIndex;
           return (
@@ -139,7 +139,7 @@ export function FirstRallyPicker({
           );
         })}
       </View>
-      <View className="mt-auto gap-1 px-6 pt-4">
+      <View className="mt-auto gap-1 px-5 pt-4">
         <Pressable
           role="button"
           aria-label={t("onboarding.startWith", { name: t(selected.name) })}
@@ -154,7 +154,7 @@ export function FirstRallyPicker({
               colorClassName="accent-primary-foreground"
             />
           ) : null}
-          <Text className="text-primary-foreground text-base font-semibold">
+          <Text className="text-primary-foreground text-headline font-semibold">
             {t("onboarding.startWith", { name: t(selected.name) })}
           </Text>
         </Pressable>
@@ -164,7 +164,7 @@ export function FirstRallyPicker({
           disabled={isStarting}
           className="h-11 items-center justify-center active:opacity-70"
         >
-          <Text className="text-foreground-muted text-[15px] font-semibold">
+          <Text className="text-foreground-muted text-subhead font-semibold">
             {t("onboarding.makeOwn")}
           </Text>
         </Pressable>

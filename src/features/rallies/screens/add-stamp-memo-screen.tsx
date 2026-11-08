@@ -81,7 +81,7 @@ export function AddStampMemoScreen({ stampId }: AddStampMemoScreenProps) {
           photoUris={photoUris}
           onChangePhotoUris={setPhotoUris}
         />
-        <Text className="text-foreground-muted text-xs">
+        <Text className="text-foreground-muted text-footnote">
           {t("stampForm.memoOrPhotos")}
         </Text>
       </View>

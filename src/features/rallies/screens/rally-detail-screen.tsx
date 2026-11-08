@@ -115,16 +115,16 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
           className="bg-canvas flex-1"
           stickyHeaderIndices={hasStamps ? [1] : undefined}
         >
-          <View className="items-center gap-4 px-5 pt-6">
+          <View className="items-center gap-6 px-5 pt-6">
             <View
               testID="rally-top-panel"
-              className="bg-accent-subtle border-continuous w-full gap-2.5 rounded-3xl px-4 py-3.5"
+              className="bg-accent-subtle border-continuous rounded-card w-full gap-3 p-4"
             >
               {/* Low enough that the whole month calendar fits below without
                   scrolling (S-052). */}
               <View
                 testID="rally-top-panel-head"
-                className="flex-row items-center gap-3.5"
+                className="flex-row items-center gap-3"
               >
                 <View className="bg-background size-15 items-center justify-center rounded-full">
                   <Text className="text-4xl">{rally.emoji}</Text>
@@ -133,16 +133,16 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                   <Text
                     selectable
                     role="heading"
-                    className="text-foreground text-2xl font-bold"
+                    className="text-foreground text-title2 font-bold"
                   >
                     {rally.name}
                   </Text>
                   <View
                     testID="rally-top-panel-count"
-                    className="flex-row items-baseline gap-1.5"
+                    className="flex-row items-baseline gap-1"
                   >
                     {stamps ? (
-                      <Text className="text-accent-strong text-base font-semibold">
+                      <Text className="text-accent-strong text-subhead font-semibold">
                         {formatStampCount(stamps.length)}
                       </Text>
                     ) : null}
@@ -151,12 +151,12 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                         {stamps ? (
                           <Text
                             aria-hidden
-                            className="text-foreground-muted text-sm font-medium"
+                            className="text-foreground-muted text-footnote"
                           >
                             ·
                           </Text>
                         ) : null}
-                        <Text className="text-foreground-muted text-sm font-medium">
+                        <Text className="text-foreground-muted text-footnote">
                           {t("rallies.archived")}
                         </Text>
                       </>
@@ -180,7 +180,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
             />
           </View>
           {hasStamps ? (
-            <View className="bg-canvas px-5 pt-4 pb-2">
+            <View className="bg-canvas px-5 pt-6 pb-2">
               <StampsAlbumPicker
                 testID="rally-view-picker"
                 view={view}
@@ -195,7 +195,7 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
               testIDPrefix="rally-view"
               view={view}
               onChangeView={setView}
-              pageClassName="px-5 pt-4"
+              pageClassName="px-5 pt-2"
               stamps={
                 <View className="gap-6">
                   {sections.map(({ dateKey, data }) => (

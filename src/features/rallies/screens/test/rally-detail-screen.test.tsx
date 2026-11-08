@@ -23,6 +23,7 @@ import {
   formatStampTime,
 } from "@/shared/utils/format-stamp-date-time";
 import { daysAgoAt } from "@/shared/utils/test-helpers/days-ago-at";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 import {
   headerItem,
   headerMenuItems,
@@ -1650,5 +1651,51 @@ describe("S-055 T-001 ST-002 rally detail month heading above the calendar", () 
       panel.queryByRole("button", { name: "Previous month" }),
     ).not.toBeOnTheScreen();
     expect(panel.getByText("Mon")).toBeOnTheScreen();
+  });
+});
+
+describe("S-060 T-002 ST-001 rally detail follows DESIGN.md", () => {
+  test("keeps the top panel and the calendar on the scales", async () => {
+    await openRallyDetail("Design rules");
+
+    const panel = await screen.findByTestId("rally-top-panel");
+    expect(offScaleClassNames(panel)).toEqual([]);
+    expect(panel).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)rounded-card(\s|$)/),
+    );
+    expect(panel).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)p-4(\s|$)/),
+    );
+    expect(
+      within(panel).getByRole("heading", { name: "Design rules" }),
+    ).toHaveProp("className", expect.stringContaining("text-title2"));
+
+    const calendar = screen.getByTestId("rally-calendar");
+    expect(offScaleClassNames(calendar)).toEqual([]);
+    expect(screen.getByTestId("rally-calendar-panel")).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)rounded-card(\s|$)/),
+    );
+  });
+
+  test("puts 24 between the panel, the calendar and the picker", async () => {
+    await openRallyDetail("Section gaps");
+
+    const panel = await screen.findByTestId("rally-top-panel");
+    expect(panel.parent).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)gap-6(\s|$)/),
+    );
+    // The picker's own view draws the segments; its wrapper holds the gap.
+    let pickerWrapper = screen.getByTestId("rally-view-picker").parent;
+    while (pickerWrapper && typeof pickerWrapper.props.className !== "string") {
+      pickerWrapper = pickerWrapper.parent;
+    }
+    expect(pickerWrapper).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)pt-6(\s|$)/),
+    );
   });
 });
