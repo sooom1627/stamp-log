@@ -51,19 +51,21 @@ function SettingsRowItem({ row }: { row: SettingsRow }) {
       onPress={onPress}
       disabled={isBusy}
       aria-busy={isBusy}
-      className="active:bg-surface-muted-active min-h-13 flex-row items-center gap-3 px-4 py-2.5"
+      className="active:bg-surface-muted-active min-h-13 flex-row items-center gap-3 px-4 py-3"
     >
       <View className="border-continuous bg-accent-soft size-8 items-center justify-center rounded-lg">
-        <RowIcon size={18} colorClassName="accent-accent-strong" />
+        <RowIcon size={20} colorClassName="accent-accent-strong" />
       </View>
-      <View className="flex-1 gap-0.5">
-        <Text className="text-foreground text-base">{label}</Text>
+      <View className="flex-1 gap-1">
+        <Text className="text-foreground text-body">{label}</Text>
         {detail ? (
-          <Text className="text-foreground-secondary text-sm">{detail}</Text>
+          <Text className="text-foreground-secondary text-subhead">
+            {detail}
+          </Text>
         ) : null}
       </View>
       {value ? (
-        <Text className="text-foreground-secondary text-base">{value}</Text>
+        <Text className="text-foreground-secondary text-body">{value}</Text>
       ) : null}
       {isExternal ? (
         <ArrowUpRight size={16} colorClassName="accent-foreground-muted" />
@@ -84,7 +86,7 @@ function SettingsGroup({
 }) {
   return (
     <View className="gap-2">
-      <Text className="text-foreground-muted px-4 text-sm font-semibold uppercase">
+      <Text className="text-foreground-muted text-footnote px-4 font-semibold uppercase">
         {title}
       </Text>
       <View className="border-continuous bg-surface-muted overflow-hidden rounded-2xl">
@@ -169,17 +171,17 @@ export function SettingsScreen() {
     <FormSheetLayout
       testID="settings-sheet"
       title={t("settings.title")}
-      className="gap-7"
+      className="gap-6"
     >
       <SettingsGroup title={t("settings.general")} rows={generalRows} />
       <View className="gap-2">
         <SettingsGroup title={t("settings.data")} rows={dataRows} />
-        <Text className="text-foreground-muted px-4 text-sm">
+        <Text className="text-foreground-muted text-footnote px-4">
           {t("settings.photosNotIncluded")}
         </Text>
       </View>
       <SettingsGroup title={t("settings.about")} rows={aboutRows} />
-      <Text className="text-foreground-muted text-center text-sm">
+      <Text className="text-foreground-muted text-footnote text-center">
         {version ? `Ato ${version}` : "Ato"}
       </Text>
     </FormSheetLayout>

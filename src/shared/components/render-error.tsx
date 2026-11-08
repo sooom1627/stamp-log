@@ -13,12 +13,12 @@ export function RenderError({ retry }: RenderErrorProps) {
   const { t } = useTranslation();
 
   return (
-    <View className="bg-background flex-1 justify-center gap-6 px-6">
+    <View className="bg-background flex-1 justify-center gap-6 px-5">
       <View className="items-center gap-2">
-        <Text className="text-foreground text-xl font-semibold">
+        <Text className="text-foreground text-title2 font-bold">
           {t("errors.renderTitle")}
         </Text>
-        <Text className="text-foreground-secondary text-base">
+        <Text className="text-foreground-secondary text-body">
           {t("errors.renderBody")}
         </Text>
       </View>

@@ -5,6 +5,7 @@ import { fireEvent, screen, userEvent } from "@testing-library/react-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { deleteAllRallies } from "@/shared/utils/test-helpers/delete-all-rallies";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 
 import { hasOnboarded, markOnboarded } from "../../db/onboarding-state";
 
@@ -172,5 +173,55 @@ describe("S-047 T-002 ST-001 pick the first rally", () => {
     ).toBeOnTheScreen();
     expect(await ralliesDb.listRallies()).toEqual([]);
     expect(hasOnboarded()).toBe(true);
+  });
+});
+
+describe("S-060 T-003 ST-003 onboarding follows DESIGN.md", () => {
+  test("keeps the intro text, Skip and Next on the scales, with the long line height for the description", async () => {
+    await renderRouter("./src/app");
+
+    const heading = await screen.findByRole("heading", {
+      name: "Look back. It's all there.",
+    });
+    expect(heading).toHaveProp(
+      "className",
+      expect.stringContaining("text-large-title"),
+    );
+    const text = heading.parent;
+    if (!text) throw new Error("The intro text is missing");
+    expect(offScaleClassNames(text)).toEqual([]);
+    expect(text).toHaveProp(
+      "className",
+      expect.stringMatching(/(^|\s)px-5(\s|$)/),
+    );
+    expect(
+      screen.getByText(
+        "Stamp what you collect, when it happens. Your days add up on their own.",
+      ),
+    ).toHaveProp("className", expect.stringContaining("text-body-long"));
+    for (const name of ["Skip", "Next"]) {
+      expect(offScaleClassNames(screen.getByRole("button", { name }))).toEqual(
+        [],
+      );
+    }
+  });
+
+  test("keeps the first rally choice's text and buttons on the scales", async () => {
+    await renderRouter("./src/app");
+    const user = userEvent.setup();
+    await user.press(await screen.findByRole("button", { name: "Skip" }));
+
+    const heading = screen.getByRole("heading", {
+      name: "What will you collect first?",
+    });
+    expect(heading).toHaveProp(
+      "className",
+      expect.stringContaining("text-large-title"),
+    );
+    const text = heading.parent;
+    if (!text) throw new Error("The choice text is missing");
+    expect(offScaleClassNames(text)).toEqual([]);
+    const start = screen.getByRole("button", { name: /^Start with / });
+    expect(offScaleClassNames(start)).toEqual([]);
   });
 });

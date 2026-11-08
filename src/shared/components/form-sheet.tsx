@@ -44,11 +44,11 @@ export function FormSheetLayout({
   const heading = (
     <View className="gap-1">
       {eyebrow ? (
-        <Text className="text-accent-strong text-sm font-semibold">
+        <Text className="text-accent-strong text-subhead font-semibold">
           {eyebrow}
         </Text>
       ) : null}
-      <Text role="heading" className="text-foreground text-3xl font-bold">
+      <Text role="heading" className="text-foreground text-title1 font-bold">
         {title}
       </Text>
     </View>
@@ -61,7 +61,7 @@ export function FormSheetLayout({
       <ScrollView
         testID={testID}
         className="bg-background"
-        contentContainerClassName={`gap-5 px-5 pb-6 ${className}`}
+        contentContainerClassName={`gap-6 px-5 pb-6 ${className}`}
         stickyHeaderIndices={[0]}
       >
         <View
@@ -80,7 +80,7 @@ export function FormSheetLayout({
       testID={testID}
       accessible={false}
       onPress={Keyboard.dismiss}
-      className={`bg-background gap-5 px-5 pt-8 pb-6 ${className}`}
+      className={`bg-background gap-6 px-5 pt-8 pb-6 ${className}`}
     >
       {heading}
       {children}
@@ -96,7 +96,9 @@ type FormFieldProps = {
 export function FormField({ label, children }: FormFieldProps) {
   return (
     <View className="gap-2">
-      <Text className="text-foreground text-sm font-semibold">{label}</Text>
+      <Text className="text-foreground text-subhead font-semibold">
+        {label}
+      </Text>
       {children}
     </View>
   );
@@ -116,7 +118,7 @@ export function FormTextInput({
   return (
     <TextInput
       {...props}
-      className={`border-continuous border-border bg-surface-muted text-foreground focus:border-accent rounded-2xl border px-4 py-3.5 text-base ${className}`}
+      className={`border-continuous border-border bg-surface-muted text-foreground focus:border-accent text-body rounded-2xl border px-4 py-3 ${className}`}
       cursorColorClassName="accent-accent"
       selectionColorClassName="accent-accent"
       placeholderTextColorClassName="accent-text-muted"

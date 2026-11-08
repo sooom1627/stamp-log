@@ -8,6 +8,7 @@ import {
   applyLanguagePreference,
   readLanguagePreference,
 } from "@/shared/i18n/language-preference";
+import { offScaleClassNames } from "@/shared/utils/test-helpers/design-rules";
 
 async function openSettings() {
   await renderRouter("./src/app");
@@ -91,5 +92,15 @@ describe("S-045 T-003 ST-003 language sheet", () => {
     expect(
       await screen.findByRole("button", { name: /Language.*Device language/ }),
     ).toBeOnTheScreen();
+  });
+});
+
+describe("S-060 T-003 ST-002 language sheet follows DESIGN.md", () => {
+  test("keeps the rows and the note on the scales", async () => {
+    await openLanguageSheet();
+
+    expect(offScaleClassNames(screen.getByTestId("language-sheet"))).toEqual(
+      [],
+    );
   });
 });
