@@ -17,11 +17,11 @@ import {
 } from "@/shared/hooks/use-stamps";
 import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
+import { sortRalliesForHome } from "@/shared/utils/sort-rallies-for-home";
 
 import { HomeTopCards } from "../components/home-top-cards";
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
-import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 import { buildTodayLog, countDaysWithAto } from "../utils/today-log";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
