@@ -151,6 +151,7 @@ components:
 | 押せない字・入力欄の薄い字 | text-muted                       | #64748b                     | #64748b                     |
 
 - オレンジ(accent 系)は「今」を表す印にだけ使う。ホームでは今日の判子の輪と、タイルの押した印だけ。7 日の点は文字色で表す。
+- 共有の画像では、いちばん新しいスタンプ 1 つ(ラリーの最後の丸、月の最後のマス)だけを accent にする。ほかの押した印は foreground。
 - 主な操作(保存、作る)は primary(ネイビー)。オレンジのボタンは作らない。
 - 文字は foreground の 3 段だけ。薄い文字は補足と件数に使い、本文には使わない。text-muted は押せない字と入力欄の薄い字にだけ使う。
 
@@ -228,6 +229,14 @@ iOS の行の高さ(body で約 1.3 倍)は欧文に合わせた値で、日本�
 - **行**(設定、言語): 高さ 52 以上、左右 16、上下 12、行の頭のアイコンは 20。
 - **入力欄**: surface-muted、角丸 `rounded-2xl`、左右 16 上下 12、文字は body。
 - **主なボタン**: primary、角丸 `rounded-2xl`、上下 16、文字は headline。
+- **共有の行**(ラリー詳細と Logs のカレンダーの面の中、日付の下): 上に border の線、上 12。左に数(footnote、数は semibold の foreground、続きは foreground-muted)、右に共有のアイコン(16)と `Share`(footnote semibold)。押せる高さは 44。
+- **共有の画像**: 360 × 450 pt で組み、3 倍の 1080 × 1350 px(4:5)で書き出す。下の値は pt。
+  - 地: タブの地と同じグラデーション。内側 24、カードと下のマークの間 12。
+  - カード: surface、角丸 `rounded-card`(書き出すと 60 px)、内側 20。中は上から 頭 → 中身。
+  - 頭: カードの頭と同じ「小さな丸(foreground、直径 8)+ 言葉(footnote semibold)+ 右に補足(footnote、foreground-muted)」。
+  - 大きな数: large-title(34 bold)と、横に単位(subhead semibold、foreground-secondary)。
+  - 下のマーク: ヘッダーの Ato のマーク(20)+ `Ato`(subhead bold)、右に `Look back. It's all there.`(caption2、foreground-muted)。
+  - 色は端末のライト / ダークに関係なくライトの値で描く。
 
 ## Do's and Don'ts
 
