@@ -210,6 +210,7 @@ export const en = {
     share: "Share",
     since: "since {{date}}",
     ralliesInImage: "Rallies in the image",
+    yearReview: "Your {{year}} with Ato",
   },
   calendar: {
     previousMonth: "Previous month",

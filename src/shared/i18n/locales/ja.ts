@@ -213,6 +213,7 @@ export const ja: Translation = {
     share: "共有",
     since: "{{date}} から",
     ralliesInImage: "画像に入れるラリー",
+    yearReview: "{{year}} 年の Ato",
   },
   calendar: {
     previousMonth: "前の月",
