@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import { DayCard } from "@/shared/components/day-card";
 import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
+import { ShareRow } from "@/shared/components/share-row";
 import { StampPost } from "@/shared/components/stamp-post";
 import { StampsAlbumPager } from "@/shared/components/stamps-album-pager";
 import {
@@ -30,7 +31,10 @@ import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
+import {
+  formatStampDate,
+  formatStampTime,
+} from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 import { currentMonth } from "@/shared/utils/month-grid";
 
@@ -176,6 +180,21 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                   pathname: "/rally-day",
                   params: { rallyId: rally.id, date },
                 })
+              }
+              footer={
+                summary ? (
+                  // The whole rally, whatever month the calendar shows.
+                  <ShareRow
+                    count={formatStampCount(stampDates.length)}
+                    detail={t("share.since", {
+                      date: formatStampDate(summary.firstStampedAt, today),
+                    })}
+                    href={{
+                      pathname: "/share-rally",
+                      params: { rallyId: rally.id },
+                    }}
+                  />
+                ) : null
               }
             />
           </View>

@@ -207,6 +207,7 @@ export const en = {
   share: {
     title: "Share image",
     share: "Share",
+    since: "since {{date}}",
   },
   calendar: {
     previousMonth: "Previous month",
