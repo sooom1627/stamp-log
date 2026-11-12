@@ -204,6 +204,10 @@ export const en = {
       hikeMemo4: "A short walk. Still counts.",
     },
   },
+  share: {
+    title: "Share image",
+    share: "Share",
+  },
   calendar: {
     previousMonth: "Previous month",
     nextMonth: "Next month",

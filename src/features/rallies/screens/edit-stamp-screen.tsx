@@ -11,6 +11,7 @@ import {
   FormTextInput,
 } from "@/shared/components/form-sheet";
 import { stampPhotoUri } from "@/shared/db/stamp-photo-files";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 import { useRally } from "@/shared/hooks/use-rallies";
 import {
   useRallyStamps,
@@ -25,7 +26,6 @@ import {
   StampDateTimeFields,
 } from "../components/stamp-date-time-fields";
 import { StampPhotoField } from "../components/stamp-photo-field";
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 
 // Pickers set seconds to 0, so compare at minute precision.
 const toMinutes = (date: Date) => Math.floor(date.getTime() / 60_000);

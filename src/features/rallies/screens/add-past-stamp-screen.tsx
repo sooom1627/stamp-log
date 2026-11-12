@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 import { useRally } from "@/shared/hooks/use-rallies";
 import { useRallyStamps, useSaveStamp } from "@/shared/hooks/use-stamps";
 import { hasStampOnLocalDay } from "@/shared/schemas/stamps";
@@ -17,7 +18,6 @@ import {
   StampDateTimeErrors,
   StampDateTimeFields,
 } from "../components/stamp-date-time-fields";
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 
 type AddPastStampScreenProps = {
   rallyId: number;

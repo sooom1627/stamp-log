@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 import { useRally, useUpdateRally } from "@/shared/hooks/use-rallies";
 import {
   rallyEmojiSchema,
@@ -14,7 +15,6 @@ import {
 } from "@/shared/schemas/rallies";
 
 import { RallyFormFields } from "../components/rally-form-fields";
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 
 type EditRallyScreenProps = {
   rallyId: number;

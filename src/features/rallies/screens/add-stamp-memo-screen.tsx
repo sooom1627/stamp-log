@@ -12,12 +12,12 @@ import {
   FormSheetLayout,
   FormTextInput,
 } from "@/shared/components/form-sheet";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 import { useRally } from "@/shared/hooks/use-rallies";
 import { useStamp, useUpdateStampMemo } from "@/shared/hooks/use-stamps";
 import { updateStampMemoInputSchema } from "@/shared/schemas/stamps";
 
 import { StampPhotoField } from "../components/stamp-photo-field";
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 
 type AddStampMemoScreenProps = {
   stampId: number;

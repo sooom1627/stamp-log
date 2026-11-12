@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/button";
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import { StampPost } from "@/shared/components/stamp-post";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 import { useRally } from "@/shared/hooks/use-rallies";
 import { useRallyStamps } from "@/shared/hooks/use-stamps";
 import { type Rally } from "@/shared/schemas/rallies";
@@ -17,8 +18,6 @@ import {
   localDateKey,
   localDateKeyFromIso,
 } from "@/shared/utils/local-date-key";
-
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 
 type RallyDayScreenProps = {
   rallyId: Rally["id"];

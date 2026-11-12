@@ -18,6 +18,7 @@ import {
 } from "@/shared/components/stamps-album-picker";
 import { TabScrollView } from "@/shared/components/tab-scroll-view";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 import {
   useDeleteRally,
   useRally,
@@ -35,7 +36,6 @@ import { currentMonth } from "@/shared/utils/month-grid";
 
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallySummaryStats } from "../components/rally-summary-stats";
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import { buildRallySummary } from "../utils/rally-summary";
 
 // Stamps that could not be loaded are still deleted with the rally, so the

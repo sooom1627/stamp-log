@@ -11,6 +11,7 @@ import {
   Languages as LucideLanguages,
   Lock as LucideLock,
   Plus as LucidePlus,
+  Share as LucideShare,
   Shield as LucideShield,
   Star as LucideStar,
   Upload as LucideUpload,
@@ -33,6 +34,8 @@ export const Info = withUniwind(LucideInfo);
 export const Languages = withUniwind(LucideLanguages);
 export const Lock = withUniwind(LucideLock);
 export const Plus = withUniwind(LucidePlus);
+// Named ShareIcon so it never shadows React Native's Share API.
+export const ShareIcon = withUniwind(LucideShare);
 export const Shield = withUniwind(LucideShield);
 export const Upload = withUniwind(LucideUpload);
 export const X = withUniwind(LucideX);

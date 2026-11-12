@@ -2,9 +2,9 @@ import { useLocalSearchParams } from "expo-router";
 
 import { type z } from "zod";
 
-import { dateParamSchema, idParamSchema } from "../schemas/route-params";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 
-import { useCloseWhenMissing } from "./use-close-when-missing";
+import { dateParamSchema, idParamSchema } from "../schemas/route-params";
 
 // Reads a URL param in a route file. An invalid value is treated like a
 // missing record: the screen closes and `undefined` is returned.
