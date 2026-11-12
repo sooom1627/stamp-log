@@ -25,11 +25,15 @@ export function ShareMonthScreen({ month }: ShareMonthScreenProps) {
 
   if (!stamps || stamps.length === 0 || !rallies || !summary) return null;
 
-  const share = buildMonthShare(
-    month,
-    stamps,
-    sortRalliesForHome(rallies, summary.countsByRally),
-  );
+  // Home's order: its tiles first, then archived rallies (as home's card).
+  const ralliesInHomeOrder = [
+    ...sortRalliesForHome(
+      rallies.filter((rally) => !rally.isArchived),
+      summary.countsByRally,
+    ),
+    ...rallies.filter((rally) => rally.isArchived),
+  ];
+  const share = buildMonthShare(month, stamps, ralliesInHomeOrder);
 
   return (
     <ShareImageSheet

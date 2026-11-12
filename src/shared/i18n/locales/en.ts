@@ -109,6 +109,7 @@ export const en = {
     todayLogEmpty: "Each stamp today lands on this line.",
     todayLogSpoken: "Today's log, {{stamps}}: {{list}}, {{position}}",
     todayLogSpokenEmpty: "Today's log, no stamps yet, {{position}}",
+    lastMonth: "last month",
     withAto: "With Ato",
     since: "since {{date}}",
     withAtoSpoken: "With Ato, {{days}}, {{stamps}}, {{rallies}}, {{position}}",

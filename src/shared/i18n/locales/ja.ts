@@ -110,6 +110,7 @@ export const ja: Translation = {
     todayLogEmpty: "今日押したスタンプがこの線上に並びます。",
     todayLogSpoken: "今日の記録、{{stamps}}：{{list}}、{{position}}",
     todayLogSpokenEmpty: "今日の記録、まだ押していません、{{position}}",
+    lastMonth: "先月",
     withAto: "Ato との日々",
     since: "{{date}} から",
     withAtoSpoken:
