@@ -63,6 +63,12 @@ function findAlertButton(style: AlertButton["style"]): AlertButton {
   return button;
 }
 
+// The count under the rally's name. The share row under the calendar repeats
+// it (S-058), so the count is read here.
+function topPanelCount() {
+  return within(screen.getByTestId("rally-top-panel-count"));
+}
+
 async function openRallyDetail(
   name: string,
   seed?: (rallyId: number) => Promise<void>,
@@ -80,7 +86,8 @@ async function openRallyDetail(
     router.push(`/rallies/${rally.id}`);
   });
   // The rally's stamps are read when the screen opens.
-  await within(await screen.findByLabelText("Rally detail")).findByText(
+  // The top panel's count: the share row under the calendar repeats it (S-058).
+  await within(await screen.findByTestId("rally-top-panel-count")).findByText(
     /^\d+ stamps?$/,
   );
 
@@ -112,7 +119,7 @@ describe("Rally detail", () => {
     expect(
       screen.getByRole("heading", { name: "Tokyo towers" }),
     ).toBeOnTheScreen();
-    expect(screen.getByText("1 stamp")).toBeOnTheScreen();
+    expect(topPanelCount().getByText("1 stamp")).toBeOnTheScreen();
   });
 });
 
@@ -178,7 +185,7 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
     const { rally } = await openRallyDetail(name, async (rallyId) => {
       await saveStamp({ rallyId, stampedAt: daysAgoAt(1, 12) });
     });
-    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
+    expect(await topPanelCount().findByText("2 stamps")).toBeOnTheScreen();
     // listStamps is newest first, so the last one is the stamp from yesterday.
     const pastStamp = (await stampsOf(rally.id)).at(-1);
     if (!pastStamp) throw new Error("Past stamp not found");
@@ -207,7 +214,7 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
       findAlertButton("destructive").onPress?.();
     });
 
-    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+    expect(await topPanelCount().findByText("1 stamp")).toBeOnTheScreen();
     expect(
       within(screen.getByLabelText("Rally detail")).getAllByText(
         stampDateTimePattern,
@@ -230,7 +237,7 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
       findAlertButton("cancel").onPress?.();
     });
 
-    expect(screen.getByText("2 stamps")).toBeOnTheScreen();
+    expect(topPanelCount().getByText("2 stamps")).toBeOnTheScreen();
     expect(await stampsOf(rally.id)).toHaveLength(2);
   });
 
@@ -249,7 +256,7 @@ describe("S-006 T-001 ST-008 delete stamp from the timeline", () => {
         "Something went wrong. Please try again.",
       );
     });
-    expect(screen.getByText("2 stamps")).toBeOnTheScreen();
+    expect(topPanelCount().getByText("2 stamps")).toBeOnTheScreen();
     expect(await stampsOf(rally.id)).toHaveLength(2);
   });
 });
@@ -305,7 +312,7 @@ describe("S-006 T-001 ST-009 empty and error states", () => {
     const user = userEvent.setup();
     await user.press(within(detail).getByRole("button", { name: "Retry" }));
 
-    expect(await within(detail).findByText("1 stamp")).toBeOnTheScreen();
+    expect(await topPanelCount().findByText("1 stamp")).toBeOnTheScreen();
     expect(within(detail).getAllByText(stampDateTimePattern)).toHaveLength(1);
     expect(within(detail).queryByText("Couldn't load")).not.toBeOnTheScreen();
   });
@@ -430,14 +437,14 @@ describe("S-028 T-001 ST-001 rally actions menu", () => {
 describe("S-028 T-001 ST-002 past stamp from the actions menu", () => {
   test("opens the past stamp formSheet and returns with the new stamp counted", async () => {
     const { rally, user } = await openRallyDetail("Menu past stamp");
-    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+    expect(await topPanelCount().findByText("1 stamp")).toBeOnTheScreen();
 
     await pressHeaderMenuItem("Rally actions", "Past stamp");
 
     expect(await screen.findByTestId("add-past-stamp-form")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Save" }));
 
-    expect(await screen.findByText("2 stamps")).toBeOnTheScreen();
+    expect(await topPanelCount().findByText("2 stamps")).toBeOnTheScreen();
     expect(screen.getByLabelText("Rally detail")).toBeOnTheScreen();
     expect(screen.queryByTestId("add-past-stamp-form")).not.toBeOnTheScreen();
     const stamps = (await listStamps()).filter(
@@ -555,7 +562,7 @@ describe("S-017 T-001 ST-003 confirm names the stamps deleted with the rally", (
 
   test("says its one stamp will also be deleted", async () => {
     await openRallyDetail("Delete one stamp");
-    expect(await screen.findByText("1 stamp")).toBeOnTheScreen();
+    expect(await topPanelCount().findByText("1 stamp")).toBeOnTheScreen();
 
     await pressDelete();
 
@@ -574,7 +581,7 @@ describe("S-017 T-001 ST-003 confirm names the stamps deleted with the rally", (
         await saveStamp({ rallyId: id });
       },
     );
-    expect(await screen.findByText("3 stamps")).toBeOnTheScreen();
+    expect(await topPanelCount().findByText("3 stamps")).toBeOnTheScreen();
 
     await pressDelete();
 

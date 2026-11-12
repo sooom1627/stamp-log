@@ -207,6 +207,11 @@ export const ja: Translation = {
       hikeMemo4: "少しだけ散歩。",
     },
   },
+  share: {
+    title: "画像を共有",
+    share: "共有",
+    since: "{{date}} から",
+  },
   calendar: {
     previousMonth: "前の月",
     nextMonth: "次の月",

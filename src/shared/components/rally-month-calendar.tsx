@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Pressable, Text, View } from "react-native";
 
@@ -51,6 +51,8 @@ type RallyMonthCalendarProps = {
   // Called with true when a swipe starts dragging the months, false when it
   // is let go (Logs dims the stamps below meanwhile).
   onDragChange?: (isDragging: boolean) => void;
+  // Drawn inside the panel below the days (the share row, S-058).
+  footer?: ReactNode;
 };
 
 export function RallyMonthCalendar({
@@ -64,6 +66,7 @@ export function RallyMonthCalendar({
   onChangeMonth,
   firstStampedAt,
   onDragChange,
+  footer,
 }: RallyMonthCalendarProps) {
   const todayKey = localDateKey(useToday());
   const { t } = useTranslation();
@@ -186,6 +189,7 @@ export function RallyMonthCalendar({
               })}
             </Animated.View>
           </View>
+          {footer}
         </View>
       </GestureDetector>
       <MonthPickerSheet

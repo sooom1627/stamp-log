@@ -16,6 +16,7 @@ export const Info = MockIcon;
 export const Languages = MockIcon;
 export const Lock = MockIcon;
 export const Plus = MockIcon;
+export const Share = MockIcon;
 export const Shield = MockIcon;
 export const Star = MockIcon;
 export const Upload = MockIcon;

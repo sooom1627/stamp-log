@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import { DayCard } from "@/shared/components/day-card";
 import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
+import { ShareRow } from "@/shared/components/share-row";
 import { StampPost } from "@/shared/components/stamp-post";
 import { StampsAlbumPager } from "@/shared/components/stamps-album-pager";
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/shared/components/stamps-album-picker";
 import { TabScrollView } from "@/shared/components/tab-scroll-view";
 import { TimelineEmpty } from "@/shared/components/timeline-empty";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 import {
   useDeleteRally,
   useRally,
@@ -29,13 +31,15 @@ import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
 import { albumTiles } from "@/shared/utils/album-photos";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
-import { formatStampTime } from "@/shared/utils/format-stamp-date-time";
+import {
+  formatStampDate,
+  formatStampTime,
+} from "@/shared/utils/format-stamp-date-time";
 import { groupByLocalDay } from "@/shared/utils/group-by-local-day";
 import { currentMonth } from "@/shared/utils/month-grid";
 
 import { RallyActionsMenu } from "../components/rally-actions-menu";
 import { RallySummaryStats } from "../components/rally-summary-stats";
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 import { buildRallySummary } from "../utils/rally-summary";
 
 // Stamps that could not be loaded are still deleted with the rally, so the
@@ -176,6 +180,21 @@ export function RallyDetailScreen({ rallyId }: RallyDetailScreenProps) {
                   pathname: "/rally-day",
                   params: { rallyId: rally.id, date },
                 })
+              }
+              footer={
+                summary ? (
+                  // The whole rally, whatever month the calendar shows.
+                  <ShareRow
+                    count={formatStampCount(stampDates.length)}
+                    detail={t("share.since", {
+                      date: formatStampDate(summary.firstStampedAt, today),
+                    })}
+                    href={{
+                      pathname: "/share-rally",
+                      params: { rallyId: rally.id },
+                    }}
+                  />
+                ) : null
               }
             />
           </View>

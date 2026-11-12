@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { X } from "@/shared/components/icons";
+import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 import { useRally } from "@/shared/hooks/use-rallies";
 import { usePhotoDayStamps } from "@/shared/hooks/use-stamps";
 import { type Rally } from "@/shared/schemas/rallies";
@@ -26,8 +27,6 @@ import {
   type DayRallyPhoto,
 } from "@/shared/utils/album-photos";
 import { formatStampDateTime } from "@/shared/utils/format-stamp-date-time";
-
-import { useCloseWhenMissing } from "../hooks/use-close-when-missing";
 
 type StampPhotosScreenProps = {
   photoId: StampPhoto["id"];

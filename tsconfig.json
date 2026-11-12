@@ -22,7 +22,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@/assets/*": ["./assets/*"]
+      "@/assets/*": ["./assets/*"],
+      "react-native-view-shot": [
+        "./node_modules/react-native-view-shot/lib/index.d.ts"
+      ]
     }
   },
   "include": [
