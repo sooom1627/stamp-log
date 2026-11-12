@@ -1,12 +1,7 @@
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import {
-  act,
-  screen,
-  userEvent,
-  within,
-} from "@testing-library/react-native";
+import { act, screen, userEvent, within } from "@testing-library/react-native";
 
 import * as ralliesDb from "@/shared/db/rallies-db";
 import { saveStamp } from "@/shared/db/stamps-db";
@@ -65,13 +60,11 @@ describe("S-058 T-001 ST-005 share row on rally detail", () => {
       new Date(2026, 9, 25, 21),
     ]);
 
-    await userEvent
-      .setup()
-      .press(
-        within(screen.getByLabelText("Rally detail")).getByRole("button", {
-          name: "Previous month",
-        }),
-      );
+    await userEvent.setup().press(
+      within(screen.getByLabelText("Rally detail")).getByRole("button", {
+        name: "Previous month",
+      }),
+    );
 
     expect(
       within(screen.getByTestId("rally-calendar")).getByText("September 2026"),
