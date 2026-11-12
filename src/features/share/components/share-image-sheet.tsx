@@ -27,6 +27,10 @@ type ShareImageSheetProps = {
   eyebrow: string;
   /** Draws the image into the given ref so Share can capture it. */
   renderImage: (ref: RefObject<ComponentRef<typeof View> | null>) => ReactNode;
+  /** Between the preview and Share (the month and year sheets' rally tags). */
+  children?: ReactNode;
+  /** True when the image has nothing to send. */
+  isShareDisabled?: boolean;
 };
 
 // The share sheet every share route opens: a preview of the image as it will
@@ -35,6 +39,8 @@ export function ShareImageSheet({
   testID,
   eyebrow,
   renderImage,
+  children,
+  isShareDisabled = false,
 }: ShareImageSheetProps) {
   const imageRef = useRef<ComponentRef<typeof View>>(null);
   const { width: windowWidth } = useWindowDimensions();
@@ -55,8 +61,10 @@ export function ShareImageSheet({
           {renderImage(imageRef)}
         </View>
       </View>
+      {children}
       <Button
         label={t("share.share")}
+        disabled={isShareDisabled}
         onPress={() => shareImage(imageRef)}
         isLoading={isSharing}
       />

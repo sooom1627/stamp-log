@@ -212,6 +212,7 @@ export const ja: Translation = {
     title: "画像を共有",
     share: "共有",
     since: "{{date}} から",
+    ralliesInImage: "画像に入れるラリー",
   },
   calendar: {
     previousMonth: "前の月",

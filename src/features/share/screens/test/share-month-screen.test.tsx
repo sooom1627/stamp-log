@@ -98,6 +98,48 @@ describe("S-058 T-003 ST-004 share month sheet", () => {
     expect(list.getByText("3")).toBeOnTheScreen();
   });
 
+  test("a rally turned off leaves the image, which counts again without it", async () => {
+    await saveRally("行ったカフェ", "☕", [
+      new Date(2026, 9, 1, 9),
+      new Date(2026, 9, 7, 9),
+    ]);
+    await saveRally("ひみつ", "🤫", [new Date(2026, 9, 20, 9)]);
+    await openShareMonth("2026-10");
+    const user = userEvent.setup();
+
+    // Every rally stamped in the month starts on, in the rows' order.
+    const toggles = screen.getAllByRole("checkbox");
+    expect(toggles).toHaveLength(2);
+    expect(toggles[0]).toHaveAccessibleName("☕ 行ったカフェ");
+    expect(toggles[1]).toHaveAccessibleName("🤫 ひみつ");
+    expect(toggles[1]).toBeChecked();
+
+    await user.press(screen.getByRole("checkbox", { name: "🤫 ひみつ" }));
+
+    expect(
+      screen.getByRole("checkbox", { name: "🤫 ひみつ" }),
+    ).not.toBeChecked();
+    const image = within(screen.getByTestId("share-image"));
+    expect(image.queryByText("ひみつ")).toBeNull();
+    expect(image.getAllByTestId("month-grid-row")).toHaveLength(1);
+    // The big number and the list both count 2 stamps.
+    expect(image.getAllByText("2")).toHaveLength(2);
+    expect(image.getByText("1 rally")).toBeOnTheScreen();
+    // The last stamp left is Oct 7's, so it is now the orange cell.
+    expect(image.getAllByTestId("month-cell-latest")).toHaveLength(1);
+  });
+
+  test("with every rally off, Share cannot be pressed", async () => {
+    await saveRally("ひみつ", "🤫", [new Date(2026, 9, 20, 9)]);
+    await openShareMonth("2026-10");
+
+    await userEvent
+      .setup()
+      .press(screen.getByRole("checkbox", { name: "🤫 ひみつ" }));
+
+    expect(screen.getByRole("button", { name: "Share" })).toBeDisabled();
+  });
+
   test("Share opens the iOS share sheet with the image", async () => {
     await saveRally("送る月", "🏃", [new Date(2026, 9, 12, 9)]);
     await openShareMonth("2026-10");
