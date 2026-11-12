@@ -81,6 +81,20 @@ describe("S-058 T-004 ST-004 year review", () => {
     expect(firstAndLast.getByText("Oct 20")).toBeOnTheScreen();
   });
 
+  test("Share opens the share sheet for the page on screen", async () => {
+    await saveRally("行ったカフェ", "☕", [new Date(2026, 0, 3, 9)]);
+    const app = await openYearReview("2026");
+
+    await userEvent
+      .setup()
+      .press(screen.getByRole("button", { name: "Share" }));
+
+    await waitFor(() => {
+      expect(app.getPathname()).toBe("/share-year");
+    });
+    expect(app.getSearchParams()).toEqual({ year: "2026", page: "1" });
+  });
+
   test("Close goes back", async () => {
     await saveRally("行ったカフェ", "☕", [new Date(2026, 0, 3, 9)]);
     const app = await openYearReview("2026");

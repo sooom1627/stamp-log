@@ -45,7 +45,14 @@ export function useYearParam(name: string) {
   return useRouteParam(name, yearParamSchema);
 }
 
-// A page of the year review, 1 to 4.
-export function usePageParam(name: string) {
-  return useRouteParam(name, pageParamSchema);
+// The year and the page of the year review's share sheet, checked together
+// so two invalid values close the sheet once (not the screen under it too).
+export function useYearPageParams() {
+  const params = useLocalSearchParams();
+  const year = yearParamSchema.safeParse(params.year);
+  const page = pageParamSchema.safeParse(params.page);
+  const isValid = year.success && page.success;
+  useCloseWhenMissing(!isValid);
+
+  return isValid ? { year: year.data, page: page.data } : undefined;
 }
