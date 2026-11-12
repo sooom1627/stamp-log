@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { type Rally } from "@/shared/schemas/rallies";
 import { formatMediumDate } from "@/shared/utils/format-medium-date";
+import { formatRallyCount } from "@/shared/utils/format-rally-count";
 import { formatSpokenDate } from "@/shared/utils/format-spoken-date";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
@@ -20,10 +21,6 @@ type WithAtoCardProps = {
   width: number;
   position: string;
 };
-
-function formatRallyCount(count: number) {
-  return `${count} ${count === 1 ? "rally" : "rallies"}`;
-}
 
 // The second of home's top cards: the days since the first stamp and what
 // has been collected so far. Not about today, so it keeps off the accent.

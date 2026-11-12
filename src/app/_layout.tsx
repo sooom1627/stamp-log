@@ -105,6 +105,10 @@ export default function RootLayout() {
               options={formSheetOptions}
             />
             <Stack.Screen
+              name="(share)/share-month"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
               name="(stamps)/stamp-photos"
               options={{
                 // iOS full-screen presentation: it has no swipe-down dismiss,

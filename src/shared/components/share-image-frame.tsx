@@ -37,6 +37,8 @@ export function ShareImageFrame({
       <View
         ref={ref}
         testID="share-image"
+        // VoiceOver reads the image as one picture with its label.
+        accessible
         role="img"
         aria-label={ariaLabel}
         // A captured view must be a real native view.

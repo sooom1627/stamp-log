@@ -4,7 +4,11 @@ import { type z } from "zod";
 
 import { useCloseWhenMissing } from "@/shared/hooks/use-close-when-missing";
 
-import { dateParamSchema, idParamSchema } from "../schemas/route-params";
+import {
+  dateParamSchema,
+  idParamSchema,
+  monthParamSchema,
+} from "../schemas/route-params";
 
 // Reads a URL param in a route file. An invalid value is treated like a
 // missing record: the screen closes and `undefined` is returned.
@@ -27,4 +31,9 @@ export function useIdParam(name: string) {
 // A local calendar day such as "2026-09-18", today or earlier.
 export function useDateParam(name: string) {
   return useRouteParam(name, dateParamSchema);
+}
+
+// A local month such as "2026-10", this month or earlier.
+export function useMonthParam(name: string) {
+  return useRouteParam(name, monthParamSchema);
 }
