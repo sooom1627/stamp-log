@@ -13,6 +13,7 @@ import {
   replaceWithBackup,
 } from "@/features/settings/db/backup-db";
 import { backupSchema, type Backup } from "@/features/settings/schemas/backup";
+import { formatRallyCount } from "@/shared/utils/format-rally-count";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 
 // Every screen's data comes from the replaced tables, so every query reloads.
@@ -23,10 +24,6 @@ export function useImportData() {
     mutationFn: replaceWithBackup,
     onSuccess: () => queryClient.invalidateQueries(),
   });
-}
-
-function formatRallyCount(count: number) {
-  return `${count} ${count === 1 ? "rally" : "rallies"}`;
 }
 
 function formatCounts(t: TFunction, { rallies, stamps }: Backup) {

@@ -21,3 +21,14 @@ export const dateParamSchema = z
   .refine(({ value, date }) => localDateKey(date) === value)
   .refine(({ value }) => value <= localDateKey(new Date()))
   .transform(({ date }) => date);
+
+// A local month such as "2026-10", this month or earlier. Parsed into its
+// first local day.
+export const monthParamSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+  .refine((value) => value <= localDateKey(new Date()).slice(0, 7))
+  .transform((value) => {
+    const [year, month] = value.split("-").map(Number);
+    return new Date(year, month - 1, 1);
+  });

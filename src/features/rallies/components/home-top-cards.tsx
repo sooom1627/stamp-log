@@ -10,9 +10,11 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { type Rally } from "@/shared/schemas/rallies";
+import { type MonthShare } from "@/shared/utils/month-share-grid";
 
 import { type TodayLogEntry } from "../utils/today-log";
 
+import { LastMonthCard } from "./last-month-card";
 import { TodayCard } from "./today-card";
 import { TodayLogCard } from "./today-log-card";
 import { WithAtoCard } from "./with-ato-card";
@@ -20,7 +22,6 @@ import { WithAtoCard } from "./with-ato-card";
 // Matches the tab root's px-5 and the row's gap-3.
 const SCREEN_PADDING = 20;
 const CARD_GAP = 12;
-const CARD_COUNT = 3;
 
 type HomeTopCardsProps = {
   windowWidth: number;
@@ -34,6 +35,8 @@ type HomeTopCardsProps = {
   stampCount: number;
   // Every rally made, in home's tile order, archived ones after.
   allRallies: Rally[];
+  // Last month, in the first days of a month with stamps then (S-058).
+  lastMonth: { month: Date; share: MonthShare } | null;
 };
 
 // Home's top cards (S-050), one card wide, swiped one at a time: today,
@@ -48,18 +51,23 @@ export function HomeTopCards({
   firstStampedAt,
   stampCount,
   allRallies,
+  lastMonth,
 }: HomeTopCardsProps) {
+  // Today, last month (only some days), today's log, With Ato.
+  const cardCount = lastMonth ? 4 : 3;
+  // Cards after last month move one place along while it is shown.
+  const shift = lastMonth ? 1 : 0;
   const cardWidth = windowWidth - SCREEN_PADDING * 2;
   const [pageIndex, setPageIndex] = useState(0);
   const { t } = useTranslation();
   const positionOf = (index: number) =>
-    t("home.position", { n: index + 1, total: CARD_COUNT });
+    t("home.position", { n: index + 1, total: cardCount });
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(
       event.nativeEvent.contentOffset.x / (cardWidth + CARD_GAP),
     );
-    setPageIndex(Math.min(Math.max(index, 0), CARD_COUNT - 1));
+    setPageIndex(Math.min(Math.max(index, 0), cardCount - 1));
   };
 
   return (
@@ -83,10 +91,18 @@ export function HomeTopCards({
           width={cardWidth}
           position={positionOf(0)}
         />
+        {lastMonth ? (
+          <LastMonthCard
+            month={lastMonth.month}
+            share={lastMonth.share}
+            width={cardWidth}
+            position={positionOf(1)}
+          />
+        ) : null}
         <TodayLogCard
           entries={todayLog}
           width={cardWidth}
-          position={positionOf(1)}
+          position={positionOf(1 + shift)}
         />
         <WithAtoCard
           days={daysWithAto}
@@ -94,11 +110,11 @@ export function HomeTopCards({
           stampCount={stampCount}
           rallies={allRallies}
           width={cardWidth}
-          position={positionOf(2)}
+          position={positionOf(2 + shift)}
         />
       </ScrollView>
       <View className="mt-3 flex-row justify-center gap-2" aria-hidden>
-        {Array.from({ length: CARD_COUNT }, (_, index) => (
+        {Array.from({ length: cardCount }, (_, index) => (
           <View
             key={index}
             className={

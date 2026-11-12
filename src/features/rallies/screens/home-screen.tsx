@@ -12,16 +12,18 @@ import { TabRootScreen } from "@/shared/components/tab-root-screen";
 import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
 import {
   useFirstStampedAt,
+  useMonthStamps,
   useSaveStamp,
   useStampSummary,
 } from "@/shared/hooks/use-stamps";
 import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
+import { buildMonthShare } from "@/shared/utils/month-share-grid";
+import { sortRalliesForHome } from "@/shared/utils/sort-rallies-for-home";
 
 import { HomeTopCards } from "../components/home-top-cards";
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
-import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 import { buildTodayLog, countDaysWithAto } from "../utils/today-log";
 import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
@@ -29,6 +31,9 @@ import { buildTodayStampedRallies } from "../utils/today-stamped-rallies";
 // Matches the tab root's px-5 and the grid's gap-3.
 const SCREEN_PADDING = 20;
 const TILE_GAP = 12;
+// Last month's card shows on the 1st to this day of a month (S-058, a
+// provisional length).
+const LAST_MONTH_DAYS = 7;
 
 export function HomeScreen() {
   const { t } = useTranslation();
@@ -43,6 +48,8 @@ export function HomeScreen() {
   } = useRalliesAndStamps(useStampSummary(today));
   const { data: firstStampedAt } = useFirstStampedAt();
   const { mutate: saveStamp } = useSaveStamp();
+  const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const { data: lastMonthStamps } = useMonthStamps(lastMonthStart);
 
   // Tiles are ordered by the counts seen when home came into focus, so a
   // tile does not jump away while it is being stamped.
@@ -80,6 +87,13 @@ export function HomeScreen() {
     rallies && orderedRallies
       ? [...orderedRallies, ...rallies.filter((rally) => rally.isArchived)]
       : [];
+  const lastMonth =
+    today.getDate() <= LAST_MONTH_DAYS && lastMonthStamps
+      ? {
+          month: lastMonthStart,
+          share: buildMonthShare(lastMonthStart, lastMonthStamps, allRallies),
+        }
+      : null;
 
   return (
     <TabRootScreen label={t("tabs.home")}>
@@ -102,6 +116,9 @@ export function HomeScreen() {
               0,
             )}
             allRallies={allRallies}
+            lastMonth={
+              lastMonth && lastMonth.share.stampCount > 0 ? lastMonth : null
+            }
           />
         ) : null}
         {isListError ? <LoadError onRetry={retryLists} /> : null}

@@ -230,6 +230,7 @@ iOS の行の高さ(body で約 1.3 倍)は欧文に合わせた値で、日本�
 - **入力欄**: surface-muted、角丸 `rounded-2xl`、左右 16 上下 12、文字は body。
 - **主なボタン**: primary、角丸 `rounded-2xl`、上下 16、文字は headline。
 - **共有の行**(ラリー詳細と Logs のカレンダーの面の中、日付の下): 上に border の線、上 12。左に数(footnote、数は semibold の foreground、続きは foreground-muted)、右に共有のアイコン(16)と `Share`(footnote semibold)。押せる高さは 44。
+- **画像に入れるラリーの札**(月と年の共有のシート): 丸い札(`rounded-full`、左右 12、上下 8、押せる高さは 44)に絵文字 + 名前(footnote semibold)。オンは primary の塗りに primary-foreground の字、オフは border の輪に foreground-muted の字。札の間 8 で折り返す。
 - **共有の画像**: 360 × 450 pt で組み、3 倍の 1080 × 1350 px(4:5)で書き出す。下の値は pt。
   - 地: タブの地と同じグラデーション。内側 24、カードと下のマークの間 12。
   - カード: surface、角丸 `rounded-card`(書き出すと 60 px)、内側 20。中は上から 頭 → 中身。
