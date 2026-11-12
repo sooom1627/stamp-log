@@ -35,6 +35,11 @@ async function openRallyDetail(name: string, days: Date[]) {
   return { app, rally, calendar: within(screen.getByTestId("rally-calendar")) };
 }
 
+// Logs stays mounted in its tab and has a share row too, so read rally detail's.
+function detail() {
+  return within(screen.getByLabelText("Rally detail"));
+}
+
 describe("S-058 T-001 ST-005 share row on rally detail", () => {
   test("shows the rally's whole count and first day under the calendar days", async () => {
     const { calendar } = await openRallyDetail("行ったカフェ", [
@@ -70,7 +75,7 @@ describe("S-058 T-001 ST-005 share row on rally detail", () => {
       within(screen.getByTestId("rally-calendar")).getByText("September 2026"),
     ).toBeOnTheScreen();
     expect(
-      within(screen.getByTestId("share-row")).getByText(
+      within(detail().getByTestId("share-row")).getByText(
         "2 stamps · since Dec 2, 2025",
       ),
     ).toBeOnTheScreen();
@@ -83,7 +88,7 @@ describe("S-058 T-001 ST-005 share row on rally detail", () => {
 
     await userEvent
       .setup()
-      .press(screen.getByRole("button", { name: "Share image" }));
+      .press(detail().getByRole("button", { name: "Share image" }));
 
     expect(await screen.findByTestId("share-rally-sheet")).toBeOnTheScreen();
     expect(app.getPathname()).toBe("/share-rally");
@@ -102,6 +107,6 @@ describe("S-058 T-001 ST-005 share row on rally detail", () => {
     await screen.findByLabelText("Rally detail");
     expect(await screen.findByText("No stamps yet")).toBeOnTheScreen();
 
-    expect(screen.queryByTestId("share-row")).toBeNull();
+    expect(detail().queryByTestId("share-row")).toBeNull();
   });
 });
