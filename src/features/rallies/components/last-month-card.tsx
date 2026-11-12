@@ -75,7 +75,7 @@ export function LastMonthCard({
           </Link>
         </View>
         <View className="flex-1" aria-hidden>
-          <MonthStampGrid month={month} share={share} />
+          <MonthStampGrid share={share} />
         </View>
       </View>
     </TopCard>

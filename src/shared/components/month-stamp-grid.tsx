@@ -3,22 +3,22 @@ import { Text, View } from "react-native";
 import { type MonthShare } from "@/shared/utils/month-share-grid";
 
 type MonthStampGridProps = {
-  month: Date;
   share: MonthShare;
-  /** Labels the 1st and each Monday above the cells (the share image). */
+  /** Labels the 1st, 8th, 15th, 22nd and 29th above the cells (the share image). */
   showDays?: boolean;
 };
 
-function isMonday(month: Date, day: number) {
-  return new Date(month.getFullYear(), month.getMonth(), day).getDay() === 1;
+// The days are split into runs of 7 from the 1st (1–7, 8–14, …), not into
+// calendar weeks, so the labels fall at even steps.
+function startsWeek(day: number) {
+  return day % 7 === 1;
 }
 
 // One row per rally and one cell per day of the month (B1, S-058 T-003): the
 // share image and home's last-month card draw the same grid. Only three
 // cells: not stamped, stamped, and the month's last stamp. A small gap marks
-// where each week starts.
+// where each run of 7 days starts.
 export function MonthStampGrid({
-  month,
   share,
   showDays = false,
 }: MonthStampGridProps) {
@@ -26,19 +26,18 @@ export function MonthStampGrid({
     { length: share.daysInMonth },
     (_, index) => index + 1,
   );
-  // Before a Monday (but not before the 1st), the week gap.
-  const weekGap = (day: number) =>
-    day > 1 && isMonday(month, day) ? "ml-1" : "";
+  // Before the 8th, 15th, 22nd and 29th, the week gap.
+  const weekGap = (day: number) => (day > 1 && startsWeek(day) ? "ml-1" : "");
 
   return (
     <View testID="month-grid" className="gap-px">
       {showDays ? (
-        <View className="flex-row items-end gap-1">
+        <View testID="month-grid-days" className="flex-row items-end gap-1">
           <View className="w-4" />
           <View className="flex-1 flex-row gap-px">
             {days.map((day) => (
               <View key={day} className={`flex-1 items-center ${weekGap(day)}`}>
-                {day === 1 || isMonday(month, day) ? (
+                {startsWeek(day) ? (
                   <Text
                     numberOfLines={1}
                     className="text-foreground-muted text-caption2 w-6 text-center"

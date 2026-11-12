@@ -42,7 +42,7 @@ export function MonthShareImage({ ref, month, share }: MonthShareImageProps) {
           {formatRallyCount(share.rallyCount)}
         </Text>
       </View>
-      <MonthStampGrid month={month} share={share} showDays />
+      <MonthStampGrid share={share} showDays />
       <View
         testID="month-share-list"
         className="border-border gap-1 border-t pt-3"

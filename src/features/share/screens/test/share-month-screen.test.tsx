@@ -45,6 +45,17 @@ async function openShareMonth(month: string) {
 }
 
 describe("S-058 T-003 ST-004 share month sheet", () => {
+  test("labels every 7th day from the 1st above the cells", async () => {
+    await saveRally("行ったカフェ", "☕", [new Date(2026, 9, 1, 9)]);
+
+    await openShareMonth("2026-10");
+
+    const labels = within(screen.getByTestId("month-grid-days"));
+    expect(
+      labels.getAllByText(/^\d+$/).map((label) => label.props.children),
+    ).toEqual([1, 8, 15, 22, 29]);
+  });
+
   test("previews the month image: count, rallies, one row per rally and the list", async () => {
     await saveRally("読んだ本", "📚", [new Date(2026, 9, 3, 9)]);
     await saveRally("行ったカフェ", "☕", [
