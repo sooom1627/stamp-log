@@ -18,6 +18,7 @@ import {
 import { TabScrollView } from "@/shared/components/tab-scroll-view";
 import { useRallies } from "@/shared/hooks/use-rallies";
 import { useFirstStampedAt, useMonthStamps } from "@/shared/hooks/use-stamps";
+import { useToday } from "@/shared/hooks/use-today";
 import { formatRallyCount } from "@/shared/utils/format-rally-count";
 import { formatStampCount } from "@/shared/utils/format-stamp-count";
 import { localDateKey } from "@/shared/utils/local-date-key";
@@ -25,7 +26,9 @@ import { currentMonth } from "@/shared/utils/month-grid";
 import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
 import { LogsMonthStamps } from "../components/logs-month-stamps";
+import { YearReviewEntry } from "../components/year-review-entry";
 import { buildDayMarks } from "../utils/day-marks";
+import { yearReviewYear } from "../utils/look-back";
 
 // The navigation bar once the large title has shrunk (iOS).
 const COLLAPSED_BAR_HEIGHT = 44;
@@ -66,6 +69,8 @@ export function RecordsTimelineScreen() {
   );
   const { data: rallies } = useRallies();
   const { data: firstStampedAt } = useFirstStampedAt();
+  // December and January show the year review's entry (S-058 T-004).
+  const reviewYear = yearReviewYear(useToday());
   const calendarStamps = [
     ...(previousStamps ?? []),
     ...(shownStamps ?? []),
@@ -98,6 +103,7 @@ export function RecordsTimelineScreen() {
       >
         <View className="px-5">
           <TabRootSubtitle>{t("records.subtitle")}</TabRootSubtitle>
+          {reviewYear === null ? null : <YearReviewEntry year={reviewYear} />}
           <View
             testID="logs-month"
             onLayout={({ nativeEvent }) => {
