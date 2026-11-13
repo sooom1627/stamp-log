@@ -1,5 +1,6 @@
 import {
   ArrowUpRight as LucideArrowUpRight,
+  CalendarRange as LucideCalendarRange,
   Check as LucideCheck,
   ChevronLeft as LucideChevronLeft,
   ChevronRight as LucideChevronRight,
@@ -22,6 +23,7 @@ import { withUniwind } from "uniwind";
 // Lucide icons wrapped once for `colorClassName="accent-*"` (Uniwind: never wrap
 // the same component in more than one file). Import icons from here.
 export const ArrowUpRight = withUniwind(LucideArrowUpRight);
+export const CalendarRange = withUniwind(LucideCalendarRange);
 export const Check = withUniwind(LucideCheck);
 export const ChevronLeft = withUniwind(LucideChevronLeft);
 export const ChevronRight = withUniwind(LucideChevronRight);

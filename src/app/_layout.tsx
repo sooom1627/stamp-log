@@ -65,6 +65,10 @@ export default function RootLayout() {
               options={{ presentation: "fullScreenModal", headerShown: false }}
             />
             <Stack.Screen
+              name="(records)/look-back"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
               name="(records)/year-review"
               // Pages turn sideways, like the photo viewer: closed with Close.
               options={{ presentation: "fullScreenModal", headerShown: false }}

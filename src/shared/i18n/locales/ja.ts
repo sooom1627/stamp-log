@@ -136,6 +136,8 @@ export const ja: Translation = {
     importData: "データを読み込む",
     importDetail: "ファイルの内容で、この iPhone のデータを置き換えます",
     photosNotIncluded: "写真は書き出しに含まれません。",
+    records: "記録",
+    lookBack: "振り返り",
     about: "情報",
     aboutAto: "Ato について",
     help: "ヘルプとサポート",
