@@ -1,9 +1,8 @@
-import { Linking } from "react-native";
-
 import { File } from "expo-file-system";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 import { shareAsync } from "expo-sharing";
+import { openBrowserAsync } from "expo-web-browser";
 
 import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import { toast } from "sonner-native";
@@ -88,28 +87,28 @@ describe("S-044 T-001 ST-002 settings sheet", () => {
     expect(screen.getByRole("heading", { name: "Settings" })).toBeOnTheScreen();
   });
 
-  test("opens the support page in the app's language from Help & support", async () => {
-    const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
+  test("opens the support page in the app's language, inside the app, from Help & support", async () => {
+    jest.mocked(openBrowserAsync).mockClear();
     await openSettings();
 
     await fireEvent.press(
       await screen.findByRole("link", { name: /Help & support/ }),
     );
 
-    expect(openURL).toHaveBeenCalledWith(
+    expect(openBrowserAsync).toHaveBeenCalledWith(
       "https://ato-app.pages.dev/support/?lang=en",
     );
   });
 
-  test("opens the privacy policy in the app's language from Privacy Policy", async () => {
-    const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
+  test("opens the privacy policy in the app's language, inside the app, from Privacy Policy", async () => {
+    jest.mocked(openBrowserAsync).mockClear();
     await openSettings();
 
     await fireEvent.press(
       await screen.findByRole("link", { name: /Privacy Policy/ }),
     );
 
-    expect(openURL).toHaveBeenCalledWith(
+    expect(openBrowserAsync).toHaveBeenCalledWith(
       "https://ato-app.pages.dev/privacy/?lang=en",
     );
   });

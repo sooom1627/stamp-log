@@ -1,9 +1,10 @@
 import { Fragment, type ComponentType } from "react";
 
-import { Linking, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
+import { openBrowserAsync } from "expo-web-browser";
 
 import { useTranslation } from "react-i18next";
 
@@ -26,7 +27,8 @@ import {
 import { useFirstStampedAt } from "@/shared/hooks/use-stamps";
 
 // The support site (web/ in this repo, on Cloudflare Pages). Its pages read
-// ?lang= so they open in the app's language.
+// ?lang= so they open in the app's language. They open in Safari inside the
+// app (SFSafariViewController), so closing them comes back to Settings.
 const siteUrl = "https://ato-app.pages.dev";
 
 type IconProps = { size?: number; colorClassName?: string };
@@ -114,7 +116,7 @@ export function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const siteLanguage = i18n.language === "ja" ? "ja" : "en";
   const openSitePage = (path: string) =>
-    void Linking.openURL(`${siteUrl}/${path}/?lang=${siteLanguage}`);
+    void openBrowserAsync(`${siteUrl}/${path}/?lang=${siteLanguage}`);
   const { mutate: exportData, isPending: isExporting } = useExportData();
   // The sheet closes so the tabs show the imported data.
   const { importFromFile, isImporting } = useImportFromFile({

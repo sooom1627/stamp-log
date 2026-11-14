@@ -1,9 +1,10 @@
-import { Alert, Linking } from "react-native";
+import { Alert } from "react-native";
 
 import { getDocumentAsync } from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
+import { openBrowserAsync } from "expo-web-browser";
 
 import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
@@ -69,15 +70,15 @@ describe("S-045 T-002 ST-004 settings in Japanese", () => {
     expect(screen.getByText(`Ato ${appJson.expo.version}`)).toBeOnTheScreen();
   });
 
-  test("Privacy Policy opens the Japanese page", async () => {
-    const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
+  test("Privacy Policy opens the Japanese page inside the app", async () => {
+    jest.mocked(openBrowserAsync).mockClear();
     await openSettings();
 
     await fireEvent.press(
       await screen.findByRole("link", { name: /プライバシーポリシー/ }),
     );
 
-    expect(openURL).toHaveBeenCalledWith(
+    expect(openBrowserAsync).toHaveBeenCalledWith(
       "https://ato-app.pages.dev/privacy/?lang=ja",
     );
   });
