@@ -11,6 +11,8 @@ type TopCardProps = {
   spokenLabel: string;
   width: number;
   testID: string;
+  /** Reads the card as one element. Off when the card holds a button. */
+  isGrouped?: boolean;
   children: ReactNode;
 };
 
@@ -24,12 +26,13 @@ export function TopCard({
   spokenLabel,
   width,
   testID,
+  isGrouped = true,
   children,
 }: TopCardProps) {
   return (
     <View
-      accessible
-      aria-label={spokenLabel}
+      accessible={isGrouped}
+      aria-label={isGrouped ? spokenLabel : undefined}
       className="bg-surface border-continuous rounded-card h-42 gap-2 p-4"
       style={{ width }}
       testID={testID}

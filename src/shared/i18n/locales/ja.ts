@@ -110,6 +110,7 @@ export const ja: Translation = {
     todayLogEmpty: "今日押したスタンプがこの線上に並びます。",
     todayLogSpoken: "今日の記録、{{stamps}}：{{list}}、{{position}}",
     todayLogSpokenEmpty: "今日の記録、まだ押していません、{{position}}",
+    lastMonth: "先月",
     withAto: "Ato との日々",
     since: "{{date}} から",
     withAtoSpoken:
@@ -135,6 +136,8 @@ export const ja: Translation = {
     importData: "データを読み込む",
     importDetail: "ファイルの内容で、この iPhone のデータを置き換えます",
     photosNotIncluded: "写真は書き出しに含まれません。",
+    records: "記録",
+    lookBack: "振り返り",
     about: "情報",
     aboutAto: "Ato について",
     help: "ヘルプとサポート",
@@ -206,6 +209,13 @@ export const ja: Translation = {
       hikeMemo3: "頂上、よく晴れてた。",
       hikeMemo4: "少しだけ散歩。",
     },
+  },
+  share: {
+    title: "画像を共有",
+    share: "共有",
+    since: "{{date}} から",
+    ralliesInImage: "画像に入れるラリー",
+    yearReview: "{{year}} 年の Ato",
   },
   calendar: {
     previousMonth: "前の月",

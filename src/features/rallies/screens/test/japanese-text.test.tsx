@@ -67,8 +67,10 @@ describe("S-045 T-002 ST-002 rally screens in Japanese", () => {
     await act(() => {
       router.push(`/rallies/${rally.id}`);
     });
-    const detail = await screen.findByLabelText("ラリーの詳細");
-    await within(detail).findByText("1 stamp");
+    await screen.findByLabelText("ラリーの詳細");
+    await within(await screen.findByTestId("rally-top-panel-count")).findByText(
+      "1 stamp",
+    );
 
     await pressHeaderMenuItem("ラリーの操作", "ラリーを削除");
 

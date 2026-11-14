@@ -28,6 +28,7 @@ jest.mock("uniwind", () => ({
     backgroundColor: "#ffffff",
     color: "#1e293b",
   }),
+  ScopedTheme: ({ children }: { children: React.ReactNode }) => children,
 }));
 jest.mock("sonner-native", () => {
   const toast = Object.assign(jest.fn(), {

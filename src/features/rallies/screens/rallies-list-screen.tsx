@@ -16,10 +16,10 @@ import { useRalliesAndStamps } from "@/shared/hooks/use-rallies-and-stamps";
 import { useSaveStamp, useStampSummary } from "@/shared/hooks/use-stamps";
 import { useToday } from "@/shared/hooks/use-today";
 import { type Rally } from "@/shared/schemas/rallies";
+import { sortRalliesForHome } from "@/shared/utils/sort-rallies-for-home";
 
 import { RallyTile } from "../components/rally-tile";
 import { showAddMemoToast } from "../components/show-add-memo-toast";
-import { sortRalliesForHome } from "../utils/sort-rallies-for-home";
 import { stampDatesByRally } from "../utils/stamp-dates-by-rally";
 
 // Matches the screen's px-5 and the grid's gap-2.5.

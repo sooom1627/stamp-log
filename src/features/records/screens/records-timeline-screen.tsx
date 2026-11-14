@@ -9,6 +9,7 @@ import Animated, { cubicBezier } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RallyMonthCalendar } from "@/shared/components/rally-month-calendar";
+import { ShareRow } from "@/shared/components/share-row";
 import { type StampsView } from "@/shared/components/stamps-album-picker";
 import {
   TabRootHeader,
@@ -17,11 +18,17 @@ import {
 import { TabScrollView } from "@/shared/components/tab-scroll-view";
 import { useRallies } from "@/shared/hooks/use-rallies";
 import { useFirstStampedAt, useMonthStamps } from "@/shared/hooks/use-stamps";
+import { useToday } from "@/shared/hooks/use-today";
+import { formatRallyCount } from "@/shared/utils/format-rally-count";
+import { formatStampCount } from "@/shared/utils/format-stamp-count";
+import { localDateKey } from "@/shared/utils/local-date-key";
 import { currentMonth } from "@/shared/utils/month-grid";
 import { stampsWithRallies } from "@/shared/utils/stamps-with-rallies";
 
 import { LogsMonthStamps } from "../components/logs-month-stamps";
+import { YearReviewEntry } from "../components/year-review-entry";
 import { buildDayMarks } from "../utils/day-marks";
+import { yearReviewYear } from "../utils/look-back";
 
 // The navigation bar once the large title has shrunk (iOS).
 const COLLAPSED_BAR_HEIGHT = 44;
@@ -62,12 +69,17 @@ export function RecordsTimelineScreen() {
   );
   const { data: rallies } = useRallies();
   const { data: firstStampedAt } = useFirstStampedAt();
+  // December and January show the year review's entry (S-058 T-004).
+  const reviewYear = yearReviewYear(useToday());
   const calendarStamps = [
     ...(previousStamps ?? []),
     ...(shownStamps ?? []),
     ...(nextStamps ?? []),
   ];
   const calendarPosts = stampsWithRallies(calendarStamps, rallies ?? []);
+  // What the share row under the calendar sends: the shown month (S-058).
+  const shownPosts = stampsWithRallies(shownStamps ?? [], rallies ?? []);
+  const shownRallyCount = new Set(shownPosts.map(({ rally }) => rally.id)).size;
 
   const showMonth = (shown: Date) => {
     setMonth(shown);
@@ -91,6 +103,7 @@ export function RecordsTimelineScreen() {
       >
         <View className="px-5">
           <TabRootSubtitle>{t("records.subtitle")}</TabRootSubtitle>
+          {reviewYear === null ? null : <YearReviewEntry year={reviewYear} />}
           <View
             testID="logs-month"
             onLayout={({ nativeEvent }) => {
@@ -108,6 +121,18 @@ export function RecordsTimelineScreen() {
               isRecordedOnly
               onPressDay={(date) =>
                 push({ pathname: "/logs-day", params: { date } })
+              }
+              footer={
+                shownPosts.length > 0 ? (
+                  <ShareRow
+                    count={formatStampCount(shownPosts.length)}
+                    detail={formatRallyCount(shownRallyCount)}
+                    href={{
+                      pathname: "/share-month",
+                      params: { month: localDateKey(month).slice(0, 7) },
+                    }}
+                  />
+                ) : null
               }
             />
           </View>

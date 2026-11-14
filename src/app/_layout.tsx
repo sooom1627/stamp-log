@@ -65,6 +65,15 @@ export default function RootLayout() {
               options={{ presentation: "fullScreenModal", headerShown: false }}
             />
             <Stack.Screen
+              name="(records)/look-back"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(records)/year-review"
+              // Pages turn sideways, like the photo viewer: closed with Close.
+              options={{ presentation: "fullScreenModal", headerShown: false }}
+            />
+            <Stack.Screen
               name="(rallies)/create-rally"
               options={formSheetOptions}
             />
@@ -98,6 +107,18 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="(settings)/language"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(share)/share-rally"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(share)/share-month"
+              options={formSheetOptions}
+            />
+            <Stack.Screen
+              name="(share)/share-year"
               options={formSheetOptions}
             />
             <Stack.Screen

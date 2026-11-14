@@ -1,5 +1,6 @@
 import {
   ArrowUpRight as LucideArrowUpRight,
+  CalendarRange as LucideCalendarRange,
   Check as LucideCheck,
   ChevronLeft as LucideChevronLeft,
   ChevronRight as LucideChevronRight,
@@ -11,6 +12,7 @@ import {
   Languages as LucideLanguages,
   Lock as LucideLock,
   Plus as LucidePlus,
+  Share as LucideShare,
   Shield as LucideShield,
   Star as LucideStar,
   Upload as LucideUpload,
@@ -21,6 +23,7 @@ import { withUniwind } from "uniwind";
 // Lucide icons wrapped once for `colorClassName="accent-*"` (Uniwind: never wrap
 // the same component in more than one file). Import icons from here.
 export const ArrowUpRight = withUniwind(LucideArrowUpRight);
+export const CalendarRange = withUniwind(LucideCalendarRange);
 export const Check = withUniwind(LucideCheck);
 export const ChevronLeft = withUniwind(LucideChevronLeft);
 export const ChevronRight = withUniwind(LucideChevronRight);
@@ -33,6 +36,8 @@ export const Info = withUniwind(LucideInfo);
 export const Languages = withUniwind(LucideLanguages);
 export const Lock = withUniwind(LucideLock);
 export const Plus = withUniwind(LucidePlus);
+// Named ShareIcon so it never shadows React Native's Share API.
+export const ShareIcon = withUniwind(LucideShare);
 export const Shield = withUniwind(LucideShield);
 export const Upload = withUniwind(LucideUpload);
 export const X = withUniwind(LucideX);

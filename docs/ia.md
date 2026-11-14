@@ -38,8 +38,8 @@ Figma は使わない。色・文字・余白・角丸の決まりは [DESIGN.md
 - ラベルと順はこの 2 つで固定。カレンダーは記録の中に置き、タブにしない
 - **タブルート**（ホーム / 記録）に出す
 - **スタック**（ラリー詳細）でも残す。戻ると元のタブ
-- **formSheet**（ラリーを作る / ラリーを編集 / メモと写真を追加 / 過去のスタンプ / スタンプを編集 / ラリーの日 / Logs の日 / 設定 / 言語）では出さない
-- **全画面モーダル**（スタンプの写真）でも出さない
+- **formSheet**（ラリーを作る / ラリーを編集 / メモと写真を追加 / 過去のスタンプ / スタンプを編集 / ラリーの日 / Logs の日 / 設定 / 言語 / 振り返り / 共有の画像）では出さない
+- **全画面モーダル**（スタンプの写真 / 年のまとめ）でも出さない
 - タブバーは中身の上に浮くので、タブバーを出す画面（ホーム / ラリー一覧 / 記録 / ラリー詳細）の縦スクロールは、最後まで送ると最後の中身がタブバーより上で止まる。下の余白はこの全画面で同じにし、画面ごとに決めない
 - アイコンは実装時（iOS は SF Symbol、Android は Material）。色・選択色は Uniwind / システム
 - **タブルートの見出し:** ホームは大見出しが今日の月日（例: `September 20`）、その下に曜日（例: `Sunday`）。記録は大見出しが `Logs`、その下に一言 `Your days, one stamp at a time`（日付は出さない）。挨拶は出さない
@@ -63,7 +63,21 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 記録 ──日付（カレンダー）──► Logs の日（formSheet）
 投稿の写真マーク / Album のマス ──► スタンプの写真（全画面モーダル）
 タブルートの Menu ボタン ──► 設定（formSheet）──► 言語（formSheet）
+設定 ──► 振り返り（formSheet）──► 年のまとめ（全画面モーダル）/ 共有の画像（formSheet。その月）
+ラリー詳細の共有の行 ──► 共有の画像（formSheet。ラリー全体）──► iOS の共有シート
+Logs の共有の行 / ホームの先月のカード ──► 共有の画像（formSheet。その月）──► iOS の共有シート
+Logs の年の入り口 ──► 年のまとめ（全画面モーダル）──► 共有の画像（formSheet。そのページ）──► iOS の共有シート
+共有のリンク ──► ラリーを作る（formSheet。名前と絵文字が入った状態）
 ```
+
+### 共有
+
+記録は、利用者が `Share` を押して iOS の共有シートで送り先を選んだときだけ外に出る（[product.md](./product.md) 2.4）。
+
+- 入り口は 3 つ: ラリー詳細と Logs のカレンダーの面の下にある**共有の行**（同じ部品）、月の初めの 7 日間だけ出るホームの**先月のカード**、年末の決まった期間だけ出る Logs の**年の入り口**
+- どの入り口も [共有の画像](./screens/share-image.md)（formSheet）を開き、画像のプレビューと `Share` を出す。画像は 4:5（1080 × 1350 px）の 1 種類だけ
+- 画像の見た目は [brand.md](./brand.md) 3.3、部品の形は [DESIGN.md](../DESIGN.md) の Components。画像の色は端末のライト / ダークに関係なくライトの値で描く。シートと入り口はアプリと同じくダークに追従する
+- ラリーの共有では、文面にそのラリーの名前と絵文字だけを入れたリンクを付ける。Ato がある iPhone で開くと [ラリーを作る](./screens/create-rally.md) が名前と絵文字の入った状態で開き、Ato が無い端末では App Store へ進む Web ページが開く
 
 ### ラリーの絵文字
 
@@ -116,29 +130,32 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 
 ## 画面一覧
 
-| 画面             | ファイル                                                     | 深さ        | Story                                                         |
-| ---------------- | ------------------------------------------------------------ | ----------- | ------------------------------------------------------------- |
-| ホーム           | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008, S-029, S-032, S-039                      |
-| ラリーを作る     | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-040, S-039                                           |
-| ラリーを編集     | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013, S-040                                                  |
-| メモと写真を追加 | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002, S-035                                                  |
-| 過去のスタンプ   | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                                                         |
-| スタンプを編集   | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014, S-036                                           |
-| ラリー一覧       | [screens/rallies-list.md](./screens/rallies-list.md)         | ワイヤー    | S-039                                                         |
-| ラリー詳細       | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-013, S-025, S-028, S-032, S-039, S-035, S-037 |
-| ラリーの日       | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028, S-035, S-037                                           |
-| 記録（Logs）     | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010, S-011, S-012, S-035, S-037                             |
-| Logs の日        | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012, S-035, S-037                                           |
-| スタンプの写真   | [screens/stamp-photos.md](./screens/stamp-photos.md)         | ワイヤー    | S-037                                                         |
-| 設定             | [screens/settings.md](./screens/settings.md)                 | ワイヤー    | S-044, S-041, S-045                                           |
-| 言語             | [screens/language.md](./screens/language.md)                 | ワイヤー    | S-045                                                         |
-| オンボーディング | [screens/onboarding.md](./screens/onboarding.md)             | ワイヤー    | S-047                                                         |
+| 画面             | ファイル                                                     | 深さ        | Story                                                                |
+| ---------------- | ------------------------------------------------------------ | ----------- | -------------------------------------------------------------------- |
+| ホーム           | [screens/home.md](./screens/home.md)                         | 既存 → 目標 | S-001, S-002, S-008, S-029, S-032, S-039, S-058                      |
+| ラリーを作る     | [screens/create-rally.md](./screens/create-rally.md)         | 既存 → 目標 | S-001, S-040, S-039, S-058                                           |
+| ラリーを編集     | [screens/edit-rally.md](./screens/edit-rally.md)             | ワイヤー    | S-013, S-040                                                         |
+| メモと写真を追加 | [screens/add-stamp-memo.md](./screens/add-stamp-memo.md)     | 既存 → 目標 | S-002, S-035                                                         |
+| 過去のスタンプ   | [screens/add-past-stamp.md](./screens/add-past-stamp.md)     | 既存        | S-025                                                                |
+| スタンプを編集   | [screens/edit-stamp.md](./screens/edit-stamp.md)             | ワイヤー    | S-006, S-014, S-036                                                  |
+| ラリー一覧       | [screens/rallies-list.md](./screens/rallies-list.md)         | ワイヤー    | S-039                                                                |
+| ラリー詳細       | [screens/rally-detail.md](./screens/rally-detail.md)         | 既存 → 目標 | S-006, S-008, S-013, S-025, S-028, S-032, S-039, S-035, S-037, S-058 |
+| ラリーの日       | [screens/rally-day.md](./screens/rally-day.md)               | ワイヤー    | S-028, S-035, S-037                                                  |
+| 記録（Logs）     | [screens/records-timeline.md](./screens/records-timeline.md) | ワイヤー    | S-010, S-011, S-012, S-035, S-037, S-058                             |
+| Logs の日        | [screens/logs-day.md](./screens/logs-day.md)                 | ワイヤー    | S-012, S-035, S-037                                                  |
+| スタンプの写真   | [screens/stamp-photos.md](./screens/stamp-photos.md)         | ワイヤー    | S-037                                                                |
+| 設定             | [screens/settings.md](./screens/settings.md)                 | ワイヤー    | S-044, S-041, S-045                                                  |
+| 言語             | [screens/language.md](./screens/language.md)                 | ワイヤー    | S-045                                                                |
+| オンボーディング | [screens/onboarding.md](./screens/onboarding.md)             | ワイヤー    | S-047                                                                |
+| 共有の画像       | [screens/share-image.md](./screens/share-image.md)           | ワイヤー    | S-058                                                                |
+| 年のまとめ       | [screens/year-review.md](./screens/year-review.md)           | 骨格        | S-058                                                                |
+| 振り返り         | [screens/look-back.md](./screens/look-back.md)               | ワイヤー    | S-058                                                                |
 
 ## ルート案
 
 - `/` — ホーム（タブ）
 - `/onboarding` — オンボーディング（全画面。初回起動だけ、ホームの代わりに開く）
-- `/create-rally` — ラリーを作る（formSheet）
+- `/create-rally?name=&emoji=` — ラリーを作る（formSheet。`name` と `emoji` は任意で、共有のリンクから開いたときの初期値）
 - `/edit-rally?rallyId=` — ラリーを編集（formSheet）
 - `/add-stamp-memo?stampId=` — メモと写真を追加（formSheet）
 - `/add-past-stamp?rallyId=&date=` — 過去の日にスタンプ（formSheet。`date` は任意）
@@ -152,3 +169,10 @@ formSheet はネイティブのヘッダーを出さない。内容の先頭に�
 - `/language` — 言語（formSheet。設定の Language 行から）
 - `/about-ato` — 紹介の見直し（全画面のモーダル。設定の About Ato から）
 - `/stamp-photos?photoId=` — スタンプの写真（全画面モーダル。開いた写真と同じ日・同じラリーの写真をめくる）
+- `/share-rally?rallyId=` — 共有の画像（formSheet。ラリー全体）
+- `/share-month?month=YYYY-MM` — 共有の画像（formSheet。その月）
+- `/look-back` — 振り返り（formSheet。年と月の一覧）
+- `/year-review?year=` — 年のまとめ（全画面モーダル）
+- `/share-year?year=&page=` — 共有の画像（formSheet。年のまとめのそのページ）
+
+共有の画像の 3 つのルートは `src/app/(share)/` に置く（その画面が主に作るものは「共有する画像」で、ラリー・月・年のどれか 1 つの持ち物ではないため）。年のまとめと振り返りは記録を見る画面なので `src/app/(records)/` に置く。
