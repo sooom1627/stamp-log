@@ -8,6 +8,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "expo-router/react-navigation";
+import * as SplashScreen from "expo-splash-screen";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -16,10 +17,15 @@ import { toast, Toaster } from "sonner-native";
 import { useResolveClassNames } from "uniwind";
 
 import { RenderError } from "@/shared/components/render-error";
+import { useHideSplashAfter } from "@/shared/hooks/use-hide-splash-after";
 import { createQueryClient } from "@/shared/query/create-query-client";
 
 import "@/shared/i18n";
 import "../../tailwind.css";
+
+// Show the Ato mark for 1.5 s on launch instead of hiding it on first render.
+void SplashScreen.preventAutoHideAsync();
+const SPLASH_MS = 1500;
 
 // Catches a render error in any route; the layout itself is replaced until retry.
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
@@ -27,6 +33,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 }
 
 export default function RootLayout() {
+  useHideSplashAfter(SPLASH_MS);
   const colorScheme = useColorScheme();
   const sheetBackgroundStyle = useResolveClassNames("bg-background");
   const { t } = useTranslation();
