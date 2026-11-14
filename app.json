@@ -8,11 +8,7 @@
     "scheme": "stamplog",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": {
-        "light": "./assets/images/icon-light.png",
-        "dark": "./assets/images/icon-dark.png",
-        "tinted": "./assets/images/icon-tinted.png"
-      },
+      "icon": "./assets/icon/Ato.icon",
       "bundleIdentifier": "com.sooom1627.stamplog",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
