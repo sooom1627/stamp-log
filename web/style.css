@@ -45,7 +45,8 @@ body {
 }
 
 a {
-  color: var(--accent-strong);
+  color: var(--foreground);
+  text-decoration-color: var(--foreground-muted);
   text-underline-offset: 3px;
 }
 
@@ -100,7 +101,6 @@ a {
 
 .nav a {
   padding: 6px 10px;
-  border-radius: 8px;
   color: var(--foreground-muted);
   font-size: 14px;
   font-weight: 600;
@@ -108,23 +108,25 @@ a {
 }
 
 .nav a[aria-current="page"] {
-  background: var(--surface);
   color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 6px;
 }
 
 /* Language switch */
 
 .lang {
   display: flex;
-  padding: 3px;
-  border-radius: 999px;
-  background: var(--border);
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .lang button {
-  padding: 3px 10px;
+  padding: 2px 10px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 6px;
   background: transparent;
   color: var(--foreground-muted);
   font: inherit;
@@ -134,9 +136,8 @@ a {
 }
 
 .lang button[aria-pressed="true"] {
-  background: var(--surface);
-  color: var(--foreground);
-  box-shadow: 0 1px 3px rgba(30, 41, 59, 0.15);
+  background: var(--foreground);
+  color: var(--surface);
 }
 
 html[lang="en"] [lang="ja"],
@@ -152,11 +153,9 @@ html[lang="ja"] [lang="en"] {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: var(--accent-strong);
+  color: var(--foreground-muted);
   font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 h1 {
@@ -191,8 +190,9 @@ h1 {
 
 .tile {
   padding: 16px;
-  border-radius: 16px;
-  background: var(--accent-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
 }
 
 .tile-icon {
@@ -201,9 +201,9 @@ h1 {
   width: 36px;
   height: 36px;
   margin-bottom: 10px;
-  border-radius: 10px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 .tile-title {
@@ -231,7 +231,8 @@ h1 {
 .card {
   margin: 0 0 12px;
   padding: 24px;
-  border-radius: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
   background: var(--surface);
 }
 
@@ -268,9 +269,9 @@ h1 {
 .button {
   display: inline-block;
   padding: 12px 20px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #ffffff;
+  border-radius: 8px;
+  background: var(--foreground);
+  color: var(--surface);
   font-weight: 700;
   text-decoration: none;
 }
@@ -278,9 +279,11 @@ h1 {
 /* FAQ */
 
 details {
-  margin: 0 0 12px;
-  border-radius: 16px;
-  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+details:last-of-type {
+  border-bottom: 1px solid var(--border);
 }
 
 summary {
@@ -288,7 +291,7 @@ summary {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 24px;
+  padding: 18px 0;
   font-weight: 700;
   cursor: pointer;
   list-style: none;
@@ -311,7 +314,7 @@ details[open] summary::after {
 
 details p {
   margin: 0;
-  padding: 0 24px 20px;
+  padding: 0 0 20px;
   color: var(--foreground-secondary);
 }
 
