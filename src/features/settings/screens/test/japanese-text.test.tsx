@@ -1,4 +1,4 @@
-import { Alert } from "react-native";
+import { Alert, Linking } from "react-native";
 
 import { getDocumentAsync } from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
@@ -67,6 +67,19 @@ describe("S-045 T-002 ST-004 settings in Japanese", () => {
     expect(screen.getByText("プライバシーポリシー")).toBeOnTheScreen();
     expect(screen.getByText("ライセンス")).toBeOnTheScreen();
     expect(screen.getByText(`Ato ${appJson.expo.version}`)).toBeOnTheScreen();
+  });
+
+  test("Privacy Policy opens the Japanese page", async () => {
+    const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
+    await openSettings();
+
+    await fireEvent.press(
+      await screen.findByRole("link", { name: /プライバシーポリシー/ }),
+    );
+
+    expect(openURL).toHaveBeenCalledWith(
+      "https://ato-app.pages.dev/privacy/?lang=ja",
+    );
   });
 
   test("replacing data asks in Japanese with the counts in English", async () => {
