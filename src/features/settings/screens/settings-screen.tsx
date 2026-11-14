@@ -13,6 +13,7 @@ import { useLanguagePreference } from "@/features/settings/hooks/use-language-pr
 import { FormSheetLayout } from "@/shared/components/form-sheet";
 import {
   ArrowUpRight,
+  CalendarRange,
   ChevronRight,
   CircleHelp,
   Download,
@@ -22,6 +23,7 @@ import {
   Shield,
   Upload,
 } from "@/shared/components/icons";
+import { useFirstStampedAt } from "@/shared/hooks/use-stamps";
 
 type IconProps = { size?: number; colorClassName?: string };
 
@@ -113,6 +115,8 @@ export function SettingsScreen() {
     onImported: () => back(),
   });
   const { data: languagePreference } = useLanguagePreference();
+  // Look back shows once there is a stamp to look back on (S-058 T-004).
+  const { data: firstStampedAt } = useFirstStampedAt();
   const languageNames = {
     system: t("language.device"),
     en: "English",
@@ -125,6 +129,14 @@ export function SettingsScreen() {
       icon: Languages,
       role: "button",
       onPress: () => push("/language"),
+    },
+  ];
+  const recordsRows: SettingsRow[] = [
+    {
+      label: t("settings.lookBack"),
+      icon: CalendarRange,
+      role: "button",
+      onPress: () => push("/look-back"),
     },
   ];
   const dataRows: SettingsRow[] = [
@@ -174,6 +186,9 @@ export function SettingsScreen() {
       className="gap-6"
     >
       <SettingsGroup title={t("settings.general")} rows={generalRows} />
+      {firstStampedAt ? (
+        <SettingsGroup title={t("settings.records")} rows={recordsRows} />
+      ) : null}
       <View className="gap-2">
         <SettingsGroup title={t("settings.data")} rows={dataRows} />
         <Text className="text-foreground-muted text-footnote px-4">

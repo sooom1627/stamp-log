@@ -134,6 +134,8 @@ export const en = {
     importData: "Import data",
     importDetail: "Replace this device's data with a file",
     photosNotIncluded: "Photos aren't included in the file yet.",
+    records: "Records",
+    lookBack: "Look back",
     about: "About",
     aboutAto: "About Ato",
     help: "Help & support",
@@ -210,6 +212,7 @@ export const en = {
     share: "Share",
     since: "since {{date}}",
     ralliesInImage: "Rallies in the image",
+    yearReview: "Your {{year}} with Ato",
   },
   calendar: {
     previousMonth: "Previous month",

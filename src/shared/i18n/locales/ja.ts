@@ -136,6 +136,8 @@ export const ja: Translation = {
     importData: "データを読み込む",
     importDetail: "ファイルの内容で、この iPhone のデータを置き換えます",
     photosNotIncluded: "写真は書き出しに含まれません。",
+    records: "記録",
+    lookBack: "振り返り",
     about: "情報",
     aboutAto: "Ato について",
     help: "ヘルプとサポート",
@@ -213,6 +215,7 @@ export const ja: Translation = {
     share: "共有",
     since: "{{date}} から",
     ralliesInImage: "画像に入れるラリー",
+    yearReview: "{{year}} 年の Ato",
   },
   calendar: {
     previousMonth: "前の月",

@@ -32,3 +32,16 @@ export const monthParamSchema = z
     const [year, month] = value.split("-").map(Number);
     return new Date(year, month - 1, 1);
   });
+
+// A year such as "2026", this year or earlier.
+export const yearParamSchema = z
+  .string()
+  .regex(/^\d{4}$/)
+  .transform(Number)
+  .refine((year) => year <= new Date().getFullYear());
+
+// A page of the year review: 1 to 4 (docs/screens/year-review.md).
+export const pageParamSchema = z
+  .string()
+  .regex(/^[1-4]$/)
+  .transform(Number);
