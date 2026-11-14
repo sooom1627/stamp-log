@@ -4,6 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
+import { openBrowserAsync } from "expo-web-browser";
 
 import { useTranslation } from "react-i18next";
 
@@ -25,6 +26,11 @@ import {
 } from "@/shared/components/icons";
 import { useFirstStampedAt } from "@/shared/hooks/use-stamps";
 
+// The support site (web/ in this repo, on Cloudflare Pages). Its pages read
+// ?lang= so they open in the app's language. They open in Safari inside the
+// app (SFSafariViewController), so closing them comes back to Settings.
+const siteUrl = "https://ato-app.pages.dev";
+
 type IconProps = { size?: number; colorClassName?: string };
 
 type SettingsRow = {
@@ -36,8 +42,7 @@ type SettingsRow = {
   // Opens a web page (↗) rather than going further into the app (›).
   isExternal?: boolean;
   role: "button" | "link";
-  // Rows without one do nothing yet: the pages get theirs once their URLs
-  // exist, and Licenses in its own Story.
+  // Licenses has none yet: it gets its own Story.
   onPress?: () => void;
   // Busy rows cannot be pressed again until their action ends.
   isBusy?: boolean;
@@ -108,7 +113,10 @@ function SettingsGroup({
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
   const { back, push } = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const siteLanguage = i18n.language === "ja" ? "ja" : "en";
+  const openSitePage = (path: string) =>
+    void openBrowserAsync(`${siteUrl}/${path}/?lang=${siteLanguage}`);
   const { mutate: exportData, isPending: isExporting } = useExportData();
   // The sheet closes so the tabs show the imported data.
   const { importFromFile, isImporting } = useImportFromFile({
@@ -169,12 +177,14 @@ export function SettingsScreen() {
       icon: CircleHelp,
       isExternal: true,
       role: "link",
+      onPress: () => openSitePage("support"),
     },
     {
       label: t("settings.privacy"),
       icon: Shield,
       isExternal: true,
       role: "link",
+      onPress: () => openSitePage("privacy"),
     },
     { label: t("settings.licenses"), icon: FileText, role: "button" },
   ];

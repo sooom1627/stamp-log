@@ -2,6 +2,7 @@ import { File } from "expo-file-system";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 import { shareAsync } from "expo-sharing";
+import { openBrowserAsync } from "expo-web-browser";
 
 import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import { toast } from "sonner-native";
@@ -21,6 +22,10 @@ jest.mock("expo-constants", () => {
     __esModule: true,
     default: { ...constants, expoConfig: { ...constants.expoConfig, ...expo } },
   };
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 async function openSettings() {
@@ -72,15 +77,40 @@ describe("S-044 T-001 ST-002 settings sheet", () => {
     ).toBeOnTheScreen();
   });
 
-  test("stays on the sheet when a row without an action yet is pressed", async () => {
+  test("stays on the sheet when Licenses, which has no action yet, is pressed", async () => {
+    await openSettings();
+
+    await fireEvent.press(
+      await screen.findByRole("button", { name: /Licenses/ }),
+    );
+
+    expect(screen.getByRole("heading", { name: "Settings" })).toBeOnTheScreen();
+  });
+
+  test("opens the support page in the app's language, inside the app, from Help & support", async () => {
+    jest.mocked(openBrowserAsync).mockClear();
+    await openSettings();
+
+    await fireEvent.press(
+      await screen.findByRole("link", { name: /Help & support/ }),
+    );
+
+    expect(openBrowserAsync).toHaveBeenCalledWith(
+      "https://ato-app.pages.dev/support/?lang=en",
+    );
+  });
+
+  test("opens the privacy policy in the app's language, inside the app, from Privacy Policy", async () => {
+    jest.mocked(openBrowserAsync).mockClear();
     await openSettings();
 
     await fireEvent.press(
       await screen.findByRole("link", { name: /Privacy Policy/ }),
     );
-    await fireEvent.press(screen.getByRole("button", { name: /Licenses/ }));
 
-    expect(screen.getByRole("heading", { name: "Settings" })).toBeOnTheScreen();
+    expect(openBrowserAsync).toHaveBeenCalledWith(
+      "https://ato-app.pages.dev/privacy/?lang=en",
+    );
   });
 });
 

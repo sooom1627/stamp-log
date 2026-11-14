@@ -18,8 +18,8 @@
   - `Export data` → 全データを書き出したファイルを共有シートで出す
   - `Import data` → ファイルを選び、今のデータを置き換える
   - `About Ato` → オンボーディングの紹介 4 枚を見直す（[onboarding.md](./onboarding.md) の「設定から見直す」）
-  - `Help & support` → サポートページ（外部ブラウザ）
-  - `Privacy Policy` → プライバシーポリシーのページ（外部ブラウザ）
+  - `Help & support` → サポートページ `https://ato-app.pages.dev/support/`（アプリ内の Safari（`expo-web-browser` の `openBrowserAsync`）で開き、閉じると設定に戻る。アプリの言語を `?lang=en|ja` で渡す）
+  - `Privacy Policy` → プライバシーポリシー `https://ato-app.pages.dev/privacy/`（同上）。ページの元はリポジトリの `web/`
   - `Licenses` → 使っているオープンソースのライセンスの一覧
 
 ## レイアウト
